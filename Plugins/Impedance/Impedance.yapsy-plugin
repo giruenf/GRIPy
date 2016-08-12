@@ -1,0 +1,9 @@
+[Core]
+Name = Impedance
+Module = Impedance
+
+[Documentation]
+Author = Nome do autor
+Version = 0.1.0
+Website = www.giruenf.net
+Description = Exemplo de plugin simples

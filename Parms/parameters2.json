@@ -1,0 +1,1623 @@
+{
+    "curvetypes": [
+        "Azimuth",
+        "BVW",
+        "BitSize",
+        "CBHP",
+        "CDP",
+        "Caliper",
+        "Coord.",
+        "CoreGD",
+        "CorePerm",
+        "CorePhi",
+        "DVcl",
+        "DeepRes",
+        "Density",
+        "Depth",
+        "Deviation",
+        "Drho",
+        "ECD",
+        "EPT",
+        "FlowRate",
+        "GAS",
+        "GammaRay",
+        "Hookload",
+        "LoadFactor",
+        "Matrix",
+        "MaxHorzStress",
+        "MedRes",
+        "MicroRes",
+        "MinHorzStress",
+        "Mineral",
+        "NMRbfi",
+        "NMRcbfi",
+        "NMRffi",
+        "NMRperm",
+        "NMRphi",
+        "NMRphiT",
+        "NMRswi",
+        "Neutron",
+        "OnBottom",
+        "OrigResPress",
+        "PEF",
+        "Perforations",
+        "Phi",
+        "PhiT",
+        "Pump",
+        "RB_Offset",
+        "ROP",
+        "RotarySpeed",
+        "SP",
+        "ShalRes",
+        "ShearSonic",
+        "ShearVel",
+        "Sigma",
+        "Sonic",
+        "Spectral",
+        "StickSlip",
+        "StressAzimuth",
+        "Sw",
+        "Temp",
+        "Tension",
+        "Tool_Azimuth",
+        "Tool_RelBearng",
+        "Torque",
+        "TwcPredicted",
+        "Vcl",
+        "Vcoal",
+        "Velocity",
+        "VertStress",
+        "Vibration",
+        "Vsalt",
+        "Vsilt",
+        "WeightonBit",
+        "Xaccelerometer",
+        "Xmagnetometer",
+        "Yaccelerometer",
+        "Ymagnetometer",
+        "Zaccelerometer",
+        "Zmagnetometer"
+    ],
+    "mnemtocurvetype": {
+        "ac": {
+            "Sonic": 0
+        },
+        "accx": {
+            "Xaccelerometer": 0
+        },
+        "accy": {
+            "Yaccelerometer": 0
+        },
+        "accz": {
+            "Zaccelerometer": 0
+        },
+        "aht": {
+            "DeepRes": 0
+        },
+        "ao": {
+            "MedRes": 0
+        },
+        "aort": {
+            "DeepRes": 0
+        },
+        "aorx": {
+            "MicroRes": 0
+        },
+        "aplc": {
+            "Neutron": 0
+        },
+        "apsc": {
+            "Neutron": 4
+        },
+        "at": {
+            "ShalRes": 155
+        },
+        "atrt": {
+            "DeepRes": 0
+        },
+        "atrx": {
+            "MicroRes": 0
+        },
+        "ax": {
+            "Xaccelerometer": 0
+        },
+        "ay": {
+            "Yaccelerometer": 0
+        },
+        "az": {
+            "Zaccelerometer": 0
+        },
+        "azi": {
+            "Tool_Azimuth": 0
+        },
+        "azi1c": {
+            "Tool_Azimuth": 0
+        },
+        "azid": {
+            "Azimuth": 0
+        },
+        "bcdl": {
+            "DeepRes": 0
+        },
+        "bcml": {
+            "MicroRes": 0
+        },
+        "bdcm": {
+            "Density": 0
+        },
+        "bdcx": {
+            "Density": 0
+        },
+        "bhtf": {
+            "Temp": 0
+        },
+        "bit": {
+            "BitSize": 0
+        },
+        "bs": {
+            "BitSize": 4
+        },
+        "bvf": {
+            "NMRbfi": 0
+        },
+        "bvw": {
+            "BVW": 0
+        },
+        "bvwirr": {
+            "BVW": 0
+        },
+        "bvwsxo": {
+            "BVW": 0
+        },
+        "bwav": {
+            "WeightonBit": 0
+        },
+        "bx": {
+            "Xmagnetometer": 0
+        },
+        "by": {
+            "Ymagnetometer": 0
+        },
+        "bz": {
+            "Zmagnetometer": 0
+        },
+        "c": {
+            "Caliper": 8
+        },
+        "cal": {
+            "Caliper": 27
+        },
+        "cali": {
+            "Caliper": 107
+        },
+        "caliper": {
+            "Caliper": 0
+        },
+        "calm": {
+            "Caliper": 0
+        },
+        "cals": {
+            "Caliper": 0
+        },
+        "calx": {
+            "Caliper": 0
+        },
+        "caly": {
+            "Caliper": 0
+        },
+        "cbhfp": {
+            "CBHP": 0
+        },
+        "cbhp": {
+            "CBHP": 0
+        },
+        "cdp": {
+            "CDP": 0
+        },
+        "cgr": {
+            "GammaRay": 0
+        },
+        "cmff": {
+            "NMRffi": 0
+        },
+        "cmrp": {
+            "NMRphi": 0
+        },
+        "cmrp_3ms": {
+            "NMRphi": 0
+        },
+        "cn": {
+            "Neutron": 0
+        },
+        "cnc": {
+            "Neutron": 0
+        },
+        "cncf": {
+            "Neutron": 0
+        },
+        "cnllc": {
+            "Neutron": 0
+        },
+        "corr": {
+            "Drho": 0
+        },
+        "cperm": {
+            "CorePerm": 0
+        },
+        "cpor": {
+            "CorePhi": 0
+        },
+        "daz": {
+            "Azimuth": 0
+        },
+        "dcor": {
+            "Drho": 0
+        },
+        "ddll": {
+            "DeepRes": 0
+        },
+        "den": {
+            "Density": 0
+        },
+        "dept": {
+            "Depth": 51
+        },
+        "depth": {
+            "Depth": 27
+        },
+        "dev": {
+            "Deviation": 0
+        },
+        "devi": {
+            "Deviation": 4
+        },
+        "devic": {
+            "Deviation": 0
+        },
+        "dll": {
+            "DeepRes": 0
+        },
+        "dphi": {
+            "Phi": 0
+        },
+        "drhm": {
+            "Drho": 0
+        },
+        "drho": {
+            "Drho": 79
+        },
+        "drhx": {
+            "Drho": 0
+        },
+        "dsll": {
+            "ShalRes": 0
+        },
+        "dt": {
+            "Sonic": 53
+        },
+        "dt-p": {
+            "Sonic": 0
+        },
+        "dt-s": {
+            "ShearSonic": 0
+        },
+        "dt4p": {
+            "Sonic": 2
+        },
+        "dt4s": {
+            "ShearSonic": 0
+        },
+        "dtcm": {
+            "Sonic": 0
+        },
+        "dtco": {
+            "Sonic": 44
+        },
+        "dtf": {
+            "Sonic": 0
+        },
+        "dtln": {
+            "Sonic": 0
+        },
+        "dtma": {
+            "Matrix": 0
+        },
+        "dtn": {
+            "Sonic": 0
+        },
+        "dtrp": {
+            "Sonic": 0
+        },
+        "dts": {
+            "ShearSonic": 1
+        },
+        "dtsm": {
+            "ShearSonic": 35
+        },
+        "eatt": {
+            "EPT": 0
+        },
+        "edist": {
+            "Coord.": 0
+        },
+        "epe": {
+            "PEF": 0
+        },
+        "ept": {
+            "Depth": 1
+        },
+        "febt": {
+            "ECD": 0
+        },
+        "ffia": {
+            "Pump": 0
+        },
+        "fgha": {
+            "GAS": 0
+        },
+        "fipa": {
+            "FlowRate": 0
+        },
+        "flow_avg": {
+            "FlowRate": 0
+        },
+        "flowin_avg": {
+            "FlowRate": 0
+        },
+        "foc": {
+            "ShalRes": 0
+        },
+        "frsa": {
+            "RotarySpeed": 0
+        },
+        "fx": {
+            "Xmagnetometer": 0
+        },
+        "fy": {
+            "Ymagnetometer": 0
+        },
+        "fz": {
+            "Zmagnetometer": 0
+        },
+        "gashydrcbn": {
+            "GAS": 0
+        },
+        "gax": {
+            "Xaccelerometer": 0
+        },
+        "gay": {
+            "Yaccelerometer": 0
+        },
+        "gaz": {
+            "Zaccelerometer": 0
+        },
+        "gcgr": {
+            "GammaRay": 0
+        },
+        "gdc": {
+            "CoreGD": 0
+        },
+        "gdcore": {
+            "CoreGD": 0
+        },
+        "ggk": {
+            "Density": 0
+        },
+        "gk": {
+            "GammaRay": 0
+        },
+        "gr": {
+            "GammaRay": 98
+        },
+        "gr_edtc": {
+            "GammaRay": 7
+        },
+        "gram": {
+            "GammaRay": 0
+        },
+        "grax": {
+            "GammaRay": 0
+        },
+        "grbg": {
+            "GammaRay": 0
+        },
+        "grc": {
+            "GammaRay": 0
+        },
+        "grco": {
+            "GammaRay": 0
+        },
+        "grec": {
+            "GammaRay": 0
+        },
+        "grgc": {
+            "GammaRay": 0
+        },
+        "grk": {
+            "Spectral": 0
+        },
+        "grll": {
+            "GammaRay": 0
+        },
+        "grpo": {
+            "Spectral": 0
+        },
+        "grsg": {
+            "GammaRay": 0
+        },
+        "grth": {
+            "Spectral": 0
+        },
+        "grur": {
+            "Spectral": 0
+        },
+        "gx": {
+            "Xaccelerometer": 0
+        },
+        "gy": {
+            "Yaccelerometer": 0
+        },
+        "gz": {
+            "Zaccelerometer": 0
+        },
+        "hazi": {
+            "Azimuth": 4
+        },
+        "hazic": {
+            "Azimuth": 0
+        },
+        "hazimuth": {
+            "Azimuth": 0
+        },
+        "hcal": {
+            "Caliper": 4
+        },
+        "hden": {
+            "Density": 0
+        },
+        "hdev": {
+            "Deviation": 0
+        },
+        "hdevi": {
+            "Deviation": 0
+        },
+        "hdra": {
+            "Drho": 0
+        },
+        "hdrs": {
+            "DeepRes": 0
+        },
+        "hf": {
+            "DeepRes": 0
+        },
+        "hkav": {
+            "Hookload": 0
+        },
+        "hmrd": {
+            "DeepRes": 0
+        },
+        "hnpo": {
+            "Neutron": 0
+        },
+        "hntp": {
+            "Neutron": 0
+        },
+        "ho": {
+            "MedRes": 0
+        },
+        "hrho": {
+            "Density": 0
+        },
+        "hrms": {
+            "MedRes": 0
+        },
+        "ht": {
+            "DeepRes": 0
+        },
+        "iaaz": {
+            "Tool_Azimuth": 0
+        },
+        "iazi": {
+            "Azimuth": 0
+        },
+        "idph": {
+            "DeepRes": 0
+        },
+        "idphc": {
+            "DeepRes": 0
+        },
+        "ild": {
+            "DeepRes": 41
+        },
+        "ildc": {
+            "DeepRes": 0
+        },
+        "ilm": {
+            "MedRes": 0
+        },
+        "ilmc": {
+            "MedRes": 0
+        },
+        "imph": {
+            "MedRes": 0
+        },
+        "imphc": {
+            "MedRes": 0
+        },
+        "inc": {
+            "Deviation": 0
+        },
+        "ipvf": {
+            "Sonic": 0
+        },
+        "irbr": {
+            "Tool_RelBearng": 0
+        },
+        "isvf": {
+            "ShearSonic": 0
+        },
+        "itlt": {
+            "Deviation": 0
+        },
+        "k": {
+            "Spectral": 1
+        },
+        "k_core": {
+            "CorePerm": 0
+        },
+        "kc": {
+            "CorePerm": 0
+        },
+        "kcmr": {
+            "NMRperm": 0
+        },
+        "kcore": {
+            "CorePerm": 0
+        },
+        "ktim": {
+            "NMRperm": 0
+        },
+        "lf": {
+            "LoadFactor": 0
+        },
+        "lld": {
+            "DeepRes": 22
+        },
+        "lldc": {
+            "DeepRes": 0
+        },
+        "lls": {
+            "ShalRes": 22
+        },
+        "llsc": {
+            "ShalRes": 0
+        },
+        "lodp": {
+            "Depth": 0
+        },
+        "m1r": {
+            "MedRes": 0
+        },
+        "m1rx": {
+            "DeepRes": 0
+        },
+        "m2r": {
+            "MedRes": 0
+        },
+        "m2rx": {
+            "DeepRes": 0
+        },
+        "magx": {
+            "Xmagnetometer": 0
+        },
+        "magy": {
+            "Ymagnetometer": 0
+        },
+        "magz": {
+            "Zmagnetometer": 0
+        },
+        "mbvi": {
+            "NMRbfi": 0
+        },
+        "mcbw": {
+            "NMRcbfi": 0
+        },
+        "mll": {
+            "MicroRes": 0
+        },
+        "mllc": {
+            "MicroRes": 0
+        },
+        "mphe": {
+            "NMRphi": 0
+        },
+        "mphi": {
+            "NMRphi": 0
+        },
+        "mprm": {
+            "NMRperm": 0
+        },
+        "msfl": {
+            "MicroRes": 11
+        },
+        "msflc": {
+            "MicroRes": 0
+        },
+        "ndist": {
+            "Coord.": 0
+        },
+        "neu": {
+            "Neutron": 0
+        },
+        "ngk": {
+            "Neutron": 0
+        },
+        "nmrbf": {
+            "NMRbfi": 0
+        },
+        "nmrcbf": {
+            "NMRcbfi": 0
+        },
+        "nmrff": {
+            "NMRffi": 0
+        },
+        "nmrperm": {
+            "NMRperm": 0
+        },
+        "nmrphi": {
+            "NMRphi": 0
+        },
+        "nmrphit": {
+            "NMRphiT": 0
+        },
+        "nmrswi": {
+            "NMRswi": 0
+        },
+        "nphc": {
+            "Neutron": 0
+        },
+        "nphi": {
+            "Neutron": 70
+        },
+        "nplc": {
+            "Neutron": 0
+        },
+        "nplm": {
+            "Neutron": 0
+        },
+        "nplx": {
+            "Neutron": 0
+        },
+        "npor": {
+            "Neutron": 0
+        },
+        "nprl": {
+            "Neutron": 0
+        },
+        "nrho": {
+            "Density": 0
+        },
+        "obtm": {
+            "OnBottom": 0
+        },
+        "offcb": {
+            "RB_Offset": 0
+        },
+        "offei": {
+            "RB_Offset": 0
+        },
+        "offst": {
+            "RB_Offset": 0
+        },
+        "p1az": {
+            "Tool_Azimuth": 8
+        },
+        "p1az_obmt": {
+            "Tool_Azimuth": 0
+        },
+        "p1az_obmt_": {
+            "Tool_Azimuth": 0
+        },
+        "p1rt": {
+            "Pump": 0
+        },
+        "p2rt": {
+            "Pump": 0
+        },
+        "p3rt": {
+            "Pump": 0
+        },
+        "pdpe": {
+            "PEF": 0
+        },
+        "pe": {
+            "PEF": 1
+        },
+        "pef": {
+            "PEF": 27
+        },
+        "pefz": {
+            "PEF": 2
+        },
+        "perf": {
+            "Perforations": 0
+        },
+        "permcore": {
+            "CorePerm": 0
+        },
+        "phi": {
+            "Phi": 0
+        },
+        "phicore": {
+            "CorePhi": 0
+        },
+        "phie": {
+            "Phi": 11
+        },
+        "phit": {
+            "PhiT": 0
+        },
+        "pinit": {
+            "OrigResPress": 0
+        },
+        "porc": {
+            "CorePhi": 0
+        },
+        "porcore": {
+            "CorePhi": 0
+        },
+        "pota": {
+            "Spectral": 0
+        },
+        "rach": {
+            "DeepRes": 0
+        },
+        "rachm": {
+            "DeepRes": 0
+        },
+        "rachx": {
+            "DeepRes": 0
+        },
+        "racl": {
+            "DeepRes": 0
+        },
+        "raclm": {
+            "DeepRes": 0
+        },
+        "raclx": {
+            "DeepRes": 0
+        },
+        "rakt": {
+            "Spectral": 0
+        },
+        "raku": {
+            "Spectral": 0
+        },
+        "rash": {
+            "ShalRes": 0
+        },
+        "rashm": {
+            "ShalRes": 0
+        },
+        "rashx": {
+            "ShalRes": 0
+        },
+        "rasl": {
+            "DeepRes": 0
+        },
+        "raslm": {
+            "DeepRes": 0
+        },
+        "raslx": {
+            "DeepRes": 0
+        },
+        "raut": {
+            "Spectral": 0
+        },
+        "rb": {
+            "Tool_RelBearng": 8
+        },
+        "rb_obmt": {
+            "Tool_RelBearng": 0
+        },
+        "rb_obmt_": {
+            "Tool_RelBearng": 0
+        },
+        "rbc": {
+            "Tool_RelBearng": 0
+        },
+        "rd": {
+            "DeepRes": 0
+        },
+        "rfoc": {
+            "ShalRes": 0
+        },
+        "rgr": {
+            "GammaRay": 11
+        },
+        "rho": {
+            "Density": 0
+        },
+        "rhob": {
+            "Density": 84
+        },
+        "rhoc": {
+            "Density": 0
+        },
+        "rhoma": {
+            "Matrix": 11
+        },
+        "rhoz": {
+            "Density": 6
+        },
+        "rild": {
+            "DeepRes": 0
+        },
+        "rilm": {
+            "MedRes": 0
+        },
+        "rla": {
+            "MedRes": 0
+        },
+        "rlld": {
+            "DeepRes": 0
+        },
+        "rllg": {
+            "DeepRes": 0
+        },
+        "rlls": {
+            "ShalRes": 0
+        },
+        "rmsl": {
+            "ShalRes": 0
+        },
+        "rmx": {
+            "Xmagnetometer": 0
+        },
+        "rmy": {
+            "Ymagnetometer": 0
+        },
+        "rmz": {
+            "Zmagnetometer": 0
+        },
+        "rob": {
+            "ROP": 0
+        },
+        "ropa": {
+            "ROP": 0
+        },
+        "ros": {
+            "Density": 0
+        },
+        "rpch": {
+            "ShalRes": 0
+        },
+        "rpchm": {
+            "ShalRes": 0
+        },
+        "rpchx": {
+            "ShalRes": 0
+        },
+        "rpcl": {
+            "MedRes": 0
+        },
+        "rpclm": {
+            "MedRes": 0
+        },
+        "rpclx": {
+            "MedRes": 0
+        },
+        "rpmar": {
+            "RotarySpeed": 0
+        },
+        "rpmmnr": {
+            "RotarySpeed": 0
+        },
+        "rpmmxr": {
+            "RotarySpeed": 0
+        },
+        "rpsh": {
+            "ShalRes": 0
+        },
+        "rpshm": {
+            "ShalRes": 0
+        },
+        "rpshx": {
+            "ShalRes": 0
+        },
+        "rpsl": {
+            "ShalRes": 0
+        },
+        "rpslm": {
+            "ShalRes": 0
+        },
+        "rpslx": {
+            "ShalRes": 0
+        },
+        "rs": {
+            "ShalRes": 0
+        },
+        "rsav": {
+            "RotarySpeed": 0
+        },
+        "rsfl": {
+            "ShalRes": 0
+        },
+        "rsn": {
+            "ShalRes": 0
+        },
+        "rt": {
+            "DeepRes": 32
+        },
+        "rtav": {
+            "RotarySpeed": 0
+        },
+        "rtc": {
+            "DeepRes": 0
+        },
+        "rxo": {
+            "MicroRes": 27
+        },
+        "rxoz": {
+            "MicroRes": 0
+        },
+        "sazi": {
+            "StressAzimuth": 0
+        },
+        "sbdc": {
+            "Density": 0
+        },
+        "sbdf": {
+            "Density": 0
+        },
+        "sdt": {
+            "ShearSonic": 0
+        },
+        "sedp": {
+            "DeepRes": 0
+        },
+        "semp": {
+            "MedRes": 0
+        },
+        "sesp": {
+            "ShalRes": 0
+        },
+        "sfl": {
+            "ShalRes": 0
+        },
+        "sflu": {
+            "ShalRes": 41
+        },
+        "sga": {
+            "Sigma": 0
+        },
+        "sgfc": {
+            "Sigma": 0
+        },
+        "sgfm": {
+            "Sigma": 0
+        },
+        "sgin": {
+            "Sigma": 0
+        },
+        "sgk": {
+            "Spectral": 0
+        },
+        "sgma": {
+            "Sigma": 0
+        },
+        "sgnt": {
+            "Sigma": 0
+        },
+        "sgr": {
+            "GammaRay": 0
+        },
+        "shmax": {
+            "MaxHorzStress": 0
+        },
+        "shmin": {
+            "MinHorzStress": 0
+        },
+        "sigm": {
+            "Sigma": 0
+        },
+        "sigma": {
+            "Sigma": 0
+        },
+        "sigmab": {
+            "Sigma": 0
+        },
+        "sigmar": {
+            "Sigma": 0
+        },
+        "sll": {
+            "ShalRes": 0
+        },
+        "sn": {
+            "ShalRes": 0
+        },
+        "sp": {
+            "SP": 41
+        },
+        "spdh": {
+            "SP": 0
+        },
+        "splc": {
+            "Neutron": 0
+        },
+        "splf": {
+            "Neutron": 0
+        },
+        "sslipdr": {
+            "StickSlip": 0
+        },
+        "sv": {
+            "VertStress": 0
+        },
+        "sw": {
+            "Sw": 11
+        },
+        "swb": {
+            "Sw": 0
+        },
+        "swt": {
+            "Sw": 0
+        },
+        "swtu": {
+            "Sw": 0
+        },
+        "swu": {
+            "Sw": 0
+        },
+        "sxo": {
+            "Sw": 0
+        },
+        "sxot": {
+            "Sw": 0
+        },
+        "sxotu": {
+            "Sw": 0
+        },
+        "sxou": {
+            "Sw": 0
+        },
+        "t": {
+            "Temp": 0
+        },
+        "taav": {
+            "Torque": 0
+        },
+        "tcmr": {
+            "NMRphiT": 0
+        },
+        "temp": {
+            "Temp": 4
+        },
+        "tens": {
+            "Tension": 4
+        },
+        "tfba": {
+            "WeightonBit": 0
+        },
+        "tfdp": {
+            "Depth": 0
+        },
+        "tfha": {
+            "Hookload": 0
+        },
+        "tflo": {
+            "FlowRate": 0
+        },
+        "tflo_avg": {
+            "FlowRate": 0
+        },
+        "tfmd": {
+            "Depth": 0
+        },
+        "th": {
+            "Spectral": 1
+        },
+        "thor": {
+            "Spectral": 0
+        },
+        "tnph": {
+            "Neutron": 0
+        },
+        "tnphc": {
+            "Neutron": 0
+        },
+        "torcr": {
+            "Torque": 0
+        },
+        "tpl": {
+            "EPT": 0
+        },
+        "tst": {
+            "Depth": 0
+        },
+        "tten": {
+            "Tension": 0
+        },
+        "tvd": {
+            "Depth": 0
+        },
+        "tvdss": {
+            "Depth": 0
+        },
+        "tvt": {
+            "Depth": 0
+        },
+        "twc": {
+            "TwcPredicted": 0
+        },
+        "u": {
+            "Spectral": 1
+        },
+        "uazi": {
+            "Tool_Azimuth": 0
+        },
+        "uhaz": {
+            "Azimuth": 0
+        },
+        "uran": {
+            "Spectral": 0
+        },
+        "uz": {
+            "PEF": 0
+        },
+        "vcl": {
+            "Vcl": 0
+        },
+        "vclav": {
+            "Vcl": 0
+        },
+        "vclgr": {
+            "Vcl": 0
+        },
+        "vcln": {
+            "Vcl": 0
+        },
+        "vclnd": {
+            "Vcl": 0
+        },
+        "vclns": {
+            "Vcl": 0
+        },
+        "vclr": {
+            "Vcl": 0
+        },
+        "vclsd": {
+            "Vcl": 0
+        },
+        "vclsp": {
+            "Vcl": 0
+        },
+        "vcoal": {
+            "Vcoal": 0
+        },
+        "vdcl": {
+            "DVcl": 0
+        },
+        "vlcm": {
+            "Velocity": 0
+        },
+        "vp": {
+            "Velocity": 27
+        },
+        "vs": {
+            "ShearVel": 27
+        },
+        "vsalt": {
+            "Vsalt": 0
+        },
+        "vsh": {
+            "Vcl": 11
+        },
+        "vshale": {
+            "Mineral": 0
+        },
+        "vsilt": {
+            "Vsilt": 0
+        },
+        "vwcl": {
+            "Vcl": 0
+        },
+        "wobcr": {
+            "WeightonBit": 0
+        },
+        "wtbh": {
+            "Temp": 0
+        },
+        "xdist": {
+            "Coord.": 0
+        },
+        "xy1rmsr": {
+            "Vibration": 0
+        },
+        "ydist": {
+            "Coord.": 0
+        },
+        "z1rmsr": {
+            "Vibration": 0
+        },
+        "zcor": {
+            "Drho": 0
+        },
+        "zden": {
+            "Density": 0
+        },
+        "zdrh": {
+            "Drho": 0
+        },
+        "zpe": {
+            "PEF": 0
+        },
+        "zrho": {
+            "Density": 0
+        }
+    },
+    "mnemtodatatype": {
+        " bulk densitiy correction": {
+            "Log": 1
+        },
+        " delta-t (also called slowness or interval transit time)": {
+            "Log": 1
+        },
+        " dept": {
+            "Log": 1
+        },
+        " gamma ray": {
+            "Log": 1
+        },
+        "apsc": {
+            "Log": 4
+        },
+        "at": {
+            "Log": 155
+        },
+        "atr": {
+            "Log": 27
+        },
+        "bs": {
+            "Log": 4
+        },
+        "bulk": {
+            "Log": 23
+        },
+        "c": {
+            "Log": 8
+        },
+        "ca": {
+            "Log": 1
+        },
+        "cal": {
+            "Log": 27
+        },
+        "cali": {
+            "Log": 107
+        },
+        "cs": {
+            "Log": 4
+        },
+        "ctn ": {
+            "Log": 2
+        },
+        "db": {
+            "Log": 16
+        },
+        "delt": {
+            "Log": 21
+        },
+        "dens": {
+            "Log": 2
+        },
+        "dept": {
+            "Depth": 51
+        },
+        "depth": {
+            "Depth": 23,
+            "Log": 5
+        },
+        "devi": {
+            "Log": 4
+        },
+        "drho": {
+            "Log": 79
+        },
+        "dt": {
+            "Log": 53
+        },
+        "dt4p": {
+            "Log": 2
+        },
+        "dt_xd_r": {
+            "Log": 1
+        },
+        "dtc": {
+            "Log": 1
+        },
+        "dtco": {
+            "Log": 44
+        },
+        "dts": {
+            "Log": 1
+        },
+        "dtsh": {
+            "Log": 12
+        },
+        "dtsm": {
+            "Log": 35
+        },
+        "dtst": {
+            "Log": 4
+        },
+        "effe": {
+            "Log": 2
+        },
+        "emex": {
+            "Log": 4
+        },
+        "ept": {
+            "Depth": 2
+        },
+        "etim": {
+            "Log": 4
+        },
+        "fcaz": {
+            "Log": 4
+        },
+        "fe": {
+            "Log": 1
+        },
+        "fep": {
+            "Log": 12
+        },
+        "gamm": {
+            "Log": 20
+        },
+        "gr": {
+            "Log": 98
+        },
+        "gr_edtc": {
+            "Log": 8
+        },
+        "hazi": {
+            "Log": 4
+        },
+        "hcal": {
+            "Log": 4
+        },
+        "hd1_ppc": {
+            "Log": 8
+        },
+        "hd2_ppc": {
+            "Log": 8
+        },
+        "hdar": {
+            "Log": 4
+        },
+        "hsta": {
+            "Log": 4
+        },
+        "ild": {
+            "Log": 41
+        },
+        "indu": {
+            "Log": 21
+        },
+        "k": {
+            "Log": 1
+        },
+        "k_dec": {
+            "Log": 1
+        },
+        "kper": {
+            "Log": 21
+        },
+        "kperf": {
+            "Log": 11
+        },
+        "late": {
+            "Log": 4
+        },
+        "lito": {
+            "Log": 1,
+            "Partition": 20
+        },
+        "lld": {
+            "Log": 22
+        },
+        "lls": {
+            "Log": 22
+        },
+        "mg": {
+            "Log": 1
+        },
+        "micr": {
+            "Log": 2
+        },
+        "msfl": {
+            "Log": 11
+        },
+        "nphi": {
+            "Log": 70
+        },
+        "p1az": {
+            "Log": 8
+        },
+        "p28h": {
+            "Log": 1
+        },
+        "p40h": {
+            "Log": 1
+        },
+        "pe": {
+            "Log": 1
+        },
+        "pef": {
+            "Log": 27
+        },
+        "pefz": {
+            "Log": 2
+        },
+        "phie": {
+            "Log": 11
+        },
+        "phis": {
+            "Log": 2
+        },
+        "phisec": {
+            "Log": 11
+        },
+        "pp": {
+            "Log": 4
+        },
+        "pr": {
+            "Log": 9
+        },
+        "psr": {
+            "Log": 27
+        },
+        "raw ": {
+            "Log": 2
+        },
+        "rb": {
+            "Log": 8
+        },
+        "rb_ppc": {
+            "Log": 8
+        },
+        "rc": {
+            "Log": 12
+        },
+        "rd1_ppc": {
+            "Log": 8
+        },
+        "rd2_ppc": {
+            "Log": 8
+        },
+        "rd3_ppc": {
+            "Log": 8
+        },
+        "rd4_ppc": {
+            "Log": 8
+        },
+        "refe": {
+            "Log": 4
+        },
+        "rgr": {
+            "Log": 11
+        },
+        "rhdt": {
+            "Log": 4
+        },
+        "rhob": {
+            "Log": 84
+        },
+        "rhoma": {
+            "Log": 11
+        },
+        "rhoz": {
+            "Log": 6
+        },
+        "rt": {
+            "Log": 32
+        },
+        "rxo": {
+            "Log": 27
+        },
+        "s": {
+            "Log": 1
+        },
+        "sb": {
+            "Log": 4
+        },
+        "sdev": {
+            "Log": 4
+        },
+        "sfl ": {
+            "Log": 2
+        },
+        "sflu": {
+            "Log": 41
+        },
+        "si": {
+            "Log": 1
+        },
+        "sp": {
+            "Log": 41
+        },
+        "sphi": {
+            "Log": 4
+        },
+        "spon": {
+            "Log": 2
+        },
+        "svel": {
+            "Log": 4
+        },
+        "sw": {
+            "Log": 11
+        },
+        "temp": {
+            "Log": 4
+        },
+        "tens": {
+            "Log": 4
+        },
+        "th": {
+            "Log": 1
+        },
+        "th_ppm": {
+            "Log": 1
+        },
+        "ther": {
+            "Log": 2
+        },
+        "ti": {
+            "Log": 1
+        },
+        "tot": {
+            "Log": 58
+        },
+        "tota": {
+            "Log": 2
+        },
+        "tpr": {
+            "Log": 1
+        },
+        "tran": {
+            "Log": 2
+        },
+        "tti": {
+            "Log": 58
+        },
+        "tur": {
+            "Log": 1
+        },
+        "u": {
+            "Log": 1
+        },
+        "u_ppm": {
+            "Log": 1
+        },
+        "volu": {
+            "Log": 2
+        },
+        "vp": {
+            "Log": 27
+        },
+        "vpvs": {
+            "Log": 11
+        },
+        "vs": {
+            "Log": 27
+        },
+        "vsh": {
+            "Log": 11
+        },
+        "wate": {
+            "Log": 2
+        }
+    }
+}

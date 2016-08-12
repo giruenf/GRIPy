@@ -1,0 +1,9 @@
+[Core]
+Name = Wyllie
+Module = Wyllie
+
+[Documentation]
+Author = Wagner Lupinacci
+Version = 0.1.0
+Website = www.giruenf.net
+Description = Modelo de Wyllie - Fisica de Rocha

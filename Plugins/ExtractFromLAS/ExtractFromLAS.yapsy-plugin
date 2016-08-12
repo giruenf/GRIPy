@@ -1,0 +1,9 @@
+[Core]
+Name = Extract from LAS
+Module = ExtractFromLAS
+
+[Documentation]
+Author = Nome do autor
+Version = 0.1.0
+Website = www.giruenf.net
+Description = Extrair curvas de um arquivo LAS

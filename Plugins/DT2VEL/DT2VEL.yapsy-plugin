@@ -1,0 +1,9 @@
+[Core]
+Name = DT2VEL
+Module = DT2VEL
+
+[Documentation]
+Author = Nome do autor
+Version = 0.1.0
+Website = www.giruenf.net
+Description = Converte perfil sônico para velocidade

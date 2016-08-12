@@ -1,0 +1,9 @@
+[Core]
+Name = Substituição por Gassmann
+Module = Gassmann
+
+[Documentation]
+Author = Robson Tabelini
+Version = 0.1.0
+Website = www.giruenf.net
+Description = Cálculo de substituição de fluido utilizando modelo de Gassmann

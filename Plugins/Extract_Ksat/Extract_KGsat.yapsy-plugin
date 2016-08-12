@@ -1,0 +1,9 @@
+[Core]
+Name = Extrair KG rocha saturada
+Module = Extract_KGsat
+
+[Documentation]
+Author = Robson Tabelini
+Version = 0.1.0
+Website = www.giruenf.net
+Description = Cálculo dos módulos elásticos da rocha saturada

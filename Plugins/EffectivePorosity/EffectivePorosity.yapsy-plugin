@@ -1,0 +1,9 @@
+[Core]
+Name = Porosidade Efetiva
+Module = EffectivePorosity
+
+[Documentation]
+Author = Fernando Vizeu Santos
+Version = 0.1.0
+Website = www.giruenf.net
+Description = Cálculo de porosidade efetiva

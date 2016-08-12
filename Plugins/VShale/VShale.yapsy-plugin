@@ -1,0 +1,9 @@
+[Core]
+Name = Volume de Argila
+Module = VShale
+
+[Documentation]
+Author = Robson Tabelini
+Version = 0.1.0
+Website = www.giruenf.net
+Description = Cálculo de volume de argila

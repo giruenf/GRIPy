@@ -1,0 +1,9 @@
+[Core]
+Name = MD2TVD
+Module = MD2TVD
+
+[Documentation]
+Author = Nome do autor
+Version = 0.1.0
+Website = www.giruenf.net
+Description = Obtem a profundidade real vertical (TVD) a partir da profundidade medida (MD)
