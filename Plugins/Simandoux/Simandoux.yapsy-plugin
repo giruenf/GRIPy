@@ -1,9 +1,0 @@
-[Core]
-Name = Saturação Simandoux
-Module = Simandoux
-
-[Documentation]
-Author = Robson Tabelini
-Version = 0.1.0
-Website = www.giruenf.net
-Description = Cálculo de saturação de água aplicando método de Simandoux

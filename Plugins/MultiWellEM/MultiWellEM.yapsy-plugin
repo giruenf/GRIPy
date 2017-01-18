@@ -1,9 +1,0 @@
-[Core]
-Name = Multi Well EM
-Module = MultiWellEM
-
-[Documentation]
-Author = Fernando Vizeu
-Version = 0.1.0
-Website = www.giruenf.net
-Description = Agrupamento de dados de múltiplos poços utilizando o algoritmo EM

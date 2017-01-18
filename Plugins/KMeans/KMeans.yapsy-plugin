@@ -1,9 +1,0 @@
-[Core]
-Name = K-Means
-Module = KMeans
-
-[Documentation]
-Author = Fernando Vizeu
-Version = 0.1.0
-Website = www.giruenf.net
-Description = Agrupamento de dados utilizando algoritmo K-means

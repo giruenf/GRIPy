@@ -1,9 +1,0 @@
-[Core]
-Name = Extrair Kd
-Module = Extract_Kd
-
-[Documentation]
-Author = Robson Tabelini
-Version = 0.1.0
-Website = www.giruenf.net
-Description = Cálculo dos módulos elásticos da rocha seca

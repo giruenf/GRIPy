@@ -1,9 +1,0 @@
-[Core]
-Name = Porosidade Efetiva
-Module = Porosity
-
-[Documentation]
-Author = Robson Tabelini
-Version = 0.1.0
-Website = www.giruenf.net
-Description = Cálculo da porosidade efetiva utilizando alguns modelos

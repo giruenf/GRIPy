@@ -15,8 +15,8 @@ class AutoGenDataPlugin(IPlugin):
 PM = PluginManager.get()
 
 try:
-    with open('pluginplaces.txt', 'r') as f:
-        pluginplaces = f.readlines()
+    with open('Plugins/pluginplaces.txt', 'r') as f:
+        pluginplaces = [a.strip() for a in f.readlines()]
     PM.setPluginPlaces(pluginplaces) # Ver se pode sair do except (se a verificação de diretórios for feita somente no momento de execução
 except:
     pluginplaces = ["Plugins"]

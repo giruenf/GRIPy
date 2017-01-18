@@ -1,9 +1,0 @@
-[Core]
-Name = Seismic1D
-Module = Seismic1D
-
-[Documentation]
-Author = Janssen dos Reis Lima
-Version = 0.1.0
-Website = www.giruenf.org
-Description = Sismica 1D

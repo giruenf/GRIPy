@@ -1,9 +1,0 @@
-[Core]
-Name = CORE
-Module = CORE
-
-[Documentation]
-Author = Robson Tabelini
-Version = 0.1.0
-Website = www.giruenf.net
-Description = Adiciona dados de testemunho ao poco

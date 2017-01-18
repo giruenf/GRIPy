@@ -1,1 +1,3 @@
-Plugins
+Plugins\\
+..\\Plugins-GIR\\
+..\\Plugins-Petrobras\\

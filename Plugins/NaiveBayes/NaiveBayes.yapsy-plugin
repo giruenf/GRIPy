@@ -1,9 +1,0 @@
-[Core]
-Name = Naive Bayes
-Module = NaiveBayes
-
-[Documentation]
-Author = Wagner Lupinacci
-Version = 0.1.0
-Website = www.giruenf.net
-Description = Classificacao de facies utilizando o algoritmo Naive Bayes
