@@ -2,7 +2,7 @@
 
 from OM.Manager import ObjectManager
 import wx
-import UI
+
 
 ID_EXCLUDE_OBJECT = wx.NewId()
 
@@ -35,6 +35,12 @@ class Tree(wx.TreeCtrl):  # TODO: tirar isso daqui
         self.main_window = None
         
         
+        #self.popupmenu = wx.Menu()            
+        #item = self.popupmenu.Append(-1, menu_option_str)
+        #self.Bind(wx.EVT_MENU, self.OnPopupItemSelected, item)
+        #self.Bind(wx.EVT_CONTEXT_MENU, self.OnShowPopup)  
+        
+        
     # TODO: Alterar este armengue feito para permitir que controller chame
     #       o LogPlot passando main_window como parent. 
     # Essa bagaça deve ser alterada o quanto antes.    
@@ -58,11 +64,10 @@ class Tree(wx.TreeCtrl):  # TODO: tirar isso daqui
         self._maptypes[obj.uid] = {}
 
     def om_remove_cb(self, objuid):
-        
         treeid = self._mapobjects[objuid]
         treeparentid = self.GetItemParent(treeid)
         parentuid, tid = self.GetPyData(treeparentid)
-        
+
         if self.GetChildrenCount(treeid):
             return False
         del self._maptypes[objuid]
@@ -104,57 +109,58 @@ class Tree(wx.TreeCtrl):  # TODO: tirar isso daqui
             self.selectedWelluid = None   
         return 
         
-        
+    
     def on_rightclick(self, event):
-        # TODO: Colocar pop-up menu com opções do que fazer com o objeto
         treeid = event.GetItem()
-        uid, tid = self.GetPyData(treeid)
-        #print('uid: {} - tid: {}'.format(uid, tid))
-        if uid == self._PSEUDOROOTUID or tid is not None:
-            event.Skip()
-        #    print 'passou'
-            return
-        self._OM.remove(uid)
-        """
-        #menu = wx.Menu()
-        tipo, _ = uid 
-        menu_option_str = u'Excluir objeto [' + self._OM.get(uid).name + ']'
-        #menu.Append(ID_EXCLUDE_OBJECT, menu_option_str)
-        #self.Bind(wx.EVT_MENU, self.on_exclude, id=ID_EXCLUDE_OBJECT)
-        #self.PopupMenu(menu, event.GetPoint())
-        self.popupmenu = wx.Menu()            
-        item = self.popupmenu.Append(-1, menu_option_str)
-        self.Bind(wx.EVT_MENU, self.OnPopupItemSelected, item)
-        self.Bind(wx.EVT_CONTEXT_MENU, self.OnShowPopup)  
-        """
+        uid, tree_tid = self.GetPyData(treeid)
+        if uid == self._PSEUDOROOTUID and tree_tid is None:
+            return    
 
-    def OnShowPopup(self, event):
-        pos = event.GetPosition()
-        pos = self.ScreenToClient(pos)
+        if tree_tid is not None:
+            if tree_tid == 'well':
+                menu_option_str = u'Excluir todos os poços' 
+            elif tree_tid == 'log':
+                menu_option_str = u'Excluir todas as curvas' 
+            elif tree_tid == 'depth':
+                menu_option_str = u'Excluir todos os depth'  
+            elif tree_tid == 'partition':
+                menu_option_str = u'Excluir todas as partições'      
+            else:
+                raise Exception('Curve type not recognized.')
+        else:
+            classid, oid = uid
+            if classid == 'well':
+                menu_option_str = u'Excluir poço [' 
+            elif classid == 'log':
+                menu_option_str = u'Excluir curva [' 
+            elif classid == 'depth':
+                menu_option_str = u'Excluir depth ['  
+            elif classid == 'partition':
+                menu_option_str = u'Excluir partição ['      
+            else:
+                raise Exception('Curve type not recognized.')
+            menu_option_str = menu_option_str + str(self._OM.get(uid).name) + u']'
+        self.popup_obj = (uid, tree_tid)
+        self.popupmenu = wx.Menu()            
+        item = self.popupmenu.Append(ID_EXCLUDE_OBJECT, menu_option_str)
+        self.Bind(wx.EVT_MENU, self.OnPopupItemSelected, item)
+        pos = event.GetPoint()
         self.PopupMenu(self.popupmenu, pos)
-        self.popupmenu.Destroy()
+
 
     def OnPopupItemSelected(self, event):
-        uid, tid = self.GetPyData(self.GetSelection())
-        print('uid: {} - tid: {}'.format(uid, tid))
-        self._OM.remove(uid)
+        uid, tree_tid = self.popup_obj
+        if tree_tid is None:
+            self._OM.remove(uid)
+        else:
+            if tree_tid == 'well':
+                items = self._OM.list(tree_tid)
+            else:    
+                items = self._OM.list(tree_tid, uid)
+            for item in items:
+                self._OM.remove(item.uid)
+
+
 
  
- 
-    def on_exclude(self, event):
-        treeid = event.GetItem()
-        uid, tid = self.GetPyData(treeid)
-        print('uid: {} - tid: {}'.format(uid, tid))        
-        #self._OM.remove(uid)
-        
-    '''        
-    def on_activated(self, event):
-        treeid = event.GetItem()
-        uid, treetid = self.GetPyData(treeid)
-        if not uid == self._PSEUDOROOTUID:
-            tid, oid = uid
-            if tid == 'plotformat' and self.main_window:
-                _, well_oid = self.selectedWelluid
-                UI.UIManager.get().create_log_plot(well_oid, oid)
-    '''            
                 
