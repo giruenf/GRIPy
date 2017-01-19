@@ -13,6 +13,7 @@ inputdesc = [{'type': 'omsingle', 'name': 'dt', 'tids': ['log'], 'dispname': u'S
 
 outputdesc = [{'type': 'log', 'name': 'impedance'}]
 
+
 def job(**kwargs):
     is_sonic = kwargs.get('is_sonic', None)
     rho = kwargs.get('rho', None)
@@ -35,6 +36,7 @@ def job(**kwargs):
     output['impedance']['data'] = impedancedata
     
     return output
+
 
 class AutoGenExamplePlugin(AutoGenDataPlugin):
     def __init__(self):

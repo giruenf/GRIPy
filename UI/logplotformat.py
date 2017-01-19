@@ -1,28 +1,288 @@
 # -*- coding: utf-8 -*-
-#from wx import Colour
+
 from collections import OrderedDict
-from IO.PLT import PLTFile
-#import DT
-#from OM.Manager import ObjectManager
+from FileIO.PLT import PLTFile
+from wx.lib.pubsub import pub
+
+import copy
+import numpy as np
+import inspect
+
+"""
+TRACK_KEYS = OrderedDict([
+    ('width', float),
+    ('plotgrid', bool),
+    ('x_scale', int),
+    ('decades', int),
+    ('leftscale', float),
+    ('minorgrid', bool),
+    ('overview', bool),
+    ('scale_lines', int),
+    ('depth_lines', int),
+    ('show_track', bool),
+    ('track_name', str),
+    ('unidentified', int)
+])
+#
+CURVE_KEYS = OrderedDict([
+    ('curve_name', str),
+    ('left_scale', float),
+    ('right_scale', float),
+    ('backup', str),
+    ('thickness', int),
+    ('color', str),
+    ('x_scale', int),
+    ('plottype', str),
+    ('visible', bool),
+    ('unidentified', bool)
+])
+"""
+#
+SHADE_KEYS = OrderedDict([
+    ('left_curve_name', str),
+    ('left_curve_value', float),
+    ('right_curve_name', str),
+    ('right_curve_value', float),
+    ('visible', bool),
+    ('color', str), 
+    ('description', str)
+])
+#
+OTHER_KEYS = ['GRID', 'PRINTOUT', 'HEADER', 'ANNO', 'HEADERREMARKS', 
+              'PLOTSTYLE'
+]    
 
 
 
-class BaseFormat(object):
-    __id = 0
+###############################################################################
 
-    def __init__(self):
-        self._id = self.__get_unique_label()
+
+def caller():
+    """
+        It is a Python 2 hack for a feature only avaialable in Python 3.3+
+        Based on: https://gist.github.com/techtonik/2151727    
+
+        Changes by: Adriano Paulo    
     
+        Get caller module, object and function
+
+        Returns:
+            A tuple (module, object, function)    
+    
+    """
+    stack = inspect.stack()
+    start = 2
+    if len(stack) < start + 1:
+      return None
+    parentframe = stack[start][0]    
+    module = inspect.getmodule(parentframe)
+    if 'self' in parentframe.f_locals:
+        obj = parentframe.f_locals['self']
+    else:
+        obj = None
+    codename = parentframe.f_code.co_name
+    return (module, obj, codename)
+    
+
+###############################################################################    
+
+
+class UIPropertiesBase(object):
+    __id = 0    
+    KEYS = None        
+        
+    def __init__(self, **kwargs):
+        self._id = self.__get_unique_label()
+        if kwargs:
+            for key, value in kwargs.items():
+                if key in self.KEYS:
+                    value_type = self.KEYS.get(key)
+                    try:
+                        value = value_type(value)
+                        self.__dict__[key] = value
+                    except:
+                        pass    
+
+
+    def __str__(self):
+        return self.get_id() 
+        
+        
+    def __eq__(self, other):
+        if isinstance(other, self.__class__):
+            return self.get_id() == other.get_id()
+        return False  
+                
+                  
+    def __call__(self):
+        ret_val = dict(self.__dict__)
+        del ret_val['_id']
+        return ret_val
+
+                    
+    def set(self, key, value, caller_obj=None):
+        old_value = copy.deepcopy(self.__dict__.get(key)) 
+        #print 'old_value:', old_value
+        if key in self.KEYS:
+            value_type = self.KEYS.get(key)
+            try:
+                value = value_type(value)
+            except:
+                value = None
+              
+            self.__dict__[key] = value
+            if caller_obj is None:
+                caller_obj = caller()[1]
+            pub.sendMessage(key, origin=caller_obj, old_value=old_value,
+                            new_value=value, publisher=self)
+                
+    
+    def get(self, key):
+        #return copy.deepcopy(self.__dict__.get(key))
+        return self.__dict__.get(key)
+        
+    def register_listener(self, key, function):
+        #print 'REGISTRANDO:', key, str(function)
+        pub.subscribe(function, key)
+        #pub.subscribe(self.teste, key)
+        
+        
     def get_id(self):
         return self._id
-        
+            
     @classmethod
     def __get_unique_label(cls):
         label = '%s %i' % (cls.__name__, cls.__id)
         cls.__id += 1
-        return label
+        return label        
+
+
+
+        
+        
+###############################################################################
+
+
+class TrackUIProperties(UIPropertiesBase):
+
+    KEYS = OrderedDict([
+        ('width', int),
+        ('plotgrid', bool),
+        ('x_scale', int),
+        ('decades', int),
+        ('leftscale', float),
+        ('minorgrid', bool),
+        ('overview', bool),
+        ('scale_lines', int),
+        ('depth_lines', int),
+        ('show_track', bool),
+        ('track_name', str),
+        ('curves', list)
+        #('unidentified', int)
+    ])
+    
+  
+
+###############################################################################
+  
+  
+class CurveUIProperties(UIPropertiesBase):
+
+    KEYS = OrderedDict([
+        ('curve_name', str),
+        ('left_scale', float),
+        ('right_scale', float),
+        ('unit', str),
+        ('backup', str),
+        ('thickness', int),
+        ('color', str),
+        ('x_scale', int),
+        ('plottype', str),
+        ('visible', bool),
+        ('step', int),
+        ('cmap', str)
+        
+        #('unidentified', bool)
+    ])
+
+    @staticmethod
+    def from_IP_parameters(parms):
+        cp = CurveUIProperties()
+        cp.set('curve_name', parms.get('Name'))
+        cp.set('left_scale', parms.get('LeftScale'))
+        cp.set('right_scale', parms.get('RightScale'))
+        cp.set('unit', parms.get('Units'))
+        cp.set('backup', parms.get('Backup'))        
+        cp.set('thickness', parms.get('LineWidth'))
+        
+        color = parms.get('Color', 'black')
+        if color == 'DkGray':
+            color = 'darkgray'
+        cp.set('color', color)
+        loglin = parms.get('LogLin')
+        if loglin == 'Lin':
+            cp.set('x_scale', 0)
+        elif loglin == 'Log':
+            cp.set('x_scale', 1)
+        else:
+            raise ValueError('Unknown LogLin: [{}]'.format(loglin))            
+        cp.set('plottype', parms.get('LineStyle'))        
+        cp.set('visible', True)
+        return cp  
         
 
+    @staticmethod
+    def from_object(obj):
+        cp = CurveUIProperties()
+        if obj.tid == 'partition':
+            cp.set('plottype', 'Partition')
+            return cp
+        elif obj.tid == 'depth':    #curve.set_value('plottype', 'Partition')
+            cp.set('plottype', 'Index')
+            cp.set('thickness', 9)
+            cp.set('left_scale', 0.0)
+            cp.set('right_scale', 1.0)
+        elif obj.tid == 'log': 
+            cp.set('plottype', 'Solid')    
+            cp.set('thickness', 1)
+            ls, rs = CurveUIProperties.get_extremes_from_object(obj)
+            cp.set('left_scale', ls)
+            cp.set('right_scale', rs)
+        elif obj.tid == 'velocity':
+            cp.set('plottype', 'density')
+            cp.set('cmap', 'rainbow')
+            return cp            
+        elif obj.tid == 'seismic':
+            #cp.set('plottype', 'wiggle')
+            cp.set('plottype', 'density')
+            cp.set('cmap', 'gray')#'gray')#')
+            return cp
+        elif obj.tid == 'scalogram':
+            cp.set('plottype', 'density')
+            cp.set('cmap', 'Paired') #'nipy_spectral')#cp.set('cmap', 'rainbow')
+            return cp    
+  
+ 
+        cp.set('curve_name', obj.name)
+        cp.set('unit', obj.unit)
+        cp.set('backup', 0)        
+        cp.set('color', 'black')
+        cp.set('x_scale', 0)                
+        cp.set('visible', True)
+        return cp          
+
+
+    @staticmethod
+    def get_extremes_from_object(obj, gap_percent=5):
+        left = np.nanmin(obj.data)
+        right = np.nanmax(obj.data)
+        unit = (right - left) / (100-gap_percent*2)
+        left = left - (gap_percent*unit)
+        right = right + (gap_percent*unit)
+        return np.round(left, 2), np.round(right, 2)
+
+###############################################################################
+"""
 class CurveFormat(BaseFormat):
     USE_DEFAULT_CURVE_VALUE = -99999.99
     SCALE_MAPPING = {
@@ -91,8 +351,11 @@ class CurveFormat(BaseFormat):
             return self._map.get(key)
         else:
             return None
-            
 
+            
+###############################################################################
+            
+            
 class ShadeFormat(BaseFormat): 
     CURVE_VALUE_ID = -99999.99
     def __init__(self, values_map):
@@ -146,8 +409,12 @@ class ShadeFormat(BaseFormat):
             return self._map.get(key)
         else:
             return None       
-        
- # OrderFormat is just for convinience, because this 'order' is an "IP Thing"
+ 
+
+###############################################################################
+
+       
+# OrderFormat is just for convinience, because this 'order' is an "IP Thing"
 # Probabily it will be excluded soon (maybe)
 class OrderFormat(BaseFormat):
         
@@ -169,8 +436,12 @@ class OrderFormat(BaseFormat):
     def get_values(self):
         return self.data
         
-        
+ 
+###############################################################################
+ 
+       
 class TrackFormat(BaseFormat):
+    
     DEPTH_LINES_MAPPING = {
         0: 'Full',
         1: 'Left',
@@ -186,14 +457,17 @@ class TrackFormat(BaseFormat):
         3: 'Cosine'
     }
     
-    def __init__(self, values_map=None):
+
+    def __init__(self, **kwargs):
         BaseFormat.__init__(self)
         self._map = OrderedDict()
-        self.set_values(values_map)
+        print kwargs
+        self.set_values(**kwargs)
         self._curves = []
         self._shades = []
         self._order = None
         
+
     def __str__(self):
         _str = self.get_id() + ': ' + str(self.get_values()) + '\n'
         for curve in self.get_curves():
@@ -227,17 +501,17 @@ class TrackFormat(BaseFormat):
     def __ne__(self, other):
         return not self == other
             
-    def set_values(self, values_map):
-        if values_map is None:
+    def set_values(self, **kwargs):
+        if kwargs is None:
             return
         try :
-            for key, value in values_map.items():
+            for key, value in kwargs.items():
                 self.set_value(key, value)
         except Exception:
             raise            
 
     def set_value(self, key, value):
-        if key in LogPlotFormat.TRACK_KEYS.keys():
+        if key in TRACK_KEYS.keys():
             type_ = LogPlotFormat.get_track_key_type(key)
             try:
                 value2 = type_(value)
@@ -326,7 +600,12 @@ class TrackFormat(BaseFormat):
         
     def get_order(self):
         return self._order
-        
+ 
+
+
+
+###############################################################################
+  
     
 class HeaderObjectFormat(BaseFormat):
         
@@ -349,7 +628,10 @@ class HeaderObjectFormat(BaseFormat):
         
     def get_values(self):
         return self.data   
-        
+ 
+       
+###############################################################################
+
         
 class LogPlotFormat(BaseFormat):
     #tid = 'logplotformat'
@@ -377,7 +659,7 @@ class LogPlotFormat(BaseFormat):
     CURVE_KEYS['thickness'] = int
     CURVE_KEYS['color'] = str
     CURVE_KEYS['x_scale'] = int
-    CURVE_KEYS['point_plotting'] = str 
+    CURVE_KEYS['plottype'] = str 
     CURVE_KEYS['visible'] = bool
     CURVE_KEYS['unidentified'] = bool
     # 
@@ -694,6 +976,39 @@ class LogPlotFormat(BaseFormat):
         
 
 
+"""
+
+############################################################################### 
+ 
+ 
+TF_DEFAULT_YLIM = (0, 6000)
+TF_DEFAULT_PLOTGRID = False
+TF_DEFAULT_SCALE = 0  # Linear
+TF_DEFAULT_YMAJOR_LINES = True
+TF_DEFAULT_YMINOR_LINES = False
+TF_DEFAULT_DEPTH_LINES = True
+TF_DEFAULT_WIDTH = 160 #2.0
+TF_DEFAULT_LOG_DECADES = 4
+TF_DEFAULT_LOG_LEFTSCALE = 0.2
+TF_DEFAULT_LOG_MINORGRID = False 
+
+TF_DEFAULT_PROPS = {
+    'ylim': TF_DEFAULT_YLIM, 
+    'plotgrid': TF_DEFAULT_PLOTGRID, 
+    'x_scale': TF_DEFAULT_SCALE,
+    'y_major_grid_lines': TF_DEFAULT_YMAJOR_LINES, 
+    'y_minor_grid_lines': TF_DEFAULT_YMINOR_LINES,
+    'depth_lines': TF_DEFAULT_DEPTH_LINES,
+    'width': TF_DEFAULT_WIDTH #,
+    #'curves': []    
+}     
 
 
+def TF_DEFAULT_TRACK_FORMAT():
+    return TrackUIProperties(**TF_DEFAULT_PROPS)
+
+#TF_DEFAULT_TRACK_FORMAT = TrackFormat(**TF_DEFAULT_PROPS)
+
+
+############################################################################### 
 
