@@ -1,1 +1,3 @@
-C:\\Users\\fsantos\\Desktop\\GRIPyPluginRemoto\\
+.\\Plugins\\
+..\\GRIPyPluginsGIR\\
+..\\GRIPyPluginsPetrobras\\
