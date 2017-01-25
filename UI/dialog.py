@@ -69,6 +69,7 @@ class SelectionLogPanel(sc.SizedScrolledPanel):
 class Dialog(wx.Dialog):   
     _CONTROL_WELL_SELECTOR = 'well_selector'
     _CONTROL_LOG_SELECTOR = 'log_selector'
+    _CONTROL_SEISMIC_SELECTOR = 'seismic_selector'
     _CONTROL_SPIN = 'spin'
     _CONTROL_TEXT_CTRL = 'text_ctrl'    
     
@@ -112,8 +113,33 @@ class Dialog(wx.Dialog):
             #print ret_keyword, cb_in_function, cb_out_function                         
             map_[ret_keyword] = cb_out_function()
         return map_
-        
 
+    def seismic_selector(self, label):
+        print 'seimic_selector'        
+        sb = wx.StaticBox(self.panel, label=label)
+        sbs = wx.StaticBoxSizer(sb, wx.VERTICAL)       
+        choice = wx.Choice(self.panel)
+        seismics = OrderedDict()
+        sbs.Add(choice, proportion=0, flag=wx.EXPAND)
+        self.mainbox.Add(sbs, 0, border=3, flag=wx.ALL|wx.EXPAND)
+        
+        def in_func():
+            choice.Clear()
+            seismics.clear()
+            for seismic in self._OM.list('seismic'):
+                #print 'well.name: ', well.name
+                seismics[seismic.uid] = seismic.name
+            choice.AppendItems(seismics.values())
+            choice.Bind(wx.EVT_CHOICE, lambda event: self._on_select(event, seismics, None))   
+        
+        def out_func():
+            #print 
+            #print self._OM.get(wells.keys()[choice.GetSelection()]).name
+            return seismics.keys()[choice.GetSelection()]
+        self.height += 60    
+        return self._CONTROL_SEISMIC_SELECTOR, in_func, out_func
+        
+        
     def well_selector(self, label):
         #print 'well_selector'
         sb = wx.StaticBox(self.panel, label=label)

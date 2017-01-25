@@ -54,20 +54,20 @@ class MultiSplitterWindow(wx.PyPanel):
         * Sash gravity
        
     """
-    def __init__(self, parent, id=-1,
-                 pos = wx.DefaultPosition, size = wx.DefaultSize,
-                 style = 0, name="multiSplitter", borderSize = 2,
-				 borderColor=(0,0,0), sashColor=(0,0,0)):
+    
+    def __init__(self, parent, *args, **kwargs):#id=-1,
+                 #pos = wx.DefaultPosition, size = wx.DefaultSize,
+                 #style = 0, name="multiSplitter", borderSize = 2,
+			#	 borderColor=(0,0,0), sashColor=(0,0,0)):
 				 
         # always turn on tab traversal
-        style |= wx.TAB_TRAVERSAL
-
+        style = wx.TAB_TRAVERSAL
         # and turn off any border styles
         style &= ~wx.BORDER_MASK
         style |= wx.BORDER_NONE
 
         # initialize the base class
-        wx.PyPanel.__init__(self, parent, id, pos, size, style, name)
+        wx.PyPanel.__init__(self, parent, *args, **kwargs)#id, pos, size, style, name)
         self.SetBackgroundStyle(wx.BG_STYLE_CUSTOM)
 
         # initialize data members
@@ -82,7 +82,7 @@ class MultiSplitterWindow(wx.PyPanel):
         self._checkRequestedSashPosition = False
         self._minimumPaneSize = 0
         self._sashCursorWE = wx.StockCursor(wx.CURSOR_SIZEWE)
-        self._sashCursorNS = wx.StockCursor(wx.CURSOR_SIZENS)
+        #self._sashCursorNS = wx.StockCursor(wx.CURSOR_SIZENS)
 
         self._needUpdating = False
         self._isHot = False
@@ -91,13 +91,15 @@ class MultiSplitterWindow(wx.PyPanel):
         # Bind event handlers
         self.Bind(wx.EVT_PAINT,        self._OnPaint)
         self.Bind(wx.EVT_IDLE,         self._OnIdle)
-        self.Bind(wx.EVT_SIZE,         self._OnSize)
+     #   self.Bind(wx.EVT_SIZE,         self._OnSize)
         self.Bind(wx.EVT_MOUSE_EVENTS, self._OnMouse)
 		
 	  # Novas variaveis
-        self.borderSize = borderSize
-        self.borderColor = borderColor
-        self.sashColor = sashColor
+        #self._old_size = (0,0)
+        self.borderSize = 1
+        self.borderColor = (0,0,0)
+        self.sashColor = (0,0,0)
+        self.selectedWindowColor = 'green'
         self.trackerCanvas = None
         self.fit = False
         self._ajustes = []
@@ -135,7 +137,7 @@ class MultiSplitterWindow(wx.PyPanel):
         return self._minimumPaneSize
 
     
-    def AppendWindow(self, window, sashPos=-1):
+    def AppendWindow(self, window, sashPos=100):
         """
         Add a new window to the splitter at the right side or bottom
         of the window stack.  If sashPos is given then it is used to
@@ -145,7 +147,7 @@ class MultiSplitterWindow(wx.PyPanel):
         return len(self._windows)
         
 
-    def InsertWindow(self, idx, window, sashPos=-1):
+    def InsertWindow(self, idx, window, sashPos=100):
         """
         Insert a new window into the splitter at the position given in
         ``idx``.
@@ -156,10 +158,10 @@ class MultiSplitterWindow(wx.PyPanel):
         if not window.IsShown():
             window.Show()
         self._checkRequestedSashPosition = False
-        self._SizeWindows()
+        #self._SizeWindows()
  
  
-    def lenght(self):
+    def __len__(self):
         return len(self._windows)
 
 
@@ -169,12 +171,16 @@ class MultiSplitterWindow(wx.PyPanel):
         splitter.  The window will still exist so you should `Hide` or
         `Destroy` it as needed.
         """
+        print '\nDETACHING WINDOW'
         assert window in self._windows, "Unknown window!"
         idx = self._windows.index(window)
+        self._windows[idx]._selected = False
+        self._draw_window_selection(self._windows[idx])
         del self._windows[idx]
         del self._sashes[idx]
-        self._SizeWindows()
-
+        self._checkRequestedSashPosition = False
+        #self._SizeComponent()
+        
 
     def ReplaceWindow(self, oldWindow, newWindow):
         """
@@ -187,7 +193,8 @@ class MultiSplitterWindow(wx.PyPanel):
         self._windows[idx] = newWindow
         if not newWindow.IsShown():
             newWindow.Show()
-        self._SizeWindows()
+        self._checkRequestedSashPosition = False    
+        #self._SizeWindows()
 
 
     def ExchangeWindows(self, window1, window2):
@@ -200,7 +207,8 @@ class MultiSplitterWindow(wx.PyPanel):
         idx2 = self._windows.index(window2)
         self._windows[idx1] = window2
         self._windows[idx2] = window1
-        self._SizeWindows()
+        #self._SizeWindows()
+        self._checkRequestedSashPosition = False
 
 
     def IndexOf(self, window):
@@ -230,6 +238,7 @@ class MultiSplitterWindow(wx.PyPanel):
         Set the psition of the idx'th sash, measured from the left/top
         of the window preceding the sash.
         """
+        print 'MultiSplitter.SetSashPosition', idx, pos
         assert idx < len(self._sashes)
         self._sashes[idx] = pos
         self._SizeWindows()
@@ -249,9 +258,10 @@ class MultiSplitterWindow(wx.PyPanel):
         Overridden base class virtual.  Determines the best size of
         the control based on the best sizes of the child windows.
         """
-        best = wx.Size(0,0)
+        print '\nDoGetBestSize', self.GetSize(), self.GetParent().GetSize()
+        best = wx.Size(0, 100)
         if not self._windows:
-            best = wx.Size(100, 100)
+            return best            
         sashsize = self._GetSashSize()
         for idx, sash in enumerate(self._sashes):
             window = self.GetWindow(idx)
@@ -266,16 +276,28 @@ class MultiSplitterWindow(wx.PyPanel):
     # -------------------------------------
     # Event handlers
     
-    def _OnPaint(self, evt):        
-        dc = wx.PaintDC(self)
-        self._DrawSash(dc)
-
+    def _OnPaint(self, evt): 
+        print '_OnPaint', self.GetClientSize(), self.GetBestSize()
+        #if self._old_size == self.GetClientSize():
+        #    return
+            
+        #self.SetBestSize(self.GetClientSize())
+        #dc = wx.PaintDC(self)
+        #self._DrawSash(dc)
+        # New below - 28-12-2016
+        self._SizeWindows()
+        self._old_size = self.GetClientSize()
+       # evt.Skip()
+        
 
     def _OnSize(self, evt):
+        print '  _OnSize', self.GetSize()
         parent = wx.GetTopLevelParent(self)
         if parent.IsIconized():
             evt.Skip()
             return
+        #self.Refresh()    
+        #self._checkRequestedSashPosition = False   
         self._SizeComponent()
         
 
@@ -283,17 +305,20 @@ class MultiSplitterWindow(wx.PyPanel):
         evt.Skip()
         # if this is the first idle time after a sash position has
         # potentially been set, allow _SizeWindows to check for a
-        # requested size.
+        # requested size.  
         if not self._checkRequestedSashPosition:
+            print '_OnIdle 1'
             self._checkRequestedSashPosition = True
             self._SizeComponent()
 
         if self._needUpdating:
+            print '_OnIdle 2'
             self._SizeComponent()
 
     '''
         Inserir comentarios
     '''
+    """
     def AdjustAllSashes(self, vetor):
         for idx, value in enumerate(vetor):
             if self._GetFit():
@@ -303,13 +328,113 @@ class MultiSplitterWindow(wx.PyPanel):
                 # Valor de entrada eh vetor sash positions
                 self._SetSashPositionAndNotify(idx, value)
         self._SizeComponent()         
+    """    
+    
+    
+    """
+    # On testing 29-12-2016
+    def _WindowHitTest(self, x, y):
+        if len(self._windows) == 0:
+            return -1
+        if x < self._GetSashSize():
+            return -1
+        pos = self._GetSashSize()
+        for idx, sash in enumerate(self._sashes):
+            window = self.GetWindow(idx)
+            if window.IsShown():
+                pos += sash 
+                if x <= pos:
+                    return idx
+                pos += self._GetSashSize() 
+        return -1
+    """
+ 
+
+    def _draw_window_selection(self, window):
+        print '\nbotao meio: ', window.GetRect(), window.is_selected()
+        if not window.is_selected() and not window.selectedCanvas:
+            print '  nothing to do'
+            return
+        x, y, w, h = window.GetRect()
+        
+        if window.is_selected():
+            if not window.selectedCanvas:
+                print '  construindo'
+                #
+                panel = wx.Panel(window.GetParent())
+                panel.SetDimensions(x, y, w, self._GetSashSize())
+                panel.SetBackgroundColour(self.selectedWindowColor)
+                window.selectedCanvas.append(panel)
+                #    
+                print 1
+                panel = wx.Panel(window.GetParent()) 
+                panel.SetDimensions(x, h, w, self._GetSashSize())
+                panel.SetBackgroundColour(self.selectedWindowColor)
+                window.selectedCanvas.append(panel)
+                print 2
+                #            
+                panel = wx.Panel(window.GetParent()) 
+                panel.SetDimensions(x, y, self._GetSashSize(), h)
+                panel.SetBackgroundColour(self.selectedWindowColor)
+                window.selectedCanvas.append(panel)
+                print 3
+                #            
+                panel = wx.Panel(window.GetParent()) 
+                panel.SetDimensions((x + w - self._GetSashSize()), y, 
+                                    self._GetSashSize(), h)
+                panel.SetBackgroundColour(self.selectedWindowColor)
+                
+                window.selectedCanvas.append(panel)
+                print 4
+            else:
+                print '  atualizando'
+                window.selectedCanvas[0].SetDimensions(x, y, w, self._GetSashSize())
+                window.selectedCanvas[0].Refresh()
+                window.selectedCanvas[1].SetDimensions(x, h, w, self._GetSashSize())
+                window.selectedCanvas[0].Refresh()
+                window.selectedCanvas[2].SetDimensions(x, y, self._GetSashSize(), h)
+                window.selectedCanvas[0].Refresh()
+                window.selectedCanvas[3].SetDimensions((x + w - self._GetSashSize()), y, 
+                                        self._GetSashSize(), h)
+                window.selectedCanvas[0].Refresh()                        
+                                    
+                                    
+
+        else:
+            start = len(window.selectedCanvas) - 1
+            for i in range(start, -1, -1):
+                temp = window.selectedCanvas.pop(i)
+                temp.Destroy() 
+        #window._selected = not window._selected
+        
+            
+    """    
+    def _DragSashTracker(self, x):
+        if self.selectedCanvas:
+            self.selectedCanvas.SetPosition(wx.Point(x, self._GetSashSize()))
+            self.selectedCanvas.Refresh()
+
+
+    def _DestroySashTracker(self):
+        if self.selectedCanvas:
+            temp = self.selectedCanvas
+            self.selectedCanvas = None
+            temp.Destroy()
+    """        
+
+###########
 
 
     def _OnMouse(self, evt):
         if self.HasFlag(wx.SP_NOSASH):
             return
         x, y = evt.GetPosition()
-        #isLive = self.HasFlag(wx.SP_LIVE_UPDATE)
+        
+       # print '_OnMouse: '#, self._WindowHitTest(x, y)
+        
+       # if evt.LeftDown() and self._WindowHitTest(x, y) != -1:         
+       #     print 'Clicou na janela', self._WindowHitTest(x, y)
+       # 
         if evt.LeftDown() and self._SashHitTest(x, y) != -1:
             self._activeSash = self._SashHitTest(x, y)
             self._dragMode = wx.SPLIT_DRAG_DRAGGING
@@ -325,43 +450,40 @@ class MultiSplitterWindow(wx.PyPanel):
             self._oldX = x
             self._oldY = y
             return
+            
         # LeftUp: Finsish the drag
         elif evt.LeftUp() and self._dragMode == wx.SPLIT_DRAG_DRAGGING:
+            print '\nSash released! 0\n'
             self._dragMode = wx.SPLIT_DRAG_NONE
             self.ReleaseMouse()
             self.SetCursor(wx.STANDARD_CURSOR)
-            #if not isLive:
-                # erase the old tracker
             self._DestroySashTracker()
             diff = self._GetMotionDiff(x, y)
-            # determine if we can change the position
-            #if isLive:
-            #    oldPos1 = self._sashes[self._activeSash]
-            #else:
+            print '\nSash released! 0.1\n'
             oldPos1 = self._pendingPos
             newPos1 = self._OnSashPositionChanging(self._activeSash, oldPos1 + diff)                             
             if newPos1 == -1:
                 # the change was not allowed
                 return
-            self._SetSashPositionAndNotify(self._activeSash, newPos1)               
+            print '\nSash released! 0.2\n'    
+            self._SetSashPositionAndNotify(self._activeSash, newPos1)        
+            print '\nSash released! 0.3\n'   
             self._activeSash = -1
-            self._pendingPos = (-1, -1)
-            self._SizeComponent()            
+            self._pendingPos = (-1, -1) 
+            self._checkRequestedSashPosition = False
+            print '\nSash released!\n'
         # Entering or Leaving a sash: Change the cursor
         elif (evt.Moving() or evt.Leaving() or evt.Entering()) and self._dragMode == wx.SPLIT_DRAG_NONE:
             if evt.Leaving() or self._SashHitTest(x, y) == -1:
                 self._OnLeaveSash()
             else:
                 self._OnEnterSash()
+                
         # Dragging the sash
         elif evt.Dragging() and self._dragMode == wx.SPLIT_DRAG_DRAGGING:
             diff = self._GetMotionDiff(x, y)
             if not diff:
-                return  # mouse didn't move far enough
-            # determine if we can change the position
-            #if isLive:
-            #    oldPos1 = self._sashes[self._activeSash]
-            #else:
+                return  
             oldPos1 = self._pendingPos
             newPos1 = self._OnSashPositionChanging(self._activeSash, oldPos1 + diff)
             if newPos1 == -1:
@@ -373,13 +495,10 @@ class MultiSplitterWindow(wx.PyPanel):
             # Remember old positions
             self._oldX = x
             self._oldY = y
-            #if not isLive:
-            # draw a new tracker
             self._pendingPos = newPos1
             self._DragSashTracker(self._oldX)
-            #else:
-            #    self._DoSetSashPosition(self._activeSash, newPos1)
-            #    self._needUpdating = True
+
+
 
 
     # -------------------------------------
@@ -407,6 +526,7 @@ class MultiSplitterWindow(wx.PyPanel):
 
                    
     def _OnSashPositionChanging(self, idx, new_pos):
+      #  print 'MultiSplitterWindow._OnSashPositionChanging', idx, new_pos
         new_pos = self._AdjustSashPosition(idx, new_pos)
         # sanity check
         if new_pos <= 0:
@@ -456,16 +576,18 @@ class MultiSplitterWindow(wx.PyPanel):
                        
         else:    
             self._sashes[idx] = newPos1 
-            
+        #print 'FIM _DoSetSashPosition'
+        #self._draw_window_selection(self._windows[idx])
         return True
             
        
-    def _SetSashPositionAndNotify(self, idx, newPos1): 
-        self._DoSetSashPosition(idx, newPos1)
+    def _SetSashPositionAndNotify(self, idx, new_pos): 
+       # print 'MultiSplitterWindow._SetSashPositionAndNotify', idx, new_pos
+        self._DoSetSashPosition(idx, new_pos)
         evt = MultiSplitterEvent(
             wx.wxEVT_COMMAND_SPLITTER_SASH_POS_CHANGED, self)
         evt.SetSashIdx(idx)
-        evt.SetSashPosition(newPos1)
+        evt.SetSashPosition(new_pos)
         self._DoSendEvent(evt)
  
 
@@ -499,6 +621,7 @@ class MultiSplitterWindow(wx.PyPanel):
         
 
     def _DrawSash(self, dc):
+        print '_DrawSash', self.GetClientSize()
         if wx.VERSION >= _RENDER_VER:
             if self.HasFlag(wx.SP_3DBORDER):
                 wx.RendererNative.Get().DrawSplitterBorder(
@@ -507,10 +630,9 @@ class MultiSplitterWindow(wx.PyPanel):
         # if there are no splits then we're done.
         if not self._windows:
             return
-
-        # if we are not supposed to use a sash then we're done.
-        if self.HasFlag(wx.SP_NOSASH):
-            return
+    #    # if we are not supposed to use a sash then we're done.
+    #    if self.HasFlag(wx.SP_NOSASH):
+    #        return
 
         # Desenhando as bordas esquerda, acima e abaixo.
         dc.SetPen(wx.TRANSPARENT_PEN)
@@ -519,6 +641,7 @@ class MultiSplitterWindow(wx.PyPanel):
         # Desenhando os Sashes				
         pos = self.borderSize
         for idx, sash in enumerate(self._sashes):
+            #print 'drawing sash {} na pos {}'.format(idx, sash)
             if self.GetWindow(idx).IsShown():
                 pos += sash
                 sashsize = self._GetSashSize()
@@ -526,8 +649,12 @@ class MultiSplitterWindow(wx.PyPanel):
                 y = self.borderSize
                 w = sashsize
                 h = self.GetClientSize().height - 2*self.borderSize
+                #print 'dc.DrawRectangle({}, {}, {}, {})'.format(x, y, w, h)
                 dc.DrawRectangle(x, y, w, h)
                 pos += self._GetSashSize()
+                #
+             #   self._draw_window_selection(self.GetWindow(idx)) 
+                #
         
         if self.borderSize > 0:
            # Borda esquerda
@@ -537,7 +664,13 @@ class MultiSplitterWindow(wx.PyPanel):
 		# Borda abaixo
            dc.DrawRectangle(self.borderSize, self.GetClientSize().height - self.borderSize, 
 			pos - self.borderSize, self.borderSize)
-
+        
+        #for panel in window.selectedCanvas:
+        #    panel.Refresh()                
+        #for window in self._windows:        
+        #    self._draw_window_selection(window)              
+        
+        print 'FIM DRAW SASH\n'
 
 
     def _InitSashTracker(self, posx):
@@ -568,7 +701,6 @@ class MultiSplitterWindow(wx.PyPanel):
         # if there are no splits then we're done.
         if len(self._windows) < 1:
             return -1
-
         z = x
         pos = 0
         for idx, sash in enumerate(self._sashes):
@@ -576,13 +708,10 @@ class MultiSplitterWindow(wx.PyPanel):
             if window.IsShown():
                 pos += sash
                 hitMin = pos - tolerance
-                hitMax = pos + self._GetSashSize() + tolerance
-                
+                hitMax = pos + self._GetSashSize() + tolerance    
                 if z >= hitMin and z <= hitMax:
                     return idx
-                
                 pos += self._GetSashSize() 
-
         return -1
 
 
@@ -653,41 +782,42 @@ class MultiSplitterWindow(wx.PyPanel):
                 self._proporcao.append(spos/float(soma))        
 
 
-    def _SizeComponent(self):  
-        self.Unbind(wx.EVT_SIZE)
-        
-        if self._GetFit():
+    def _SizeComponent(self):
+        print '_SizeComponent'
+        if not self._windows:
+            self.SetSize([0, self.GetSize().GetHeight()]) 
+            print '    self.SetSize([{}, {}])'.format(0, self.GetSize().GetHeight())
+
+        #self.Unbind(wx.EVT_SIZE)
+        elif self._GetFit():
             self.SetSize([self.GetParent().GetClientSize().GetWidth(),
                           self.GetSize().GetHeight()])
-                         
+                          
         else:
             soma = self._LarguraUtil()
             soma += self._GetBorderSize()
-            #soma += len(self._sashes) * self._GetSashSize()
             soma += len(self.get_windows_shown()) * self._GetSashSize()
             self.SetSize([soma, self.GetSize().GetHeight()]) 
-            
-        self.GetParent()._AdjustSizerItem()    
-        self.Bind(wx.EVT_SIZE, self._OnSize)
+
+            print '    self.SetSize([{}, {}])'.format(soma, self.GetSize().GetHeight()) 
+        #self.Bind(wx.EVT_SIZE, self._OnSize)
+        self.SetBestSize(self.GetSize())    
         self._SizeWindows()
         
         
     def _SizeWindows(self):
-        #print 'MultiSplitterWindow._SizeWindows'
+        print '_SizeWindows', self.GetSize(), self.GetParent().GetSize(), self.GetClientSize()
         if not self._windows:
             return       
         if len(self.get_windows_shown()) == 0:
             return
-        # are there any that still have a -1?
-        for idx, spos in enumerate(self._sashes):
-            if spos == -1:
-                self._sashes[idx] = 100
         
         largUtil = self._LarguraUtil()
     
         if self._GetFit():
             usado = 0
             for idx, spos in enumerate(self._sashes):
+                print '_sash fit:', idx, spos
                 if idx < len(self._sashes)-1:
                     self._sashes[idx] = round(self._proporcao[idx] * largUtil)
                     usado += round(self._proporcao[idx] * largUtil)
@@ -704,17 +834,26 @@ class MultiSplitterWindow(wx.PyPanel):
         h = self.GetClientSize().GetHeight() - (2 * border)
                
         for idx, spos in enumerate(self._sashes):
+            #print '    _sash:', idx, spos
             window = self.GetWindow(idx)
             if window.IsShown():
                 window.SetDimensions(x, y, spos, h)
+                #print '    {} - SetDimensions({}, {}, {}, {})'.format(window._view._controller_uid, x, y, spos, h)
+                
+                #for panel in window.selectedCanvas:
+                #    panel.Refresh()                
+                self._draw_window_selection(window)                
+                
                 x += spos + sash	
                 
         if 'wxMSW' in wx.PlatformInfo:
             self.Thaw()
             
-        self._DrawSash(wx.ClientDC(self))
-        self._needUpdating = False
+        dc = wx.ClientDC(self)    
+        self._DrawSash(dc)
+       # self._needUpdating = False
         
+        #print
         
     def _DoSendEvent(self, evt):
         return not self.GetEventHandler().ProcessEvent(evt) or evt.IsAllowed()

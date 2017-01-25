@@ -12,6 +12,7 @@ from collections import OrderedDict
 import numpy as np
 import zipfile
 import os
+import logging
 
 try:
     import zlib
@@ -314,16 +315,20 @@ class ObjectManager(object):
         typeid = type_.tid
         if typeid in cls._data.keys():
             msg = "Type {} is already registered".format(typeid)
+            logging.exception(msg)
             raise TypeError(msg)
-
         if parenttype:
             cls._parenttidmap[typeid] = parenttype.tid
         else:
             cls._parenttidmap[typeid] = None
-
         cls._currentobjectids[typeid] = 0
         cls._types[typeid] = type_
-        
+        class_full_name = str(type_.__module__) + '.' + str(type_.__name__)
+        if parenttype:
+            parent_full_name = str(parenttype.__module__) + '.' + str(parenttype.__name__)
+            logging.info('ObjectManager registered class {} for parent class {} successfully.'.format(class_full_name, parent_full_name))
+        else:    
+            logging.info('ObjectManager registered class {} successfully.'.format(class_full_name))
         return True
 
     @classmethod
@@ -546,3 +551,35 @@ class ObjectManager(object):
         os.remove(os.path.join(dirname, npzfilename))
         
         return True
+
+
+    def from_string(self, obj_string):
+        """
+        Load an object in ObjectManager from a given string.
+        
+        Parameters
+        ----------
+        obj_string : str
+            The path (i.e. the filename) of the file to load the state from.
+        
+        Returns
+        -------
+        object
+            An object if exits for given string, or None if the object was not
+            added in the ObjectManager or if the string cannot identify an object.
+        """
+        left_index = obj_string.find('(')
+        right_index = obj_string.rfind(')')
+        if left_index == -1 or right_index == -1:
+            return None
+        elif right_index < left_index:
+            return None
+        obj_string = obj_string[left_index+1:right_index]
+        tid, oid = obj_string.split(',')
+        tid = tid.strip('\'\" ')
+        oid = int(oid.strip('\'\" '))
+        for obj in self.list(tid):
+            if obj.oid == oid:
+                return obj
+        return None        
+        

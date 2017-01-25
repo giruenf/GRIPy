@@ -1,0 +1,23 @@
+{
+    "wx.app": {
+        "redirect": false,
+		"file_name": null,
+ 		"use_best_visual": false,
+		"clear_sig_int": true
+	},
+		
+	"app.gripy_app.GripyApp": { 
+        "app_name": "GriPy", 
+		"app_display_name": "GriPy 0.5 Development", 
+		"app_version": "0.5 Development", 
+        "class_name": "app.gripy_app.GripyApp", 
+		"vendor_name": "GIR",
+        "vendor_display_name": "UENF/LENEP/GIR" 
+    },
+	
+	"logging": {
+		"logging_filename": "logs\\TESTE.log",
+	    "logging_filemode": "w", 
+        "logging_level": 10
+	}	
+}

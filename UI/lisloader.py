@@ -2,8 +2,8 @@
 import wx
 import os
 import wx.dataview as dv
-from IO.LIS import LISFile
-from IO.LISWELL import LISWells, LISWell, LISWellLog
+from FileIO.LIS import LISFile
+from FileIO.LISWELL import LISWells, LISWell, LISWellLog
 from OM.Manager import ObjectManager
 from collections import OrderedDict
 from Parms import ParametersManager2
