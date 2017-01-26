@@ -33,9 +33,6 @@ class GenericObject(object):
     def __init__(self):
         self._oid = None
 
-    def __str__(self):
-        return str(self.uid)        
-
     @property
     def oid(self):
         return self._oid

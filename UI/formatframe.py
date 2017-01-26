@@ -7,7 +7,7 @@ from OM.Manager import ObjectManager
 import Parms
 import wx.dataview as dv
 import copy
-#from logplotformat import LogPlotFormat, TrackFormat, CurveFormat
+from logplotformat import LogPlotFormat, TrackFormat, CurveFormat
 import cPickle
 
 

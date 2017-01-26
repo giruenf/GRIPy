@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-import wx
+
 import matplotlib
 matplotlib.interactive(False)
 matplotlib.use('WXAgg')
@@ -12,13 +12,6 @@ import numpy as np
 from matplotlib.ticker import NullFormatter, MultipleLocator
 from matplotlib.colors import colorConverter
 
-
-
-# Constants
-DPI = 80
-LABEL_TITLE_HEIGHT = 28
-LOG_LABEL_TITLE_BGCOLOR = 'white'
-FACTOR = 1.57
 
 # Basis class to all Classes in this project 
 class Base(object):
@@ -762,12 +755,216 @@ class _BaseFigureCanvas(FigureCanvas, Base):
         
         
         
+        
+###############################################################################
+###
+###############################################################################
+        
+        
+class TitleFigureCanvas(_BaseFigureCanvas):
+
+
+    def __init__(self, parent, size, title_text=None, title_bgcolor='white', 
+                 min_height_pixels=100, data=None, layout_properties=None):   
+        #print 'TitleFigureCanvas.__init__'             
+        self.min_height_pixels = min_height_pixels             
+        self.title_height = 30
+        self.track_label_height = 25
+        self._title_text = title_text
+        self._title_bgcolor = title_bgcolor
+        #print 'self._title_bgcolor: ', self._title_bgcolor
+        if data:
+            self._data = data
+        else:
+            self._data = []
+        self.layout_properties = layout_properties
+        self.title_axes = None  
+        _BaseFigureCanvas.__init__(self, parent, size)
+       
+       
+    def get_track_title_text(self):    
+        return self._title_text       
+       
+       
+    def set_track_title_text(self, pos, text=None):
+        #print '\nTitleFigureCanvas.set_track_title_text'
+        if text:
+            if text != self._title_text:
+                self._title_text = text
+                self.title_axes.set_text(self._title_text)
+                self.draw()
+                #self._draw_figure()
+        else:
+            try:
+                pos = int(pos)
+                pos += 1
+                self.set_track_title_text(pos, str(pos))
+            except:
+                pass
+                
+                
+    def remove_track_title_text(self):
+        self._title_text = None
+        self._draw_figure()        
+        
+    def get_track_title_color(self):    
+        return self._title_bgcolor    
+    
+    def set_track_title_color(self, color):
+        if color != self._title_bgcolor:
+            self._title_bgcolor = color
+            self._draw_figure()   
+      
+    def append_curve_titles(self, list_of_curve_data):
+        self._data += list_of_curve_data     
+        self._draw_figure()   
+         
+    def remove_curve_title(self, curve_number):
+        try:
+            #print '\nTitleFigureCanvas.remove_curve_title({})[{}]'.format(curve_number, len(self._data))
+            self._data.pop(curve_number)
+        except IndexError:
+            msg = '[TitleFigureCanvas.remove_curve_title]: '+\
+            'There is no title for index number {} - {}. '.format(curve_number, len(self._data))
+            print msg
+            raise
+        self._draw_figure()          
+ 
+    def remove_curves_title(self, curve_list_idx): 
+        curve_list_idx.sort(reverse=True)
+        for idx in curve_list_idx:
+            try:
+                self._data.pop(idx)
+            except Exception:
+                raise
+        self._draw_figure()    
+        
+    def remove_all_curves_titles(self):
+        self._data = []    
+        self._draw_figure()       
+
+
+    def update_curve_title(self, track_curve_idx, curve_title, curve_min, curve_max, color):
+        if not isinstance(track_curve_idx, int):
+            raise TypeError('track_curve_idx must be a integer.')
+        if track_curve_idx >= 0 and track_curve_idx < len(self._data):   
+            self._data[track_curve_idx] = (
+                curve_title, (curve_min, curve_max), color 
+            )    
+            self._draw_figure()
+            
+    '''    
+    def update_track_title(self, track_number, *args, **kwargs):
+        if not isinstance(track_number, int):
+            raise TypeError('track_number deve ser um número inteiro.')
+        curves_titles = self._get_curve_title_axes()
+        if track_number >= 0 and track_number < len(curves_titles):
+           # print '\n', type(self._data)
+           # print self._data
+            curves_titles[track_number].update_data(*args, **kwargs)
+            self._data[track_number] = (
+                curves_titles[track_number].get_text(), 
+                curves_titles[track_number].get_xlim(), 
+                curves_titles[track_number].get_color()
+            )
+            self.resize_event()
+        else:
+          #  print len(curves_titles)
+            raise ValueError('O valor track_number deve ser maior ou igual a 0 e menor que o núemro de track_titles.')
+    '''    
+       
+       
+    def _get_curve_title_axes(self):
+        axes = []
+        for ax in self.figure.get_axes() :
+            if isinstance(ax, CurveTitleAxes):
+                axes.append(ax)
+        return axes        
+         
+         
+         
+    # Overrides super class method                                
+    def _draw_figure(self):
+        #print '\nTitleFigureCanvas._draw_figure'
+        # UPDATING FIGURE SIZE BEFORE AXES POSITIONING IN ORDER TO 
+        # CALCULATE CORRECTLY AXES RECT (FIGURE PROPORTIONS)
+   #     self._calc_figure_height()
+   #     w, h = self.figure.get_size_inches()
+   #     self.figure.set_size_inches((w, self.height_inches_used))
+    
+        # DRAWING TRACK TITLE
+        height_ratio_used = self._draw_track_title()
+        # DRAING CURVES TITLES
+        curves_titles = self._get_curve_title_axes()
+        if self._data:
+            n_data = len(self._data)
+        else: 
+            n_data = 0
+        n_axes = len(curves_titles)         
+        if n_data == 0 and n_axes == 0:
+            # NOTHING TO DO (CREATE, UPDATE OR DELETE AXES)
+            return        
+        _, height = self._pixels_to_ratio(self.track_label_height)        
+        for i in range(max(n_data, n_axes)):
+            rect = [0.0, 1 - (height_ratio_used + height), 1.0, height]    
+            if i+1 > n_data:
+                # MORE AXES THAN self._data MEANING AXES EXCLUSION 
+                # NEED TO CHOOSE BETWEEN AXES OBJECT DELETING OR JUST
+                # REMOVE AXES OBJECT FROM FIGURE KEEPING EXCLUSION TO 
+                # PYTHON MANAGER (AUTOMATIC EXCLUSION)
+                # --- CHOOSEN THE FIRST ONE ---
+                self.figure.delaxes(curves_titles[i])
+            else: 
+                if i < n_axes:
+                    # UPDATING AXES POSITION
+                    curve_title = curves_titles[i] 
+                    curve_title.set_position(rect)
+
+                else:
+                    # CREATING NEW AXES
+                    curve_title = CurveTitleAxes(self.figure, rect)
+                    self.figure.add_axes(curve_title)    
+                curve_title.update_data(self._data[i][0], self._data[i][1], 
+                                            self._data[i][2])
+                height_ratio_used += height                
+        self.draw()#resize_event()        
+
+    
+
+    def _draw_track_title(self):
+        #print 'TitleFigureCanvas._draw_track_title'
+        if self._title_text is None:
+            if self.title_axes is not None:
+                # REMOVE TITLE, BUT DON'T DESTROY (SELF._TITLE_AXES IS NOT NONE)
+                self.figure.delaxes(self.title_axes) 
+            return 0.0
+        else:
+            _, height = self._pixels_to_ratio(self.title_height)
+            rect = [0.0, 1-height, 1.0, height]
+            if self.title_axes is None:
+                #def __init__(self, figure, rect, title_text='', title_bgcolor='white'):
+                self.title_axes = TrackTitleAxes(self.figure, rect, 
+                                        self._title_text, self._title_bgcolor)                            
+                self.figure.add_axes(self.title_axes)
+            else:
+                self.title_axes.set_text(self._title_text)
+                #if self._title_bgcolor:
+                #    self.title_axes.set_color(self._title_bgcolor)
+            self.title_axes.set_position(rect)
+            return height
+            
+            
+
+
 
 
 
 ###############################################################################  
 ###
 ###############################################################################
+
+
+
 
 
       
@@ -814,58 +1011,10 @@ class TrackFigureCanvas(_BaseFigureCanvas):
         _BaseFigureCanvas.__init__(self, parent, size, layout_properties)
         self.axes = []
         self.mpl_connect('motion_notify_event', self.on_move)
-        
         self._callback =  callback
+        #self.props = properties
+        #self._create_dummy_axes(self.props)
         
-        # Zoom
-        self.zoom_rect = Patches.Rectangle((0, 0), 0, 0, ec="CornflowerBlue", 
-                                           fill=False, zorder=10)
-        self.dummy_ax.add_patch(self.zoom_rect)                                   
-        self.pressed = False
-        self.x0 = None
-        self.y0 = None
-        self.x1 = None
-        self.y1 = None
-        self.mpl_connect('button_press_event', self.on_press)
-        self.mpl_connect('motion_notify_event', self._on_drag)
-        self.mpl_connect('button_release_event', self.on_release)
-        #
-
-    ### Zoom functions
-        
-    def _on_drag(self, event):
-        if self.pressed:
-            if event.xdata and event.ydata:
-                self.x1, self.y1 = self.get_transformed_values()[0]
-                #print '\ndrag', [self.x0, self.x1], [self.y0, self.y1]
-                self.zoom_rect.set_width(self.x1 - self.x0)
-                self.zoom_rect.set_height(self.y1 - self.y0)
-                self.zoom_rect.set_xy((self.x0, self.y0))
-                self.draw()
-            
-    def on_press(self, event):         
-        if event.button == 2:
-            if event.xdata and event.ydata and self._zoom_callback:
-                self.x0, self.y0 = self.get_transformed_values()[0]
-                #print '\npress', self.x0, self.y0
-                #print self.get_transformed_values()[0]
-                self.pressed = True
-
-    def on_release(self, event):
-        if self.pressed:
-            #print '\nrelease', self.y0, self.y1
-            #print [(self.x0, self.y0),(self.x1, self.y1)]
-            self.zoom_rect.set_width(0)
-            self.zoom_rect.set_height(0)
-            self.draw()
-            self.pressed = False
-            self._zoom_callback(np.nanmin([self.y0, self.y1]), 
-                                np.nanmax([self.y0, self.y1]))
-        
-    def set_zoom_callback(self, zoom_callback_function):
-        self._zoom_callback = zoom_callback_function
-    
-    ###    
         
     def set_callback(self, callback_function):
         self._callback = callback_function        
@@ -946,12 +1095,17 @@ class TrackFigureCanvas(_BaseFigureCanvas):
 
 
 
-
-      
-    def append_curve(self, x_data, y_data, **kwargs):
+###############################################################################
+###        Curves (append/remove/update) functions
+###############################################################################
+    
+    #track_panel.append_curve(x_axis, y_axis, curve)     
+    def append_curve(self, x_data, y_data, **kwargs): #*args, **kwargs):
+        print 'TrackPanel.append_curve: ', x_data, y_data, kwargs
         ax = self.figure.add_axes(self.dummy_ax.get_position(True),
                           sharey=self.dummy_ax, 
-                          frameon=False)
+                          frameon=False)#,
+                          #label='teste')
         ax.xaxis.set_visible(False)
         ax.yaxis.set_visible(False)
         self.axes.append(ax)
@@ -960,54 +1114,144 @@ class TrackFigureCanvas(_BaseFigureCanvas):
 
 
     def update_curve(self, curve_number, x_data, y_data, **kwargs):
+        #print '\nTrack Panel -> update_curve: ', curve_number
         ax = self.axes[curve_number]
+        #left_scale = None
+        #right_scale = None
+        
+        #if kwargs.get('left_scale') is not None:
+        #    left_scale = kwargs.pop('left_scale')
+        #if kwargs.get('right_scale') is not None:
+        #    right_scale = kwargs.pop('right_scale')
             
         if kwargs.get('left_scale') is not None and kwargs.get('right_scale') is not None:
+            #print 'x_lim: ', (left_scale, right_scale)
             ax.set_xlim((kwargs.get('left_scale'), kwargs.get('right_scale')))            
         
         if kwargs.get('x_scale') is not None:
+            #x_scale = kwargs.pop('x_scale')
             if kwargs.get('x_scale') == 0:    
                 ax.set_xscale('linear')
             if kwargs.get('x_scale') == 1:    
                 ax.set_xscale('log')    
-                
+        
+        #curve_type = None
+        #if kwargs.get('point_plotting'):
+        #    curve_type = kwargs.pop('point_plotting')
+        #print 'kwargs.get(\'point_plotting\'): ', kwargs.get('point_plotting')
         if kwargs.get('point_plotting'):
-            
             if kwargs.get('point_plotting') == 'Index':
-                if len(ax.texts) == 0:
-                    step = 500
-                    locs = range(0, int(np.nanmax(y_data)), step)
-                    for loc in locs:
-                        ax.text(0.5, loc, "%g" % loc, ha='center', va='center', 
-                            fontsize=10)#, bbox={'facecolor':'white', 'pad':1})
+                #print '\nIndex'     
+                step = 500
+                locs = range(0, int(np.nanmax(y_data)), step)
+                #print 'LOCS: ', locs, int(np.nanmin(y_data)), np.nanmin(y_data), np.nanmax(y_data)
+                #raise Exception()
+                for loc in locs:
+                    ax.text(0.5, loc, "%g" % loc, ha='center', va='center', fontsize=9)#self.NUMBER_FONT_SIZE)
+                #self.depth_ax.set_ylim(ylim)
+                #self.zones_ax.set_ylim(ylim)
+                #self.depth_ax.xaxis.set_major_locator(NullLocator())
+                #self.depth_ax.yaxis.set_major_locator(NullLocator())                     
+                
+                '''
+                locs = ax.get_yticks()[1:-1]
+                step = locs[1] - locs[0]
+                loc_min = locs[0] - int((locs[0] - self.ylim[1])/step)*step
+                loc_max = locs[-1] + int((self.ylim[0] - locs[-1])/step)*step
+                locs = np.arange(loc_min, loc_max+step, step)
             
-            elif kwargs.get('point_plotting') == 'Partition':
-                if len(ax.images) == 0:
-                    xmin, xmax = ax.get_xlim()
-                    ymin = np.nanmin(y_data)
-                    ymax = np.nanmax(y_data)
-                    extent = (xmin, xmax, ymax, ymin) #scalars (left, right, bottom, top)
-                    
-                    for wxcolor, data in x_data.values():
-                        mplcolor = [float(c)/255.0 for c in wxcolor]
-                        color = colorConverter.to_rgba_array(mplcolor[:3])
-                        im = np.tile(color, (data.shape[0], 1)).reshape(-1, 1, 4)
-                        im[:, 0, -1] = data
-                        ax.imshow(im, aspect='auto', extent=extent, interpolation='none')
-            
-            elif kwargs.get('point_plotting').lower() == 'solid':
+                self.depth_ax.clear()
+                for loc in locs:
+                    ax.text(0.5, loc, "%g" % loc, ha='center', va='center', fontsize=self.NUMBER_FONT_SIZE)
+                self.depth_ax.set_ylim(ylim)
+                self.zones_ax.set_ylim(ylim)
+                self.depth_ax.xaxis.set_major_locator(NullLocator())
+                self.depth_ax.yaxis.set_major_locator(NullLocator())                
+                '''
+                
+            if kwargs.get('point_plotting') == 'Partition':
+                #print 'Partition'    
+                xmin, xmax = ax.get_xlim()
+                ymin = np.nanmim(y_data)
+                ymax = np.nanmax(y_data)
+                extent = (xmin, xmax, ymin, ymax)
+                #
+                for wxcolor, data in x_data.values():
+                    #wxcolor = part.color
+                    mplcolor = [float(c)/255.0 for c in wxcolor]
+                    color = colorConverter.to_rgba_array(mplcolor[:3])
+                    #   
+                    im = np.tile(color, (data.shape[0], 1)).reshape(-1, 1, 4)
+                    im[:, 0, -1] = data
+                    ax.imshow(im, aspect='auto', extent=extent, interpolation='none')
+    
+                
+                '''
+                
+                if dlg.ShowModal() == wx.ID_OK:
+                partitionuid = dlg.get_partitionuid()
+                partsuids = dlg.get_partsuids()
+    
+                if partitionuid == self.partitionuid and partsuids == self.partsuids:
+                    return
+    
+                self.partitionuid = partitionuid
+                self.partsuids = partsuids
+    
+                self.zones_ax.clear()
+                self.zones_ax.set_ylim(self.depth_ax.get_ylim())
+                self.zones_ax.xaxis.set_major_locator(NullLocator())
+                self.zones_ax.yaxis.set_major_locator(NullLocator())
+    
+                depthdata = self._OM.get(self.depthuid).data
+                xmin, xmax = self.zones_ax.get_xlim()
+                ymin = np.nanmax(depthdata)
+                ymax = np.nanmin(depthdata)
+                extent = (xmin, xmax, ymin, ymax)
+    
+                for uid in self.partsuids:
+                    part = self._OM.get(uid)
+                    wxcolor = part.color
+                    mplcolor = [float(c)/255.0 for c in wxcolor]
+                    color = colorConverter.to_rgba_array(mplcolor[:3])
+                    im = np.tile(color, (part.data.shape[0], 1)).reshape(-1, 1, 4)
+                    im[:, 0, -1] = part.data
+                    self.zones_ax.imshow(im, aspect='auto', extent=extent, interpolation='none')
+    
+                self.canvas.draw_idle()
+                
+                '''
+                
+            elif kwargs.get('point_plotting') == 'Solid':
+                #print '\nSolid'
                 if len(ax.lines) > 0: # never should be greater than 1 
                     if kwargs: 
-                        ax.lines[0].set_color(kwargs.get('color'))
+                        #print 'ax.lines[0].update kwargs'
+                        ax.lines[0].set_color(kwargs.get('color'))#update(
                         ax.lines[0].set_linewidth(kwargs.get('thickness'))
                         ax.lines[0].set_zorder(10000)
+                        #    width=kwargs.get('thickness'), 
+                        #    color=kwargs.get('color')
+                        #)
+                    #else:    
+                    #print 'ax.lines[0].set_data'
                     ax.lines[0].set_data(x_data, y_data)            
-                else:                        
+                else:    
+                    #print 'matplotlib.lines.Line2D'
+                    #print 'linewidth: ',kwargs.get('thickness')
+                    #print 'color: ' , kwargs.get('color')
+                    #print '\nx_data: ', x_data
+                    #print '\ny_data: ', y_data
+                    #print
+                    
                     line = matplotlib.lines.Line2D(x_data, y_data,
                             linewidth=kwargs.get('thickness'), 
                             color=kwargs.get('color')
                     )
-                    ax.add_line(line)          
+                    ax.add_line(line)
+                    #print '\nlen(self.axes): ', len(self.axes), '\n'
+        #else:
+        #    print '\nDEU ELSE'             
         self.draw()        
             
             
@@ -1018,334 +1262,46 @@ class TrackFigureCanvas(_BaseFigureCanvas):
         self.draw()
         
         
-        
+'''
+    matplotlib.lines.Line2D.__init__
+    def __init__(self, xdata, ydata,
+                 linewidth=None,  # all Nones default to rc
+                 linestyle=None,
+                 color=None,
+                 marker=None,
+                 markersize=None,
+                 markeredgewidth=None,
+                 markeredgecolor=None,
+                 markerfacecolor=None,
+                 markerfacecoloralt='none',
+                 fillstyle='full',
+                 antialiased=None,
+                 dash_capstyle=None,
+                 solid_capstyle=None,
+                 dash_joinstyle=None,
+                 solid_joinstyle=None,
+                 pickradius=5,
+                 drawstyle=None,
+                 markevery=None,
+                 **kwargs
+                 ):
+        """
+        Create a :class:`~matplotlib.lines.Line2D` instance with *x*
+        and *y* data in sequences *xdata*, *ydata*.
+
+        The kwargs are :class:`~matplotlib.lines.Line2D` properties:
+
+        %(Line2D)s
+
+        See :meth:`set_linestyle` for a decription of the line styles,
+        :meth:`set_marker` for a description of the markers, and
+        :meth:`set_drawstyle` for a description of the draw styles.
+
+        """
+'''            
 
         
-###############################################################################  
-###
-###############################################################################
-                
 
-
-class PlotLabelTitle(FigureCanvas):
-    """
-    Class for PlotLabel's title.
-    
-    Parameters
-    ----------
-    parent : wx.Window
-        Window that owns this component.
-
-    Attributes
-    ----------
-    _patch: matplotlib.patches.Patch
-        A patch for drawing background color.
-    _label: matplotlib.text.Text
-        Title's container.
-
-    """
-    
-    def __init__(self, parent):
-        height = float(LABEL_TITLE_HEIGHT)/DPI
-        fig = Figure(figsize=(1, height), dpi=DPI)
-        super(PlotLabelTitle, self).__init__(parent, -1, fig)
-        axes = Axes(fig, [0.0, 0.0 , 1.0, 1.0], axisbg='white')
-        axes.spines['right'].set_visible(False)
-        axes.spines['top'].set_visible(False)
-        axes.spines['left'].set_visible(False)
-        axes.spines['bottom'].set_visible(False)
-        axes.xaxis.set_major_locator(NullLocator())
-        axes.yaxis.set_major_locator(NullLocator())                
-        self._patch = axes.add_patch(
-            Patches.Rectangle(
-                (0.0, 0.0), 1.0, 1.0, 
-                facecolor = LOG_LABEL_TITLE_BGCOLOR,
-                fill = True, 
-                linewidth = 0
-            )
-        )
-        self._label = axes.text(0.5, 0.5, '', 
-                ha='center', va='center', fontsize=10)        
-        fig.add_axes(axes)
-        self.parent = parent    
-        self.Bind(wx.EVT_LEFT_DCLICK, self._on_left_double_click)
-           
-    def _on_left_double_click(self, event):
-        """
-        A method just for propagate left double click for self.parent. 
-        """
-        wx.PostEvent(self.parent, event)
-           
-    def update(self, **kwargs):
-        """
-        Update PlotLabelTitle properties.
-        
-        Parameters
-        ----------
-        text : str
-            Title string.
-        bgcolor : mpl color spec
-            Tiles's background color. 
-        """
-        if kwargs:
-            if kwargs.get('text'):
-                self._label.set_text(kwargs.get('text'))
-            if kwargs.get('bgcolor'):
-                self._patch.set_facecolor(kwargs.get('bgcolor'))  
-
-    def get_properties(self):
-        """
-        Get PlotLabelTitle properties.
-        
-        Returns
-        -------
-        properties : dict
-            The PlotLabelTitle properties with 'text' and 'bgcolor' keys.
-        """
-        properties = {}
-        properties['text'] = self._label.get_text()
-        properties['bgcolor'] = self._patch.get_facecolor()
-        return properties
-       
- 
-class PlotLabelTrack(FigureCanvas):
-    """
-    Class for PlotLabel's track.
-    
-    Parameters
-    ----------
-    parent : wx.Window
-        Window that owns this component.
-
-    Attributes
-    ----------
-    _axes: matplotlib.axes.Axes
-        A axes for drawing.
-    parent : wx.Window
-        Window that owns this component.
-
-    """
-    
-    def __init__(self, parent, **kwargs):
-        height = float(LABEL_TITLE_HEIGHT)/DPI
-        fig = Figure(figsize=(1, height), dpi=DPI)
-        super(PlotLabelTrack, self).__init__(parent, -1, fig)                
-        self._axes = Axes(fig, [0.0, 0.0 , 1.0, 1.0], axisbg='white')
-        self._axes.spines['right'].set_visible(False)
-        self._axes.spines['top'].set_visible(False)
-        self._axes.spines['left'].set_visible(False)
-        self._axes.spines['bottom'].set_visible(False)
-        self._axes.xaxis.set_major_locator(NullLocator())
-        self._axes.yaxis.set_major_locator(NullLocator())
-        fig.add_axes(self._axes)
-        if kwargs:
-            self.update(**kwargs)
-        self.parent = parent    
-        self.Bind(wx.EVT_LEFT_DCLICK, self._on_left_double_click)
-        
-    def _on_left_double_click(self, event):
-        """
-        A method just for propagate left double click to self.parent. 
-        """
-        wx.PostEvent(self.parent, event)
-
-    def update(self, **kwargs):
-        """
-        Updates track information displayed.      
-             
-        Parameters
-        ----------            
-        'name': str
-            Track name
-        'tracktype': str
-            Track type. Suported types: ['index', 'solid', 'partition']
-        'unit': str
-            Track values unit. Used when tracktype is index or solid.
-        'xmin': str
-            Track xdata min. Used when tracktype is solid.         
-        'xmax': str
-            Track xdata max. Used when tracktype is solid.                                        
-        'linecolor': mpl color spec
-            Color for track line. Used when tracktype is solid.   
-        'linewidth': int
-            Width for track line. Used when tracktype is solid. 
-                  
-        Examples
-        --------
-        >>> plt = PlotLabelTrack(None)
-        >>> plt.update(name='DEPTH', tracktype='index', units='m')
-        >>> plt.update(name='RHOZ', tracktype='solid', units='g/cm3', 
-                       xmin='1.95', xmax='2.95', linecolor='red', linewidth=1)
-        >>> plt.update(name='LITO', tracktype='partition')
-        
-        """
-        self._axes.lines = []
-        self._axes.texts = []
-        if kwargs.get('tracktype').lower() == 'solid':
-            if kwargs.get('unit') is not None:
-                str_label = kwargs.get('name') + ' (' + kwargs.get('unit') + ')'
-                self._axes.text(0.5, 0.55, str_label, ha='center', fontsize=10)
-            else:
-                self._axes.text(0.5, 0.55, kwargs.get('name'), ha='center', fontsize=10)
-            ypos = 0.25
-            self._axes.text(0.025, ypos, kwargs.get('xmin'), ha='left', va='center', fontsize=10)
-            self._axes.text(0.975, ypos, kwargs.get('xmax'), ha='right', va='center', fontsize=10)
-            line = matplotlib.lines.Line2D([0.25, 0.75], [ypos, ypos])
-            line.set_linewidth(kwargs.get('linewidth'))
-            line.set_color(kwargs.get('linecolor'))
-            self._axes.add_line(line)
-        elif kwargs.get('tracktype').lower() == 'index':
-            self._axes.text(0.5, 0.6, kwargs.get('name'), ha='center', fontsize=10)
-            if kwargs.get('unit') is not None:
-                str_unit = '(' + kwargs.get('unit') + ')'
-                self._axes.text(0.5, 0.3, str_unit, ha='center', va='center', fontsize=10)
-        elif kwargs.get('tracktype').lower() == 'partition':
-            self._axes.text(0.5, 0.6, kwargs.get('name'), ha='center', fontsize=10)
-            self._axes.text(0.5, 0.3, '(Partition)', ha='center', va='center', fontsize=10)
-        else:
-            raise Exception()
-        
-        
-class PlotLabel(wx.Panel):
-    """
-    PlotLabel is the PlotTrack identifier.
-    
-    It is responsible for drawing every track label and optionally can draw a 
-    title (PlotLabelTitle).   
-
-    Parameters
-    ----------
-    parent : wx.Window
-        This compoent parent.
-
-    Attributes
-    ----------
-    _title: PlotLabelTitle
-        Responsible for title drawing.
-    _tracks: list
-        A list container for LogLabelTracks.
-        
-    """
-    
-    def __init__(self, parent):
-        super(PlotLabel, self).__init__(parent)
-        self._title = None
-        self._tracks = []
-        self.SetBackgroundColour('white')
-        self.SetSizer(wx.BoxSizer(wx.VERTICAL))     
-
-    def create_title(self):
-        """
-        Creates title's container.
-        
-        Notes
-        -----        
-        Despite it creates the container where title properties will be 
-        placed. It is necessary to call update_title to pass these
-        properties.
-            
-        """
-        self._title = PlotLabelTitle(self)
-        self.GetSizer().Add(self._title, 0,  wx.EXPAND)
-            
-    def update_title(self, **kwargs):
-        """
-        Updates title.
-
-        Parameters
-        ----------
-        text : str
-            Title string.
-        bgcolor : mpl color spec
-            Tiles's background color.   
-            
-        """
-        if self._title is None:
-            self.create_title()
-        self._title.update(**kwargs) 
-        self.Layout() 
-        
-    def get_title_properties(self):
-        """
-        Get title properties.
-        
-        Returns
-        -------
-        properties : dict
-            The title properties with 'text' and 'bgcolor' keys.
-        """
-        if self._title:
-            return self._title.get_properties()
-        return None    
-        
-    def remove_title(self):
-        """
-        Removes (just) the title.
-        """
-        if self._title is not None:
-            self.GetSizer().Remove(self._title)
-            t = self._title
-            self._title = None
-            t.Destroy()
-            self.Layout()
-        
-    def append_track(self, **kwargs):
-        self.insert_track(len(self._tracks), **kwargs)
-        
-    def insert_track(self, pos, **kwargs):
-        """
-        Insert a new track at given pos with properties informed.
-        """
-        print '\nPlotLabel.insert_track', pos 
-        print kwargs
-        llt = PlotLabelTrack(self, **kwargs)    
-        self._tracks.insert(pos, llt)
-        self.GetSizer().Add(llt, 0,  wx.EXPAND)
-        self.Layout()
-        
-    def update_track(self, pos, **kwargs):
-        """
-        Updates track information displayed.      
-             
-        Parameters
-        ----------            
-        'name': str
-            Track name
-        'tracktype': str
-            Track type. Suported types: ['index', 'solid', 'partition']
-        'unit': str
-            Track values unit. Used when tracktype is index or solid.
-        'xmin': str
-            Track xdata min. Used when tracktype is solid.         
-        'xmax': str
-            Track xdata max. Used when tracktype is solid.                                        
-        'linecolor': mpl color spec
-            Color for track line. Used when tracktype is solid.   
-        'linewidth': int
-            Width for track line. Used when tracktype is solid. 
-                  
-        Examples
-        --------
-        >>> pl.update_track(name='DEPTH', tracktype='index', units='m')
-        >>> pl.update_track(name='RHOZ', tracktype='solid', units='g/cm3', 
-                       xmin='1.95', xmax='2.95', linecolor='red', linewidth=1)
-        >>> pl.update_track(name='LITO', tracktype='partition')
-        
-        """
-        print '\nPlotLabel.update_track',pos
-        print kwargs
-        self._tracks[pos].update(**kwargs)
-        self.Layout() 
-        
-    def remove_track(self, pos):
-        """
-        Removes the track is a given position. 
-        """
-        print '\nPlotLabel.remove_track', pos
-        llt = self._tracks.pop(pos)
-        self.GetSizer().Remove(llt)
-        llt.Destroy()
-        self.Layout()        
 
  
     

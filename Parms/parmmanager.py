@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 from collections import OrderedDict
-import FileIO
+import IO
 import os 
 
 CURVE_DICT_FILE='CPARMDEF.json'
@@ -14,11 +14,11 @@ class ParametersManager(object):
         dirname = os.path.dirname(os.path.abspath(__file__))
         dirname = dirname.encode('string-escape')
         fullname = os.path.join(dirname, GRIPY_DEFAULT_PLOT) 
-        self.PLTs['GRIPy Default Plot'] = FileIO.PLT.Reader(fullname)
+        self.PLTs['GRIPy Default Plot'] = IO.PLT.Reader(fullname)
         # End - Gripy Default Plot
         self.PLTs['No Tracks Plot'] = None
-        self.PLTs = FileIO.PLT.getPLTFiles(self.PLTs, os.path.dirname(os.path.abspath(__file__)))
-        self.curve_dict = FileIO.utils.AsciiFile.read_json_file(
+        self.PLTs = IO.PLT.getPLTFiles(self.PLTs, os.path.dirname(os.path.abspath(__file__)))
+        self.curve_dict = IO.utils.AsciiFile.read_json_file(
              os.path.join(os.path.dirname(os.path.abspath(__file__)),
                           CURVE_DICT_FILE)
         )
@@ -38,7 +38,7 @@ class ParametersManager(object):
         return self.curve_dict.get(curve_name)
 
     def check_and_reload_PLTs(self):
-        self.PLTs = FileIO.PLT.getPLTFiles(self.PLTs, os.path.dirname(os.path.abspath(__file__)))
+        self.PLTs = IO.PLT.getPLTFiles(self.PLTs, os.path.dirname(os.path.abspath(__file__)))
         
         
 # Based on yapsy.PluginManagerSingleton

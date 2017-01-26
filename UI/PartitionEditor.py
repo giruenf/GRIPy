@@ -258,9 +258,6 @@ class Dialog(wx.Dialog):
     def __init__(self, *args, **kwargs):
         if 'size' not in kwargs:
             kwargs['size'] = (640, 480)
-            
-        print args[0]
-        print
         super(Dialog, self).__init__(*args, **kwargs)
         
         # TODO: Adaptar para quando não houver partições
@@ -273,7 +270,7 @@ class Dialog(wx.Dialog):
         self.currentpartitionindex = 0
         self.partitionmap = [partition.uid for partition in self._OM.list('partition', self.wellmap[self.currentwellindex])]
         
-        #self._OM = ObjectManager(self)
+        self._OM = ObjectManager(self)
 
         self.tables = []
         for welluid in self.wellmap:
