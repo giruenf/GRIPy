@@ -1,19 +1,7 @@
 # -*- coding: utf-8 -*-
+from App.gripy_app import GripyApp
 
-import logging
-logging.basicConfig(level=logging.DEBUG)
-
-import Basic
-import OM
-import DT
-import Algo
-import UI
-import Vis
-import Plugins
-
-import wx
-
-app = wx.App(False)
-mainwindow = UI.UIManager.get().get_main_window()
-mainwindow.Show()
+app = GripyApp()
 app.MainLoop()
+
+

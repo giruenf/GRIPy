@@ -59,8 +59,9 @@ __version__="1.10.423"
 __docformat__ = "restructuredtext en"
 
 # provide a default named log for package-wide use
-import logging
-log = logging.getLogger('yapsy')
+#import logging
+#log = logging.getLogger('yapsy')
+from App import log
 
 # Some constants concerning the plugins
 PLUGIN_NAME_FORBIDEN_STRING=";;"

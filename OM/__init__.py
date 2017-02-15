@@ -9,3 +9,4 @@ the objects it will manage.
 
 import Manager
 import Objects
+import Finder

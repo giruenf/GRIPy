@@ -1,32 +1,26 @@
 # -*- coding: utf-8 -*-
-
 from Plugins import DefaultPlugin
 from Plugins.Example import core
-from Plugins.Tools.ObjectFinder import ObjectFinder
 from OM.Manager import ObjectManager
+from OM.Finder import ObjectFinder
 
 class ExamplePlugin(DefaultPlugin):
 
     def __init__(self):
         super(ExamplePlugin, self).__init__()
+        #self._parent_menu = 'Precondicionamento'
         self._OM = ObjectManager(self)
         self._OF = ObjectFinder()
-        self.input = {}
-        self.output = {}
-
-    @classmethod
-    def reloadcore(cls):
-        reload(core)
-        setattr(cls, 'doinput', core.doinput)
-        setattr(cls, 'dojob', core.dojob)
-        setattr(cls, 'dooutput', core.dooutput)
+        self.register_module(core)
     
     def run(self):
-        output = self.dojob(**self.input)
-        if output:
-            self.output = output
-        else:
-            self.output = {}
-    
-    
-ExamplePlugin.reloadcore()
+        try:
+            input_ = self.doinput(self)
+            if input_:
+                job = self.dojob(**input_)
+                if job:
+                    self.dooutput(**job)
+        except Exception as e:
+            print e.args
+
+

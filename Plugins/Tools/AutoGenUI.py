@@ -15,6 +15,7 @@ _comparison_functions = {'lt': operator.lt,
 
 
 class _GenericInput(object):
+    
     def get_uiobj(self):
         return self._uiobj
     
@@ -32,6 +33,7 @@ class _GenericInput(object):
 
 
 class _OMSingleInput(_GenericInput):
+    
     def __init__(self, *args, **kwargs):
         self._uiobj = wx.Choice(*args, **kwargs)
         self._OM = ObjectManager(self)
@@ -283,7 +285,7 @@ class AutoGenPanel(wx.Panel):
                     evt_id = wx.NewId()
                     widget.bind(self._process_event, evt_id)
                     self.eventmap[evt_id] = (name1, condition)
-        print self.eventmap
+        #print self.eventmap
     
     def _process_event(self, event):
         evt_id = event.GetId()
@@ -466,7 +468,8 @@ class AutoGenPanel(wx.Panel):
 
 
 class AutoGenDialog(wx.Dialog):
-    def __init__(self, parent, inputdesc, *args, **kwargs):
+    
+    def __init__(self, uiparent, inputdesc, *args, **kwargs):
         if 'on_ok_callback' in kwargs:
             self.on_ok_callback = kwargs.pop('on_ok_callback')
         else:
@@ -477,7 +480,7 @@ class AutoGenDialog(wx.Dialog):
         else:
             self.on_cancel_callback = None
         
-        super(AutoGenDialog, self).__init__(parent, *args, **kwargs)
+        super(AutoGenDialog, self).__init__(uiparent, *args, **kwargs)
         
         self._OM = ObjectManager(self)
         

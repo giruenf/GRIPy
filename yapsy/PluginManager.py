@@ -480,6 +480,10 @@ class PluginManager(object):
             if "__init__" in  os.path.basename(candidate_filepath):
                 candidate_filepath = os.path.dirname(candidate_filepath)
             try:
+                # Linha abaixo incluida por Adriano em 27/01/2017 
+                # Objetivo: Incluir no PATH plugins de pastas 
+                # fora do GriPy
+                sys.path.append(os.path.dirname(os.path.abspath(candidate_filepath)))
                 # use imp to correctly load the plugin as a module
                 if os.path.isdir(candidate_filepath):
                     candidate_module = imp.load_module(plugin_module_name,None,candidate_filepath,("py","r",imp.PKG_DIRECTORY))

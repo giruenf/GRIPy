@@ -1,0 +1,398 @@
+{
+    "main_window_controller": {
+        "style": 541072960, 
+        "title": "GriPy 0.5 Development", 
+        "pos": "wx.Point(58, 101)", 
+        "maximized": false, 
+        "size": "wx.Size(800, 600)", 
+        "icon": "./icons/logo-transp.ico", 
+        "children": [
+            {
+                "menubar_controller": {
+                    "children": [
+                        {
+                            "menu_controller": {
+                                "help": "", 
+                                "pos": 0, 
+                                "label": "&File", 
+                                "id": 2000, 
+                                "children": [
+                                    {
+                                        "menu_item_controller": {
+                                            "kind": 0, 
+                                            "help": "Open GriPy Project (*.pgg)", 
+                                            "pos": 0, 
+                                            "callback": "App.functions.on_open", 
+                                            "label": "&Open", 
+                                            "id": 5000, 
+                                            "children": []
+                                        }
+                                    }, 
+                                    {
+                                        "menu_item_controller": {
+                                            "kind": 0, 
+                                            "help": "Save GriPy Project", 
+                                            "pos": 1, 
+                                            "callback": "App.functions.on_save", 
+                                            "label": "&Save", 
+                                            "id": 5003, 
+                                            "children": []
+                                        }
+                                    }, 
+                                    {
+                                        "menu_item_controller": {
+                                            "kind": 0, 
+                                            "help": "Save GriPy Project with a new name", 
+                                            "pos": 2, 
+                                            "callback": "App.functions.on_save_as", 
+                                            "label": "&Save as", 
+                                            "id": 5004, 
+                                            "children": []
+                                        }
+                                    }, 
+                                    {
+                                        "menu_item_controller": {
+                                            "kind": -1, 
+                                            "help": "", 
+                                            "pos": 3, 
+                                            "callback": null, 
+                                            "label": "", 
+                                            "id": 2009, 
+                                            "children": []
+                                        }
+                                    }, 
+                                    {
+                                        "menu_controller": {
+                                            "help": "Import file", 
+                                            "pos": 4, 
+                                            "label": "&Import", 
+                                            "id": 2010, 
+                                            "children": [
+                                                {
+                                                    "menu_item_controller": {
+                                                        "kind": 0, 
+                                                        "help": "Import a LAS file to current GriPy Project", 
+                                                        "pos": 0, 
+                                                        "callback": "App.functions.on_import_las", 
+                                                        "label": "LAS File", 
+                                                        "id": 2011, 
+                                                        "children": []
+                                                    }
+                                                }, 
+                                                {
+                                                    "menu_item_controller": {
+                                                        "kind": 0, 
+                                                        "help": "Import a ODT file to current GriPy Project", 
+                                                        "pos": 1, 
+                                                        "callback": "App.functions.on_import_odt", 
+                                                        "label": "ODT File", 
+                                                        "id": 2012, 
+                                                        "children": []
+                                                    }
+                                                }, 
+                                                {
+                                                    "menu_item_controller": {
+                                                        "kind": 0, 
+                                                        "help": "Import a LIS file to current GriPy Project", 
+                                                        "pos": 2, 
+                                                        "callback": "App.functions.on_import_lis", 
+                                                        "label": "LIS File", 
+                                                        "id": 2013, 
+                                                        "children": []
+                                                    }
+                                                }, 
+                                                {
+                                                    "menu_item_controller": {
+                                                        "kind": 0, 
+                                                        "help": "Import a SEG-Y Seismic file to current GriPy Project", 
+                                                        "pos": 3, 
+                                                        "callback": "App.functions.on_import_segy_seis", 
+                                                        "label": "SEG-Y Seismic", 
+                                                        "id": 2014, 
+                                                        "children": []
+                                                    }
+                                                }, 
+                                                {
+                                                    "menu_item_controller": {
+                                                        "kind": 0, 
+                                                        "help": "Import a SEG-Y Velocity file to current GriPy Project", 
+                                                        "pos": 4, 
+                                                        "callback": "App.functions.on_import_segy_vel", 
+                                                        "label": "SEG-Y Velocity", 
+                                                        "id": 2015, 
+                                                        "children": []
+                                                    }
+                                                }
+                                            ]
+                                        }
+                                    }, 
+                                    {
+                                        "menu_controller": {
+                                            "help": "Export file", 
+                                            "pos": 5, 
+                                            "label": "Export", 
+                                            "id": 2016, 
+                                            "children": [
+                                                {
+                                                    "menu_item_controller": {
+                                                        "kind": 0, 
+                                                        "help": "Export a LAS file from a well in current GriPy Project", 
+                                                        "pos": 0, 
+                                                        "callback": "App.functions.on_export_las", 
+                                                        "label": "LAS File", 
+                                                        "id": 2017, 
+                                                        "children": []
+                                                    }
+                                                }
+                                            ]
+                                        }
+                                    }
+                                ]
+                            }
+                        }, 
+                        {
+                            "menu_controller": {
+                                "help": "", 
+                                "pos": 1, 
+                                "label": "&Editar", 
+                                "id": 2001, 
+                                "children": [
+                                    {
+                                        "menu_item_controller": {
+                                            "kind": 0, 
+                                            "help": "", 
+                                            "pos": 0, 
+                                            "callback": "App.functions.on_partitionedit", 
+                                            "label": "Parti\u00e7\u00f5es", 
+                                            "id": 2002, 
+                                            "children": []
+                                        }
+                                    }
+                                ]
+                            }
+                        }, 
+                        {
+                            "menu_controller": {
+                                "help": "", 
+                                "pos": 2, 
+                                "label": "&Precondicionamento", 
+                                "id": 2003, 
+                                "children": []
+                            }
+                        }, 
+                        {
+                            "menu_controller": {
+                                "help": "", 
+                                "pos": 3, 
+                                "label": "&Interpreta\u00e7\u00e3o", 
+                                "id": 2004, 
+                                "children": []
+                            }
+                        }, 
+                        {
+                            "menu_controller": {
+                                "help": "", 
+                                "pos": 4, 
+                                "label": "&Infer\u00eancia", 
+                                "id": 2005, 
+                                "children": []
+                            }
+                        }, 
+                        {
+                            "menu_controller": {
+                                "help": "", 
+                                "pos": 5, 
+                                "label": "&Ferramentas", 
+                                "id": 2006, 
+                                "children": []
+                            }
+                        }, 
+                        {
+                            "menu_controller": {
+                                "help": "", 
+                                "pos": 6, 
+                                "label": "&Plugins", 
+                                "id": 2007, 
+                                "children": [
+                                    {
+                                        "menu_item_controller": {
+                                            "kind": 0, 
+                                            "help": "C\u00e1lculo de imped\u00e2ncia", 
+                                            "pos": 0, 
+                                            "callback": "Plugins.event_run", 
+                                            "label": "AutoGen Example", 
+                                            "id": 2021, 
+                                            "children": []
+                                        }
+                                    }, 
+                                    {
+                                        "menu_item_controller": {
+                                            "kind": 0, 
+                                            "help": "Exemplo de plugin simples", 
+                                            "pos": 1, 
+                                            "callback": "Plugins.event_run", 
+                                            "label": "Example", 
+                                            "id": 2022, 
+                                            "children": []
+                                        }
+                                    }, 
+                                    {
+                                        "menu_item_controller": {
+                                            "kind": 0, 
+                                            "help": "Exemplo de plugin simples para o programa de python", 
+                                            "pos": 2, 
+                                            "callback": "Plugins.event_run", 
+                                            "label": "ExposeIDs", 
+                                            "id": 2023, 
+                                            "children": []
+                                        }
+                                    }, 
+                                    {
+                                        "menu_item_controller": {
+                                            "kind": 0, 
+                                            "help": "Plugin para cria\u00e7\u00e3o de Gathers Sint\u00e9ticos", 
+                                            "pos": 3, 
+                                            "callback": "Plugins.event_run", 
+                                            "label": "Synthetic Gathers", 
+                                            "id": 2024, 
+                                            "children": []
+                                        }
+                                    }
+                                ]
+                            }
+                        }, 
+                        {
+                            "menu_controller": {
+                                "help": "", 
+                                "pos": 7, 
+                                "label": "&Debug", 
+                                "id": 2008, 
+                                "children": [
+                                    {
+                                        "menu_item_controller": {
+                                            "kind": 0, 
+                                            "help": "Gripy Debug Console", 
+                                            "pos": 0, 
+                                            "callback": "App.functions.on_debugconsole", 
+                                            "label": "Debug Console", 
+                                            "id": 2018, 
+                                            "children": []
+                                        }
+                                    }, 
+                                    {
+                                        "menu_item_controller": {
+                                            "kind": -1, 
+                                            "help": "", 
+                                            "pos": 1, 
+                                            "callback": null, 
+                                            "label": "", 
+                                            "id": 2019, 
+                                            "children": []
+                                        }
+                                    }, 
+                                    {
+                                        "menu_item_controller": {
+                                            "kind": 0, 
+                                            "help": "", 
+                                            "pos": 2, 
+                                            "callback": "App.functions.on_load_wilson", 
+                                            "label": "Load Wilson Synthetics", 
+                                            "id": 2020, 
+                                            "children": []
+                                        }
+                                    }
+                                ]
+                            }
+                        }
+                    ]
+                }
+            }, 
+            {
+                "tree_controller": {
+                    "children": []
+                }
+            }, 
+            {
+                "toolbar_controller": {
+                    "style": 544, 
+                    "pos": "wx.Point(-1, -1)", 
+                    "id": -1, 
+                    "size": "wx.Size(-1, -1)", 
+                    "children": [
+                        {
+                            "toolbartool_controller": {
+                                "kind": 0, 
+                                "help": "New project", 
+                                "pos": 0, 
+                                "label": "New project", 
+                                "callback": "App.functions.on_open", 
+                                "bitmap": "./icons/aqua_new_file_24.png", 
+                                "long_help": "Start a new Gripy project, closes existing", 
+                                "id": -1, 
+                                "children": []
+                            }
+                        }, 
+                        {
+                            "toolbartool_controller": {
+                                "kind": 0, 
+                                "help": "Abrir projeto", 
+                                "pos": 1, 
+                                "label": "Abrir projeto", 
+                                "callback": "App.functions.on_open", 
+                                "bitmap": "./icons/folder_opened_24.png", 
+                                "long_help": "Abrir projeto GriPy", 
+                                "id": -1, 
+                                "children": []
+                            }
+                        }, 
+                        {
+                            "toolbartool_controller": {
+                                "kind": 0, 
+                                "help": "Salvar projeto", 
+                                "pos": 2, 
+                                "label": "Salvar projeto", 
+                                "callback": "App.functions.on_save", 
+                                "bitmap": "./icons/floppy_24.png", 
+                                "long_help": "Salvar projeto GriPy", 
+                                "id": -1, 
+                                "children": []
+                            }
+                        }, 
+                        {
+                            "toolbartool_controller": {
+                                "kind": 0, 
+                                "help": "Log Plot", 
+                                "pos": 3, 
+                                "label": "Visualizar LogPlot", 
+                                "callback": "App.functions.on_new_logplot", 
+                                "bitmap": "./icons/log_plot_24.png", 
+                                "long_help": "Log Plot", 
+                                "id": -1, 
+                                "children": []
+                            }
+                        }, 
+                        {
+                            "toolbartool_controller": {
+                                "kind": 0, 
+                                "help": "Crossplot", 
+                                "pos": 4, 
+                                "label": "Visualizar Crossplot", 
+                                "callback": "App.functions.on_open", 
+                                "bitmap": "./icons/crossplot_24.png", 
+                                "long_help": "Crossplot", 
+                                "id": -1, 
+                                "children": []
+                            }
+                        }
+                    ]
+                }
+            }, 
+            {
+                "statusbar_controller": {
+                    "label": "Bem vindo ao GriPy 0.5 Development", 
+                    "children": []
+                }
+            }
+        ]
+    }
+}

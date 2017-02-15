@@ -19,5 +19,4 @@ matplotlib.rcParams['figure.edgecolor'] = Colors.ALMOST_BLACK
 matplotlib.rcParams['legend.numpoints'] = 1
 
 import CrossPlot
-import LogPlot
 import MatplotlibWidgets

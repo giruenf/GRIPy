@@ -5,6 +5,8 @@ from Plugins.Tools.AutoGenUI import AutoGenDialog
 from OM.Manager import ObjectManager
 import wx
 
+
+
 inputdesc = [{'type': 'omsingle', 'name': 'dt', 'tids': ['log'], 'dispname': u'Sônico'},
              {'type': 'omsingle', 'name': 'rho', 'tids': ['log'], 'dispname': u"Densidade"},
              {'type': 'bool', 'name': 'is_sonic', 'dispname': u"É sônico?", 'default': True},
@@ -12,6 +14,8 @@ inputdesc = [{'type': 'omsingle', 'name': 'dt', 'tids': ['log'], 'dispname': u'S
              {'type': 'text', 'name': 'unit', 'dispname': 'Unidade'}]
 
 outputdesc = [{'type': 'log', 'name': 'impedance'}]
+
+
 
 def job(**kwargs):
     is_sonic = kwargs.get('is_sonic', None)
@@ -33,21 +37,20 @@ def job(**kwargs):
     output['impedance']['name'] = name
     output['impedance']['unit'] = unit
     output['impedance']['data'] = impedancedata
-    
     return output
 
+
+
+
 class AutoGenExamplePlugin(AutoGenDataPlugin):
-    def __init__(self):
-        super(AutoGenExamplePlugin, self).__init__()
-        
-        self._OM = ObjectManager(self)
-        
-        self.inputdesc = inputdesc
-        self.outputdesc = outputdesc
-        
-        self.menukey = "infer"
-        
     
+    def __init__(self):
+        super(AutoGenExamplePlugin, self).__init__()        
+        self._OM = ObjectManager(self)        
+        self.inputdesc = inputdesc
+        self.outputdesc = outputdesc        
+        #self.menukey = "infer"
+        
     def run(self, uiparent):
         agd = AutoGenDialog(uiparent, self.inputdesc)
         agd.SetTitle("Impedance Plugin")

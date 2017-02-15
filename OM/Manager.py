@@ -12,6 +12,7 @@ from collections import OrderedDict
 import numpy as np
 import zipfile
 import os
+from App import log
 
 try:
     import zlib
@@ -56,8 +57,8 @@ class ObjectManager(object):
     _parenttidmap = {}
     _CBTYPES = ["add", "pre-remove", "post-remove"]
     _callbacks = {cbtype: [] for cbtype in _CBTYPES}
-    _log = []  # TODO: implementar logging (talvez usando decorators)
     _NPZIDENTIFIER = "__NPZ;;"
+    _changed = False
 
     def __init__(self, owner):
         self._ownerref = weakref.ref(owner)
@@ -68,7 +69,26 @@ class ObjectManager(object):
         self._childrenuidmap = ObjectManager._childrenuidmap
         self._parenttidmap = ObjectManager._parenttidmap
         self._callbacks = ObjectManager._callbacks
-        self._log = ObjectManager._log
+        log.debug('ObjectManager new instance was solicitated by {}'.format(str(owner)))
+        
+    def get_changed_flag(self):
+        """
+        Return a flag used by Application know if ObjectManager was changed
+        since last saved state. 
+        
+        Returns
+        -------
+        bool
+            Whether the ObjectManager was changed.
+        """
+        return ObjectManager._changed 
+        
+    def set_changed_flag(self):
+        """
+        Set True a flag used by Application as know if ObjectManager was 
+        changed since last saved state. 
+        """
+        ObjectManager._changed = True   
 
     def _getnewobjectid(self, typeid):
         """
@@ -161,6 +181,7 @@ class ObjectManager(object):
             self._childrenuidmap[parentuid].append(obj.uid)
         for cb in self._callbacks["add"]:
             cb(obj.uid)
+        ObjectManager._changed  = True       
         return True
 
     def get(self, uid):  # TODO: colocar "Raises" na docstring
@@ -235,7 +256,7 @@ class ObjectManager(object):
 
         for cb in self._callbacks["post-remove"]:
             cb(uid)
-
+        ObjectManager._changed  = True    
         return True
 
     def list(self, tidfilter=None, parentuidfilter=None):
@@ -314,16 +335,20 @@ class ObjectManager(object):
         typeid = type_.tid
         if typeid in cls._data.keys():
             msg = "Type {} is already registered".format(typeid)
+            log.exception(msg)
             raise TypeError(msg)
-
         if parenttype:
             cls._parenttidmap[typeid] = parenttype.tid
         else:
             cls._parenttidmap[typeid] = None
-
         cls._currentobjectids[typeid] = 0
         cls._types[typeid] = type_
-        
+        class_full_name = str(type_.__module__) + '.' + str(type_.__name__)
+        if parenttype:
+            parent_full_name = str(parenttype.__module__) + '.' + str(parenttype.__name__)
+            log.info('ObjectManager registered class {} for parent class {} successfully.'.format(class_full_name, parent_full_name))
+        else:    
+            log.info('ObjectManager registered class {} successfully.'.format(class_full_name))
         return True
 
     @classmethod
@@ -494,7 +519,7 @@ class ObjectManager(object):
         
         os.remove(os.path.join(dirname, picklefilename))
         os.remove(os.path.join(dirname, npzfilename))
-        
+        ObjectManager._changed  = False
         return True
 
     def load(self, archivepath):
@@ -544,5 +569,37 @@ class ObjectManager(object):
         
         os.remove(os.path.join(dirname, picklefilename))
         os.remove(os.path.join(dirname, npzfilename))
-        
+        ObjectManager._changed  = False
         return True
+
+
+    def from_string(self, obj_string):
+        """
+        Load an object in ObjectManager from a given string.
+        
+        Parameters
+        ----------
+        obj_string : str
+            The path (i.e. the filename) of the file to load the state from.
+        
+        Returns
+        -------
+        object
+            An object if exits for given string, or None if the object was not
+            added in the ObjectManager or if the string cannot identify an object.
+        """
+        left_index = obj_string.find('(')
+        right_index = obj_string.rfind(')')
+        if left_index == -1 or right_index == -1:
+            return None
+        elif right_index < left_index:
+            return None
+        obj_string = obj_string[left_index+1:right_index]
+        tid, oid = obj_string.split(',')
+        tid = tid.strip('\'\" ')
+        oid = int(oid.strip('\'\" '))
+        for obj in self.list(tid):
+            if obj.oid == oid:
+                return obj
+        return None        
+        
