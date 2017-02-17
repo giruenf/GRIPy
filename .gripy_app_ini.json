@@ -17,7 +17,7 @@
     }, 
     "logging": {
         "logging_level": 10, 
-        "logging_filename": "logs\\TESTE.log", 
+        "logging_filename": "logs\\gripy_application.log", 
         "logging_filemode": "w"
     },
 	"plugins": {
