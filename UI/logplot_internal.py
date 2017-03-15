@@ -1,13 +1,10 @@
 # -*- coding: utf-8 -*-
-
 import wx
 from wx.lib.scrolledpanel import ScrolledPanel
 from trackssplitter import MultiSplitterWindow
 
 
-
-class LogPlotInternal(wx.SplitterWindow):
-    
+class LogPlotInternal(wx.SplitterWindow):  
     SASH_POSITION = 100    
     
     def __init__(self, parent):
@@ -17,9 +14,13 @@ class LogPlotInternal(wx.SplitterWindow):
         self.SplitHorizontally(self._top_panel, self._bottom_panel)
         self.SetSashPosition(self._top_panel._splitter.GetSize().GetHeight()) # + 2)
         self.SetMinimumPaneSize(self.SASH_POSITION) 
-        #self.Bind(wx.EVT_SPLITTER_SASH_POS_CHANGING, self._on_sash_changing)
-
-  
+        self.Bind(wx.EVT_SIZE, self._on_size)
+        
+        
+    def _on_size(self, event):
+        print 'LogPlotInternal:', self.GetSize()
+        event.Skip()        
+        
     def _on_sash_changing(self, event):
         if isinstance(event, wx.SplitterEvent):
             event.SetSashPosition(-1)  
@@ -31,33 +32,24 @@ class LogPlotInternal(wx.SplitterWindow):
             raise Exception('ERROR: Top panel and bottom panel must have same size.')
         return len(self.top_splitter)
 
-
     def insert(self, pos, top_window, bottom_window, width):
         self.top_splitter.InsertWindow(pos, top_window, width)
         self.bottom_splitter.InsertWindow(pos, bottom_window, width)
-        
-        
+            
     def append(self, top_window, bottom_window):
         pos = len(self.top_splitter)
         self.insert(pos, top_window, bottom_window)
-        
-        
+            
     @property
     def top_splitter(self):
         return self._top_panel._splitter
-        
-        
+             
     @property
     def bottom_splitter(self):
         return self._bottom_panel._splitter
   
-      
 
-"""
-    Essa classe tornou-se mais generica, sem mencao a LogPlot e LogPlotBase
-"""
 
- 
 class BaseScrolled(ScrolledPanel):
     
     def __init__(self, parent, **kwargs):
@@ -70,31 +62,17 @@ class BaseScrolled(ScrolledPanel):
         self.ShowScrollbars(wx.SHOW_SB_NEVER, wx.SHOW_SB_ALWAYS)
         self.SetupScrolling()
 
-    
     def fit(self, fit=True):
         self._splitter._SetFit(fit)
         self.Layout()
       
-    def _update_sizer(self):
-        print '\nUpdated sizer'
-        self.GetSizer().Layout()
+          
+      
+    #def _update_sizer(self):
+    #    print '\nUpdated sizer'
+    #    self.GetSizer().Layout()
         
-        
-    """    
-    def insert(self, pos, window, width=100):
-        self._splitter.InsertWindow(pos, window, width)  
-    
-    def append(self, window, width=100):
-        self._splitter.InsertWindow(len(self._splitter), window, width)
 
-    def pop(self, idx):
-        window = self._splitter.GetWindow(idx)
-        self.remove(window)
-        return window      
-
-    def remove(self, window):
-        self.tracks.DetachWindow(window)
-    """
     
 
 

@@ -8,6 +8,7 @@ from UI.uimanager import UIModelBase
 from UI.uimanager import UIViewBase 
 from track_base import TrackFigureCanvas
 from title_base import PlotLabel
+from App.utils import LogPlotState  
 from App import log
 
 
@@ -18,19 +19,10 @@ class TrackController(UIControllerBase):
         super(TrackController, self).__init__()
 
 
-    def PostInit(self):
-        _UIM = UIManager()
-        parent_uid = _UIM._getparentuid(self.uid)
-        parent_ctrl = _UIM.get(parent_uid)
-        ymin, ymax = parent_ctrl._get_ylim()
-        self._set_ylim(ymin, ymax)
-        
-
     def get_position(self):
-        _UIM = UIManager()
-        parent_uid = _UIM._getparentuid(self.uid)
-        parent_ctrl = _UIM.get(parent_uid)
-        
+        UIM = UIManager()
+        parent_uid = UIM._getparentuid(self.uid)
+        parent_ctrl = UIM.get(parent_uid)
         title_parent = parent_ctrl.view.main_panel.top_splitter
         track_parent = parent_ctrl.view.main_panel.bottom_splitter
         idx_top = title_parent.IndexOf(self.view.label)        
@@ -40,12 +32,12 @@ class TrackController(UIControllerBase):
         
         
     def append_object(self, obj_uid):
-        print '\n\nTrackController.append_object: ', obj_uid
+        print '\nTrackController.append_object: ', obj_uid
         #_OM = ObjectManager(self)
         #obj = _OM.from_string(obj_uid)
         #index_data = obj.get_index_data()
-        _UIM = UIManager()
-        toc = _UIM.create('track_object_controller', self.uid)  
+        UIM = UIManager()
+        toc = UIM.create('track_object_controller', self.uid)  
         toc.set_uid(obj_uid)
         toc.plot()
         #toc.set_data(obj.data, index_data)
@@ -68,9 +60,21 @@ class TrackController(UIControllerBase):
             'cmap': {'default_value': 'rainbow', 'type': str},
         }     
         """
-  
+        
+    def set_ylim(self, ymin, ymax):
+        print 'TrackController.set_ylim:', (ymin, ymax)
+        self.view._set_ylim(ymin, ymax) 
+        
+        
+    def get_cursor_state(self):
+        UIM = UIManager()
+        parent_uid = UIM._getparentuid(self.uid)
+        parent_ctrl = UIM.get(parent_uid)
+        return parent_ctrl.model.cursor_state 
+
+    """    
     def on_change_label(self, **kwargs):
-        print '\non_change_label:', kwargs
+        print 'TrackController.on_change_label:', kwargs
         text = ''        
         if kwargs.get('key') == 'label':
             if kwargs.get('new_value'):
@@ -78,12 +82,12 @@ class TrackController(UIControllerBase):
         if not text:
             text = str(self.model.pos+1)  
         self.view.label.update_title(text=text)  
-
-           
+    """
+    
     def on_change_width(self, **kwargs):  
-        _UIM = UIManager()
-        parent_uid = _UIM._getparentuid(self.uid)
-        parent_ctrl = _UIM.get(parent_uid)
+        UIM = UIManager()
+        parent_uid = UIM._getparentuid(self.uid)
+        parent_ctrl = UIM.get(parent_uid)
         parent_ctrl.view._do_change_width(self.get_position(), self.model.width)
         if not self.model.selected:
             return
@@ -96,22 +100,56 @@ class TrackController(UIControllerBase):
 
 
     def on_change_properties(self, **kwargs):  
-        #print 'on_change_properties', kwargs
-        state = self.model._getstate()
-        self.view.track.update_properties(**state) 
+        #print '\nTrackController.on_change_properties', kwargs
+        
+        if kwargs.get('key') == 'label':
+            text = '' 
+            if kwargs.get('new_value'):
+                text = kwargs.get('new_value') 
+            if not text:
+                text = str(self.model.pos+1)  
+            self.view.update_title(text) 
 
-        if kwargs.get('key') == 'y_major_grid_lines':
-            if self.model.show_depth:
-                self.view.track.show_index_curve(self.model.y_major_grid_lines)
+        elif kwargs.get('key') == 'pos':
+            print '\nTrackController.on_change_properties', self.uid, kwargs
+            if kwargs.get('old_value') != -1:
+                
+                if self.view._change_position(kwargs.get('new_value')):    
+                    UIM = UIManager()
+                    if kwargs.get('new_value') < kwargs.get('old_value'):
+                        for i in range(kwargs.get('old_value')-1, kwargs.get('new_value')-1, -1):
+                            print 'pos:', i
+                            for track in UIM.do_query(self.tid, pos=i):
+                                if track is not self:
+                                    track.model.pos += 1 
+                    else:
+                        for i in range(kwargs.get('old_value'), kwargs.get('new_value')+1):
+                            print 'pos:', i
+                            for track in UIM.do_query(self.tid, pos=i):
+                                if track is not self:
+                                    track.model.pos -= 1 
+                #i = kwargs.get('old_value')
+                #for i in range(kwargs.get('old_value')-1, kwargs.get('new_value'), -1):
+                    
+                
+            if not self.model.label:
+                self.view.update_title(kwargs.get('new_value')+1)                
+            
         elif kwargs.get('key') == 'show_depth':
             if kwargs.get('new_value'):
                 self.view.track.show_index_curve(self.model.y_major_grid_lines)               
             else:
                 self.view.track.hide_index_curve()   
+        else:
+            if kwargs.get('key') == 'y_major_grid_lines' and self.model.show_depth:
+                self.view.track.show_index_curve(self.model.y_major_grid_lines)
+            self.view.track.update(kwargs.get('key'), kwargs.get('new_value'))
 
-
-    def _set_ylim(self, ymin, ymax):
-        self.view._set_ylim(ymin, ymax)
+    def on_change_selection(self, **kwargs):  
+        print 'TrackController.on_change_selection', kwargs
+        self.view._invert_selection()
+        
+        
         
         
 
@@ -119,8 +157,8 @@ class TrackModel(UIModelBase):
     tid = 'track_model'
     
     _ATTRIBUTES = {
-        'pos': {'default_value': -1, 'type': int, 'on_change': TrackController.on_change_label},
-        'label': {'default_value': wx.EmptyString, 'type': unicode, 'on_change': TrackController.on_change_label},
+        'pos': {'default_value': -1, 'type': int, 'on_change': TrackController.on_change_properties},
+        'label': {'default_value': wx.EmptyString, 'type': unicode, 'on_change': TrackController.on_change_properties},
         'plotgrid': {'default_value': False, 'type': bool, 'on_change': TrackController.on_change_properties},
         'x_scale': {'default_value': 0, 'type': int, 'on_change': TrackController.on_change_properties},
         'y_major_grid_lines': {'default_value': 500.0, 'type': float, 'on_change': TrackController.on_change_properties},
@@ -131,7 +169,7 @@ class TrackModel(UIModelBase):
         'leftscale': {'default_value': 0.2, 'type': float, 'on_change': TrackController.on_change_properties},
         'decades':  {'default_value': 4, 'type': int, 'on_change': TrackController.on_change_properties},   
         'scale_lines': {'default_value': 5, 'type': int, 'on_change': TrackController.on_change_properties},
-        'selected': {'default_value': False, 'type': bool},#, 'on_change': TrackController.on_change_selection}    
+        'selected': {'default_value': False, 'type': bool, 'on_change': TrackController.on_change_selection},    
         'show_depth': {'default_value': False, 'type': bool, 'on_change': TrackController.on_change_properties}
     }        
     
@@ -170,231 +208,274 @@ ScaleLines7Id = wx.NewId()
 
 
 
+
 class TrackView(UIViewBase):
     tid = 'track_view'
 
-
     def __init__(self, controller_uid):
+        print '\nTrackView.Init STARTED'
         UIViewBase.__init__(self, controller_uid)
-        _UIM = UIManager()
-        controller = _UIM.get(self._controller_uid)
-        parent_controller_uid = _UIM._getparentuid(self._controller_uid)
-        parent_controller =  _UIM.get(parent_controller_uid)
+        UIM = UIManager()
+        controller = UIM.get(self._controller_uid)
+        parent_controller_uid = UIM._getparentuid(self._controller_uid)
+        parent_controller =  UIM.get(parent_controller_uid)
         
         title_parent = parent_controller.view.main_panel.top_splitter
         track_parent = parent_controller.view.main_panel.bottom_splitter
         
         self.label = PlotLabel(title_parent, self) 
- 
+
         self.track = TrackFigureCanvas(track_parent, self,
                 size=wx.Size(controller.model.width, track_parent.GetSize()[1]),
-                **controller.model._getstate()
+                **controller.model.get_state()
         ) 
         
         dt = DropTarget(controller.append_object)
         self.label.SetDropTarget(dt)
         self.track.SetDropTarget(dt)
-
+        print '\nTrackView.Init ENDED'
 
 
 
     def PostInit(self):  
-        _UIM = UIManager()
-        controller = _UIM.get(self._controller_uid)
-        parent_controller_uid = _UIM._getparentuid(self._controller_uid)
-        parent_controller =  _UIM.get(parent_controller_uid)
-        if controller.model.pos == -1:
-            controller.model.pos = len(parent_controller.view)
+        print '\nTrackView.PostInit STARTED'
+        UIM = UIManager()
+        controller = UIM.get(self._controller_uid)
+        parent_controller_uid = UIM._getparentuid(self._controller_uid)
+        parent_controller =  UIM.get(parent_controller_uid)
         
-        if not controller.model.label:
-            self.label.update_title(text=str(controller.model.pos+1))  
-        else:
-            self.label.update_title(text=controller.model.label)
-            
+        if controller.model.pos == -1:
+            print 'SETTANDO COMO EVENTO:', len(parent_controller)
+            #controller.model.set_value_from_event('pos', len(parent_controller.view))
+            controller.model.pos = len(parent_controller)
+            print 'FIM - SETTANDO COMO EVENTO'
+
+        print '\nb4'
+
         parent_controller.view._insert(controller.model.pos, self.label, 
                                       self.track,
                                       controller.model.width
         )         
+        print '\nTrackView.PostInit ENDED'
 
+
+    def update_title(self, new_title):
+        self.label.update_title(text=str(new_title))        
                               
         
-    def set_selected(self, obj_event, selected):
-        _UIM = UIManager()
-        controller = _UIM.get(self._controller_uid)
-        controller.model.selected = selected
-        if obj_event == self.label:
-            self.track._do_select()
-        else:
-            self.label._do_select()
+    def _invert_selection(self):
+        self.track._do_select()
+        self.label._do_select()
 
 
     def _set_ylim(self, ymin, ymax):
-        self.track.set_ylim((ymin, ymax))
+        print 'TrackView.set_ylim:', (ymin, ymax)
+        self.track.set_ylim((ymax, ymin))
 
-   # def draw_selection(self, selected):
-   #     self.label.draw_selection(selected)
-   #     self.track.draw_selection(selected)
+
+    def _change_position(self, new_pos):
+        print 'TrackView._change_position:', new_pos
+        UIM = UIManager()
+        #controller = UIM.get(self._controller_uid)
+        parent_controller_uid = UIM._getparentuid(self._controller_uid)
+        parent_controller =  UIM.get(parent_controller_uid)
+        title_parent = parent_controller.view.main_panel.top_splitter
+        track_parent = parent_controller.view.main_panel.bottom_splitter
+        return (title_parent.ChangeWindowPosition(self.label, new_pos) and 
+                        track_parent.ChangeWindowPosition(self.track, new_pos))
+        
+            
+
+    #def _has_changed_position_to(self, new_pos):
 
 
     def process_event(self, event):
-        ### From: http://stackoverflow.com/questions/14617722/matplotlib-and-wxpython-popupmenu-cooperation       
-        event.guiEvent.GetEventObject().ReleaseMouse()        
-        ###
+        ### From: http://stackoverflow.com/questions/14617722/matplotlib-and-wxpython-popupmenu-cooperation     
         print
-
+        #if event.guiEvent.GetEventObject().HasCapture():            
+        #    event.guiEvent.GetEventObject().ReleaseMouse()        
+        ###
+        #print '\nTrackView.process_event:', event
+        
+        UIM = UIManager()
+        controller = UIM.get(self._controller_uid)
+        
+        if isinstance(event, wx.MouseEvent):        
+            gui_evt = event
+        else:
+            gui_evt = event.guiEvent
+        
+        #print '\n', gui_evt.GetEventObject()   
+        #if isinstance(gui_evt.GetEventObject(), TrackFigureCanvas):
+        #    print '\nTrackFigureCanvas'
+        #else:
+        #    print '\nPlotLabel'
         ###
         # Context Menu
         ###
-        if event.button == 3:
-            _UIM = UIManager()
-            controller = _UIM.get(self._controller_uid)
-            menu = wx.Menu()
-            #
-            depth_submenu = wx.Menu()
-            depth_submenu.AppendRadioItem(ShowDepthId, 'Show')
-            event.canvas.Bind(wx.EVT_MENU, self.menu_selection, id=ShowDepthId)
-            depth_submenu.AppendRadioItem(HideDepthId, 'Hide')
-            event.canvas.Bind(wx.EVT_MENU, self.menu_selection, id=HideDepthId)
-            if controller.model.show_depth:
-                depth_submenu.Check(ShowDepthId, True)
-            else:
-                depth_submenu.Check(HideDepthId, True)
-            menu.AppendSubMenu(depth_submenu, 'Depth')
-            #
-            grid_submenu = wx.Menu()
-            grid_submenu.AppendRadioItem(ShowGridId, 'Show')
-            event.canvas.Bind(wx.EVT_MENU, self.menu_selection, id=ShowGridId)
-            grid_submenu.AppendRadioItem(HideGridId, 'Hide')
-            event.canvas.Bind(wx.EVT_MENU, self.menu_selection, id=HideGridId)
-            if controller.model.plotgrid:
-                grid_submenu.Check(ShowGridId, True)
-            else:
-                grid_submenu.Check(HideGridId, True)
-            menu.AppendSubMenu(grid_submenu, 'Grid')
+
+        if gui_evt.GetButton() == 1:
+            #print 'botao 1'
+            if controller.get_cursor_state() == LogPlotState.SELECTION_TOOL:
+                controller.model.selected = not controller.model.selected
             
-            #
-            scale_submenu = wx.Menu()
-            scale_submenu.AppendRadioItem(ScaleLinGridId, 'Linear')
-            event.canvas.Bind(wx.EVT_MENU, self.menu_selection, id=ScaleLinGridId)
-            scale_submenu.AppendRadioItem(ScaleLogGridId, 'Logarithmic')
-            event.canvas.Bind(wx.EVT_MENU, self.menu_selection, id=ScaleLogGridId)
-            if not controller.model.x_scale:
-                scale_submenu.Check(ScaleLinGridId, True)
-            else:
-                scale_submenu.Check(ScaleLogGridId, True)
-            menu.AppendSubMenu(scale_submenu, 'Scale')
-            #           
+        
+        elif gui_evt.GetButton() == 2:
+            pass
+            #print 'botao 2'   
+            #controller.model.selected = not controller.model.selected
+            #self.track._do_select()
+            
+        elif gui_evt.GetButton() == 3: 
+            #print 'botao 3'  
+            if isinstance(gui_evt.GetEventObject(), TrackFigureCanvas):
+                menu = wx.Menu()
+                #
+                depth_submenu = wx.Menu()
+                depth_submenu.AppendRadioItem(ShowDepthId, 'Show')
+                event.canvas.Bind(wx.EVT_MENU, self.menu_selection, id=ShowDepthId)
+                depth_submenu.AppendRadioItem(HideDepthId, 'Hide')
+                event.canvas.Bind(wx.EVT_MENU, self.menu_selection, id=HideDepthId)
+                if controller.model.show_depth:
+                    depth_submenu.Check(ShowDepthId, True)
+                else:
+                    depth_submenu.Check(HideDepthId, True)
+                menu.AppendSubMenu(depth_submenu, 'Depth')
+                #
+                grid_submenu = wx.Menu()
+                grid_submenu.AppendRadioItem(ShowGridId, 'Show')
+                event.canvas.Bind(wx.EVT_MENU, self.menu_selection, id=ShowGridId)
+                grid_submenu.AppendRadioItem(HideGridId, 'Hide')
+                event.canvas.Bind(wx.EVT_MENU, self.menu_selection, id=HideGridId)
+                if controller.model.plotgrid:
+                    grid_submenu.Check(ShowGridId, True)
+                else:
+                    grid_submenu.Check(HideGridId, True)
+                menu.AppendSubMenu(grid_submenu, 'Grid')
+                
+                #
+                scale_submenu = wx.Menu()
+                scale_submenu.AppendRadioItem(ScaleLinGridId, 'Linear')
+                event.canvas.Bind(wx.EVT_MENU, self.menu_selection, id=ScaleLinGridId)
+                scale_submenu.AppendRadioItem(ScaleLogGridId, 'Logarithmic')
+                event.canvas.Bind(wx.EVT_MENU, self.menu_selection, id=ScaleLogGridId)
+                if not controller.model.x_scale:
+                    scale_submenu.Check(ScaleLinGridId, True)
+                else:
+                    scale_submenu.Check(ScaleLogGridId, True)
+                menu.AppendSubMenu(scale_submenu, 'Scale')
+                #           
+                 
+                depth_lines_submenu = wx.Menu()
+                
+                depth_lines_submenu.AppendRadioItem(DepthLinesAllId, 'All')
+                event.canvas.Bind(wx.EVT_MENU, self.menu_selection, id=DepthLinesAllId)
+                
+                depth_lines_submenu.AppendRadioItem(DepthLinesLeftId, 'Left')
+                event.canvas.Bind(wx.EVT_MENU, self.menu_selection, id=DepthLinesLeftId)
+    
+                depth_lines_submenu.AppendRadioItem(DepthLinesRightId, 'Right')
+                event.canvas.Bind(wx.EVT_MENU, self.menu_selection, id=DepthLinesRightId)
+                
+                depth_lines_submenu.AppendRadioItem(DepthLinesCenterId, 'Center')
+                event.canvas.Bind(wx.EVT_MENU, self.menu_selection, id=DepthLinesCenterId)
+                
+                depth_lines_submenu.AppendRadioItem(DepthLinesLeftRightId, 'Left and Right')
+                event.canvas.Bind(wx.EVT_MENU, self.menu_selection, id=DepthLinesLeftRightId)  
+     
+                depth_lines_submenu.AppendRadioItem(DepthLinesNoneId, 'None')
+                event.canvas.Bind(wx.EVT_MENU, self.menu_selection, id=DepthLinesNoneId)  
+               
+                if controller.model.depth_lines == 0:
+                    depth_lines_submenu.Check(DepthLinesAllId, True)
+                    
+                elif controller.model.depth_lines == 1:
+                    depth_lines_submenu.Check(DepthLinesLeftId, True)
+                    
+                elif controller.model.depth_lines == 2:
+                    depth_lines_submenu.Check(DepthLinesRightId, True)
+                    
+                elif controller.model.depth_lines == 3:
+                    depth_lines_submenu.Check(DepthLinesCenterId, True)  
+    
+                elif controller.model.depth_lines == 4:
+                    depth_lines_submenu.Check(DepthLinesLeftRightId, True)  
+                    
+                elif controller.model.depth_lines == 5:
+                    depth_lines_submenu.Check(DepthLinesNoneId, True)                  
+                    
+                menu.AppendSubMenu(depth_lines_submenu, 'Depth Lines')
+                #                   
              
-            depth_lines_submenu = wx.Menu()
-            
-            depth_lines_submenu.AppendRadioItem(DepthLinesAllId, 'All')
-            event.canvas.Bind(wx.EVT_MENU, self.menu_selection, id=DepthLinesAllId)
-            
-            depth_lines_submenu.AppendRadioItem(DepthLinesLeftId, 'Left')
-            event.canvas.Bind(wx.EVT_MENU, self.menu_selection, id=DepthLinesLeftId)
-
-            depth_lines_submenu.AppendRadioItem(DepthLinesRightId, 'Right')
-            event.canvas.Bind(wx.EVT_MENU, self.menu_selection, id=DepthLinesRightId)
-            
-            depth_lines_submenu.AppendRadioItem(DepthLinesCenterId, 'Center')
-            event.canvas.Bind(wx.EVT_MENU, self.menu_selection, id=DepthLinesCenterId)
-            
-            depth_lines_submenu.AppendRadioItem(DepthLinesLeftRightId, 'Left and Right')
-            event.canvas.Bind(wx.EVT_MENU, self.menu_selection, id=DepthLinesLeftRightId)  
- 
-            depth_lines_submenu.AppendRadioItem(DepthLinesNoneId, 'None')
-            event.canvas.Bind(wx.EVT_MENU, self.menu_selection, id=DepthLinesNoneId)  
-           
-            if controller.model.depth_lines == 0:
-                depth_lines_submenu.Check(DepthLinesAllId, True)
+                menu.AppendSeparator() 
+                if controller.model.x_scale == 0:
+                    scale_lines_submenu = wx.Menu()
                 
-            elif controller.model.depth_lines == 1:
-                depth_lines_submenu.Check(DepthLinesLeftId, True)
+                    scale_lines_submenu.AppendRadioItem(ScaleLines3Id, '3')
+                    event.canvas.Bind(wx.EVT_MENU, self.menu_selection, id=ScaleLines3Id)
+                    scale_lines_submenu.AppendRadioItem(ScaleLines4Id, '4')
+                    event.canvas.Bind(wx.EVT_MENU, self.menu_selection, id=ScaleLines4Id)
+                    scale_lines_submenu.AppendRadioItem(ScaleLines5Id, '5')
+                    event.canvas.Bind(wx.EVT_MENU, self.menu_selection, id=ScaleLines5Id)
+                    scale_lines_submenu.AppendRadioItem(ScaleLines6Id, '6')
+                    event.canvas.Bind(wx.EVT_MENU, self.menu_selection, id=ScaleLines6Id)
+                    scale_lines_submenu.AppendRadioItem(ScaleLines7Id, '7')
+                    event.canvas.Bind(wx.EVT_MENU, self.menu_selection, id=ScaleLines7Id)
+    
+                    if controller.model.scale_lines == 3:
+                        scale_lines_submenu.Check(ScaleLines3Id, True)  
+                    elif controller.model.scale_lines == 4:
+                        scale_lines_submenu.Check(ScaleLines4Id, True)  
+                    elif controller.model.scale_lines == 5:
+                        scale_lines_submenu.Check(ScaleLines5Id, True)                   
+                    elif controller.model.scale_lines == 6:
+                        scale_lines_submenu.Check(ScaleLines6Id, True)
+                    elif controller.model.scale_lines == 7:
+                        scale_lines_submenu.Check(ScaleLines7Id, True)    
+                    menu.AppendSubMenu(scale_lines_submenu, 'Scale Lines')
+                    
+                else:    
+                    decades_submenu = wx.Menu()
                 
-            elif controller.model.depth_lines == 2:
-                depth_lines_submenu.Check(DepthLinesRightId, True)
-                
-            elif controller.model.depth_lines == 3:
-                depth_lines_submenu.Check(DepthLinesCenterId, True)  
-
-            elif controller.model.depth_lines == 4:
-                depth_lines_submenu.Check(DepthLinesLeftRightId, True)  
-                
-            elif controller.model.depth_lines == 5:
-                depth_lines_submenu.Check(DepthLinesNoneId, True)                  
-                
-            menu.AppendSubMenu(depth_lines_submenu, 'Depth Lines')
-            #                   
-         
-            menu.AppendSeparator() 
-            if controller.model.x_scale == 0:
-                scale_lines_submenu = wx.Menu()
-            
-                scale_lines_submenu.AppendRadioItem(ScaleLines3Id, '3')
-                event.canvas.Bind(wx.EVT_MENU, self.menu_selection, id=ScaleLines3Id)
-                scale_lines_submenu.AppendRadioItem(ScaleLines4Id, '4')
-                event.canvas.Bind(wx.EVT_MENU, self.menu_selection, id=ScaleLines4Id)
-                scale_lines_submenu.AppendRadioItem(ScaleLines5Id, '5')
-                event.canvas.Bind(wx.EVT_MENU, self.menu_selection, id=ScaleLines5Id)
-                scale_lines_submenu.AppendRadioItem(ScaleLines6Id, '6')
-                event.canvas.Bind(wx.EVT_MENU, self.menu_selection, id=ScaleLines6Id)
-                scale_lines_submenu.AppendRadioItem(ScaleLines7Id, '7')
-                event.canvas.Bind(wx.EVT_MENU, self.menu_selection, id=ScaleLines7Id)
-
-                if controller.model.scale_lines == 3:
-                    scale_lines_submenu.Check(ScaleLines3Id, True)  
-                elif controller.model.scale_lines == 4:
-                    scale_lines_submenu.Check(ScaleLines4Id, True)  
-                elif controller.model.scale_lines == 5:
-                    scale_lines_submenu.Check(ScaleLines5Id, True)                   
-                elif controller.model.scale_lines == 6:
-                    scale_lines_submenu.Check(ScaleLines6Id, True)
-                elif controller.model.scale_lines == 7:
-                    scale_lines_submenu.Check(ScaleLines7Id, True)    
-                menu.AppendSubMenu(scale_lines_submenu, 'Scale Lines')
-                
-            else:    
-                decades_submenu = wx.Menu()
-            
-                decades_submenu.AppendRadioItem(Decades1Id, '1')
-                event.canvas.Bind(wx.EVT_MENU, self.menu_selection, id=Decades1Id)
-                decades_submenu.AppendRadioItem(Decades10Id, '10')
-                event.canvas.Bind(wx.EVT_MENU, self.menu_selection, id=Decades10Id)
-                decades_submenu.AppendRadioItem(Decades100Id, '100')
-                event.canvas.Bind(wx.EVT_MENU, self.menu_selection, id=Decades100Id)
-                decades_submenu.AppendRadioItem(Decades1000Id, '1.000')
-                event.canvas.Bind(wx.EVT_MENU, self.menu_selection, id=Decades1000Id)        
-                decades_submenu.AppendRadioItem(Decades10000Id, '10.000')
-                event.canvas.Bind(wx.EVT_MENU, self.menu_selection, id=Decades10000Id)
-                decades_submenu.AppendRadioItem(Decades100000Id, '100.000')
-                event.canvas.Bind(wx.EVT_MENU, self.menu_selection, id=Decades100000Id)
-                decades_submenu.AppendRadioItem(Decades100000Id, '1.000.000')
-                event.canvas.Bind(wx.EVT_MENU, self.menu_selection, id=Decades1000000Id)
-                if controller.model.decades == 1:
-                    decades_submenu.Check(Decades1Id, True)  
-                elif controller.model.decades == 2:
-                    decades_submenu.Check(Decades10Id, True)  
-                elif controller.model.decades == 3:
-                    decades_submenu.Check(Decades100Id, True)  
-                elif controller.model.decades == 4:
-                    decades_submenu.Check(Decades1000Id, True)  
-                elif controller.model.decades == 5:
-                    decades_submenu.Check(Decades10000Id, True)                   
-                elif controller.model.decades == 6:
-                    decades_submenu.Check(Decades100000Id, True)
-                elif controller.model.decades == 7:
-                    decades_submenu.Check(Decades1000000Id, True)    
-                menu.AppendSubMenu(decades_submenu, 'Log Max')
-            #   
-                
-            event.canvas.PopupMenu(menu, event.guiEvent.GetPosition())  
-            menu.Destroy() # destroy to avoid mem leak
+                    decades_submenu.AppendRadioItem(Decades1Id, '1')
+                    event.canvas.Bind(wx.EVT_MENU, self.menu_selection, id=Decades1Id)
+                    decades_submenu.AppendRadioItem(Decades10Id, '10')
+                    event.canvas.Bind(wx.EVT_MENU, self.menu_selection, id=Decades10Id)
+                    decades_submenu.AppendRadioItem(Decades100Id, '100')
+                    event.canvas.Bind(wx.EVT_MENU, self.menu_selection, id=Decades100Id)
+                    decades_submenu.AppendRadioItem(Decades1000Id, '1.000')
+                    event.canvas.Bind(wx.EVT_MENU, self.menu_selection, id=Decades1000Id)        
+                    decades_submenu.AppendRadioItem(Decades10000Id, '10.000')
+                    event.canvas.Bind(wx.EVT_MENU, self.menu_selection, id=Decades10000Id)
+                    decades_submenu.AppendRadioItem(Decades100000Id, '100.000')
+                    event.canvas.Bind(wx.EVT_MENU, self.menu_selection, id=Decades100000Id)
+                    decades_submenu.AppendRadioItem(Decades100000Id, '1.000.000')
+                    event.canvas.Bind(wx.EVT_MENU, self.menu_selection, id=Decades1000000Id)
+                    if controller.model.decades == 1:
+                        decades_submenu.Check(Decades1Id, True)  
+                    elif controller.model.decades == 2:
+                        decades_submenu.Check(Decades10Id, True)  
+                    elif controller.model.decades == 3:
+                        decades_submenu.Check(Decades100Id, True)  
+                    elif controller.model.decades == 4:
+                        decades_submenu.Check(Decades1000Id, True)  
+                    elif controller.model.decades == 5:
+                        decades_submenu.Check(Decades10000Id, True)                   
+                    elif controller.model.decades == 6:
+                        decades_submenu.Check(Decades100000Id, True)
+                    elif controller.model.decades == 7:
+                        decades_submenu.Check(Decades1000000Id, True)    
+                    menu.AppendSubMenu(decades_submenu, 'Log Max')
+                #   
+                    
+                event.canvas.PopupMenu(menu, event.guiEvent.GetPosition())  
+                menu.Destroy() # destroy to avoid mem leak
             
 
         
     def menu_selection(self, event):
-        _UIM = UIManager()
-        controller = _UIM.get(self._controller_uid)
+        UIM = UIManager()
+        controller = UIM.get(self._controller_uid)
         if event.GetId() == ShowDepthId:
             controller.model.show_depth = True    
         elif event.GetId() == HideDepthId:

@@ -93,4 +93,4 @@ def votefordatatype(mnem, datatype):
 def getdatatypes():
     # global _parametersdict
     # return _parametersdict['datatypes']
-    return ['Depth', 'Log', 'Partition']
+    return ['Index', 'Log', 'Partition']

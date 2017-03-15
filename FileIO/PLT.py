@@ -19,7 +19,7 @@ References
 
 import time
 from datetime import date    
-from utils import AsciiFile    
+import utils  
 import os, os.path
 from collections import OrderedDict
 
@@ -233,7 +233,7 @@ class PLTFile(object):
 def Reader(filename):
     pltfile = PLTFile()        
     pltfile.filename = filename.encode('string-escape')
-    content = AsciiFile.read_file_as_list(pltfile.filename)        
+    content = utils.read_file_as_list(pltfile.filename)        
     if not content:
         return None
     maindatum = OrderedDict()

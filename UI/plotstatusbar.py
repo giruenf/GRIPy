@@ -1,7 +1,6 @@
 # -*- coding: utf-8 -*-
 
 import wx
-import time
 
 
 
@@ -60,11 +59,10 @@ class PlotStatusBar(wx.StatusBar):
         if not self.sb.IsShown():
             self.sb.Show(True)
             #self.panelDummy.Show(False)
-            
-            
+                   
     def _OnScroll(self, evt):
+        
         self.Parent._DoScroll(self.sb.GetThumbPosition())
-
 
     def SetScrollbar(self, position, thumbSize, range, pageSize):
         self.sb.SetScrollbar(position, thumbSize, range, pageSize)

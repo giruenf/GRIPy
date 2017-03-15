@@ -1986,13 +1986,13 @@ class OverviewFigureCanvas(_BaseFigureCanvas):
         event.Skip()
         if self._drag_mode == wx.SASH_DRAG_DRAGGING:
             return
-        print '\npainting...\n'
+        print 'OverviewFigureCanvas.on_paint'
         self._reload_canvas_positions_from_depths()
 
 
     def on_size(self, event):
-        print '\nsizing...'
-        print 'Internal depth:', self.get_depth()
+        print 'OverviewFigureCanvas.on_size'
+        #print 'Internal depth:', self.get_depth()
         #self._reload_canvas_positions_from_depths()
         
         
@@ -2004,7 +2004,7 @@ class OverviewFigureCanvas(_BaseFigureCanvas):
         else:
             d1 = self.wx_position_to_depth(y1+self.canvas_width)
             d2 = self.wx_position_to_depth(y2)      
-        print y1, y2, d1, d2, '\n'
+        #print y1, y2, d1, d2, '\n'
         
         event.Skip()
         

@@ -6,10 +6,12 @@ import utils
 import gripy_classes
 from OM.Manager import ObjectManager
 from UI.uimanager import UIManager
-from FileIO.utils import AsciiFile
-from App import _APP_STATE 
+from App import _APP_BASIC_CONFIG 
 from App import log
 from gripy_plugin_manager import GripyPluginManagerSingleton
+
+
+wx.SystemOptions.SetOption("msw.remap", '0')
 
 
 class GripyApp(wx.App):
@@ -18,7 +20,7 @@ class GripyApp(wx.App):
       
       
     def __init__(self):
-        self.load_app_state()
+        self._load_app_basic_config()
         # wx.App args    
         _redirect = self._wx_app_state.get('redirect', False)
         _filename = self._wx_app_state.get('filename', None) 
@@ -29,7 +31,6 @@ class GripyApp(wx.App):
                                        _useBestVisual, _clearSigInt
         )
         # Then, wx.App has inited and it calls OnInit
-
 
 
     # TODO: REVER ISSO E COLOCAR COMO wx.Config ou wx.StandardPaths
@@ -79,27 +80,27 @@ class GripyApp(wx.App):
         return self._OM_file
         
         
-    def get_interface_filename(self):
-        return self._UIM_file
+    #def get_interface_filename(self):
+    #    return self._UIM_file
  
 
 
-    def load_app_state(self):
+    def _load_app_basic_config(self):
         self._OM_file = None
-        self._UIM_file = None
-        self._wx_app_state = OrderedDict(_APP_STATE.get('wx.App'))
+        #self._UIM_file = None
+        self._wx_app_state = OrderedDict(_APP_BASIC_CONFIG.get('wx.App'))
         class_full_name = utils.get_class_full_name(self)
-        self._gripy_app_state = OrderedDict(_APP_STATE.get(class_full_name))
-        self._plugins_state = OrderedDict(_APP_STATE.get('plugins', dict()))
+        self._gripy_app_state = OrderedDict(_APP_BASIC_CONFIG.get(class_full_name))
+        self._plugins_state = OrderedDict(_APP_BASIC_CONFIG.get('plugins', dict()))
         plugins_places = self._plugins_state.get('plugins_places')
         if plugins_places:
             plugins_places = [place.encode('utf-8') for place in plugins_places]
         else:
             plugins_places = ['Plugins']
         self._plugins_state['plugins_places'] = plugins_places   
-        self._logging_state = OrderedDict(_APP_STATE.get('logging', dict()))      
+        self._logging_state = OrderedDict(_APP_BASIC_CONFIG.get('logging', dict()))      
               
-              
+    '''          
     def save_app_state(self):
         return self.save_state_as(self._app_full_filename)
         
@@ -116,7 +117,7 @@ class GripyApp(wx.App):
             msg = 'Error in saving GripyApp state to file {}'.format(fullfilename)
             self.logexception(msg)
             raise e     
-            
+    '''        
 
     """
     Load ObjectManager data.
@@ -145,24 +146,42 @@ class GripyApp(wx.App):
     """
     Load interface data.
     """
-    def load_interface_data(self, fullfilename):
-        self._UIM_file = fullfilename
-        if self._UIM_file:
-            _UIM = UIManager()
-            _UIM._load_state_from_file(fullfilename)
+    def load_application_UI_data(self, fullfilename):
+        #self._UIM_file = fullfilename
+        #if self._UIM_file:
+        _UIM = UIManager()
+        _UIM.load_application_state_from_file(fullfilename)
 
+    """
+    Load interface data.
+    """
+    def load_user_UI_data(self, fullfilename):
+        _UIM = UIManager()
+        _UIM.load_user_state_from_file(fullfilename)
 
 
     """
-    Save interface data.
+    Save application structure UI data.
     """        
-    def save_interface_data(self, fullfilename):
-        if fullfilename:
-            self._UIM_file = fullfilename
-        if self._UIM_file:
-            _UIM = UIManager()
-            _UIM._save_state_to_file(self._UIM_file)        
-        
+    def save_UI_application_data(self, fullfilename):
+        #if fullfilename:
+        #    self._UIM_file = fullfilename
+        #if self._UIM_file:
+        _UIM = UIManager()
+        _UIM.save_application_state_to_file(fullfilename)
+        #_UIM._save_state_to_file(self._UIM_file)        
+ 
+    """
+    Save user UI data.
+    """        
+    def save_UI_user_data(self, fullfilename):
+        #if fullfilename:
+        #    self._UIM_file = fullfilename
+        #if self._UIM_file:
+        _UIM = UIManager()
+        _UIM.save_user_state_to_file(fullfilename)
+        #_UIM._save_state_to_file(self._UIM_file)        
+       
 
 
 
@@ -195,17 +214,20 @@ class GripyApp(wx.App):
         _UIM = UIManager()
           
 
-        
 
-        #self.load_app_state = True        
-        self.load_app_state = False
+        #load_UI_file = True        
+        load_UI_file = False
 
-        if self.load_app_state:
+        if load_UI_file:
             """
             Load basic app from file.            
             """
-            self.load_interface(self._gripy_app_state.get('app_interface_file'))
+            self.load_application_UI_data(self._gripy_app_state.get('app_UI_file'))
+            
+            self.load_user_UI_data(self._gripy_app_state.get('user_UI_file'))
+            
             mwc = _UIM.list('main_window_controller')[0]
+            
         else:
             """
             Construct the application itself.
@@ -215,46 +237,24 @@ class GripyApp(wx.App):
                 icon='./icons/logo-transp.ico'#, pos=wx.Point(399, 322)
                 
             )
-
+            # Menubar
             menubar_ctrl = _UIM.create('menubar_controller', mwc.uid)
-            
-            
-      
+            # First level Menus
             mc_file = _UIM.create('menu_controller', menubar_ctrl.uid, label=u"&File")      
-            
-
-            mc_edit = _UIM.create('menu_controller', menubar_ctrl.uid, label=u"&Editar")
+            mc_edit = _UIM.create('menu_controller', menubar_ctrl.uid, label=u"&Edit")
+            mc_precond = _UIM.create('menu_controller', menubar_ctrl.uid, label=u"&Preconditioning")
+            mc_interp = _UIM.create('menu_controller', menubar_ctrl.uid, label=u"&Interpretation")
+            mc_infer = _UIM.create('menu_controller', menubar_ctrl.uid, label=u"&Inference")
+            mc_tools = _UIM.create('menu_controller', menubar_ctrl.uid, label=u"&Tools")
+            mc_plugins = _UIM.create('menu_controller', menubar_ctrl.uid, label=u"&Plugins")
+            mc_debug = _UIM.create('menu_controller', menubar_ctrl.uid, label=u"&Debug")      
+            #
             
             
             mic_edit_partitions = _UIM.create('menu_item_controller', mc_edit.uid, 
                     label=u"Partições", 
                     callback='App.functions.on_partitionedit'
             )              
-            
-            mc_precond = _UIM.create('menu_controller', menubar_ctrl.uid, label=u"&Precondicionamento")
-            mc_interp = _UIM.create('menu_controller', menubar_ctrl.uid, label=u"&Interpretação")
-            mc_infer = _UIM.create('menu_controller', menubar_ctrl.uid, label=u"&Inferência")
-            mc_tools = _UIM.create('menu_controller', menubar_ctrl.uid, label=u"&Ferramentas")
-            
-            mc_plugins = _UIM.create('menu_controller', menubar_ctrl.uid, label=u"&Plugins")
-
-            """
-            for plugin_info in sorted(PM.getAllPlugins(), 
-                                                 key=lambda x: x.name.lower()):
-                try:                                   
-                    _UIM.create('menu_item_controller', mc_plugins.uid, 
-                            label=unicode(plugin_info.name, 'utf8'), 
-                            help=unicode(plugin_info.description, 'utf8'),
-                            callback=plugin_info.plugin_object.event_run
-                    )
-                except Exception:
-                    # TODO: Jogar erro pro logging
-                    pass
-
-            """
-       
-
-            mc_debug = _UIM.create('menu_controller', menubar_ctrl.uid, label=u"&Debug")            
             
 
             # File Menu
@@ -349,11 +349,12 @@ class GripyApp(wx.App):
             mic_wilson = _UIM.create('menu_item_controller', mc_debug.uid, 
                     label=u"Load Wilson Synthetics", 
                     callback='App.functions.on_load_wilson'
-            )    
+            )  
+            
+           
 
 
-
-            '''                            
+            """                           
             menubar_ctrl.create_menu_separator('file')
             menubar_ctrl.create_submenu('file', 'import_menu', text=u"Importar",
                                         help=u"Importar arquivo")
@@ -390,17 +391,17 @@ class GripyApp(wx.App):
                                         text=u"&LAS", help=u"Exportar arquivo LAS",
                                         callback=self.on_export_las)                                      
             menubar_ctrl.create_menu_separator('file')
-            '''
+            """
             # TODO: VERIFICAR self.OnDoClose
             #menubar_ctrl.create_menu_item('file', key='close', text=u"&Fechar", 
             #                              help=u"Fechar o programa", id=wx.ID_CLOSE,
             #                              callback=self.OnDoClose)     
                       
-            
+
             # TreeController                                                          
             _UIM.create('tree_controller', mwc.uid)                            
                 
-             
+            
             # ToolBarController 
             tbc = _UIM.create('toolbar_controller', mwc.uid)
             
@@ -444,7 +445,7 @@ class GripyApp(wx.App):
             _UIM.create('statusbar_controller', mwc.uid, 
                 label='Bem vindo ao ' + self._gripy_app_state.get('app_display_name')
             )        
-                
+            
         PM = GripyPluginManagerSingleton.get()
         plugins_places = self._plugins_state.get('plugins_places')
         PM.setPluginPlaces(plugins_places)
@@ -470,12 +471,18 @@ class GripyApp(wx.App):
             )
             if dial.ShowModal() == wx.ID_YES:
                 self.on_save()   
-        interface_filename = self._gripy_app_state.get('app_state_file')
-        self.save_interface_data(interface_filename)
+        
+        app_UI_filename = self._gripy_app_state.get('app_UI_file')
+        self.save_UI_application_data(app_UI_filename)
+
+        user_UI_filename = self._gripy_app_state.get('user_UI_file')
+        self.save_UI_user_data(user_UI_filename)
+                
         # This time I choose not use the line below because there was a little
         # freeze on exiting (1-2 seconds). Then I opted delegate it do compiler.
         #_UIM = UIManager()      
         #_UIM.close()
+
 
 
     def OnExit(self):

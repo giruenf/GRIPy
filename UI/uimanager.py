@@ -1,19 +1,28 @@
 # -*- coding: utf-8 -*-
-import sys
+#import sys
 import gc
-import pprint
-import Queue
+#import pprint
+#import Queue
 import wx
 import weakref
 import types
 from collections import OrderedDict
-from FileIO.utils import AsciiFile
+#import FileIO.utils
 import App.utils
 from App import log
 
 
-class UIBase(object):
+###############################################################################
+###############################################################################
 
+class UI_MODEL_ATTR_CLASS(App.utils.GripyEnum):     
+    APPLICATION = 1
+    USER = 2
+
+###############################################################################
+###############################################################################
+
+class UIBase(object):
     tid = None
     
     def __init__(self):
@@ -46,7 +55,7 @@ class UIBase(object):
         raise TypeError(msg)  
     
     def check_creator(self):
-        # Only UIManager can create objects. Let's check it!
+        # Only UIManager can create objects. Checking it!
         caller_info = App.utils.get_caller_info()
         ok = False
         for idx, ci in enumerate(caller_info):
@@ -64,71 +73,79 @@ class UIBase(object):
             log.exception(msg)
             raise Exception(msg)    
 
-
 ###############################################################################
 ###############################################################################
-
-                             
-        
+                                 
 class UIControllerBase(UIBase):
     tid = None
     # TODO: verificar se vale a pena manter esses singletons
     _singleton = False
     _singleton_per_parent = False
-    
-    
+       
     def __init__(self):
         super(UIControllerBase, self).__init__()  
         _UIM = UIManager()
         self.oid = _UIM._getnewobjectid(self.tid)
           
-
     def _create_model_view(self, **base_state): 
         _UIM = UIManager()           
         model_class, view_class = _UIM.get_model_view_classes(self.tid)
         if model_class is not None:
             try:
                 self.model = model_class(self.uid, **base_state)
-            except Exception:
-                msg = 'ERROR on creating MVC model {} object'.format(model_class.__name__)
+            except Exception, e:
+                msg = 'ERROR on creating MVC model {} object: {}'.format(model_class.__name__, e.message)
                 log.exception(msg)
-                raise 
+                print '\n', msg
+                raise e
         else:
             self.model = None
         if view_class is not None:     
             try:
                 self.view = view_class(self.uid)
             except Exception, e:
-                msg = 'Error on creating MVC view {} object'.format(view_class.__name__)
+                msg = 'ERROR on creating MVC view {} object: {}'.format(view_class.__name__, e.message)
                 log.exception(msg)
+                print '\n', msg
                 raise e             
         else:
             self.view = None  
 
-
     def PreRemove(self):
         pass
-
-            
+        
     def _PostInit(self):
         try:
             if self.model:
                 self.model.PostInit()
+        except Exception, e:
+            msg = 'ERROR in {}.PostInit: {}'.format(self.model.__class__.__name__, e.message)
+            log.exception(msg)
+            print '\n', msg
+            raise
+        try:    
             if self.view:        
                 self.view.PostInit()
-            self.PostInit()    
-        except Exception:
-            msg = 'ERROR in {}._PostInit'.format(self.__class__.__name__)
+        except Exception, e:
+            msg = 'ERROR in {}.PostInit: {}'.format(self.view.__class__.__name__, e.message)
             log.exception(msg)
+            print '\n', msg
+            raise
+        try:                
+            self.PostInit()    
+        except Exception, e:
+            msg = 'ERROR in {}.PostInit: {}'.format(self.__class__.__name__, e.message)
+            log.exception(msg)
+            print '\n', msg
             raise
         
-
+        
     def get_root_controller(self):
         """
         TODO: Traduzir e melhorar isso
     
         Em vez de retornar self._UIM.list('main_window_controller')[0], 
-        retorna o controller raiz da qual self se encontra. E provavel que 
+        retorna o controller raiz da qual o objeto se encontra. E provavel que 
         quase sempre (ou sempre) seja retornado self._UIM.list('main_window_controller')[0],
         porem a ideia eh nao restringir isso facilitando futuras implementacoes.
                 
@@ -140,38 +157,36 @@ class UIControllerBase(UIBase):
             parent_uid = _UIM._getparentuid(obj_uid)  
         return _UIM.get(obj_uid)    
         
-
     def _getstate(self):
         if self.model:
             return self.model._getstate()
         return None    
-             
-             
+                       
     def _loadstate(self, **state):
         if self.model:
             return self.model._loadstate(**state)
-            
-            
+                    
 ###############################################################################
-###############################################################################
-        
-        
-
+###############################################################################    
+    
 class UIModelBase(UIBase):
     """
     The base class for all Model classes (MVC software architectural pattern).
         
     """
-    
     tid = None
     # Special keys bypasses the checking made in __setattr__ or __setitem__
-    _SPECIALS_KEYS = ['oid', '_controller_uid', '_UIModelBase__initialised']
+    _SPECIALS_KEYS = ['oid', 
+                      '_controller_uid', 
+                      '_UIModelBase__initialised',
+                      '_processing_value_from_event'
+    ]
 
-
-    def __init__(self, controller_uid, **base_state):
+    def __init__(self, controller_uid, **state):
         super(UIModelBase, self).__init__()
         self.__initialised = False        
         self._controller_uid = controller_uid
+        self._processing_value_from_event = False
         _UIM = UIManager()
         self.oid = _UIM._getnewobjectid(self.tid)   
         # We are considering that only Controller class objects 
@@ -180,21 +195,34 @@ class UIModelBase(UIBase):
         if self.__class__ != model_class:
             msg = 'Error! Only the controller can create the model.'
             raise Exception(msg)    
-        for key, value in self._ATTRIBUTES.items():
-            if base_state.has_key(key):
-                self[key] = base_state.get(key)
+        for attr_name, attr_props in self._ATTRIBUTES.items():
+            #if attr_props.get('attr_class') not in UI_MODEL_ATTR_CLASS.__members__.values():
+            #    msg = '{}.{} has not a valid ''attr_class'' value: {}. Valid values are UI.uimanager.UI_MODEL_ATTR_CLASS members.'.format( \
+            #        self.__class__.__name__, attr_name, 
+            #        attr_props.get('attr_class')
+            #    )
+            #    print '\n', msg
+            if attr_props.get('attr_class') == UI_MODEL_ATTR_CLASS.APPLICATION \
+                                                and state.has_key(attr_name):
+                self[attr_name] = state.get(attr_name)
             else:    
-                self[key] = value.get('default_value')   
+                self[attr_name] = attr_props.get('default_value')                       
         self.__initialised = True
-
-
+        
     def PostInit(self):
         pass
 
+    def set_value_from_event(self, key, value):
+        self._processing_value_from_event = True
+        try:
+            self._do_set(key, value)
+        except: 
+            raise
+        finally:    
+            self._processing_value_from_event = False
 
     def __getattr__(self, key):
         raise AttributeError(key)
-
 
     def __setattr__(self, key, value):
         if key in self._SPECIALS_KEYS:
@@ -202,17 +230,14 @@ class UIModelBase(UIBase):
             return
         self._do_set(key, value)
 
-
     def __getitem__(self, key):
         try:
             return self.__dict__.get(key)
         except KeyError:
             raise AttributeError(key)
 
-
     def __setitem__(self, key, value):
         self._do_set(key, value)
-
 
     def _do_set(self, key, value):
         if (not self.__dict__['_UIModelBase__initialised'] and not self._ATTRIBUTES.has_key(key)) or \
@@ -241,26 +266,7 @@ class UIModelBase(UIBase):
             try:
                 value = type_(value)
             except Exception:
-                ok = False
-                if isinstance(value, basestring):
-                    if value.startswith('wx.Point'):
-                        value = value.lstrip('wx.Point(')
-                        value = value.rstrip(')')
-                        x = value.split(',')[0].strip()
-                        y = value.split(',')[1].strip()
-                        value = wx.Point(int(x), int(y))
-                        ok = True
-                    elif value.startswith('wx.Size'):
-                        value = value.lstrip('wx.Size(')
-                        value = value.rstrip(')')
-                        x = value.split(',')[0].strip()
-                        y = value.split(',')[1].strip()
-                        value = wx.Size(int(x), int(y))
-                        ok = True    
-                if not ok:        
-                    msg = 'ERROR in parsing value {} to type {}'.format(str(value), str(type_))
-                    log.exception(msg)
-                    raise
+                raise 
         if not self.__initialised:
             self.__dict__[key] = value
         else:    
@@ -268,11 +274,12 @@ class UIModelBase(UIBase):
                 return      
             old_value = self[key]    
             self.__dict__[key] = value
-            on_change = self._ATTRIBUTES.get(key).get('on_change')
-            if on_change:
-                _UIM = UIManager()
-                controller = _UIM.get(self._controller_uid)
-                on_change(controller, key=key, old_value=old_value, new_value=value)
+            if not self._processing_value_from_event:
+                on_change = self._ATTRIBUTES.get(key).get('on_change')
+                if on_change:
+                    _UIM = UIManager()
+                    controller = _UIM.get(self._controller_uid)
+                    on_change(controller, key=key, old_value=old_value, new_value=value)
         k = key.encode('utf-8')            
         v = self[key]
         if isinstance(v, basestring):        
@@ -284,15 +291,31 @@ class UIModelBase(UIBase):
         log.debug(msg)
 
 
+    # TODO: VERIFICAR ISSO TUDO 
 
-    def _getstate(self):
-        state = OrderedDict()
-        for key in self.__dict__.keys(): 
-            if key not in self._SPECIALS_KEYS:
-                state[key] = self[key]
-        return state
-             
-             
+    def get_application_state(self):
+        return self.get_state(UI_MODEL_ATTR_CLASS.APPLICATION)
+        
+    def get_user_state(self):
+        return self.get_state(UI_MODEL_ATTR_CLASS.USER)    
+        
+    def get_state(self, state_type=None):
+        try:
+            if state_type is not None and state_type not in UI_MODEL_ATTR_CLASS.__members__.values():
+                return None
+            state = OrderedDict()                
+            for attr_name in self.__dict__.keys(): 
+                if attr_name not in self._SPECIALS_KEYS:
+                    if state_type is None:
+                        state[attr_name] = self[attr_name]
+                    elif self._ATTRIBUTES.get(attr_name).get('attr_class') == state_type:
+                        state[attr_name] = self[attr_name]
+            return state            
+        except Exception as e:
+            print e
+            print e.message
+
+ 
     def _loadstate(self, **state):
         if not state:
             return
@@ -311,11 +334,10 @@ class UIModelBase(UIBase):
                 log.error(msg)
         log.debug('{} state has loaded.'.format(self.__class__.__name__))
      
-
+     # TODO: FIM - VERIFICAR ISSO TUDO
 
 ###############################################################################
 ###############################################################################
-
 
 class UIViewBase(UIBase):
     tid = None
@@ -335,11 +357,9 @@ class UIViewBase(UIBase):
 
     def PostInit(self):
         pass
-        
-        
+                
 ###############################################################################
 ###############################################################################
-
 
 
 class UIManager(object):#GenericObject):
@@ -353,13 +373,8 @@ class UIManager(object):#GenericObject):
     _childrenuidmap = {}
     _parenttidmap = {}
     _MVC_CLASSES = {}
-
-    _wx_ID = 2000  # for a shortcut do wx.NewId. See self.new_wx_id
-    
+    _wx_ID = 2000  # for a shortcut do wx.NewId. See self.new_wx_id   
     #_NPZIDENTIFIER = "__NPZ;;"
-    #LOGPLOT_TITLEBG_COLOUR = '#B0C4DE' #LightSteelBlue
-    
-
 
     def __init__(self):
         caller_info = App.utils.get_caller_info()
@@ -396,7 +411,6 @@ class UIManager(object):#GenericObject):
         print '\nUIManager._parenttidmap: ', UIManager._parenttidmap
         print '\nUIManager._MVC_CLASSES: ', UIManager._MVC_CLASSES    
     ####
-
 
     # Analogue to OM.Manager.registertype
     @classmethod
@@ -464,15 +478,10 @@ class UIManager(object):#GenericObject):
         else:    
             log.info('UIManager registered class {} successfully.'.format(class_full_name))                          
         return True
-     
-  
-
+      
     def get(self, uid):
         return self._data.get(uid)
- 
-          
-            
-            
+
     # Something like a mix between new and add in ObjectManager
     # Object Factory        
     def create(self, controller_tid, parent_uid=None, **base_state):
@@ -523,10 +532,8 @@ class UIManager(object):#GenericObject):
             log.exception(msg)
         return obj
  
- 
     def get_children(self, parent_uid):
         return self._childrenuidmap.get(parent_uid)
- 
  
     def new_wx_id(self):
         """
@@ -542,8 +549,6 @@ class UIManager(object):#GenericObject):
         
         return ret_val
         
-        
- 
     def _isvalidparent(self, objuid, parentuid):
         """
         Verify if a given parent is suited for an object using their `uid`s.
@@ -572,7 +577,6 @@ class UIManager(object):#GenericObject):
             parenttid = parentuid[0]
         return self._parenttidmap[objtid] == parenttid
 
-
     def _getparentuid(self, uid):
         """
         Return the parent unique identificator.
@@ -589,8 +593,7 @@ class UIManager(object):#GenericObject):
             The unique identificator of the object's parent.
         """
         return self._parentuidmap.get(uid)
-       
-        
+               
     def remove(self, uid):
         msg = 'Removing object from UI Manager: {}.'.format(uid)
         log.debug(msg)
@@ -635,8 +638,6 @@ class UIManager(object):#GenericObject):
         log.debug(msg)    
         return True
 
-
-
     # TODO: escolher um melhor nome para este método
     def close(self):
         msg = 'UI Manager has received a close call.'
@@ -653,8 +654,6 @@ class UIManager(object):#GenericObject):
         self.print_info()    
         log.info('UI Manager has closed.')
 
-
-
     def list(self, tidfilter=None, parentuidfilter=None):
         if parentuidfilter is None:
             objs = self._data.values()
@@ -666,11 +665,9 @@ class UIManager(object):#GenericObject):
         else:
             return objs            
             
-      
     def _get_top_level_uids(self):
         return [uid for uid, puid in UIManager._parentuidmap.items() if puid is None]
 
-      
     def _gettype(self, tid):
         """
         Return the type (i.e. the class) that has the given `tid`.
@@ -686,7 +683,6 @@ class UIManager(object):#GenericObject):
             The type that has `tid` as its identificator.
         """
         return self._types.get(tid)
-
 
     def get_model_view_classes(self, controller_tid):
         try:
@@ -704,7 +700,6 @@ class UIManager(object):#GenericObject):
             view_class = self._gettype(view_tid)
         return model_class, view_class
 
-
     def _check_controller_tid(self, controller_tid):
         if controller_tid is None:
             msg = "Controller tid cannot be None."
@@ -717,8 +712,7 @@ class UIManager(object):#GenericObject):
             msg = "Type {} is not instance of UIControllerBase.".format(controller_tid)
             raise TypeError(msg)  
         return class_
-        
-        
+          
     def _getnewobjectid(self, object_tid):
         """
         Return a new object identifier for the desired tid.
@@ -738,48 +732,77 @@ class UIManager(object):#GenericObject):
         return idx
 
 
+    def do_query(self, tid, **kwargs):
+        objects = self.list(tid)
+        if not objects: return None
+        ret_val = []
+        for obj in objects:
+            obj_ok = True
+            for key, value in kwargs.items():
+                if obj.model[key] != value:
+                    obj_ok = False                    
+                    break
+            if obj_ok:    
+                ret_val.append(obj)
+        return ret_val
+        
 
-    def _getstate(self, start_from_obj_uid=None):
+    # TODO:
+    # DAQUI PARA BAIXO PRECISA SER REVISTO
+    # 
+
+    def get_application_state(self, start_from_obj_uid=None):
         if start_from_obj_uid is None:
-            objects = self.list('main_window_controller')
+            obj_uid, obj = list(self._data.items())[0]
+            objects = [obj]
         else:
             objects = [self.get(start_from_obj_uid)]          
         for obj in objects:
             if not obj.model: 
                 obj_state = OrderedDict()
             else:
-                obj_state = self._adjust_state_for_saving(obj.model._getstate())
+                obj_state = obj.model.get_application_state()
                 if obj_state.has_key('children'):
                     msg = obj.__class__.__name__ + ' cannot have an attribute called ''children''.'
                     raise AttributeError(msg)
             obj_state['children'] = []
             for obj_child_uid in self.get_children(obj.uid):
-                obj_state.get('children').append(self._getstate(obj_child_uid))
+                obj_state.get('children').append(self.get_application_state(obj_child_uid))
         return {obj.tid: obj_state}
         
- 
-
-    def _adjust_state_for_saving(self, state):
-        for key, value in state.items():
-            if isinstance(value, wx.Point):       
-                state[key] = 'wx.Point' + str(value)    
-            elif isinstance(value, wx.Size):
-                state[key] = 'wx.Size' + str(value)
-            elif callable(value):
-                state[key] = App.utils.get_string_from_function(value)
-        return state
-         
         
-    def _loadstate(self, state, parent_uid=None):  
+    def get_user_state(self, start_from_obj_uid=None):
+        if not start_from_obj_uid:
+            root_obj_uid, _ = list(self._data.items())[0]
+            root_obj_tid, _ = root_obj_uid
+            objects = self.list(root_obj_tid)
+        else:
+            objects = [self.get(start_from_obj_uid)]  
+        
+        states = []        
+        for obj in objects:
+            if not obj.model: 
+                obj_state = OrderedDict()
+            else:
+                obj_state = obj.model.get_user_state()
+            #    if obj_state.has_key('children'):
+            #        msg = obj.__class__.__name__ + ' cannot have an attribute called ''children''.'
+            #        raise AttributeError(msg)
+            obj_state['children'] = []
+            for obj_child_uid in self.get_children(obj.uid):
+                obj_state.get('children').append(self.get_user_state(obj_child_uid))
+            states.append(obj_state)    
+        return {obj.tid: states}
+        
+        
+    def _load_application_state(self, state, parent_uid=None):  
         for obj_tid, obj_state in state.items():
             try:
                 if obj_state:
                     children = obj_state.pop('children')
                     new_created_obj = self.create(obj_tid, parent_uid=parent_uid, **obj_state)
-                    #if not new_created_obj:
-                    #    raise Exception()
                     for child in children:
-                        self._loadstate(child, new_created_obj.uid)
+                        self._load_application_state(child, new_created_obj.uid)
                 else:
                     self.create(obj_tid, parent_uid=parent_uid) 
             except Exception:
@@ -787,29 +810,70 @@ class UIManager(object):#GenericObject):
                 log.exception(msg)
                 raise
               
-  
 
-    def _load_state_from_file(self, fullfilename):
-        msg = 'Loading Gripy interface state from: {}'.format(fullfilename)
-        print msg
-        log.debug(msg)
-        _state = AsciiFile.read_json_file(fullfilename)
-        self._loadstate(_state)        
-        msg = 'Gripy interface state loaded.'.format(fullfilename)
-        print msg
-        log.debug(msg)
+    def _load_user_state(self, state):  
+        #self.print_info()
+        print '\n_load_user_state'
         
-
-    def _save_state_to_file(self, fullfilename):
-        try:
-            _state = self._getstate()
-        except Exception:
-            _state = None
-            msg = 'ERROR: UI State cannot be gotten from UI Manager.' 
-            log.exception(msg)
-        if _state is not None: 
+        for obj_tid, objects_state in state.items():
+            print
+            print obj_tid
+            print len(objects_state), objects_state
+            objects = self.list(obj_tid)
+            for i in range(len(objects_state)):
+                obj = objects[i]
+                obj_state = objects_state[i]
+                for key, value in obj_state.items():
+                    print '\n', key, value, type(value)
+                    obj.model[key] = value
+                    
+            '''
             try:
-                AsciiFile.write_json_file(_state, fullfilename)
+                if obj_state:
+                    children = obj_state.pop('children')
+                    new_created_obj = self.create(obj_tid, **obj_state)
+                    for child in children:
+                        self._load_application_state(child, new_created_obj.uid)
+            except Exception:
+                msg = 'ERROR in loading UI state.'
+                log.exception(msg)
+                raise
+            '''        
+
+    def load_application_state_from_file(self, fullfilename):
+        msg = 'Loading Gripy application UI from file {}'.format(fullfilename)
+        print msg
+        log.debug(msg)
+        _state = App.utils.read_json_file(fullfilename)
+        self._load_application_state(_state)        
+        msg = 'Gripy application UI loaded.'
+        print msg
+        log.debug(msg)
+ 
+ 
+    def load_user_state_from_file(self, fullfilename):
+        msg = 'Loading Gripy user UI session from file {}'.format(fullfilename)
+        print msg
+        log.debug(msg)
+        _state = App.utils.read_json_file(fullfilename)
+        self._load_user_state(_state)        
+        msg = 'Gripy user UI session loaded.'
+        print msg
+        log.debug(msg)
+ 
+
+      
+
+    def save_application_state_to_file(self, fullfilename):
+        try:
+            state = self.get_application_state()
+        except Exception:
+            state = None
+            msg = 'ERROR: UI Application State cannot be gotten from UI Manager.' 
+            log.exception(msg)
+        if state is not None: 
+            try:
+                App.utils.write_json_file(state, fullfilename)
                 msg = 'Gripy interface state was saved to file ' + fullfilename 
                 print msg
                 log.info(msg)
@@ -817,7 +881,21 @@ class UIManager(object):#GenericObject):
                 raise
         
         
-        
+    def save_user_state_to_file(self, fullfilename):
+        try:
+            state = self.get_user_state()
+        except Exception:
+            state = None
+            msg = 'ERROR: UI Application State cannot be gotten from UI Manager.' 
+            log.exception(msg)
+        if state is not None: 
+            try:
+                App.utils.write_json_file(state, fullfilename)
+                msg = 'Gripy interface state was saved to file ' + fullfilename 
+                print msg
+                log.info(msg)
+            except Exception:
+                raise        
         
         
         

@@ -148,13 +148,16 @@ class LISWellLog(object):
                 return idx
                 
     def get_last_occurence_pos(self):
+        print '\nLISWellLog.get_last_occurence_pos'
         y = np.isnan(self.data)
-        #print y
+        print y, len(y)
         for idx in range(len(y)-1, -1, -1):
             if not y[idx]:
-                #print 'RETORNOU LAST: ', idx
+                print 'RETORNOU LAST: ', idx
                 return idx                
-          
+        print 'DEU RUIM' 
+        
+        
 class LISWellInfoFactory(object):
     
     data = None

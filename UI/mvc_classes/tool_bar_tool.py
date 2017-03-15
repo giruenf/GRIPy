@@ -5,6 +5,7 @@ import types
 from UI.uimanager import UIManager
 from UI.uimanager import UIControllerBase 
 from UI.uimanager import UIModelBase 
+from UI.uimanager import UI_MODEL_ATTR_CLASS
 from main_window import MainWindowController
 from App import log
 
@@ -69,17 +70,44 @@ class ToolBarToolController(UIControllerBase):
 class ToolBarToolModel(UIModelBase):
     tid = 'toolbartool_model'
     _ATTRIBUTES = {
-        'pos': {'default_value': -1, 'type': int},
-        'id': {'default_value': wx.ID_ANY, 'type': int},
-        'bitmap': {'default_value': wx.EmptyString, 'type': str},
-        'kind': {'default_value': wx.ITEM_NORMAL, 'type': int},
-        'label': {'default_value': wx.EmptyString, 'type': unicode},
-        'help': {'default_value': wx.EmptyString, 'type': unicode},
-        'long_help': {'default_value': wx.EmptyString, 'type': unicode},
-        'callback': {'default_value': None, 'type': types.FunctionType}
+        'pos': {'default_value': -1, 
+                'type': int, 
+                'attr_class': UI_MODEL_ATTR_CLASS.APPLICATION
+        },
+        'id': {'default_value': wx.ID_ANY, 
+               'type': int,
+               'attr_class': UI_MODEL_ATTR_CLASS.APPLICATION
+        },
+        'bitmap': {'default_value': wx.EmptyString, 
+                   'type': str,
+                   'attr_class': UI_MODEL_ATTR_CLASS.APPLICATION
+        },
+        'kind': {'default_value': wx.ITEM_NORMAL, 
+                 'type': int,
+                 'attr_class': UI_MODEL_ATTR_CLASS.APPLICATION
+        },
+        'label': {'default_value': wx.EmptyString, 
+                  'type': unicode,
+                  'attr_class': UI_MODEL_ATTR_CLASS.APPLICATION
+        },
+        'help': {'default_value': wx.EmptyString, 
+                 'type': unicode,
+                 'attr_class': UI_MODEL_ATTR_CLASS.APPLICATION
+        },
+        'long_help': {'default_value': wx.EmptyString, 
+                      'type': unicode,
+                      'attr_class': UI_MODEL_ATTR_CLASS.APPLICATION
+        },
+        'callback': {'default_value': None, 
+                     'type': types.FunctionType,
+                     'attr_class': UI_MODEL_ATTR_CLASS.APPLICATION
+        }
     }    
     
     def __init__(self, controller_uid, **base_state):    
         super(ToolBarToolModel, self).__init__(controller_uid, **base_state)  
-               
+
+
+
+
 

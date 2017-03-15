@@ -13,7 +13,10 @@ from matplotlib.figure import Figure
 import numpy as np
 from matplotlib.colors import colorConverter
 import Parms
+from App.utils import LogPlotDisplayOrder
 from App import log
+
+
 
 
 
@@ -109,15 +112,16 @@ class TrackObjectController(UIControllerBase):
                 self.model.backup = 0        
                 self.model.x_scale = 0    
             self.view.set_unit(obj.unit) 
-            self.model.zorder = 5000
+            self.model.zorder = LogPlotDisplayOrder.Z_ORDER_LOG
         elif obj.tid == 'partition':
             self.model.plottype = 'partition'
+            self.model.zorder = LogPlotDisplayOrder.Z_ORDER_PARTITION
             self.view.set_unit('(Partition)')    
         elif obj.tid == 'velocity':
             self.model.plottype = 'density'
             self.model.cmap = 'rainbow'
             self.model.alpha = 0.3
-            self.model.zorder = 10000
+            self.model.zorder =LogPlotDisplayOrder.Z_ORDER_VELOCITY
             self.view.set_z_axis_label('Velocity')
             self.view.set_x_axis_label('Traces')
             self.view.set_xlabel_lim(1, obj.attributes.get('traces'))
@@ -126,11 +130,11 @@ class TrackObjectController(UIControllerBase):
                 self.model.plottype = 'density'
                 self.model.cmap = 'gray'
                 self.model.alpha = 1.0
-                self.model.zorder = 100
+                self.model.zorder = LogPlotDisplayOrder.Z_ORDER_SEISMIC
                 self.view.set_xlabel_lim(1, obj.attributes.get('traces'))
             else:
                 self.model.plottype = 'wiggle'
-                self.model.zorder = 3000
+                self.model.zorder = LogPlotDisplayOrder.Z_ORDER_WIGGLE
             self.view.set_z_axis_label('Amplitude')
             self.view.set_x_axis_label('Traces')
             self.view.set_offsets(obj.attributes.get('offsets'))
@@ -139,7 +143,7 @@ class TrackObjectController(UIControllerBase):
             self.model.plottype = 'density'
             self.model.cmap = 'Paired' 
             self.model.alpha = 1.0
-            self.model.zorder = 1000
+            self.model.zorder = LogPlotDisplayOrder.Z_ORDER_SCALOGRAM
             self.view.set_z_axis_label('Scalogram')
             self.view.set_x_axis_label('Traces')
             self.view.set_xlabel_lim(1, obj.attributes.get('traces'))
@@ -252,7 +256,7 @@ class TrackObjectModel(UIModelBase):
                   'on_change': TrackObjectController.on_change_alpha
         },
         'zorder':  {'default_value': -1, 
-                   'type': int,
+                   'type': LogPlotDisplayOrder,
                    'on_change': TrackObjectController.on_change_zorder
         } 
     }      

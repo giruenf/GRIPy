@@ -1,23 +1,22 @@
 # -*- coding: utf-8 -*-
 import os
+import json
 import logging
 import wx
-from FileIO.utils import AsciiFile
-_APP_INIT_FILE = '.gripy_app_ini.json'
-
+_APP_INIT_FILE = '.gripy_app_config.json'
 
 def get():
     return wx.App.Get()
 
-
-def load_app_state():
+def _read_app_basic_config():
     try:
-        file_dict = AsciiFile.read_json_file(_APP_INIT_FILE)
+        f= open(_APP_INIT_FILE, 'r')
+        file_dict = json.load(f)
+        f.close()
         return file_dict
     except Exception as e:
         print e.args
-                     
-                     
+                   
 def start_logging(logging_dict):
     logging_level = logging_dict.get('logging_level', logging.DEBUG)
     log = logging.Logger('gripy', logging_level)
@@ -36,7 +35,18 @@ def start_logging(logging_dict):
     hdlr.setFormatter(fmt)
     log.addHandler(hdlr)
     return log
-    
-    
-_APP_STATE = load_app_state()    
-log = start_logging(_APP_STATE.get('logging'))
+       
+_APP_BASIC_CONFIG = _read_app_basic_config()    
+log = start_logging(_APP_BASIC_CONFIG.get('logging'))
+
+
+
+
+      
+
+
+        
+        
+        
+        
+        

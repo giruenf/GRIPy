@@ -379,7 +379,8 @@ class LISModel(dv.PyDataViewModel):
                 parent_item = self.GetParent(item)
                 well = self.ItemToObject(parent_item)
                 value = well.get_depth().data[last_depth_pos]
-                return "{0:.2f}".format(value) + ' (' + str(last_depth_pos) +')'
+                #return "{0:.2f}".format(value) + ' (' + str(last_depth_pos) +')'
+                return str(value) + ' (' + str(last_depth_pos) +')'
             elif col == 4:
                 return str.lower(obj.unit)
             elif col == 6:

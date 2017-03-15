@@ -19,8 +19,7 @@ class TreeController(UIControllerBase):
         super(TreeController, self).__init__()
         self._mapobjects = {}
         self._maptypes = {}
-        
-        
+           
     def PostInit(self):
         self._mapobjects[self._PSEUDOROOTUID] = self.view._rootid
         self._maptypes[self._PSEUDOROOTUID] = {} 
@@ -30,16 +29,11 @@ class TreeController(UIControllerBase):
         #self._UIM = UIManager()
         #self.model.attributes['hidden'] = OrderedDict()   
 
-    
     def PreRemove(self):
         del self._maptypes
         del self._mapobjects
     
-
-    #def refresh(self):
-    #    self.view.refresh()
-    
-    
+     
     def refresh(self):
         _OM = ObjectManager(self)
         for uid, treeid in self._mapobjects.items():
@@ -47,14 +41,12 @@ class TreeController(UIControllerBase):
                 continue
             self.view.SetItemText(treeid, _OM.get(uid).name)
 
-
     def set_project_name(self, name=wx.EmptyString):
         if name:
             _, name = os.path.split(name)      
         self.view._set_project_name(name)
            
-        
-        
+              
     def om_add_cb(self, objuid):
         _OM = ObjectManager(self)
         obj = _OM.get(objuid)
@@ -92,7 +84,6 @@ class TreeController(UIControllerBase):
         self._maptypes[obj.uid] = {}
         #self.view.ExpandAll()
       
-
     def om_remove_cb(self, objuid):
         treeid = self._mapobjects[objuid]
         treeparentid = self.view.GetItemParent(treeid)
@@ -109,12 +100,8 @@ class TreeController(UIControllerBase):
         return True        
 
 
-        
-    
-    
 class TreeView(UIViewBase, wx.TreeCtrl):
     tid = 'tree'
-    
     
     def __init__(self, controller_uid):
         UIViewBase.__init__(self, controller_uid)

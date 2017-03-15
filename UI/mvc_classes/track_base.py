@@ -9,20 +9,27 @@ from matplotlib.backends.backend_wxagg import FigureCanvasWxAgg as FigureCanvas
 from matplotlib.figure import Figure
 from matplotlib.ticker import NullFormatter
 from matplotlib.ticker import MultipleLocator
+from App.utils import LogPlotDisplayOrder
 from App import log
 
 
 
-class DummyAxes(Axes):       
-    _props = {
-        'y_major_grid_lines': 500.0,
-        'y_minor_grid_lines': 100.0,
-        'log_base': 10,
-        'scale_lines': 5,
-        'x_scale': 0,
-        'depth_lines': 0,
-        'xlim': (0.0, 100.0),
-        'ylim': (6000.0, 0.0),
+class DummyAxes(Axes):    
+    
+    _valid_keys = [
+        'y_major_grid_lines',
+        'y_minor_grid_lines',
+        'x_scale',
+        'decades',
+        'scale_lines',
+        'plotgrid',
+        'leftscale',
+        'minorgrid',
+        'depth_lines',
+        'ylim',
+    ]        
+    
+    _internal_props = {
         'major_tick_width': 1.4,        
         'minor_tick_width': 0.7,
         'major_tick_lenght': 10,
@@ -34,105 +41,247 @@ class DummyAxes(Axes):
         'axes_bgcolor': 'white',
         'spines_color': 'black',
         'tick_grid_color': '#A9A9A9'    #'#DFDFDF'#
+    }  
+    
+
+    _properties = {
+        'y_major_grid_lines': None,
+        'y_minor_grid_lines': None,
+        'decades': None,
+        'log_base': 10,
+        'scale_lines': None,
+        'plotgrid': None,
+        'leftscale': None,
+        'minorgrid': None,
+        'depth_lines': None,
+        'xlim': (0.0, 100.0), # Used only when x_scale is linear
     }
 
+         
 
-    _valid_props_keys = [
-        'plotgrid',
-        'ylim',
-        'y_major_grid_lines',
-        'y_minor_grid_lines',
-        'x_scale',
-        'decades',
-        'leftscale',
-        'minorgrid',
-        'scale_lines',
-        'depth_lines',
-    ]          
-      
-      
+    def __init__(self, figure, **initial_properties):
 
-    def __init__(self, figure, properties, layout_properties=None):
         Axes.__init__(self, figure, 
                       [0.0, 0.0, 1.0, 1.0], 
-                      axisbg=self._props.get('axes_bgcolor')
+                      axisbg=self._internal_props['axes_bgcolor']
         )
-        self.set_spines_visibility(False)    
+#        self.set_spines_visibility(False)    
+        self.spines['right'].set_visible(False)
+        self.spines['top'].set_visible(False)
+        self.spines['left'].set_visible(False)
+        self.spines['bottom'].set_visible(False)
         
-        
-        self.props = {}
-        self.major_y_grid_mapping = {'color': self._props['tick_grid_color'], 
-                             'linestyle': self._props['grid_linestyle'], 
-                             'linewidth': self._props['major_tick_width']
+#        self.props = {}
+        self.major_y_grid_mapping = {'color': self._internal_props['tick_grid_color'], 
+                             'linestyle': self._internal_props['grid_linestyle'], 
+                             'linewidth': self._internal_props['major_tick_width']
         }
-        self.default_grid_mapping = {'color': self._props['tick_grid_color'], 
-                             'linestyle': self._props['grid_linestyle'], 
-                             'linewidth': self._props['minor_tick_width']
-        }
-        
-        self.set_zorder(self._props['dummy_ax_zorder'])
-        
+        self.default_grid_mapping = {'color': self._internal_props['tick_grid_color'], 
+                             'linestyle': self._internal_props['grid_linestyle'], 
+                             'linewidth': self._internal_props['minor_tick_width']
+        }        
+        self.set_zorder(self._internal_props['dummy_ax_zorder'])        
         # EIXO Y SEMPRE SERÁ LINEAR
-        self.set_yscale('linear')        
-        
-        # EIXO Y NÃO TERÁ LABELS
+        self.set_yscale('linear')                
+        # EIXOS X e Y NÃO TERÃO LABELS
+        self.xaxis.set_major_formatter(NullFormatter())
+        self.xaxis.set_minor_formatter(NullFormatter())
         self.yaxis.set_major_formatter(NullFormatter())
-        self.yaxis.set_minor_formatter(NullFormatter())
-        
-        self.yaxis.set_tick_params('major', size=10)
-        self.yaxis.set_tick_params('minor', size=5)        
-        
+        self.yaxis.set_minor_formatter(NullFormatter())  
         # EIXO X NÃO POSSUI TICKS
-        self.hide_x_ticks()
-        
+        self.xaxis.set_tick_params('major', size=0)
+        self.xaxis.set_tick_params('minor', size=0)     
         # EIXO Y TICKS
+        self.yaxis.set_tick_params('major', size=10)
+        self.yaxis.set_tick_params('minor', size=5)           
         self.tick_params(axis='y', which='major', direction='in',
-                color=self._props['tick_grid_color'],          
-                length=self._props['major_tick_lenght'],
-                width=self._props['major_tick_width'], 
-                zorder=self._props['ticks_zorder'])
+                color=self._internal_props['tick_grid_color'],          
+                length=self._internal_props['major_tick_lenght'],
+                width=self._internal_props['major_tick_width'], 
+                zorder=self._internal_props['ticks_zorder'])
         self.tick_params(axis='y', which='minor', direction='in',
-                color=self._props['tick_grid_color'],         
-                length=self._props['minor_tick_lenght'],
-                width=self._props['minor_tick_width'], 
-                zorder=self._props['ticks_zorder'])
-        
+                color=self._internal_props['tick_grid_color'],         
+                length=self._internal_props['minor_tick_lenght'],
+                width=self._internal_props['minor_tick_width'], 
+                zorder=self._internal_props['ticks_zorder'])        
         # PARA NÃO HAVER SOBREPOSIÇÃO DE TICKS E GRIDS SOBRE OS SPINES(EIXO GRÁFICO) 
-        self.spines['left'].set_zorder(self._props['spines_zorder'])
-        self.spines['right'].set_zorder(self._props['spines_zorder'])
-        self.spines['top'].set_zorder(self._props['spines_zorder'])
-        self.spines['bottom'].set_zorder(self._props['spines_zorder'])
+        self.spines['left'].set_zorder(self._internal_props['spines_zorder'])
+        self.spines['right'].set_zorder(self._internal_props['spines_zorder'])
+        self.spines['top'].set_zorder(self._internal_props['spines_zorder'])
+        self.spines['bottom'].set_zorder(self._internal_props['spines_zorder'])        
+        self.set_spines_color(self._internal_props['spines_color'])
+
+        self.hide_y_ticks()
+        #self.update()
         
-        self.set_spines_color(self._props['spines_color'])
+        for key, value in initial_properties.items():
+            if key in self._valid_keys:
+                self._properties[key] = value
+        self.update('x_scale', self._properties.get('x_scale'))        
+
+
+#    def get_properties(self):
+#        return self.props
+
+
+    def update(self, key, value):
+        if key == 'ylim':
+            if not isinstance(value, tuple):
+                raise ValueError('ylim deve ser uma tupla')
+            ymin, ymax =  value
+            if not isinstance(ymin, (int, float)) \
+                        or not isinstance(ymax, (int, float)):
+                raise ValueError('ylim deve ser uma tupla de int ou float.')
+            elif ymax == ymin:
+                raise ValueError('Os valores de ylim nao podem ser iguais.')
+            elif ymin < 0 or ymax < 0:
+                raise ValueError('Nenhum dos valores de ylim podem ser negativos.')          
+            self.set_ylim(value)
+        elif key == 'x_scale':
+            if not isinstance(value, int):
+                 raise ValueError('O valor de x_scale deve ser inteiro.')
+            if not value in [0, 1, 2, 3]:
+                raise ValueError('A escala deve ser linear ou logaritmica(seno ou cosseno). (x_scale in [0, 1, 2, 3])')     
+            if value == 0:
+                self.set_xscale('linear')
+                self.set_xlim(self._properties.get('xlim'))    
+            if value == 1:
+                self.set_xscale('log')
+                self.update('leftscale', self._properties.get('leftscale')) # leftscale or decades to update xlim 
+            if value == 2:
+                raise Exception('There no support yet to Sin scale.')
+            if value == 3:    
+                raise Exception('There no support yet to Cosin scale.')  
+            self.update('plotgrid', self._properties.get('plotgrid'))           
+        elif key == 'y_major_grid_lines':
+            if not isinstance(value, float):
+                raise ValueError('y_major_grid_lines deve ser float.') 
+            elif value <= 0:
+                raise ValueError('y_major_grid_lines deve ser maior que 0.') 
+            self.yaxis.set_major_locator(MultipleLocator(value))
+            self._properties['y_major_grid_lines'] = value             
+        elif key == 'y_minor_grid_lines':
+            if not isinstance(value, float):
+                raise ValueError('y_minor_grid_lines deve ser float.') 
+            elif value <= 0:
+                raise ValueError('y_minor_grid_lines deve ser maior que 0.')
+            self.yaxis.set_minor_locator(MultipleLocator(value))
+            self._properties['y_minor_grid_lines'] = value                 
+        elif key == 'decades' or key == 'leftscale':
+            if key == 'decades':
+                if not isinstance(value, int):
+                    raise ValueError('decades deve ser inteiro.')
+                if value <= 0:
+                    raise ValueError('decades deve ser maior que 0.') 
+                self._properties['decades'] = value    
+            elif key == 'leftscale':
+                if not isinstance(value, float):
+                    raise ValueError('leftscale deve ser float.')    
+                if value <= 0:
+                    raise ValueError('leftscale deve ser maior que 0.')   
+                self._properties['leftscale'] = value     
+            if self.get_xscale() == 'log':
+                xlim = (self._properties.get('leftscale'), 
+                    self._properties.get('leftscale')*(self._properties.get('log_base')**self._properties.get('decades')))
+                self.set_xlim(xlim)       
+        elif key == 'minorgrid':  
+            if not isinstance(value, bool):  
+                raise ValueError('O valor de minorgrid deve ser True ou False.')  
+            if self.get_xscale() == 'log' and self._properties.get('plotgrid'):    
+                self.grid(value, axis='x', which='minor', **self.default_grid_mapping)
+            self._properties['minorgrid'] = value
+        elif key == 'scale_lines':
+            if not isinstance(value, int):
+                raise ValueError('scale_lines deve ser inteiro.') 
+            if value <= 0:
+                raise ValueError('scale_lines deve ser maior que 0.')  
+            if self.get_xscale() == 'linear' and self._properties.get('plotgrid'): 
+                x0, x1 = self.get_xlim()
+                x_major_grid_lines = (x1-x0)/value
+                self.xaxis.set_major_locator(MultipleLocator(x_major_grid_lines))
+            self._properties['scale_lines'] = value       
+        elif key == 'plotgrid': 
+            self._properties['plotgrid'] = value
+            if value:
+                self.update('minorgrid', self._properties.get('minorgrid'))
+                self.update('scale_lines', self._properties.get('scale_lines'))
+                self.grid(True, axis='x', which='major', **self.default_grid_mapping)            
+                self.update('depth_lines', self._properties.get('depth_lines'))
+            else:
+                self.grid(False, axis='both', which='both')
+                self.hide_y_ticks()
+        elif key == 'depth_lines':
+            if not isinstance(value, int): 
+                raise ValueError('depth_lines deve ser inteiro.')
+            elif value < 0 or value > 5:
+                raise ValueError('depth_lines deve ser entre 0 e 5.')    
+            if self._properties.get('plotgrid'):
+                self.ticks = False
+                if value == 0:
+                    self.grid(True, axis='y', which='major', **self.major_y_grid_mapping)
+                    self.grid(True, axis='y', which='minor', **self.default_grid_mapping)
+                    self.hide_y_ticks()
+                # DEPTH LINES == LEFT 
+                elif value == 1:
+                    self.ticks = True
+                    self.spines['left'].set_position(('axes', 0.0))
+                    self.spines['right'].set_position(('axes', 1.0))
+                    self.tick_params(left=True, right=False, which='both', 
+                                     axis='y', direction='in'
+                    )
+                    self.grid(False, axis='y', which='both')
+                # DEPTH LINES == RIGHT
+                elif value == 2:
+                    self.ticks = True
+                    self.spines['left'].set_position(('axes', 0.0))
+                    self.spines['right'].set_position(('axes', 1.0))
+                    self.tick_params(left=False, right=True, which='both',
+                                     axis='y', direction='in'
+                    )                 
+                    self.grid(False, axis='y', which='both')
+                # DEPTH LINES == CENTER   
+                elif value == 3:
+                    self.ticks = True
+                    self.spines['left'].set_position('center')
+                    self.spines['right'].set_position('center')
+                    self.tick_params(left=True, right=True, which='both', axis='y',
+                                     direction='out')
+                    self.grid(False, axis='y', which='both')            
+                # DEPTH LINES == LEFT AND RIGHT    
+                elif value == 4:   
+                    self.ticks = True
+                    self.spines['left'].set_position(('axes', 0.0))
+                    self.spines['right'].set_position(('axes', 1.0))
+                    self.tick_params(left=True, right=True, which='both', 
+                                     axis='y', direction='in'
+                    )
+                    self.grid(False, axis='y', which='both')   
+                # DEPTH LINES == NONE
+                elif value == 5:
+                    self.spines['left'].set_position(('axes', 0.0))
+                    self.spines['right'].set_position(('axes', 1.0))
+                    self.yaxis.set_ticks_position('none')
+                    self.grid(False, axis='y', which='both')                         
+                if self.ticks:
+                    self.show_y_ticks()
+                    self.update('y_major_grid_lines', self._properties.get('y_major_grid_lines'))
+                    self.update('y_minor_grid_lines', self._properties.get('y_minor_grid_lines'))
+            self._properties['depth_lines'] = value
+            
         
-        self.update(**properties)  
-
-
-
-    def set_spines_visibility(self, boolean):                
-        self.spines['right'].set_visible(boolean)
-        self.spines['top'].set_visible(boolean)
-        self.spines['left'].set_visible(boolean)
-        self.spines['bottom'].set_visible(boolean)
-
-
-
-    def get_properties(self):
-        return self.props
-
-
-    def update(self, **properties):
-        #print '\nupdate: ', properties
+            
+    """        
+    def _update_old(self, **properties):
+        print '\nDummyAxes.update: ', properties
     
         valid_props = {}
         for key, value in properties.items():
-            if key in self._valid_props_keys:
+            if key in self._valid_keys:
                 valid_props[key] = value
         properties = valid_props     
         
-        
         self.props = self.check_properties(properties)
-
+        print 'props:', self.props
 
         # EIXO X - ESCALA LOGARITMICA
         if self.props.get('x_scale') == 1:
@@ -166,7 +315,6 @@ class DummyAxes(Axes):
             raise Exception('There no support yet to Cosin scale.')
             
         if self.props.get('plotgrid'):    
-            
             if self.props.get('depth_lines') == 0:
                 self.ticks = False
                 self.grid(True, axis='y', which='major', **self.major_y_grid_mapping)
@@ -206,41 +354,31 @@ class DummyAxes(Axes):
                 self.tick_params(left=True, right=True, which='both', 
                                  axis='y', direction='in'
                 )
-                self.grid(False, axis='y', which='both')
-            
+                self.grid(False, axis='y', which='both')   
             # DEPTH LINES == NONE
             elif self.props.get('depth_lines') == 5:
                 self.ticks = False
                 self.spines['left'].set_position(('axes', 0.0))
                 self.spines['right'].set_position(('axes', 1.0))
                 self.yaxis.set_ticks_position('none')
-                self.grid(False, axis='y', which='both')                 
-                
+                self.grid(False, axis='y', which='both')                         
             if self.ticks:
                 self.show_y_ticks()
             elif self.props.get('depth_lines') == 0:
                 self.hide_y_ticks()
         else:
-
             self.grid(False, axis='both', which='both')
             self.hide_y_ticks()
-
-
-
-    def hide_x_ticks(self):
-        self.xaxis.set_tick_params('major', size=0)
-        self.xaxis.set_tick_params('minor', size=0)
+    """        
 
     def show_y_ticks(self):
         self.yaxis.set_tick_params('major', size=10)
         self.yaxis.set_tick_params('minor', size=5)
-        self.yaxis.set_major_locator(MultipleLocator(self.props.get('y_major_grid_lines')))
-        self.yaxis.set_minor_locator(MultipleLocator(self.props.get('y_minor_grid_lines')))
+        #self.yaxis.set_tick_params('zorder', Z_ORDER_TRACKGRID
 
     def hide_y_ticks(self):
         self.yaxis.set_tick_params('major', size=0)
         self.yaxis.set_tick_params('minor', size=0)
-
 
     def set_spines_color(self, color):
         self.spines['bottom'].set_color(color)
@@ -249,7 +387,7 @@ class DummyAxes(Axes):
         self.spines['right'].set_color(color)
          
         
-        
+    """    
     def check_properties(self, props):
 
         if not props.get('ylim'): 
@@ -379,64 +517,56 @@ class DummyAxes(Axes):
                 raise ValueError('depth_lines deve ser entre 0 e 5.')    
                 
         return props
-        
-
- 
-
-
+        """
 
 ###############################################################################  
 ###
 ###############################################################################
 
-
-      
+     
 class TrackFigureCanvas(FigureCanvas):
 
         
-    def __init__(self, wx_parent, view_object, size, **properties):
-        self.dummy_ax = None
-        self.properties = properties
+    def __init__(self, wx_parent, track_view_object, size, **properties):
+#        print 'TrackFigureCanvas.__init__:', properties
+#        self.dummy_ax = None
+#        self.properties = properties
         ### _BaseFigureCanvas - Inicio
-        self.dpi = 80
-        self.height_inches_used = 0.0
-        self.width_inches = 0.01            
+#        self.dpi = 80
+#        self.height_inches_used = 0.0
+#        self.width_inches = 0.01            
         self.figure = Figure(facecolor='white', 
-                             figsize=(self.width_inches, self.height_inches_used)) 
+                             figsize=(0.01, 0.0)) #self.height_inches_used)) 
         FigureCanvas.__init__(self, wx_parent, -1, self.figure)
         self.SetSize(size)
-        self.dummy_ax = DummyAxes(self.figure, properties)
+        self.dummy_ax = DummyAxes(self.figure, **properties)
         self.figure.add_axes(self.dummy_ax)
         ### _BaseFigureCanvas - Fim
-        self._view = view_object
+        self.track_view_object = track_view_object
         self.axes = []
         self._selected = False
         self.selectedCanvas = []
-        self.index_axes = None
-        
+        self.index_axes = None       
         self.mpl_connect('button_press_event', self._on_press)
-        self.Bind(wx.EVT_MIDDLE_DOWN, self._on_middle_down)
-        
-        
+        #self.Bind(wx.EVT_MIDDLE_DOWN, self._on_middle_down)
+                
     def _on_press(self, event):
-        self._view.process_event(event)
-
-        
+        self.track_view_object.process_event(event)
+#        self._view.process_event(event)
+    
     def is_selected(self):
         return self._selected
-        
-        
-    def _on_middle_down(self, event):
-        self._view.set_selected(self, not self._selected)   
-        self._do_select()
-        event.Skip()
-        
-        
+             
+    #def _on_middle_down(self, event):
+    #    self.track_view_object.set_selected(self, not self._selected)   
+    #    self._do_select()
+    #    event.Skip()
+            
     def _do_select(self):
+        print 'TrackFigureCanvas._do_select'
         self._selected = not self._selected
         self.GetParent()._draw_window_selection(self)         
-        
-        
+               
     #def get_transformed_values(self, point_px):
     #    if point_px is None:
     #        return None, None
@@ -446,33 +576,34 @@ class TrackFigureCanvas(FigureCanvas):
     #        valuedata = ax.transData.inverted().transform_point(point_px)         
     #        values.append(valuedata.tolist()[0])
     #    return dummydata.tolist(), values     
-        
-     
-    def update_properties(self, **kwargs):
-        if self.dummy_ax is not None:
-            self.dummy_ax.update(**kwargs)
-            self.draw()            
+           
+    """       
+    def set_xscale_linear(self, plotgrid, scale_lines):
+        if self.dummy_ax:
+            self.dummy_ax.set_xscale_linear(plotgrid, scale_lines)
+            self.draw()
+
   
-    def get_properties(self):
-        return self.dummy_ax.get_properties()   
-              
-              
-    def set_dummy_spines_visibility(self, boolean):
-        if self.dummy_ax is not None:
-            self.dummy_ax.set_spines_visibility(boolean)
+    def set_xscale_log(self, plotgrid, leftscale, decades, minorgrid):  
+        if self.dummy_ax:
+            self.dummy_ax.set_xscale_log(plotgrid, leftscale, decades, minorgrid)
+            self.draw()
+    """         
+           
+    def update(self, key, value):
+        print 'TrackFigureCanvas.update:', key, value
+        self.dummy_ax.update(key, value)
+        self.draw()            
+  
+    #def get_properties(self):
+    #    return self.dummy_ax.get_properties()   
                  
-    
     def set_ylim(self, ylim):
-        print '\n\nTrackFigureCanvas.set_ylim: ', ylim, '\n\n'
-        min_, max_ = ylim
-        if min_ == max_:
-            return
-        if max_ < min_:
-            ylim = (max_, min_)
-        self.dummy_ax.update(ylim=ylim)
+        print '\nTrackFigureCanvas.set_ylim: ', ylim
+        self.dummy_ax.update('ylim', ylim)
         self.draw()
 
-
+    # TODO: VERIFICAR ISSO
     def show_index_curve(self, step=500):
         if not self.index_axes:
             self.index_axes = self.figure.add_axes(self.dummy_ax.get_position(True),
@@ -482,7 +613,7 @@ class TrackFigureCanvas(FigureCanvas):
             self.index_axes.xaxis.set_visible(False)
             self.index_axes.yaxis.set_visible(False)
             self.axes.append(self.index_axes)  
-            self.index_axes.set_zorder(100)  
+            self.index_axes.set_zorder(LogPlotDisplayOrder.Z_ORDER_INDEX)  
         else:
             self.index_axes.texts = []
         start = 0
@@ -492,8 +623,7 @@ class TrackFigureCanvas(FigureCanvas):
             text = self.index_axes.text(0.5, loc, "%g" % loc, ha='center', 
                                         va='center',  fontsize=10
             )
-            text.set_bbox(dict(color='white', alpha=0.5, edgecolor='white'))
-        #raise Exception()    
+            text.set_bbox(dict(color='white', alpha=0.5, edgecolor='white'))  
         self.draw()     
 
 

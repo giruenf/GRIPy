@@ -1,0 +1,362 @@
+{
+    "main_window_controller": [
+        {
+            "pos": "wx.Point(343, 243)", 
+            "maximized": false, 
+            "size": "wx.Size(860, 659)", 
+            "children": [
+                {
+                    "menubar_controller": [
+                        {
+                            "children": [
+                                {
+                                    "menu_controller": [
+                                        {
+                                            "children": [
+                                                {
+                                                    "menu_item_controller": [
+                                                        {
+                                                            "children": []
+                                                        }
+                                                    ]
+                                                }, 
+                                                {
+                                                    "menu_item_controller": [
+                                                        {
+                                                            "children": []
+                                                        }
+                                                    ]
+                                                }, 
+                                                {
+                                                    "menu_item_controller": [
+                                                        {
+                                                            "children": []
+                                                        }
+                                                    ]
+                                                }, 
+                                                {
+                                                    "menu_item_controller": [
+                                                        {
+                                                            "children": []
+                                                        }
+                                                    ]
+                                                }, 
+                                                {
+                                                    "menu_controller": [
+                                                        {
+                                                            "children": [
+                                                                {
+                                                                    "menu_item_controller": [
+                                                                        {
+                                                                            "children": []
+                                                                        }
+                                                                    ]
+                                                                }, 
+                                                                {
+                                                                    "menu_item_controller": [
+                                                                        {
+                                                                            "children": []
+                                                                        }
+                                                                    ]
+                                                                }, 
+                                                                {
+                                                                    "menu_item_controller": [
+                                                                        {
+                                                                            "children": []
+                                                                        }
+                                                                    ]
+                                                                }, 
+                                                                {
+                                                                    "menu_item_controller": [
+                                                                        {
+                                                                            "children": []
+                                                                        }
+                                                                    ]
+                                                                }, 
+                                                                {
+                                                                    "menu_item_controller": [
+                                                                        {
+                                                                            "children": []
+                                                                        }
+                                                                    ]
+                                                                }
+                                                            ]
+                                                        }
+                                                    ]
+                                                }, 
+                                                {
+                                                    "menu_controller": [
+                                                        {
+                                                            "children": [
+                                                                {
+                                                                    "menu_item_controller": [
+                                                                        {
+                                                                            "children": []
+                                                                        }
+                                                                    ]
+                                                                }
+                                                            ]
+                                                        }
+                                                    ]
+                                                }
+                                            ]
+                                        }
+                                    ]
+                                }, 
+                                {
+                                    "menu_controller": [
+                                        {
+                                            "children": [
+                                                {
+                                                    "menu_item_controller": [
+                                                        {
+                                                            "children": []
+                                                        }
+                                                    ]
+                                                }
+                                            ]
+                                        }
+                                    ]
+                                }, 
+                                {
+                                    "menu_controller": [
+                                        {
+                                            "children": []
+                                        }
+                                    ]
+                                }, 
+                                {
+                                    "menu_controller": [
+                                        {
+                                            "children": []
+                                        }
+                                    ]
+                                }, 
+                                {
+                                    "menu_controller": [
+                                        {
+                                            "children": []
+                                        }
+                                    ]
+                                }, 
+                                {
+                                    "menu_controller": [
+                                        {
+                                            "children": []
+                                        }
+                                    ]
+                                }, 
+                                {
+                                    "menu_controller": [
+                                        {
+                                            "children": [
+                                                {
+                                                    "menu_item_controller": [
+                                                        {
+                                                            "children": []
+                                                        }
+                                                    ]
+                                                }, 
+                                                {
+                                                    "menu_item_controller": [
+                                                        {
+                                                            "children": []
+                                                        }
+                                                    ]
+                                                }, 
+                                                {
+                                                    "menu_item_controller": [
+                                                        {
+                                                            "children": []
+                                                        }
+                                                    ]
+                                                }, 
+                                                {
+                                                    "menu_item_controller": [
+                                                        {
+                                                            "children": []
+                                                        }
+                                                    ]
+                                                }, 
+                                                {
+                                                    "menu_item_controller": [
+                                                        {
+                                                            "children": []
+                                                        }
+                                                    ]
+                                                }, 
+                                                {
+                                                    "menu_item_controller": [
+                                                        {
+                                                            "children": []
+                                                        }
+                                                    ]
+                                                }, 
+                                                {
+                                                    "menu_item_controller": [
+                                                        {
+                                                            "children": []
+                                                        }
+                                                    ]
+                                                }, 
+                                                {
+                                                    "menu_item_controller": [
+                                                        {
+                                                            "children": []
+                                                        }
+                                                    ]
+                                                }, 
+                                                {
+                                                    "menu_item_controller": [
+                                                        {
+                                                            "children": []
+                                                        }
+                                                    ]
+                                                }, 
+                                                {
+                                                    "menu_item_controller": [
+                                                        {
+                                                            "children": []
+                                                        }
+                                                    ]
+                                                }, 
+                                                {
+                                                    "menu_item_controller": [
+                                                        {
+                                                            "children": []
+                                                        }
+                                                    ]
+                                                }, 
+                                                {
+                                                    "menu_item_controller": [
+                                                        {
+                                                            "children": []
+                                                        }
+                                                    ]
+                                                }, 
+                                                {
+                                                    "menu_item_controller": [
+                                                        {
+                                                            "children": []
+                                                        }
+                                                    ]
+                                                }, 
+                                                {
+                                                    "menu_item_controller": [
+                                                        {
+                                                            "children": []
+                                                        }
+                                                    ]
+                                                }, 
+                                                {
+                                                    "menu_item_controller": [
+                                                        {
+                                                            "children": []
+                                                        }
+                                                    ]
+                                                }, 
+                                                {
+                                                    "menu_item_controller": [
+                                                        {
+                                                            "children": []
+                                                        }
+                                                    ]
+                                                }
+                                            ]
+                                        }
+                                    ]
+                                }, 
+                                {
+                                    "menu_controller": [
+                                        {
+                                            "children": [
+                                                {
+                                                    "menu_item_controller": [
+                                                        {
+                                                            "children": []
+                                                        }
+                                                    ]
+                                                }, 
+                                                {
+                                                    "menu_item_controller": [
+                                                        {
+                                                            "children": []
+                                                        }
+                                                    ]
+                                                }, 
+                                                {
+                                                    "menu_item_controller": [
+                                                        {
+                                                            "children": []
+                                                        }
+                                                    ]
+                                                }
+                                            ]
+                                        }
+                                    ]
+                                }
+                            ]
+                        }
+                    ]
+                }, 
+                {
+                    "tree_controller": [
+                        {
+                            "children": []
+                        }
+                    ]
+                }, 
+                {
+                    "toolbar_controller": [
+                        {
+                            "children": [
+                                {
+                                    "toolbartool_controller": [
+                                        {
+                                            "children": []
+                                        }
+                                    ]
+                                }, 
+                                {
+                                    "toolbartool_controller": [
+                                        {
+                                            "children": []
+                                        }
+                                    ]
+                                }, 
+                                {
+                                    "toolbartool_controller": [
+                                        {
+                                            "children": []
+                                        }
+                                    ]
+                                }, 
+                                {
+                                    "toolbartool_controller": [
+                                        {
+                                            "children": []
+                                        }
+                                    ]
+                                }, 
+                                {
+                                    "toolbartool_controller": [
+                                        {
+                                            "children": []
+                                        }
+                                    ]
+                                }
+                            ]
+                        }
+                    ]
+                }, 
+                {
+                    "statusbar_controller": [
+                        {
+                            "children": []
+                        }
+                    ]
+                }
+            ]
+        }
+    ]
+}

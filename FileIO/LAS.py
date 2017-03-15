@@ -23,6 +23,7 @@ except ImportError:
 
 _VERBOSE = False
 
+
 class LASFile(object):
     """
     A LAS 2.0 file object.
@@ -151,10 +152,23 @@ class LASReader(LASFile):
         >>> LASReader._splitline('  DEPTH.M       : MEASURED DEPTH  ')
         ('  DEPTH', 'M', '       ', ' MEASURED DEPTH  ')
         """
-        mnem, rest = line.split(".", 1)
-        unit, rest = rest.split(" ", 1)
-        rest = " " + rest
-        data, desc = rest.rsplit(":", 1)
+        if ":" not in line:
+            desc = ''
+        else:
+            line, desc = line.rsplit(":", 1)
+            desc = desc.strip()
+        line = line.strip()
+        if " " not in line:
+            data = ''
+        else:
+            line, data = line.rsplit(" ", 1)
+            data = data.strip()
+        line = line.strip()    
+        if "." not in line:
+            unit = ''
+            mnem = line
+        else:
+            mnem, unit = line.split(".", 1)
         return mnem, unit, data, desc
     
     @staticmethod    
@@ -262,7 +276,7 @@ class LASReader(LASFile):
         while not line.lstrip().startswith('~A'):
             headerlines.append(line.replace('\t', ' '))  # TODO: Suportar vários tipos de separadores
             line = fileobject.readline()
-        headerlines.append(line)
+        headerlines.append(line) 
         return headerlines
     
     @staticmethod
@@ -327,14 +341,13 @@ class LASReader(LASFile):
             else:
                 currentsection.append(line.split('\n')[0])
             linecount += 1
-    
+        
         for sectionkey, lines in header.iteritems():
             try:
                 section = OrderedDict()
                 sectionlayout = {}
                 for line in lines:
                     parsedline, linelayout = LASReader._parseline(line, True)
-                    
                     # if parsedline['MNEM'] in section:
                         # print "Curva repetida:", parsedline['MNEM']  # TODO: Fazer algo
                     # section[parsedline['MNEM']] = parsedline
@@ -349,7 +362,6 @@ class LASReader(LASFile):
                         count += 1
                         new_mnem = old_mnem + '_{:0>4}'.format(count)
                         if _VERBOSE: print "Substituindo por:", new_mnem
-                    #
 
                     section[new_mnem] = parsedline
                     sectionlayout[new_mnem] = linelayout
@@ -441,6 +453,7 @@ class LASReader(LASFile):
         -------
         data : numpy.ndarray
             Reshaped data with first dimension lenght equal to `ncurves`
+            
         """
         data = np.reshape(flatdata, (-1, ncurves)).T
         return data
@@ -520,7 +533,6 @@ class LASReader(LASFile):
         fileobject.close()
         
         self.header, self.headersectionnames, self.headerlayout, self.headercomments = LASReader._getheader(headerlines, True, True, True)
-        
         ncurves = len(self.header["C"])
         nullvalue = float(self.header["W"]["NULL"]["DATA"])
         stepvalue = float(self.header["W"]["STEP"]["DATA"])

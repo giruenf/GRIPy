@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 from collections import OrderedDict
 import FileIO
+import App
 import os 
 
 CURVE_DICT_FILE='CPARMDEF.json'
@@ -18,7 +19,7 @@ class ParametersManager(object):
         # End - Gripy Default Plot
         self.PLTs['No Tracks Plot'] = None
         self.PLTs = FileIO.PLT.getPLTFiles(self.PLTs, os.path.dirname(os.path.abspath(__file__)))
-        self.curve_dict = FileIO.utils.AsciiFile.read_json_file(
+        self.curve_dict = App.utils.read_json_file(
              os.path.join(os.path.dirname(os.path.abspath(__file__)),
                           CURVE_DICT_FILE)
         )

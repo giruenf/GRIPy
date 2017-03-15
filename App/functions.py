@@ -111,7 +111,6 @@ def on_import_las(event):
         sel_datatypes = []
         for name in names:
             datatype = ParametersManager2.getdatatypefrommnem(name)
-            print 'DT:', name, '-', datatype
             if not datatype:
                 sel_datatypes.append('Log')
             else:
@@ -132,7 +131,7 @@ def on_import_las(event):
                               LASheader=las_file.header)
             _OM.add(well)
             
-            depth = None
+            index = None
             
             for i in range(ncurves):
                 if sel_curvetypes[i]:
@@ -141,16 +140,16 @@ def on_import_las(event):
                 if sel_datatypes[i]:
                     ParametersManager2.votefordatatype(names[i], sel_datatypes[i])
                 
-                if sel_datatypes[i] == 'Depth':
-                    depth = _OM.new('index_curve', data[i], name=names[i], 
+                if sel_datatypes[i] == 'Index':
+                    index = _OM.new('index_curve', data[i], name=names[i], 
                                        unit=units[i].lower(), curvetype=sel_curvetypes[i])
-                    well.index.append(depth)
-                    _OM.add(depth, well.uid)
+                    well.index.append(index)
+                    _OM.add(index, well.uid)
                 
                 elif sel_datatypes[i] == 'Log':
                     log = _OM.new('log', data[i], name=names[i], 
                                 unit=units[i].lower(), curvetype=sel_curvetypes[i],
-                                index_uid=depth.uid
+                                index_uid=index.uid
                     )
                     _OM.add(log, well.uid)
 
@@ -158,7 +157,7 @@ def on_import_las(event):
                     booldata, codes = DT.DataTypes.Partition.getfromlog(data[i])
                     partition = _OM.new('partition', name=names[i], 
                                            curvetype=sel_curvetypes[i],
-                                           index_uid=depth.uid
+                                           index_uid=index.uid
                     )
                     _OM.add(partition, well.uid)
                     for j in range(len(codes)):

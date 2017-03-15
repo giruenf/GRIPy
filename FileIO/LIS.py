@@ -8,7 +8,7 @@ Created on Mon Jun 13 11:02:27 2016
 import wx
 import os
 import struct
-import utils
+import App
 from collections import OrderedDict
 import numpy as np
 from TIF import TIFFile
@@ -216,7 +216,7 @@ class LISFile(object):
         fullpath_json = wx.App.Get().get_app_dir() + os.sep + \
                             self.__module__.split('.')[0] + os.sep + json_file
         #print 'fullpath_json:', fullpath_json
-        self._json = utils.AsciiFile.read_json_file(fullpath_json)
+        self._json = App.utils.read_json_file(fullpath_json)
         
         
     def read_file(self, file_name):
