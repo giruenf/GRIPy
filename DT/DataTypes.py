@@ -960,8 +960,8 @@ class PreStackSeismic(ParentObject, DataTypeUnitMixin):
         
 class IndexCurve(Property, DataTypeMinMaxMixin):   
     tid = "index_curve"
-    _DATATYPE_VALID_TYPES = ['Depth', 'Time']
-    _DEFAULTDATATYPE = 'Depth'
+    _DATATYPE_VALID_TYPES = ['MD', 'Time']
+    _DEFAULTDATATYPE = 'MD'
     # TODO: Mudar isso com a criacao de class para units
     _DEFAULTDEPTHUNIT = 'm'
     _DEFAULTTIMEUNIT = 'ms'
@@ -984,11 +984,10 @@ class IndexCurve(Property, DataTypeMinMaxMixin):
             self.curvetype = attributes.get('curvetype')
             
         if attributes.get('unit') is None:
-            if self.curvetype == 'Depth':
+            if self.curvetype == 'MD':
                 self.unit = self._DEFAULTDEPTHUNIT
             else:    
                 self.unit = self._DEFAULTTIMEUNIT
-        
         self.min = np.nanmin(self._data)
         self.max = np.nanmax(self._data)
            

@@ -252,7 +252,7 @@ class GripyApp(wx.App):
             
             
             mic_edit_partitions = _UIM.create('menu_item_controller', mc_edit.uid, 
-                    label=u"Partições", 
+                    label=u"Partitions", 
                     callback='App.functions.on_partitionedit'
             )              
             

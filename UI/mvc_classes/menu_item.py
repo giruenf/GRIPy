@@ -79,9 +79,13 @@ class MenuItemView(UIViewBase, wx.MenuItem):
         controller = _UIM.get(self._controller_uid)
         if controller.model.id == wx.ID_ANY: 
             controller.model.id = _UIM.new_wx_id()
-        wx.MenuItem.__init__(self, None, controller.model.id, controller.model.label, 
-              controller.model.help, controller.model.kind
-        )
+        try:
+            wx.MenuItem.__init__(self, None, controller.model.id, controller.model.label, 
+                  controller.model.help, controller.model.kind
+            )
+        except Exception, e:
+            print e.message
+            raise e
 
 
     def PostInit(self):
