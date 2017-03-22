@@ -1,7 +1,11 @@
 import json
-from os import path
+from os import path,name
 
-_jsonfilepath = '.\\Parms'
+if name == "posix":
+    _jsonfilepath = './Parms'
+else:
+    _jsonfilepath = '.\\Parms'
+    
 _jsonfilename = 'parameters2.json'
 
 # global _parametersdict

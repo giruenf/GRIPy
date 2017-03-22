@@ -160,7 +160,7 @@
                                             "help": "", 
                                             "pos": 0, 
                                             "callback": "App.functions.on_partitionedit", 
-                                            "label": "Parti\u00e7\u00f5es", 
+                                            "label": "Partitions", 
                                             "id": 2008, 
                                             "children": []
                                         }
@@ -210,184 +210,7 @@
                                 "pos": 6, 
                                 "label": "&Plugins", 
                                 "id": 2006, 
-                                "children": [
-                                    {
-                                        "menu_item_controller": {
-                                            "kind": 0, 
-                                            "help": "C\u00e1lculo de imped\u00e2ncia", 
-                                            "pos": 0, 
-                                            "callback": "Plugins.event_run", 
-                                            "label": "AutoGen Example", 
-                                            "id": 2021, 
-                                            "children": []
-                                        }
-                                    }, 
-                                    {
-                                        "menu_item_controller": {
-                                            "kind": 0, 
-                                            "help": "Exemplo de plugin simples", 
-                                            "pos": 1, 
-                                            "callback": "Plugins.event_run", 
-                                            "label": "Example", 
-                                            "id": 2022, 
-                                            "children": []
-                                        }
-                                    }, 
-                                    {
-                                        "menu_item_controller": {
-                                            "kind": 0, 
-                                            "help": "Exemplo de plugin simples para o programa de python", 
-                                            "pos": 2, 
-                                            "callback": "Plugins.event_run", 
-                                            "label": "ExposeIDs", 
-                                            "id": 2023, 
-                                            "children": []
-                                        }
-                                    }, 
-                                    {
-                                        "menu_item_controller": {
-                                            "kind": 0, 
-                                            "help": "Plugin para cria\u00e7\u00e3o de Gathers Sint\u00e9ticos", 
-                                            "pos": 3, 
-                                            "callback": "Plugins.event_run", 
-                                            "label": "Synthetic Gathers", 
-                                            "id": 2024, 
-                                            "children": []
-                                        }
-                                    }, 
-                                    {
-                                        "menu_item_controller": {
-                                            "kind": 0, 
-                                            "help": "C\u00e1lculo de satura\u00e7\u00e3o de \u00e1gua aplicando m\u00e9todo de Archie", 
-                                            "pos": 4, 
-                                            "callback": "Plugins.event_run", 
-                                            "label": "Satura\u00e7\u00e3o Archie", 
-                                            "id": 2025, 
-                                            "children": []
-                                        }
-                                    }, 
-                                    {
-                                        "menu_item_controller": {
-                                            "kind": 0, 
-                                            "help": "Adiciona dados de testemunho ao poco", 
-                                            "pos": 5, 
-                                            "callback": "Plugins.event_run", 
-                                            "label": "CORE", 
-                                            "id": 2026, 
-                                            "children": []
-                                        }
-                                    }, 
-                                    {
-                                        "menu_item_controller": {
-                                            "kind": 0, 
-                                            "help": "Converte perfil s\u00f4nico para velocidade", 
-                                            "pos": 6, 
-                                            "callback": "Plugins.event_run", 
-                                            "label": "DT2VEL", 
-                                            "id": 2027, 
-                                            "children": []
-                                        }
-                                    }, 
-                                    {
-                                        "menu_item_controller": {
-                                            "kind": 0, 
-                                            "help": "C\u00e1lculo dos m\u00f3dulos el\u00e1sticos da rocha seca", 
-                                            "pos": 7, 
-                                            "callback": "Plugins.event_run", 
-                                            "label": "Extrair Kd", 
-                                            "id": 2028, 
-                                            "children": []
-                                        }
-                                    }, 
-                                    {
-                                        "menu_item_controller": {
-                                            "kind": 0, 
-                                            "help": "C\u00e1lculo dos m\u00f3dulos el\u00e1sticos da rocha saturada", 
-                                            "pos": 8, 
-                                            "callback": "Plugins.event_run", 
-                                            "label": "Extrair KG rocha saturada", 
-                                            "id": 2029, 
-                                            "children": []
-                                        }
-                                    }, 
-                                    {
-                                        "menu_item_controller": {
-                                            "kind": 0, 
-                                            "help": "C\u00e1lculo de substitui\u00e7\u00e3o de fluido utilizando modelo de Gassmann", 
-                                            "pos": 9, 
-                                            "callback": "Plugins.event_run", 
-                                            "label": "Substitui\u00e7\u00e3o por Gassmann", 
-                                            "id": 2030, 
-                                            "children": []
-                                        }
-                                    }, 
-                                    {
-                                        "menu_item_controller": {
-                                            "kind": 0, 
-                                            "help": "Obtem a profundidade real vertical (TVD) a partir da profundidade medida (MD)", 
-                                            "pos": 10, 
-                                            "callback": "Plugins.event_run", 
-                                            "label": "MD2TVD", 
-                                            "id": 2031, 
-                                            "children": []
-                                        }
-                                    }, 
-                                    {
-                                        "menu_item_controller": {
-                                            "kind": 0, 
-                                            "help": "Agrupamento de dados de m\u00faltiplos po\u00e7os utilizando o algoritmo EM", 
-                                            "pos": 11, 
-                                            "callback": "Plugins.event_run", 
-                                            "label": "Multi Well EM", 
-                                            "id": 2032, 
-                                            "children": []
-                                        }
-                                    }, 
-                                    {
-                                        "menu_item_controller": {
-                                            "kind": 0, 
-                                            "help": "C\u00e1lculo da porosidade efetiva utilizando alguns modelos", 
-                                            "pos": 12, 
-                                            "callback": "Plugins.event_run", 
-                                            "label": "Porosidade Efetiva", 
-                                            "id": 2033, 
-                                            "children": []
-                                        }
-                                    }, 
-                                    {
-                                        "menu_item_controller": {
-                                            "kind": 0, 
-                                            "help": "C\u00e1lculo de satura\u00e7\u00e3o de \u00e1gua aplicando m\u00e9todo de Simandoux", 
-                                            "pos": 13, 
-                                            "callback": "Plugins.event_run", 
-                                            "label": "Satura\u00e7\u00e3o Simandoux", 
-                                            "id": 2034, 
-                                            "children": []
-                                        }
-                                    }, 
-                                    {
-                                        "menu_item_controller": {
-                                            "kind": 0, 
-                                            "help": "C\u00e1lculo de volume de argila", 
-                                            "pos": 14, 
-                                            "callback": "Plugins.event_run", 
-                                            "label": "Volume de Argila", 
-                                            "id": 2035, 
-                                            "children": []
-                                        }
-                                    }, 
-                                    {
-                                        "menu_item_controller": {
-                                            "kind": 0, 
-                                            "help": "Classifica\u00e7\u00e3o de f\u00e1cies", 
-                                            "pos": 15, 
-                                            "callback": "Plugins.event_run", 
-                                            "label": "Facies Classification", 
-                                            "id": 2036, 
-                                            "children": []
-                                        }
-                                    }
-                                ]
+                                "children": []
                             }
                         }, 
                         {
@@ -518,6 +341,11 @@
             }, 
             {
                 "statusbar_controller": {
+                    "children": []
+                }
+            }, 
+            {
+                "logplot_controller": {
                     "children": []
                 }
             }

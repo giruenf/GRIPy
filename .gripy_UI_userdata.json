@@ -1,9 +1,9 @@
 {
     "main_window_controller": [
         {
-            "pos": "wx.Point(343, 243)", 
+            "pos": "wx.Point(236, 261)", 
             "maximized": false, 
-            "size": "wx.Size(860, 659)", 
+            "size": "wx.Size(800, 600)", 
             "children": [
                 {
                     "menubar_controller": [
@@ -149,120 +149,7 @@
                                 {
                                     "menu_controller": [
                                         {
-                                            "children": [
-                                                {
-                                                    "menu_item_controller": [
-                                                        {
-                                                            "children": []
-                                                        }
-                                                    ]
-                                                }, 
-                                                {
-                                                    "menu_item_controller": [
-                                                        {
-                                                            "children": []
-                                                        }
-                                                    ]
-                                                }, 
-                                                {
-                                                    "menu_item_controller": [
-                                                        {
-                                                            "children": []
-                                                        }
-                                                    ]
-                                                }, 
-                                                {
-                                                    "menu_item_controller": [
-                                                        {
-                                                            "children": []
-                                                        }
-                                                    ]
-                                                }, 
-                                                {
-                                                    "menu_item_controller": [
-                                                        {
-                                                            "children": []
-                                                        }
-                                                    ]
-                                                }, 
-                                                {
-                                                    "menu_item_controller": [
-                                                        {
-                                                            "children": []
-                                                        }
-                                                    ]
-                                                }, 
-                                                {
-                                                    "menu_item_controller": [
-                                                        {
-                                                            "children": []
-                                                        }
-                                                    ]
-                                                }, 
-                                                {
-                                                    "menu_item_controller": [
-                                                        {
-                                                            "children": []
-                                                        }
-                                                    ]
-                                                }, 
-                                                {
-                                                    "menu_item_controller": [
-                                                        {
-                                                            "children": []
-                                                        }
-                                                    ]
-                                                }, 
-                                                {
-                                                    "menu_item_controller": [
-                                                        {
-                                                            "children": []
-                                                        }
-                                                    ]
-                                                }, 
-                                                {
-                                                    "menu_item_controller": [
-                                                        {
-                                                            "children": []
-                                                        }
-                                                    ]
-                                                }, 
-                                                {
-                                                    "menu_item_controller": [
-                                                        {
-                                                            "children": []
-                                                        }
-                                                    ]
-                                                }, 
-                                                {
-                                                    "menu_item_controller": [
-                                                        {
-                                                            "children": []
-                                                        }
-                                                    ]
-                                                }, 
-                                                {
-                                                    "menu_item_controller": [
-                                                        {
-                                                            "children": []
-                                                        }
-                                                    ]
-                                                }, 
-                                                {
-                                                    "menu_item_controller": [
-                                                        {
-                                                            "children": []
-                                                        }
-                                                    ]
-                                                }, 
-                                                {
-                                                    "menu_item_controller": [
-                                                        {
-                                                            "children": []
-                                                        }
-                                                    ]
-                                                }
-                                            ]
+                                            "children": []
                                         }
                                     ]
                                 }, 
@@ -351,6 +238,13 @@
                 }, 
                 {
                     "statusbar_controller": [
+                        {
+                            "children": []
+                        }
+                    ]
+                }, 
+                {
+                    "logplot_controller": [
                         {
                             "children": []
                         }
