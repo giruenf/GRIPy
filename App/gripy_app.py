@@ -554,6 +554,8 @@ class GripyApp(wx.App):
         if fdlg.ShowModal() == wx.ID_OK:
             file_name = fdlg.GetFilename()
             dir_name = fdlg.GetDirectory()
+            if not file_name.endswith('.pgg'):
+                file_name += '.pgg'
             self.save_project_data(os.path.join(dir_name, file_name))
         fdlg.Destroy()   
 
