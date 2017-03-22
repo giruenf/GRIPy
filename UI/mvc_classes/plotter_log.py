@@ -114,8 +114,10 @@ class LogPlotController(PlotterController):
         try:
             title_parent = self.view.main_panel.top_splitter
             track_parent = self.view.main_panel.bottom_splitter
-            track_controller.view.label.SetDropTarget(None)
-            track_controller.view.track.SetDropTarget(None) 
+            # TODO: As linhas abaixo faziam com que a aplicação 'voasse' quando um Track
+            # fosse excluido. Verificar se o comentário será mantido. 
+            #track_controller.view.label.SetDropTarget(None)
+            #track_controller.view.track.SetDropTarget(None) 
             title_parent.DetachWindow(track_controller.view.label)
             track_parent.DetachWindow(track_controller.view.track)        
             track_controller.view.label.Hide()
