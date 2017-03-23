@@ -156,24 +156,29 @@ class TreeView(UIViewBase, wx.TreeCtrl):
         if item == tree.GetRootItem():
             return   
         uid, tree_tid = tree.GetPyData(item)
-        print uid, tree_tid
         if tree_tid is not None:
             # Objects have tree_tid == None
             return
         if uid is None:
             # Object leaf properties
             return
-        
         # Falta tratar Well
-        
         def DoDragDrop():
-            print 'start drag: ', uid, tree_tid            
             data_obj = wx.CustomDataObject('obj_uid')
             data_obj.SetData(str(uid))
             drag_source = wx.DropSource(tree)
-            drag_source.SetData(data_obj)            
-            drag_source.DoDragDrop()     
-        wx.CallAfter(DoDragDrop)
+            drag_source.SetData(data_obj)    
+            drag_source.DoDragDrop()  
+        # TODO: Verificar se wx.CallAfter pode retornar
+        # Motivo: wx.CallAfter não estava funcionando adequadamente em Gtk 
+        # no DragAndDrop pois wx.DropSource.DoDragDrop retornava wx.DragNone
+        # não permitia entrar no modo Dragging.
+        # Essa a unica solução encontrada - Adriano - 22/3/2017
+        if os.name == 'posix':
+            DoDragDrop()
+        else:    
+            wx.CallAfter(DoDragDrop)
+
 
 
     def on_rightclick(self, event):
