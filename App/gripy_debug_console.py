@@ -9,6 +9,7 @@ from OM.Manager import ObjectManager
 import UI 
 from utils import Chronometer
 from UI.dialog import Dialog
+#import log
 
 
 class DebugConsole(code.InteractiveConsole):
@@ -156,6 +157,17 @@ class DebugConsoleFrame(wx.Frame):
         _fullfilename = gripy_app._gripy_app_state.get('gripy_debug_file')
         self.file_name = os.path.basename(_fullfilename)
         self.dir_name = os.path.dirname(_fullfilename)
+            
+        if not os.path.isdir(self.dir_name):
+            os.makedirs(self.dir_name)    
+            msg = 'DebugConsoleFrame.__init__ has created directory: {}'.format(self.dir_name)
+            #log.debug(msg)
+            print msg
+        if not os.path.isfile(_fullfilename):
+            open(_fullfilename, 'a').close()
+            msg = 'DebugConsoleFrame.__init__ has created empty file: {}'.format(_fullfilename)
+            #log.debug(msg)
+            print msg
         if self.file_name and self.dir_name:
             self._load_file()            
                     
