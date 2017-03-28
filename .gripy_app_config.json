@@ -9,12 +9,12 @@
         "vendor_name": "GIR", 
         "app_name": "GriPy", 
         "class_name": "App.gripy_app.GripyApp", 
-        "app_UI_file": ".gripy_UI_appdata.json", 
-		"user_UI_file": ".gripy_UI_userdata.json", 
         "vendor_display_name": "UENF/LENEP/GIR", 
         "app_version": "0.5 Development", 
         "app_display_name": "GriPy 0.5 Development",
-		"gripy_debug_file": "C:\\Users\\Adriano\\Desktop\\debug.gripy_console"
+        "app_UI_file": "user_data\\.gripy_UI_appdata.json", 
+        "user_UI_file": "user_data\\.gripy_UI_userdata.json", 
+        "gripy_debug_file": "user_data\\debug.gripy_console"
     }, 
     "logging": {
         "logging_level": 10, 

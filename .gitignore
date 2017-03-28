@@ -92,4 +92,7 @@ ENV/
 # GriPy configuration backup files
 *.backup
 
+# Gripy user_data (Temporary)
+user_data/
+
 

@@ -98,9 +98,16 @@ class AxesBase(Axes, Base):
 
     def __init__(self, figure, rect, layout_properties=None):
         Base.__init__(self, layout_properties)
-        self.rect = rect
-        Axes.__init__(self, figure, self.rect, label=self._get_name(), 
-                    facecolor=self.layout_properties['facecolor'])
+        self.rect = rect        
+        if matplotlib.__version__.startswith('2.'):
+            Axes.__init__(self, figure, self.rect, label=self._get_name(), 
+                    facecolor=self.layout_properties['facecolor'] # MPL 2.0
+            )
+        else:
+            Axes.__init__(self, figure, self.rect, label=self._get_name(), 
+                    axisbg=self.layout_properties['facecolor'] # MPL 1.X
+            )
+                                    
         self.set_spines_visibility(False)                    
                     
                     

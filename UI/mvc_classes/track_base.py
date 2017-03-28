@@ -60,11 +60,17 @@ class DummyAxes(Axes):
          
 
     def __init__(self, figure, **initial_properties):
-
-        Axes.__init__(self, figure, 
-                      [0.0, 0.0, 1.0, 1.0], 
-                      facecolor=self._internal_props['facecolor']
-        )
+        if matplotlib.__version__.startswith('2.'):
+            Axes.__init__(self, figure, 
+                    [0.0, 0.0, 1.0, 1.0], 
+                    facecolor=self._internal_props['facecolor'] # MPL 2.0
+            )
+        else:
+            Axes.__init__(self, figure, 
+                    [0.0, 0.0, 1.0, 1.0], 
+                    axisbg=self._internal_props['facecolor'] # MPL 1.X
+            )
+        
 #        self.set_spines_visibility(False)    
         self.spines['right'].set_visible(False)
         self.spines['top'].set_visible(False)
