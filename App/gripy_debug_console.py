@@ -155,6 +155,7 @@ class DebugConsoleFrame(wx.Frame):
         
         gripy_app = wx.GetApp()
         _fullfilename = gripy_app._gripy_app_state.get('gripy_debug_file')
+        _fullfilename = os.path.normpath(_fullfilename)
         self.file_name = os.path.basename(_fullfilename)
         self.dir_name = os.path.dirname(_fullfilename)
             

@@ -12,22 +12,22 @@
         "vendor_display_name": "UENF/LENEP/GIR", 
         "app_version": "0.5 Development", 
         "app_display_name": "GriPy 0.5 Development",
-        "app_UI_file": "user_data\\.gripy_UI_appdata.json", 
-        "user_UI_file": "user_data\\.gripy_UI_userdata.json", 
-        "gripy_debug_file": "user_data\\debug.gripy_console"
+        "app_UI_file": "user_data/.gripy_UI_appdata.json", 
+        "user_UI_file": "user_data/.gripy_UI_userdata.json", 
+        "gripy_debug_file": "user_data/debug.gripy_console"
     }, 
     "logging": {
         "logging_level": 10, 
-        "logging_filename": "logs\\gripy_application.log", 
+        "logging_filename": "logs/gripy_application.log", 
         "logging_filemode": "w"
     },
 	"plugins": {
         "plugins_places": [
-			"Plugins\\\\", 
-			"..\\\\Plugins-GIR\\\\", 
-			"..\\\\Plugins-Petrobras\\\\",
-			"..\\GRIPyPluginsGIR\\\\", 
-			"..\\\\GRIPyPluginsPetrobras\\\\"
+			"Plugins", 
+			"../Plugins-GIR", 
+			"../Plugins-Petrobras",
+			"../GRIPyPluginsGIR", 
+			"../GRIPyPluginsPetrobras"
 		]	
     }
 

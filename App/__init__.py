@@ -10,11 +10,11 @@ def get():
 
 def _read_app_basic_config():
     try:
-        f= open(_APP_INIT_FILE, 'r')
+        f = open(_APP_INIT_FILE, 'r')
         file_dict = json.load(f)
         f.close()
-        #for value in file_dict:
-        #    print value
+        #for key, value in file_dict.items():
+        #    print key, value
         return file_dict
     except Exception as e:
         print e.args
@@ -23,12 +23,11 @@ def start_logging(logging_dict):
     logging_level = logging_dict.get('logging_level', logging.DEBUG)
     log = logging.Logger('gripy', logging_level)
     logging_filename = logging_dict.get('logging_filename', '')
-    if os.name == 'posix':
-        logging_filename = logging_filename.replace('\\', '/')
+    logging_filename = os.path.normpath(logging_filename)
     if not os.path.exists(logging_filename):
         # Creates a new file and directory if no one was found
         dir_location, _ = os.path.split(logging_filename)
-        if not os.path.exists(dir_location):
+        if not os.path.isdir(dir_location):
             os.makedirs(dir_location)
         open(logging_filename, 'w').close() 
     logging_filemode = logging_dict.get('logging_filemode', 'a')

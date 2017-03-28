@@ -190,7 +190,7 @@ class GripyJSONEncoder(json.JSONEncoder):
 
 
 def clean_path_str(path):
-    path = path.replace('\\' ,'/')  
+    #path = path.replace('\\' ,'/')  
     path = path.encode('ascii', 'ignore') # in order to save unicode characters
     path = path.encode('string-escape')
     return path
@@ -198,6 +198,7 @@ def clean_path_str(path):
 
 def write_json_file(py_object, fullfilename):
     fullfilename = clean_path_str(fullfilename)
+    fullfilename = os.path.normpath(fullfilename)
     directory = os.path.dirname(fullfilename)
     if not os.path.exists(directory):
         os.makedirs(directory)
