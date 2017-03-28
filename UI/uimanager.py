@@ -110,7 +110,7 @@ class UIControllerBase(UIBase):
             except Exception, e:
                 msg = 'ERROR on creating MVC view {} object: {}'.format(view_class.__name__, e.message)
                 log.exception(msg)
-                print '\n', msg
+                print '\n', msg, view_class
                 raise e             
         else:
             self.view = None  

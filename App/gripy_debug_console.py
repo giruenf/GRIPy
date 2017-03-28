@@ -9,6 +9,7 @@ from OM.Manager import ObjectManager
 import UI 
 from utils import Chronometer
 from UI.dialog import Dialog
+#import log
 
 
 class DebugConsole(code.InteractiveConsole):
@@ -156,13 +157,28 @@ class DebugConsoleFrame(wx.Frame):
         _fullfilename = gripy_app._gripy_app_state.get('gripy_debug_file')
         self.file_name = os.path.basename(_fullfilename)
         self.dir_name = os.path.dirname(_fullfilename)
+            
+        if not os.path.isdir(self.dir_name):
+            os.makedirs(self.dir_name)    
+            msg = 'DebugConsoleFrame.__init__ has created directory: {}'.format(self.dir_name)
+            #log.debug(msg)
+            print msg
+        if not os.path.isfile(_fullfilename):
+            open(_fullfilename, 'a').close()
+            msg = 'DebugConsoleFrame.__init__ has created empty file: {}'.format(_fullfilename)
+            #log.debug(msg)
+            print msg
         if self.file_name and self.dir_name:
             self._load_file()            
                     
     def onLoadFile(self, evt):
         style = wx.FD_OPEN | wx.FD_FILE_MUST_EXIST
         wildcard = "Arquivo de console GRIPy (*.gripy_console)|*.gripy_console"
-        fdlg = wx.FileDialog(self, 'Escolha o arquivo gripy_console', wildcard=wildcard, style=style)
+        fdlg = wx.FileDialog(self, 'Escolha o arquivo gripy_console', 
+                             defaultDir=self.dir_name, 
+                             wildcard=wildcard, 
+                             style=style
+        )
         if fdlg.ShowModal() == wx.ID_OK:
             self.file_name = fdlg.GetFilename()
             self.dir_name = fdlg.GetDirectory()
@@ -177,7 +193,11 @@ class DebugConsoleFrame(wx.Frame):
     def onSaveFileAs(self, evt):       
         style = wx.FD_SAVE | wx.FD_OVERWRITE_PROMPT
         wildcard = "Arquivo de console GRIPy (*.gripy_console)|*.gripy_console"
-        fdlg = wx.FileDialog(self, 'Escolha o arquivo gripy_console', wildcard=wildcard, style=style)
+        fdlg = wx.FileDialog(self, 'Escolha o arquivo gripy_console', 
+                             defaultDir=self.dir_name, 
+                             wildcard=wildcard, 
+                             style=style
+        )
         if fdlg.ShowModal() == wx.ID_OK:
             self.file_name = fdlg.GetFilename()
             self.dir_name = fdlg.GetDirectory()

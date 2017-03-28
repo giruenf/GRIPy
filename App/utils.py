@@ -1,13 +1,14 @@
 # -*- coding: utf-8 -*-
 import wx
 import re
+import os
 import json
 import importlib
 import timeit
 import inspect
 import collections
 from enum import Enum  
-from App import log
+#from App import log
 
 
 def get_caller_info():
@@ -197,6 +198,12 @@ def clean_path_str(path):
 
 def write_json_file(py_object, fullfilename):
     fullfilename = clean_path_str(fullfilename)
+    directory = os.path.dirname(fullfilename)
+    if not os.path.exists(directory):
+        os.makedirs(directory)
+        msg = 'App.utils.write_json_file has created directory: {}'.format(directory)
+        #log.debug(msg)
+        print msg
     f = open(fullfilename, 'w')
     f.write(json.dumps(py_object, indent=4, cls=GripyJSONEncoder))
     f.close()

@@ -46,7 +46,7 @@ class LogPlotController(PlotterController):
          #   new_track.set_ylim(self.model.y_min, self.model.y_max)
         else:
             for track in tracks[::-1]:
-                print '\nINSERINDO NA POSICAO:', track.model.pos
+                #print '\nINSERINDO NA POSICAO:', track.model.pos
                 new_track = UIM.create('track_controller', self.uid)
                 new_track.model.pos = track.model.pos
           #      new_track.set_ylim(self.model.y_min, self.model.y_max)
@@ -75,13 +75,13 @@ class LogPlotController(PlotterController):
     def get_ylim(self):
        return (self.model.y_min, self.model.y_max)
  
-    """
+   
     def refresh_child_positions(self, **kwargs):
         start_pos = 0
         if kwargs:
             if kwargs.get('start_pos'):
                 start_pos = kwargs.get('start_pos')
-        for i in range(start_pos, len(self.view)):
+        for i in range(start_pos, len(self)):
             #try:
             track_ctrl = self.get_track_on_position(i)
             if track_ctrl:
@@ -94,7 +94,7 @@ class LogPlotController(PlotterController):
             #    msg = 'ERROR on setting position {} to TrackController {}'.format(i, track_ctrl.uid)
             #    log.exception(msg)
             #    raise
-    """   
+       
          
     def remove_selected_tracks(self):
         UIM = UIManager()
@@ -105,7 +105,7 @@ class LogPlotController(PlotterController):
             #    track = self.get_track_on_position(i)
             #    track.model.pos = i
             UIM.remove(track.uid)    
-    #    self.refresh_child_positions()    
+        self.refresh_child_positions()    
 
 
     #def add_to_selection(self, track_controller):

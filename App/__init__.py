@@ -42,7 +42,8 @@ def start_logging(logging_dict):
 
 if os.name not in ['nt', 'posix']: 
     raise Exception('GriPy is not ready yet to this system platform. Sorry.')       
-_APP_BASIC_CONFIG = _read_app_basic_config()    
+_APP_BASIC_CONFIG = _read_app_basic_config()   
+ 
 log = start_logging(_APP_BASIC_CONFIG.get('logging'))
 
 
