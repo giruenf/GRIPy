@@ -80,7 +80,7 @@ class PlotLabelTitle(FigureCanvas):
 
                 
     def _on_press(self, event):
-        print 'PlotLabelTitle._on_press'
+       # print 'PlotLabelTitle._on_press'
         self.GetParent()._on_press(event)
 
         
@@ -168,7 +168,7 @@ class VisDataLabel(FigureCanvas):
 
                 
     def _on_press(self, event):
-        print 'VisDataLabel._on_press'
+        #print 'VisDataLabel._on_press'
         self.GetParent()._on_press(event)
        
    
@@ -197,12 +197,12 @@ class VisDataLabel(FigureCanvas):
 
 
     def set_object_uid(self, object_uid):
-        print '\nVisDataLabel.set_object_uid', object_uid
+        #print '\nVisDataLabel.set_object_uid', object_uid
         self._obj_uid = object_uid 
 
 
     def set_title(self, title):
-        print '\nVisDataLabel.set_title:', title
+        #print '\nVisDataLabel.set_title:', title
         if self.title == title:
             return
         props = self._properties.get('title', None)
@@ -220,7 +220,7 @@ class VisDataLabel(FigureCanvas):
 
 
     def set_unit(self, unit):
-        print '\nVisDataLabel.set_unit'
+        #print '\nVisDataLabel.set_unit'
         if self.unit == unit:
             return
         props = self._properties.get('sub_title', None)
@@ -238,7 +238,7 @@ class VisDataLabel(FigureCanvas):
             
                          
     def set_color(self, color):
-        print '\nVisDataLabel.set_color'
+        #print '\nVisDataLabel.set_color'
         if self.plottype == 'line':
             if self.color == color:
                 return
@@ -257,7 +257,7 @@ class VisDataLabel(FigureCanvas):
 
                        
     def set_thickness(self, thickness):
-        print '\nVisDataLabel.set_thickness'
+        #print '\nVisDataLabel.set_thickness'
         if self.plottype == 'line':
             if self.thickness == thickness:
                 return
@@ -276,7 +276,7 @@ class VisDataLabel(FigureCanvas):
             
         
     def set_colormap(self, cmap):
-        print '\nVisDataLabel.set_colormap'
+        #print '\nVisDataLabel.set_colormap'
         if self.plottype == 'density':
             if self.cmap == cmap:
                 return
@@ -295,7 +295,7 @@ class VisDataLabel(FigureCanvas):
 
 
     def set_zlabel(self, z_axis_label):
-        print '\nVisDataLabel.set_zlabel:', z_axis_label
+        #print '\nVisDataLabel.set_zlabel:', z_axis_label
         if self.plottype == 'density' or self.plottype == 'wiggle':
             if self.zlabel == z_axis_label:
                 return
@@ -311,7 +311,7 @@ class VisDataLabel(FigureCanvas):
             
 
     def set_xlim(self, xlim):
-        print '\nVisDataLabel.set_xlim'
+        #print '\nVisDataLabel.set_xlim'
         if self.xlim == xlim:
             return
         xmin, xmax = xlim
@@ -344,7 +344,7 @@ class VisDataLabel(FigureCanvas):
         
         
     def set_zlim(self, zlim):
-        print '\nVisDataLabel.set_zlim:', zlim
+        #print '\nVisDataLabel.set_zlim:', zlim
         if self.zlim == zlim:
             return
         zmin, zmax = zlim
@@ -377,7 +377,7 @@ class VisDataLabel(FigureCanvas):
             
     
     def set_xlabel(self, x_axis_label):
-        print '\nVisDataLabel.set_xlabel:', x_axis_label
+        #print '\nVisDataLabel.set_xlabel:', x_axis_label
         if self.plottype == 'density' or self.plottype == 'wiggle':
             if self.xlabel == x_axis_label:
                 return
@@ -456,7 +456,7 @@ class VisDataLabel(FigureCanvas):
 
 
     def set_plot_type(self, plottype):
-        print '\nVisDataLabel.set_plotype: ', plottype
+        #print '\nVisDataLabel.set_plotype: ', plottype
         if plottype == self.plottype:
             return
         if plottype not in VALID_PLOT_TYPES:
@@ -546,7 +546,7 @@ class VisDataLabel(FigureCanvas):
             ###
         
         elif plottype == 'partition':
-            print 'entrou partition'
+            #print 'entrou partition'
             self._properties['title'] = {'x': 0.5, 'y':0.55, 'ha':'center', 
                                                                 'fontsize':11}
             self._properties['sub_title'] = {'x': 0.5, 'y':0.3, 'ha':'center', 
@@ -744,7 +744,7 @@ class VisDataLabel(FigureCanvas):
             
 
                 ax1.set_xlim((0, len(kwargs.get('x_range'))+1))
-                print '\n\nx_lim:', ax1.get_xlim(),'\n\n'
+                #print '\n\nx_lim:', ax1.get_xlim(),'\n\n'
                 ax1.set_ylim((-1.0, 1.0))
 
                 x_data = np.array(range(0, len(kwargs.get('x_range'))+1), dtype=np.float)

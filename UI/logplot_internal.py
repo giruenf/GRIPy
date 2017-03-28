@@ -18,7 +18,7 @@ class LogPlotInternal(wx.SplitterWindow):
         
         
     def _on_size(self, event):
-        print 'LogPlotInternal:', self.GetSize()
+        #print 'LogPlotInternal:', self.GetSize()
         event.Skip()        
         
     def _on_sash_changing(self, event):

@@ -90,7 +90,6 @@ class Chronometer(object):
 class DropTarget(wx.PyDropTarget):
     
     def __init__(self, callback):
-        print 'DropTarget init'
         wx.PyDropTarget.__init__(self)
         self.data = wx.CustomDataObject('obj_uid')
         self.SetDataObject(self.data)

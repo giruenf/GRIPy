@@ -38,7 +38,7 @@ class DummyAxes(Axes):
         'ticks_zorder': 8,
         'spines_zorder': 10,
         'grid_linestyle': '-',
-        'axes_bgcolor': 'white',
+        'facecolor': 'white',
         'spines_color': 'black',
         'tick_grid_color': '#A9A9A9'    #'#DFDFDF'#
     }  
@@ -63,7 +63,7 @@ class DummyAxes(Axes):
 
         Axes.__init__(self, figure, 
                       [0.0, 0.0, 1.0, 1.0], 
-                      axisbg=self._internal_props['axes_bgcolor']
+                      facecolor=self._internal_props['facecolor']
         )
 #        self.set_spines_visibility(False)    
         self.spines['right'].set_visible(False)
@@ -527,21 +527,13 @@ class DummyAxes(Axes):
 class TrackFigureCanvas(FigureCanvas):
 
         
-    def __init__(self, wx_parent, track_view_object, size, **properties):
-#        print 'TrackFigureCanvas.__init__:', properties
-#        self.dummy_ax = None
-#        self.properties = properties
-        ### _BaseFigureCanvas - Inicio
-#        self.dpi = 80
-#        self.height_inches_used = 0.0
-#        self.width_inches = 0.01            
+    def __init__(self, wx_parent, track_view_object, size, **properties):   
         self.figure = Figure(facecolor='white', 
-                             figsize=(0.01, 0.0)) #self.height_inches_used)) 
+                             figsize=(0.01, 0.0))
         FigureCanvas.__init__(self, wx_parent, -1, self.figure)
         self.SetSize(size)
         self.dummy_ax = DummyAxes(self.figure, **properties)
         self.figure.add_axes(self.dummy_ax)
-        ### _BaseFigureCanvas - Fim
         self.track_view_object = track_view_object
         self.axes = []
         self._selected = False
@@ -563,7 +555,6 @@ class TrackFigureCanvas(FigureCanvas):
     #    event.Skip()
             
     def _do_select(self):
-        print 'TrackFigureCanvas._do_select'
         self._selected = not self._selected
         self.GetParent()._draw_window_selection(self)         
                
@@ -591,7 +582,6 @@ class TrackFigureCanvas(FigureCanvas):
     """         
            
     def update(self, key, value):
-        print 'TrackFigureCanvas.update:', key, value
         self.dummy_ax.update(key, value)
         self.draw()            
   
@@ -599,7 +589,6 @@ class TrackFigureCanvas(FigureCanvas):
     #    return self.dummy_ax.get_properties()   
                  
     def set_ylim(self, ylim):
-        print '\nTrackFigureCanvas.set_ylim: ', ylim
         self.dummy_ax.update('ylim', ylim)
         self.draw()
 

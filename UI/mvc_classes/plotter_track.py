@@ -12,11 +12,20 @@ from App.utils import LogPlotState
 from App import log
 
 
+
+
 class TrackController(UIControllerBase):
     tid = 'track_controller'
     
     def __init__(self):
         super(TrackController, self).__init__()
+        
+    def PostInit(self):    
+        UIM = UIManager()
+        parent_uid = UIM._getparentuid(self.uid)
+        parent_ctrl = UIM.get(parent_uid)
+        y_min, y_max = parent_ctrl.get_ylim()
+        self.set_ylim(y_min, y_max)
 
 
     def get_position(self):
@@ -32,10 +41,6 @@ class TrackController(UIControllerBase):
         
         
     def append_object(self, obj_uid):
-        print '\nTrackController.append_object: ', obj_uid
-        #_OM = ObjectManager(self)
-        #obj = _OM.from_string(obj_uid)
-        #index_data = obj.get_index_data()
         UIM = UIManager()
         toc = UIM.create('track_object_controller', self.uid)  
         toc.set_uid(obj_uid)
@@ -62,7 +67,6 @@ class TrackController(UIControllerBase):
         """
         
     def set_ylim(self, ymin, ymax):
-        print 'TrackController.set_ylim:', (ymin, ymax)
         self.view._set_ylim(ymin, ymax) 
         
         
@@ -74,7 +78,6 @@ class TrackController(UIControllerBase):
 
     """    
     def on_change_label(self, **kwargs):
-        print 'TrackController.on_change_label:', kwargs
         text = ''        
         if kwargs.get('key') == 'label':
             if kwargs.get('new_value'):
@@ -100,8 +103,6 @@ class TrackController(UIControllerBase):
 
 
     def on_change_properties(self, **kwargs):  
-        #print '\nTrackController.on_change_properties', kwargs
-        
         if kwargs.get('key') == 'label':
             text = '' 
             if kwargs.get('new_value'):
@@ -111,20 +112,17 @@ class TrackController(UIControllerBase):
             self.view.update_title(text) 
 
         elif kwargs.get('key') == 'pos':
-            print '\nTrackController.on_change_properties', self.uid, kwargs
             if kwargs.get('old_value') != -1:
                 
                 if self.view._change_position(kwargs.get('new_value')):    
                     UIM = UIManager()
                     if kwargs.get('new_value') < kwargs.get('old_value'):
                         for i in range(kwargs.get('old_value')-1, kwargs.get('new_value')-1, -1):
-                            print 'pos:', i
                             for track in UIM.do_query(self.tid, pos=i):
                                 if track is not self:
                                     track.model.pos += 1 
                     else:
                         for i in range(kwargs.get('old_value'), kwargs.get('new_value')+1):
-                            print 'pos:', i
                             for track in UIM.do_query(self.tid, pos=i):
                                 if track is not self:
                                     track.model.pos -= 1 
@@ -146,7 +144,6 @@ class TrackController(UIControllerBase):
             self.view.track.update(kwargs.get('key'), kwargs.get('new_value'))
 
     def on_change_selection(self, **kwargs):  
-        print 'TrackController.on_change_selection', kwargs
         self.view._invert_selection()
         
         
@@ -213,7 +210,6 @@ class TrackView(UIViewBase):
     tid = 'track_view'
 
     def __init__(self, controller_uid):
-        print '\nTrackView.Init STARTED'
         UIViewBase.__init__(self, controller_uid)
         UIM = UIManager()
         controller = UIM.get(self._controller_uid)
@@ -224,39 +220,60 @@ class TrackView(UIViewBase):
         track_parent = parent_controller.view.main_panel.bottom_splitter
         
         self.label = PlotLabel(title_parent, self) 
-
         self.track = TrackFigureCanvas(track_parent, self,
                 size=wx.Size(controller.model.width, track_parent.GetSize()[1]),
                 **controller.model.get_state()
         ) 
         
-        dt = DropTarget(controller.append_object)
-        self.label.SetDropTarget(dt)
-        self.track.SetDropTarget(dt)
-        print '\nTrackView.Init ENDED'
+        self.dt1 = DropTarget(controller.append_object)
+        #self.dt1.set_callback(controller.append_object)
+        self.label.SetDropTarget(self.dt1)
+        self.dt2 = DropTarget(controller.append_object)
+        #self.dt2.set_callback(controller.append_object)
+        self.track.SetDropTarget(self.dt2)
+        #self.track.SetDropTarget(self.dt)
+
 
 
 
     def PostInit(self):  
-        print '\nTrackView.PostInit STARTED'
         UIM = UIManager()
         controller = UIM.get(self._controller_uid)
         parent_controller_uid = UIM._getparentuid(self._controller_uid)
         parent_controller =  UIM.get(parent_controller_uid)
         
         if controller.model.pos == -1:
-            print 'SETTANDO COMO EVENTO:', len(parent_controller)
             #controller.model.set_value_from_event('pos', len(parent_controller.view))
             controller.model.pos = len(parent_controller)
-            print 'FIM - SETTANDO COMO EVENTO'
+    
 
-        print '\nb4'
 
         parent_controller.view._insert(controller.model.pos, self.label, 
                                       self.track,
                                       controller.model.width
         )         
-        print '\nTrackView.PostInit ENDED'
+        
+
+
+    def PreDelete(self):
+        #print 'PreDelete TrackView start'
+        try:
+            UIM = UIManager()
+            parent_controller_uid = UIM._getparentuid(self._controller_uid)
+            parent_controller =  UIM.get(parent_controller_uid)
+            parent_controller.view._detach_windows(self.label, self.track)  
+            #self.label.Hide()
+            #self.track.Hide()
+            #self.label.SetDropTarget(None)
+            #self.track.SetDropTarget(None)
+            #self.dt.set_callback(None)
+            #del self.dt
+            del self.label
+            del self.track
+        except Exception, e:
+            print'PreDelete TrackView ended with error:', e.args
+            raise
+        #print 'PreDelete TrackView ended normally'
 
 
     def update_title(self, new_title):
@@ -269,12 +286,10 @@ class TrackView(UIViewBase):
 
 
     def _set_ylim(self, ymin, ymax):
-        print 'TrackView.set_ylim:', (ymin, ymax)
         self.track.set_ylim((ymax, ymin))
 
 
     def _change_position(self, new_pos):
-        print 'TrackView._change_position:', new_pos
         UIM = UIManager()
         #controller = UIM.get(self._controller_uid)
         parent_controller_uid = UIM._getparentuid(self._controller_uid)

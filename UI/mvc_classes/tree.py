@@ -29,7 +29,7 @@ class TreeController(UIControllerBase):
         #self._UIM = UIManager()
         #self.model.attributes['hidden'] = OrderedDict()   
 
-    def PreRemove(self):
+    def PreDelete(self):
         del self._maptypes
         del self._mapobjects
     

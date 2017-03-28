@@ -36,6 +36,10 @@ class UIBase(object):
         """To be overrriden"""
         pass
 
+    def PreDelete(self):
+        """To be overrriden"""
+        pass
+
     @property
     def uid(self):
         return self.tid, self.oid
@@ -111,8 +115,6 @@ class UIControllerBase(UIBase):
         else:
             self.view = None  
 
-    def PreRemove(self):
-        pass
         
     def _PostInit(self):
         try:
@@ -597,27 +599,24 @@ class UIManager(object):#GenericObject):
     def remove(self, uid):
         msg = 'Removing object from UI Manager: {}.'.format(uid)
         log.debug(msg)
+        #print msg
         obj = self.get(uid)
         if not isinstance(obj, UIControllerBase):
             return False
         for childuid in self._childrenuidmap.get(uid)[::-1]:
             self.remove(childuid) 
-        # PreRemove must close (delete) all references from object's parent.    
-        obj.PreRemove()    
+        # PreDelete must close (delete) all references from object's parent.    
+        obj.PreDelete()    
         if obj.model:
+            obj.model.PreDelete()  
             msg = 'Deleting UI model object {}.'.format(obj.model.uid)
+            #print msg
             log.debug(msg)
             del obj.model
         if obj.view:
-            """
-            view = obj.view
-            obj.__dict__['view'] = None
-            obj.view = None
-            msg = 'Deleting UI view object {}.'.format(view.uid)
-            log.debug(msg)
-            del view
-            """
+            obj.view.PreDelete() 
             msg = 'Deleting UI view object {}.'.format(obj.view.uid)
+            #print msg
             log.debug(msg)
             del obj.view
         # Removing from _childrenuidmap    
@@ -630,27 +629,39 @@ class UIManager(object):#GenericObject):
         # And from _data
         del self._data[uid]  
         msg = 'Deleting UI controller object {}.'.format(uid)
+        #print msg
         log.debug(msg)
         # Finally, deletes the controller
         del obj
         gc.collect()
         msg = 'UI Manager removed sucessfully {}.'.format(uid) 
+        #print msg
         log.debug(msg)    
         return True
+
+    # Before exit application
+    def PreExit(self):
+        #print '\nUIM.PreExit()'
+        for obj in self.list():
+            if obj.model:
+                obj.model.PreDelete()  
+            if obj.view:
+                obj.view.PreDelete()
+            obj.PreDelete()    
 
     # TODO: escolher um melhor nome para este método
     def close(self):
         msg = 'UI Manager has received a close call.'
         log.info(msg)
-        print '\n', msg
-        print
+        #print '\n', msg
+        #print
         self.print_info()
         for top_level_uid in self._get_top_level_uids():
             self.remove(top_level_uid)
         msg = 'ENDS.'
         log.info(msg)
-        print '\n', msg
-        print
+        #print '\n', msg
+        #print
         self.print_info()    
         log.info('UI Manager has closed.')
 
@@ -746,6 +757,8 @@ class UIManager(object):#GenericObject):
                 ret_val.append(obj)
         return ret_val
         
+
+
 
     # TODO:
     # DAQUI PARA BAIXO PRECISA SER REVISTO
@@ -898,4 +911,6 @@ class UIManager(object):#GenericObject):
                 raise        
         
         
-        
+
+
+                
