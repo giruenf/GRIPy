@@ -22,6 +22,7 @@ LP_REMOVE_TRACK = wx.NewId()
 
   
 class LogPlotController(PlotterController):
+    
     tid = 'logplot_controller'
         
     def __init__(self):
@@ -38,24 +39,24 @@ class LogPlotController(PlotterController):
     
         
     def insert_track(self):
-        _UIM = UIManager()
+        UIM = UIManager()
         tracks = self.get_tracks_selected()
         if not tracks:
-            new_track = _UIM.create('track_controller', self.uid)
-            new_track.set_ylim(self.model.y_min, self.model.y_max)
+            new_track = UIM.create('track_controller', self.uid)
+         #   new_track.set_ylim(self.model.y_min, self.model.y_max)
         else:
             for track in tracks[::-1]:
                 print '\nINSERINDO NA POSICAO:', track.model.pos
-                new_track = _UIM.create('track_controller', self.uid)
+                new_track = UIM.create('track_controller', self.uid)
                 new_track.model.pos = track.model.pos
-                new_track.set_ylim(self.model.y_min, self.model.y_max)
+          #      new_track.set_ylim(self.model.y_min, self.model.y_max)
         #self.refresh_child_positions()         
 
         
  
     def get_tracks_selected(self):
-        _UIM = UIManager()
-        return [track for track in _UIM.list('track_controller', self.uid) \
+        UIM = UIManager()
+        return [track for track in UIM.list('track_controller', self.uid) \
                 if track.model.selected]        
        
 
@@ -65,13 +66,13 @@ class LogPlotController(PlotterController):
         except Exception:
             window = None
         if window:
-            _UIM = UIManager()
-            return _UIM.get(window.track_view_object._controller_uid)
+            UIM = UIManager()
+            return UIM.get(window.track_view_object._controller_uid)
         else:
             return None
  
 
-    def _get_ylim(self):
+    def get_ylim(self):
        return (self.model.y_min, self.model.y_max)
  
     """
@@ -96,20 +97,21 @@ class LogPlotController(PlotterController):
     """   
          
     def remove_selected_tracks(self):
+        UIM = UIManager()
         for track in self.get_tracks_selected():
-            pos = track.model.pos
-            self.destroy_track(track)
-            for i in range(pos, len(self)):
-                print 'pos:', i
-                track = self.get_track_on_position(i)
-                track.model.pos = i
+            #pos = track.model.pos
+            #self.destroy_track(track)
+            #for i in range(pos, len(self)):
+            #    track = self.get_track_on_position(i)
+            #    track.model.pos = i
+            UIM.remove(track.uid)    
     #    self.refresh_child_positions()    
 
 
     #def add_to_selection(self, track_controller):
     #    print '\n\n\nadd_to_selection', track_controller.uid         
 
-
+    '''
     def destroy_track(self, track_controller):
         try:
             title_parent = self.view.main_panel.top_splitter
@@ -122,26 +124,24 @@ class LogPlotController(PlotterController):
             track_parent.DetachWindow(track_controller.view.track)        
             track_controller.view.label.Hide()
             track_controller.view.track.Hide()
-            _UIM = UIManager()
-            _UIM.remove(track_controller.uid)
+            UIM = UIManager()
+            UIM.remove(track_controller.uid)
      
         except Exception:
             msg = 'ERROR destroying track {}.'.format(self.uid)
             log.exception(msg)
-
+    '''        
   
 
     def on_change_ylim(self, **kwargs):
-        _UIM = UIManager()
-        print '\non_change_ylim:', kwargs
-        for track in _UIM.list('track_controller', self.uid):
+        UIM = UIManager()
+        for track in UIM.list('track_controller', self.uid):
             #print track.uid
             track.set_ylim(self.model.y_min, self.model.y_max)
         self.update_adaptative()
         
 
     def on_change_cursor_state(self, **kwargs):
-        print '\non_change_cursor_state:', kwargs
         if kwargs.get('new_value') == LogPlotState.NORMAL_TOOL:
             for track in self.get_tracks_selected():
                 track.model.selected = False
@@ -149,8 +149,8 @@ class LogPlotController(PlotterController):
         
 
     def update_adaptative(self):
-        _UIM = UIManager() 
-        tracks = _UIM.list('track_controller', self.uid)
+        UIM = UIManager() 
+        tracks = UIM.list('track_controller', self.uid)
         if not tracks:
             return
         #print '\nupdate_adaptative'
@@ -210,13 +210,14 @@ class LogPlot(Plotter):
     def __init__(self, controller_uid, **kwargs):
         self.main_panel_class = LogPlotInternal
         super(LogPlot, self).__init__(controller_uid) 
-        _UIM = UIManager()        
-        controller = _UIM.get(self._controller_uid)
+        UIM = UIManager()        
+        controller = UIM.get(self._controller_uid)
         
         self.main_panel = self.main_panel_class(self) 
-        self._create_toolbar()
-
-        self.statusBar = PlotStatusBar(self)
+ #       self._create_toolbar()
+        self.tb = LogPlotToolBar(self)
+       
+        #self.statusBar = PlotStatusBar(self)
                                   
         self.hbox = wx.BoxSizer(wx.HORIZONTAL)        
             
@@ -227,21 +228,23 @@ class LogPlot(Plotter):
         self.overview_border = 1
         self.overview_panel = wx.Panel(self)
         self.overview_panel.SetMinSize((0, 0))
+        
         #self.overview_panel.SetBestFittingSizeMinSize((0, 0))
         self.overview_panel.SetBackgroundColour('black')
         self.overview_panel.SetInitialSize((50, 50))
         op_sizer = wx.BoxSizer(wx.HORIZONTAL)  
+        
         self.overview_track = OverviewFigureCanvas(self.overview_panel, 
                             wx.Size(50, self.GetSize()[1]),
                             controller.model.y_min,
                             controller.model.y_max,
 
         )
+        #print 'after\n'
         self.overview_track.set_callback(self._set_new_depth)
         op_sizer.Add(self.overview_track, 1, wx.EXPAND|wx.ALL, self.overview_border)
         self.overview_panel.SetSizer(op_sizer)
         self.overview_track.show_index_curve()
-        
         self.hbox.Add(self.overview_panel, 0, wx.EXPAND)
         #'''        
         
@@ -254,15 +257,15 @@ class LogPlot(Plotter):
         self.vbox.Add(self.tb, 0, flag=wx.TOP|wx.EXPAND)
         self.vbox.Add(self.hbox, 1, flag=wx.EXPAND)
         
-        self.vbox.Add(self.statusBar, 0, flag=wx.BOTTOM|wx.EXPAND)
+     #   self.vbox.Add(self.statusBar, 0, flag=wx.BOTTOM|wx.EXPAND)
         
         self.SetSizer(self.vbox)          
         self.Layout()
         
-        _UIM = UIManager()
-        controller = _UIM.get(self._controller_uid)
-        parent_controller_uid = _UIM._getparentuid(self._controller_uid)
-        parent_controller =  _UIM.get(parent_controller_uid)        
+        UIM = UIManager()
+        controller = UIM.get(self._controller_uid)
+        parent_controller_uid = UIM._getparentuid(self._controller_uid)
+        parent_controller =  UIM.get(parent_controller_uid)        
         
         if controller.model.pos == -1:
             controller.model.pos = parent_controller.view.note.GetPageCount()
@@ -284,11 +287,33 @@ class LogPlot(Plotter):
                                              self._on_bottom_splitter_size
         ) 
         '''
+        
+   
+    def PreDelete(self):
+        #print 'PreDelete LogPlot start'
+        try:
+            self.vbox.Remove(self.tb)
+            del self.tb
+            #print 'PreDelete LogPlot ended normally'
+        except Exception, e:
+            print 'PreDelete LogPlot ended with error:', e.args
+         
+
+
+    def _detach_windows(self, label, track):
+        try:
+            self.main_panel.top_splitter.DetachWindow(label)
+            self.main_panel.bottom_splitter.DetachWindow(track)  
+        except Exception, e:
+            msg = 'Error in LogPlot._detach_windows: ' + e.args
+            log.exception(msg)
+            print msg
+            
     
     
     def _set_new_depth(self, depth):
-        _UIM = UIManager()
-        controller = _UIM.get(self._controller_uid) 
+        UIM = UIManager()
+        controller = UIM.get(self._controller_uid) 
         controller.model.y_min, controller.model.y_max = depth
         
     """    
@@ -306,15 +331,15 @@ class LogPlot(Plotter):
     def _on_sash_pos_change(self, event):
         idx = event.GetSashIdx()
         new_width = event.GetSashPosition()
-        _UIM = UIManager()
-        controller = _UIM.get(self._controller_uid)
+        UIM = UIManager()
+        controller = UIM.get(self._controller_uid)
         track_ctrl = controller.get_track_on_position(idx)
         track_ctrl.model.width = new_width
 
 
     def _on_bottom_splitter_size(self, event):
-        _UIM = UIManager()
-        controller = _UIM.get(self._controller_uid) 
+        UIM = UIManager()
+        controller = UIM.get(self._controller_uid) 
         controller.update_adaptative()
         
 
@@ -326,10 +351,9 @@ class LogPlot(Plotter):
 
 
     def _insert(self, pos, label_window, track_window, width):
-        print '\nLogPlot._insert:', pos
         self.main_panel.insert(pos, label_window, track_window, width)
-        #_UIM = UIManager()
-        #controller = _UIM.get(self._controller_uid)
+        #UIM = UIManager()
+        #controller = UIM.get(self._controller_uid)
         #if pos < (len(self)-1):
         #    controller.refresh_child_positions(start_pos=pos+1)
                                               
@@ -339,20 +363,20 @@ class LogPlot(Plotter):
 
 
     def _on_toolbar_insert_track(self, event):
-        _UIM = UIManager()
-        controller = _UIM.get(self._controller_uid)
+        UIM = UIManager()
+        controller = UIM.get(self._controller_uid)
         controller.insert_track()   
 
 
     def _on_toolbar_remove_track(self, event):
-        _UIM = UIManager()
-        controller = _UIM.get(self._controller_uid)
+        UIM = UIManager()
+        controller = UIM.get(self._controller_uid)
         controller.remove_selected_tracks()   
 
 
     def _on_change_tool(self, event):
-        _UIM = UIManager()
-        controller = _UIM.get(self._controller_uid) 
+        UIM = UIManager()
+        controller = UIM.get(self._controller_uid) 
         
        # print '\n_on_change_tool:'
         if event.GetId() == LP_NORMAL_TOOL:
@@ -418,8 +442,9 @@ class LogPlot(Plotter):
                       None
         )  
         self.Bind(wx.EVT_TOOL, self._on_change_tool, None, LP_NORMAL_TOOL, LP_SELECTION_TOOL)
+
         
-        '''
+        ''' 
         zi = self.tb.AddTool(-1, 'Zoom in',
                         wx.Bitmap('./icons/magnifier_zoom_in_24.png'),
                         'Zoom in'
@@ -433,6 +458,7 @@ class LogPlot(Plotter):
         self.tb.ToggleTool(zo.GetId(), False)   
         '''
         
+ 
         self.tb.AddSeparator()
         
         tb_item = self.tb.AddTool(-1, u"Insert Track", 
@@ -449,6 +475,7 @@ class LogPlot(Plotter):
         self.Bind(wx.EVT_TOOL, self._on_toolbar_remove_track, tb_item)
   
         self.tb.AddSeparator()  
+
   
         #def Bind(self, event, handler, source=None, id=wx.ID_ANY, id2=wx.ID_ANY):
         """
@@ -494,5 +521,71 @@ class LogPlot(Plotter):
           
 
      
-     
+class LogPlotToolBar(aui.AuiToolBar):
+    
+    def __init__(self, parent):
+        super(LogPlotToolBar, self).__init__(parent)
+        self.SetToolBitmapSize(wx.Size(48, 48))  
+        
+
+        self.AddTool(LP_NORMAL_TOOL, 
+                      wx.EmptyString,
+                      wx.Bitmap('./icons/cursor_24.png'), 
+                      wx.NullBitmap,
+                      wx.ITEM_RADIO,
+                      'Normal Tool', 
+                      'Normal Tool',
+                      None
+        )
+        self.ToggleTool(LP_NORMAL_TOOL, True) 
+
+        self.AddTool(LP_SELECTION_TOOL, 
+                      wx.EmptyString,
+                      wx.Bitmap('./icons/cursor_filled_24.png'), 
+                      wx.NullBitmap,
+                      wx.ITEM_RADIO,
+                      'Selection Tool', 
+                      'Selection Tool',
+                      None
+        )  
+        self.Bind(wx.EVT_TOOL, self.GetParent()._on_change_tool, None,
+                  LP_NORMAL_TOOL, LP_SELECTION_TOOL
+        )
+
+        self.AddSeparator()
+        
+        tb_item = self.AddTool(-1, u"Insert Track", 
+                                  wx.Bitmap('./icons/table_add_24.png'),
+                                  'Insert a new track'
+        )
+        self.Bind(wx.EVT_TOOL, self.GetParent()._on_toolbar_insert_track, tb_item)
+  
+  
+        tb_item = self.AddTool(-1, u"Remove Track", 
+                                  wx.Bitmap('./icons/table_delete_24.png'),
+                                 'Remove selected tracks'
+        )
+        self.Bind(wx.EVT_TOOL, self.GetParent()._on_toolbar_remove_track, tb_item)
+  
+        self.AddSeparator()  
+   
+        self.Realize()  
+    
+
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
      

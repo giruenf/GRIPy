@@ -461,7 +461,7 @@ class GripyApp(wx.App):
     def PreExit(self):
         msg = 'GriPy Application is preparing to terminate....'
         log.info(msg)
-        print msg
+        print '\n', msg
         _OM = ObjectManager(self)
         if _OM.get_changed_flag():
             dial = wx.MessageDialog(self.GetTopWindow(), 
@@ -477,18 +477,23 @@ class GripyApp(wx.App):
 
         user_UI_filename = self._gripy_app_state.get('user_UI_file')
         self.save_UI_user_data(user_UI_filename)
-                
+        
+        
         # This time I choose not use the line below because there was a little
         # freeze on exiting (1-2 seconds). Then I opted delegate it do compiler.
         #_UIM = UIManager()      
         #_UIM.close()
 
 
+        UIM = UIManager()  
+        UIM.PreExit()
+        #print 'FIM PRE-EXIT'
+        
 
     def OnExit(self):
         msg = 'GriPy Application has finished.'
         log.info(msg)
-        print msg
+        print msg, '\n'
 
         
     # Convenience function    

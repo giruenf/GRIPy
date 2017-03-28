@@ -48,12 +48,12 @@ class TrackObjectController(UIControllerBase):
         obj = _OM.from_string(self.model.obj_uid)     
         index_data = obj.get_index_data()
         if obj.tid == 'partition':
-            print '\n\ngetaslog:'
-            print obj.getaslog()
-            print 
+            #print '\n\ngetaslog:'
+            #print obj.getaslog()
+            #print 
             xdata = {}
             for part in obj.list('part'): 
-                print part.name, part.code, part.color
+                #print part.name, part.code, part.color
                 xdata[part.code] = (part.color, part.data)
         else:
             xdata = obj.data
@@ -69,7 +69,7 @@ class TrackObjectController(UIControllerBase):
         self.model.obj_uid = obj_uid
      
     def on_change_objuid(self, **kwargs):    
-        print '\nTrackObjectController.on_change_objuid: ', kwargs.get('new_value')
+        #print '\nTrackObjectController.on_change_objuid: ', kwargs.get('new_value')
         self._set_model_on_new_uid(kwargs.get('new_value'))
         
 
@@ -80,7 +80,7 @@ class TrackObjectController(UIControllerBase):
         if obj.tid == 'log':
             # TODO: Rever isso
             parms = Parms.ParametersManager.get().get_curve_parms(obj.name)     
-            print 'parms:', parms
+            #print 'parms:', parms
             if parms is not None:
                 plottype = parms.get('LineStyle')
                 if plottype.lower() == 'solid':
@@ -152,8 +152,8 @@ class TrackObjectController(UIControllerBase):
 
 
     def on_change_plottype(self, **kwargs):
-        print '\nTrackObjectController.on_change_plottype'
-        print kwargs
+        #print '\nTrackObjectController.on_change_plottype'
+        #print kwargs
         plottype = kwargs.get('new_value')
         if plottype in VALID_PLOT_TYPES:
             self.view.set_plot_type(plottype)
@@ -181,7 +181,7 @@ class TrackObjectController(UIControllerBase):
             self.view.set_xlim(left_scale, new_lim)
             
     def on_change_zlim(self, **kwargs): 
-        print kwargs
+        #print kwargs
         key = kwargs.get('key')
         new_lim = kwargs.get('new_value')
         if key == 'zmin':
@@ -447,7 +447,7 @@ class TrackObjectView(UIViewBase):
         
         
     def set_alpha(self, alpha):
-        print '\n\nset_alpha'
+        #print '\n\nset_alpha'
         if alpha >= 0.0 and alpha <= 1.0:      
             if (self._mplot_obj):
                 if isinstance(self._mplot_obj, matplotlib.image.AxesImage):
@@ -476,8 +476,8 @@ class TrackObjectView(UIViewBase):
                 
             max_xdata = np.amax(np.absolute(xdata)) # for scaling  
             
-            print 'xdata.shape:', xdata.shape
-            print 'max_xdata:', max_xdata
+            #print 'xdata.shape:', xdata.shape
+            #print 'max_xdata:', max_xdata
             xdata = xdata / max_xdata
             
             for i in range(0, xdata.shape[0]):
@@ -508,9 +508,9 @@ class TrackObjectView(UIViewBase):
                 ymax = np.nanmax(ydata)
                 extent = (xmin, xmax, ymax, ymin) 
                 self._mplot_obj.set_extent(extent)
-                print 'ENTROU'
+                #print 'ENTROU'
                 for wxcolor, data in xdata.values():
-                    print wxcolor, data
+                    #print wxcolor, data
                     mplcolor = [float(c)/255.0 for c in wxcolor]
                     color = colorConverter.to_rgba_array(mplcolor[:3])
                     im = np.tile(color, (data.shape[0], 1)).reshape(-1, 1, 4)
@@ -655,7 +655,7 @@ class TrackObjectView(UIViewBase):
             
 
     def plot_data(self, *args):
-        print 'TrackObjectView.plot_data', 
+        #print 'TrackObjectView.plot_data', 
         for i, arg in enumerate(args):
             print '\n', i
             print arg

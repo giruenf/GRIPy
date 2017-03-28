@@ -94,13 +94,13 @@ class Base(object):
 
 # Basis class to all types of Axes in this project 
 class AxesBase(Axes, Base):
-    _default_layout_properties = {'bgcolor': 'white'}
+    _default_layout_properties = {'facecolor': 'white'}
 
     def __init__(self, figure, rect, layout_properties=None):
         Base.__init__(self, layout_properties)
         self.rect = rect
         Axes.__init__(self, figure, self.rect, label=self._get_name(), 
-                    axisbg=self.layout_properties['bgcolor'])
+                    facecolor=self.layout_properties['facecolor'])
         self.set_spines_visibility(False)                    
                     
                     
@@ -215,7 +215,7 @@ class DummyAxes(AxesBase):
     TODO: Alterar update para trabalhar somente com o que mudou
     """
     def update(self, **properties):
-        print '\nupdate: ', properties
+        #print '\nupdate: ', properties
         self.props = self.check_properties(properties)
 
         # EIXO X - ESCALA LOGARITMICA
@@ -249,7 +249,7 @@ class DummyAxes(AxesBase):
             raise Exception('There no support yet to Cosin scale.')
             
         if self.props.get('plotgrid'):
-            #print '\nPLOTGRID: TRUE'
+            ##print '\nPLOTGRID: TRUE'
             # DEPTH LINES - GRIDS OU TICKS DE REFERENCIA PARA CURVA DATUM (DEPTH)
             # DEPTH LINES == FULL
             
@@ -336,13 +336,13 @@ class DummyAxes(AxesBase):
             elif self.props.get('depth_lines') == 0:
                 self.hide_y_ticks()
         else:
-            #print '\nPLOTGRID: FALSE'
+            ##print '\nPLOTGRID: FALSE'
             self.grid(False, axis='both', which='both')
             #self.grid(True, axis='x', which='minor')
             #self.tick_params(left=False, right=False, which='both', axis='y')
             self.hide_y_ticks()
         #self.draw()    
-        #print '\n FIM DummyAxes.update'
+        ##print '\n FIM DummyAxes.update'
 
 
     def hide_x_ticks(self):
@@ -369,9 +369,9 @@ class DummyAxes(AxesBase):
         
         
     def check_properties(self, props):
-        #print 'check_properties: ', props
+        ##print 'check_properties: ', props
         props = self._get_valid_props(props)
-        #print 'check_properties: ', props
+        ##print 'check_properties: ', props
         if not props.get('ylim'): 
             if not self.props.get('ylim'):
                 props['ylim'] = self.layout_properties['ylim']
@@ -390,7 +390,7 @@ class DummyAxes(AxesBase):
                 # DEVIDO AO EIXO Y SER INVERTIDO EM RELACAO AO AXES
                 props['ylim'] = (ymax, ymin)    
 
-        #print '\n', props.get('ylim')
+        ##print '\n', props.get('ylim')
         
         if not props.get('log_base'):
             if not self.props.get('log_base'):
@@ -477,7 +477,7 @@ class DummyAxes(AxesBase):
             else:
                 if not isinstance(props.get('leftscale'), float):
                     try:
-                        #print (props.get('leftscale'))
+                        ##print (props.get('leftscale'))
                         props['leftscale'] = float(props.get('leftscale'))
                     except Exception:
                         raise ValueError('leftscale deve ser float.')    
@@ -730,11 +730,10 @@ class _BaseFigureCanvas(FigureCanvas, Base):
         FigureCanvas.__init__(self, parent, -1, self.figure)
         #self.Show(False)
         #self._real_parent = None
-        #print '\n\nsize: {}\n\n'.format(size)
+        ##print '\n\nsize: {}\n\n'.format(size)
         self.SetSize(size)
         self._draw_figure()
         self.mpl_connect('resize_event', self._on_resize)
-        
        
     def _draw_figure(self):
         raise NotImplementedError("Please Implement this method")
@@ -844,7 +843,7 @@ class TrackFigureCanvas(_BaseFigureCanvas):
             if event.xdata and event.ydata:
                 x_px, y_px = event.inaxes.transData.transform_point((event.xdata, event.ydata))
                 self.x1, self.y1 = self.get_transformed_values(x_px, y_px)[0]
-                #print '\ndrag', [self.x0, self.x1], [self.y0, self.y1]
+                ##print '\ndrag', [self.x0, self.x1], [self.y0, self.y1]
                 self.zoom_rect.set_width(self.x1 - self.x0)
                 self.zoom_rect.set_height(self.y1 - self.y0)
                 self.zoom_rect.set_xy((self.x0, self.y0))
@@ -853,20 +852,20 @@ class TrackFigureCanvas(_BaseFigureCanvas):
                 
                 
     def on_move(self, event):
-        print
-        print 'DEPTH tfc:', np.round(event.ydata, decimals=4) 
+        #print
+        #print 'DEPTH tfc:', np.round(event.ydata, decimals=4) 
         for idx, ax in enumerate(self.axes):
             if len(ax.lines) > 0:
                 line = ax.lines[0]
                 contains, result = line.contains(event)
-                if contains: 
-                    print result
+                #if contains: 
+                    #print result
             if len(ax.images) > 0:
                 image = ax.images[0]
                 value = image.get_cursor_data(event)
                 if value is not None:
                     value = np.round(value, decimals=4)
-                print value
+                #print value
         # Line.contains(self, mouseevent):
             
             
@@ -902,9 +901,9 @@ class TrackFigureCanvas(_BaseFigureCanvas):
             #self.pixelsdata = None
             return
         pixelsdata = event.inaxes.transData.transform_point((event.xdata, event.ydata))
-        #print 'pixelsdata:', pixelsdata
+        ##print 'pixelsdata:', pixelsdata
         dummydata, values = self.get_transformed_values(pixelsdata) 
-        print np.round(dummydata[1], decimals=2), values
+        #print np.round(dummydata[1], decimals=2), values
         #if self._callback:
         #    self._callback(dummydata, values)
         #return    
@@ -915,18 +914,18 @@ class TrackFigureCanvas(_BaseFigureCanvas):
         #event.Skip()
         '''
         if event.button == 1:
-            print 'botao 1:', self.parent
+            #print 'botao 1:', self.parent
         elif event.button == 2:
-            print 'botao 2'
+            #print 'botao 2'
         elif event.button == 3:
-            print 'botao 3'
+            #print 'botao 3'
         '''    
         '''
         if event.xdata and event.ydata and self._zoom_callback:
             x_px, y_px = event.inaxes.transData.transform_point((event.xdata, event.ydata))
             self.x0, self.y0 = self.get_transformed_values(x_px, y_px)[0]
-            #print '\npress', self.x0, self.y0
-            #print self.get_transformed_values()[0]
+            ##print '\npress', self.x0, self.y0
+            ##print self.get_transformed_values()[0]
             self.pressed = True
             '''    
 
@@ -934,8 +933,8 @@ class TrackFigureCanvas(_BaseFigureCanvas):
         self._view.process_event(event)
         '''
         if self.pressed:
-            #print '\nrelease', self.y0, self.y1
-            #print [(self.x0, self.y0),(self.x1, self.y1)]
+            ##print '\nrelease', self.y0, self.y1
+            ##print [(self.x0, self.y0),(self.x1, self.y1)]
             self.zoom_rect.set_width(0)
             self.zoom_rect.set_height(0)
             self.draw()
@@ -956,15 +955,15 @@ class TrackFigureCanvas(_BaseFigureCanvas):
         
         
     def _create_dummy_axes(self, properties):
-        #print 'TrackFigureCanvas._create_dummy_axes'
-        #print 'PROPS: ', properties
+        ##print 'TrackFigureCanvas._create_dummy_axes'
+        ##print 'PROPS: ', properties
         self.rect = [0.0, 0.0, 1.0, 1.0]
         self.dummy_ax = DummyAxes(self.figure, properties, self.rect)
         self.figure.add_axes(self.dummy_ax)
         
         
     def update_properties(self, **kwargs):
-        #print '\nTrackFigureCanvas.update_properties'
+        ##print '\nTrackFigureCanvas.update_properties'
         if self.dummy_ax is not None:
             self.dummy_ax.update(**kwargs)
             self.draw()            
@@ -1051,18 +1050,18 @@ class TrackFigureCanvas(_BaseFigureCanvas):
         ls = kwargs.get('x_min', None)
         rs = kwargs.get('x_max', None)    
 
-        print 'x_lim:', ls, rs        
+        #print 'x_lim:', ls, rs        
         
         if ls is not None and rs is not None:
-            print 1
+            #print 1
             if ax.get_xlim() != (ls, rs):
-                print 2
+                #print 2
                 ax.set_xlim((ls, rs)) 
-            else:
-                print 3, ax.get_xlim()
-        print 4
-        print ax.get_xscale()  
-        print
+           # else:
+                #print 3, ax.get_xlim()
+        #print 4
+        #print ax.get_xscale()  
+        #print
 
         xs = kwargs.get('x_scale', None) 
         if xs is not None:
@@ -1082,9 +1081,9 @@ class TrackFigureCanvas(_BaseFigureCanvas):
             #ax.set_ylim((kwargs.get('y_max'), start))
             #step = kwargs.get('step', int((kwargs.get('y_max') -start)/10))
             locs = np.arange(start, end, step)
-            print '\nlocs:', locs
-            print ax.get_ylim()
-            print
+            #print '\nlocs:', locs
+            #print ax.get_ylim()
+            #print
             #locs = range(int(ymin), int(ymax), step)
             for loc in locs:
                 text = ax.text(0.5, loc, "%g" % loc, ha='center', va='center', 
@@ -1105,7 +1104,7 @@ class TrackFigureCanvas(_BaseFigureCanvas):
             x_smooth = np.array([kwargs.get('x_data')[i] for i in idx])
             y_smooth = np.array([kwargs.get('y_data')[i] for i in idx])
             #idx = np.linspace(0, len(kwargs.get('y_data')), 200)
-            print '\nidx:', len(idx)
+            #print '\nidx:', len(idx)
             '''
             linecolor = kwargs.get('linecolor', 'black')
             linewidth = kwargs.get('thickness')
@@ -1115,13 +1114,13 @@ class TrackFigureCanvas(_BaseFigureCanvas):
             if x_data is not None and y_data is not None:           
                 
                 if len(ax.lines) > 0: # never should be greater than 1 
-                    print '\n',len(ax.lines) > 0
+                    #print '\n',len(ax.lines) > 0
                     ax.lines[0].set_color(linecolor)
                     ax.lines[0].set_linewidth(linewidth)
                     ax.lines[0].set_zorder(10000)  
                     ax.lines[0].set_data(x_data, y_data)      
                 else: 
-                    print '\nELSE'                       
+                    #print '\nELSE'                       
                     line = matplotlib.lines.Line2D(x_data, y_data, 
                             linewidth=linewidth, 
                             color=linecolor
@@ -1144,8 +1143,8 @@ class TrackFigureCanvas(_BaseFigureCanvas):
                 
             max_x_data = np.amax(np.absolute(x_data)) # for scaling  
             
-            print 'x_data.shape:', x_data.shape
-            print 'max_x_data:', max_x_data
+            #print 'x_data.shape:', x_data.shape
+            #print 'max_x_data:', max_x_data
             x_data = x_data / max_x_data
             
             for i in range(0, x_data.shape[0]):
@@ -1186,7 +1185,7 @@ class TrackFigureCanvas(_BaseFigureCanvas):
             vmax = kwargs.get('max_value', None)
             
             if vmin is None or vmax is None:
-                print vmin, vmax
+                #print vmin, vmax
                 raise Exception('')
                 
             alpha = kwargs.get('alpha', 1.0)    
@@ -1209,7 +1208,7 @@ class TrackFigureCanvas(_BaseFigureCanvas):
           #  def format_coord(x, y):
           #      col = int(x+0.5)
           #      row = int(y+0.5)
-          #      print 'format_coord:', col, row
+          #      #print 'format_coord:', col, row
           #      return 'AAA'
                 '''
                 if col>=0 and col<numcols and row>=0 and row<numrows:
@@ -1228,7 +1227,7 @@ class TrackFigureCanvas(_BaseFigureCanvas):
             # Attention with ymax and ymin
             ymin = np.nanmin(y_data)
             ymax = np.nanmax(y_data)
-            #print (xmin, xmax, ymax, ymin)
+            ##print (xmin, xmax, ymax, ymin)
             extent = (xmin, xmax, ymax, ymin) #scalars (left, right, bottom, top)
 
             
@@ -1250,7 +1249,7 @@ class TrackFigureCanvas(_BaseFigureCanvas):
         #ylim = (3000.0, 0.0)     
         #ylim = (500.0, 0.0) 
         ylim = (1000.0, 0.0) 
-        print '\nSetting... ', ylim 
+        #print '\nSetting... ', ylim 
         ax.set_ylim(ylim)       
         self.draw()        
             
@@ -1453,7 +1452,7 @@ class PlotLabelObject(FigureCanvas):
         """
         A method just for propagate left double click to self.parent. 
         """
-        print self.obj_id
+        #print self.obj_id
         #wx.PostEvent(self.parent, event)
 
 
@@ -1626,7 +1625,7 @@ class PlotLabelObject(FigureCanvas):
             
 
                 ax1.set_xlim((0, len(kwargs.get('x_range'))+1))
-                print '\n\nx_lim:', ax1.get_xlim(),'\n\n'
+                #print '\n\nx_lim:', ax1.get_xlim(),'\n\n'
                 ax1.set_ylim((-1.0, 1.0))
 
                 x_data = np.array(range(0, len(kwargs.get('x_range'))+1), dtype=np.float)
@@ -1656,7 +1655,7 @@ class PlotLabelObject(FigureCanvas):
                    # bb = t.get_window_extent(r)
                    # width = bb.width
                    # height = bb.height
-                   # print width, height
+                   # #print width, height
                   
             ax1.add_line(l1)   
             #else:
@@ -1883,7 +1882,7 @@ class OverviewFigureCanvas(_BaseFigureCanvas):
         self.d2_canvas.Bind(wx.EVT_MOUSE_EVENTS, self._on_canvas_mouse)
         #self.d1_canvas.Bind(wx.EVT_PAINT, self.on_paint)
         #self.d2_canvas.Bind(wx.EVT_PAINT, self.on_paint)
-        
+     
 
     def set_callback(self, callback):
         self._callback = callback
@@ -1912,7 +1911,7 @@ class OverviewFigureCanvas(_BaseFigureCanvas):
             self.d2 = max_depth
         else:
             self.d2 = max_pos        
-        #print '\nMIN-MAX:', min_depth, max_depth, min_pos, max_pos, self.d1, self.d2     
+        ##print '\nMIN-MAX:', min_depth, max_depth, min_pos, max_pos, self.d1, self.d2     
         y1 = self.depth_to_wx_position(self.d1)
         self.d1_canvas.SetPosition((0, y1)) 
         #self.d1_canvas.Refresh()
@@ -1986,13 +1985,13 @@ class OverviewFigureCanvas(_BaseFigureCanvas):
         event.Skip()
         if self._drag_mode == wx.SASH_DRAG_DRAGGING:
             return
-        print 'OverviewFigureCanvas.on_paint'
+        #print 'OverviewFigureCanvas.on_paint'
         self._reload_canvas_positions_from_depths()
 
 
     def on_size(self, event):
-        print 'OverviewFigureCanvas.on_size'
-        #print 'Internal depth:', self.get_depth()
+        #print 'OverviewFigureCanvas.on_size'
+        ##print 'Internal depth:', self.get_depth()
         #self._reload_canvas_positions_from_depths()
         
         
@@ -2004,7 +2003,7 @@ class OverviewFigureCanvas(_BaseFigureCanvas):
         else:
             d1 = self.wx_position_to_depth(y1+self.canvas_width)
             d2 = self.wx_position_to_depth(y2)      
-        #print y1, y2, d1, d2, '\n'
+        ##print y1, y2, d1, d2, '\n'
         
         event.Skip()
         
@@ -2012,7 +2011,7 @@ class OverviewFigureCanvas(_BaseFigureCanvas):
     def _on_mouse(self, event):
         x, y = event.GetPosition()
         #data_y = self.wx_position_to_depth((y)
-        #print '_on_mouse:', x, y, data_y, event.GetEventType()
+        ##print '_on_mouse:', x, y, data_y, event.GetEventType()
             
         if self._drag_mode == wx.SASH_DRAG_NONE:    
             self._set_in_canvas(self._canvas_hit_test(x, y))              
@@ -2042,7 +2041,7 @@ class OverviewFigureCanvas(_BaseFigureCanvas):
 
 
     def start_dragging(self, start_y):
-        #print '\nPressed button on canvas ', self._in_canvas
+        ##print '\nPressed button on canvas ', self._in_canvas
         if self._in_canvas == -1:
             return 
         if self._drag_mode != wx.SASH_DRAG_NONE:
@@ -2059,19 +2058,19 @@ class OverviewFigureCanvas(_BaseFigureCanvas):
 
 
     def drag_it(self, new_y):
-        #print '\nDragging canvas:', self._in_canvas
+        ##print '\nDragging canvas:', self._in_canvas
         if self._in_canvas == -1:
             return 
         if self._drag_mode != wx.SASH_DRAG_DRAGGING:
             return       
-        #print new_y, self._old_y 
+        ##print new_y, self._old_y 
         if new_y != self._old_y:
             self._adjust_canvas_position(new_y - self._old_y)
             self._old_y = new_y
 
 
     def end_dragging(self):
-        #print 'Release button of canvas', self._in_canvas
+        ##print 'Release button of canvas', self._in_canvas
         if self._in_canvas == -1:
             return 
         if self._drag_mode != wx.SASH_DRAG_DRAGGING:
@@ -2087,7 +2086,7 @@ class OverviewFigureCanvas(_BaseFigureCanvas):
         self._reload_depths_from_canvas_positions()    
         if self._callback:
             self._callback(self.get_depth())
-        print 'Send ' + str(self.get_depth()) + ' to callback...'    
+        #print 'Send ' + str(self.get_depth()) + ' to callback...'    
         canvas.SetBackgroundColour(self.canvas_color)
         canvas.Refresh()  
                    
@@ -2107,13 +2106,13 @@ class OverviewFigureCanvas(_BaseFigureCanvas):
    
     def _set_in_canvas(self, canvas_number):
         if canvas_number != self._in_canvas:
-            #print '_set_in_canvas({})'.format(canvas_number)
+            ##print '_set_in_canvas({})'.format(canvas_number)
             if canvas_number != -1:
-                #print 'Entrou -', canvas_number
+                ##print 'Entrou -', canvas_number
                 self._in_canvas = canvas_number
                 self.SetCursor(wx.StockCursor(wx.CURSOR_SIZENS))
             else:
-                #print 'Saiu -', self._in_canvas
+                ##print 'Saiu -', self._in_canvas
                 self._in_canvas = -1
                 self.SetCursor(wx.STANDARD_CURSOR)
     
@@ -2176,7 +2175,7 @@ class OverviewFigureCanvas(_BaseFigureCanvas):
             text = self.index_axes.text(0.5, loc, "%g" % loc, ha='center', 
                                         va='center',  fontsize=10
             )
-            text.set_bbox(dict(color='white', alpha=0.5, edgecolor='white'))    
+            text.set_bbox(dict(facecolor='white', alpha=0.5, edgecolor='white'))  
         self.draw()     
 
 

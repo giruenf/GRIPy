@@ -19,8 +19,9 @@ class MainWindowController(UIControllerBase):
         log.debug('Successfully created Controller object from class: {}.'.format(class_full_name))
 
     """
-    When the View calls this function GripyApp closes UIManager but not
-    exit the wx.App. This job is done by Wx itself. (don't try it!)
+    When the MainWindow calls the function below, GripyApp will close UIManager 
+    but not finish the wx.App.
+    This job must be done by Wx. (don't try to change it!)
     """
     def _pre_exit_application(self):
         wx.App.Get().PreExit()
