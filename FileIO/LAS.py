@@ -152,24 +152,30 @@ class LASReader(LASFile):
         >>> LASReader._splitline('  DEPTH.M       : MEASURED DEPTH  ')
         ('  DEPTH', 'M', '       ', ' MEASURED DEPTH  ')
         """
-        if ":" not in line:
-            desc = ''
-        else:
-            line, desc = line.rsplit(":", 1)
-            desc = desc.strip()
-        line = line.strip()
-        if " " not in line:
-            data = ''
-        else:
-            line, data = line.rsplit(" ", 1)
-            data = data.strip()
-        line = line.strip()    
-        if "." not in line:
-            unit = ''
-            mnem = line
-        else:
-            mnem, unit = line.split(".", 1)
+        # if ":" not in line:
+            # desc = ''
+        # else:
+            # line, desc = line.rsplit(":", 1)
+            # desc = desc.strip()
+        # line = line.strip()
+        # if " " not in line:
+            # data = ''
+        # else:
+            # line, data = line.rsplit(" ", 1)
+            # data = data.strip()
+        # line = line.strip()    
+        # if "." not in line:
+            # unit = ''
+            # mnem = line
+        # else:
+            # mnem, unit = line.split(".", 1)
+        # return mnem, unit, data, desc
+        rest, desc = line.rsplit(":", 1)
+        mnem, rest = rest.split(".", 1)
+        unit, data = rest.split(" ", 1)
+        
         return mnem, unit, data, desc
+        
     
     @staticmethod    
     def _getlinelayout(splittedline):
