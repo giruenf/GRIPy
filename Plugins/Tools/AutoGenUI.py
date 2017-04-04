@@ -99,7 +99,8 @@ class _OMMultiInput(_GenericInput):
         self._uiobj.AppendItems(self.items)
     
     def get_input(self):
-        return [self.index2uid[index] for index in self._uiobj.GetCheckedItems()]
+        n = len(self._uiobj.Items)
+        return [self.index2uid[i] for i in range(n) if self._uiobj.IsChecked(i)]
     
     def bind(self, handler, id):
         self._uiobj.Bind(wx.EVT_CHECKLISTBOX, handler, id=id)
