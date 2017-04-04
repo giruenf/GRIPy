@@ -267,6 +267,7 @@ class TrackObjectModel(UIModelBase):
   
 
     
+    
 class TrackObjectView(UIViewBase):
     tid = 'track_object_view'
 
@@ -276,6 +277,7 @@ class TrackObjectView(UIViewBase):
         _UIM = UIManager()
         parent_controller_uid = _UIM._getparentuid(controller_uid)
         parent_controller =  _UIM.get(parent_controller_uid)
+        
         self.cima = parent_controller.view.label.append_object()
         self.eixo = Axes(parent_controller.view.track.figure, 
              parent_controller.view.track.dummy_ax.get_position(True),

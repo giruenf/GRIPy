@@ -39,7 +39,8 @@ class PlotStatusBar(wx.StatusBar):
         #self.timer = wx.PyTimer(self.Notify)
         #self.timer.Start(1000)
         #self.Notify()
-
+    
+        self.HideScrollBar()
     
 
     def SetDefaultHeight(self):
@@ -67,15 +68,11 @@ class PlotStatusBar(wx.StatusBar):
     def SetScrollbar(self, position, thumbSize, range, pageSize):
         self.sb.SetScrollbar(position, thumbSize, range, pageSize)
         
-        
-    def SetInfo(self, *args):
-        #print '\nSetInfo: ', args
-        if not args:
-            return
-        else:
-            dummy_x, dummy_depth = args[0]
-            info = 'Depth: ' + "{:0.1f}".format(dummy_depth)
-            self.SetStatusText(info, 0)
+    '''    
+    def SetDepth(self, depth):
+        info = 'Depth: ' + "{:0.1f}".format(depth)
+        self.SetStatusText(info, 0)
+    '''    
     '''    
     def Notify(self):
         t = time.localtime(time.time())

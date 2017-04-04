@@ -52,7 +52,10 @@ class LogPlotController(PlotterController):
           #      new_track.set_ylim(self.model.y_min, self.model.y_max)
         #self.refresh_child_positions()         
 
-        
+
+    def show_status_message(self, msg):
+        self.view.status_bar.SetStatusText(msg, 0)
+ 
  
     def get_tracks_selected(self):
         UIM = UIManager()
@@ -217,7 +220,7 @@ class LogPlot(Plotter):
  #       self._create_toolbar()
         self.tb = LogPlotToolBar(self)
        
-        #self.statusBar = PlotStatusBar(self)
+        self.status_bar = PlotStatusBar(self)
                                   
         self.hbox = wx.BoxSizer(wx.HORIZONTAL)        
             
@@ -257,7 +260,7 @@ class LogPlot(Plotter):
         self.vbox.Add(self.tb, 0, flag=wx.TOP|wx.EXPAND)
         self.vbox.Add(self.hbox, 1, flag=wx.EXPAND)
         
-     #   self.vbox.Add(self.statusBar, 0, flag=wx.BOTTOM|wx.EXPAND)
+        self.vbox.Add(self.status_bar, 0, flag=wx.BOTTOM|wx.EXPAND)
         
         self.SetSizer(self.vbox)          
         self.Layout()

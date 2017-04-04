@@ -234,6 +234,13 @@ class TrackView(UIViewBase):
         #self.track.SetDropTarget(self.dt)
 
 
+    
+
+    def message(self, message):
+        UIM = UIManager()
+        parent_controller_uid = UIM._getparentuid(self._controller_uid)
+        parent_controller =  UIM.get(parent_controller_uid)
+        parent_controller.show_status_message(message)
 
 
     def PostInit(self):  

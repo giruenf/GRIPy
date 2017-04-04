@@ -547,6 +547,33 @@ class TrackFigureCanvas(FigureCanvas):
         self.index_axes = None       
         self.mpl_connect('button_press_event', self._on_press)
         #self.Bind(wx.EVT_MIDDLE_DOWN, self._on_middle_down)
+        self.mpl_connect('motion_notify_event', self.on_move)
+        
+
+    def on_move(self, event):
+        if event.inaxes is None:
+            return
+        info = 'Depth: ' + "{:0.2f}".format(event.ydata)    
+        self.track_view_object.message(info)
+        
+        '''
+        pixelsdata = event.inaxes.transData.transform_point((event.xdata, event.ydata))
+        print pixelsdata    
+        dummydata, values = self.get_transformed_values(pixelsdata) 
+        print event.ydata, values
+        '''
+        
+    '''    
+    def get_transformed_values(self, point_px):
+        if point_px is None:
+            return None, None
+        dummydata = self.dummy_ax.transData.inverted().transform_point(point_px)       
+        values = []        
+        for ax in self.figure.axes:
+            valuedata = ax.transData.inverted().transform_point(point_px)         
+            values.append(valuedata.tolist()[0])
+        return dummydata.tolist(), values     
+    '''
                 
     def _on_press(self, event):
         self.track_view_object.process_event(event)
@@ -563,36 +590,12 @@ class TrackFigureCanvas(FigureCanvas):
     def _do_select(self):
         self._selected = not self._selected
         self.GetParent()._draw_window_selection(self)         
-               
-    #def get_transformed_values(self, point_px):
-    #    if point_px is None:
-    #        return None, None
-    #    dummydata = self.dummy_ax.transData.inverted().transform_point(point_px)       
-    #    values = []        
-    #    for ax in self.axes:
-    #        valuedata = ax.transData.inverted().transform_point(point_px)         
-    #        values.append(valuedata.tolist()[0])
-    #    return dummydata.tolist(), values     
-           
-    """       
-    def set_xscale_linear(self, plotgrid, scale_lines):
-        if self.dummy_ax:
-            self.dummy_ax.set_xscale_linear(plotgrid, scale_lines)
-            self.draw()
-
-  
-    def set_xscale_log(self, plotgrid, leftscale, decades, minorgrid):  
-        if self.dummy_ax:
-            self.dummy_ax.set_xscale_log(plotgrid, leftscale, decades, minorgrid)
-            self.draw()
-    """         
+                
            
     def update(self, key, value):
         self.dummy_ax.update(key, value)
         self.draw()            
   
-    #def get_properties(self):
-    #    return self.dummy_ax.get_properties()   
                  
     def set_ylim(self, ylim):
         self.dummy_ax.update('ylim', ylim)
