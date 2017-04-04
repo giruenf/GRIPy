@@ -511,12 +511,16 @@ class PluginManager(object):
                             current_category = category_name
                             if candidate_infofile not in self._category_file_mapping[current_category]:
                                 # we found a new plugin: initialise it and search for the next one
-                                if not plugin_info_reference:
-                                    plugin_info.plugin_object = element()
-                                    plugin_info_reference = plugin_info
-                                plugin_info.categories.append(current_category)
-                                self.category_mapping[current_category].append(plugin_info_reference)
-                                self._category_file_mapping[current_category].append(candidate_infofile)
+                                try:
+                                    if not plugin_info_reference:
+                                        plugin_info.plugin_object = element()
+                                        plugin_info_reference = plugin_info
+                                    plugin_info.categories.append(current_category)
+                                    self.category_mapping[current_category].append(plugin_info_reference)
+                                    self._category_file_mapping[current_category].append(candidate_infofile)
+                                except Exception, e:
+                                    print e.args
+                                    pass
         # Remove candidates list since we don't need them any more and
         # don't need to take up the space
         delattr(self, '_candidates')
