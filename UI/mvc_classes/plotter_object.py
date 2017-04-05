@@ -437,6 +437,7 @@ class TrackObjectView(UIViewBase):
         #if isinstance(self._mplot_obj, matplotlib.image.AxesImage):
         self.eixo.set_xlim((left_scale, right_scale))
         self.cima.set_xlim((left_scale, right_scale)) 
+       
 
 
     def set_xlabel_lim(self, xmin, xmax):

@@ -26,14 +26,14 @@ def prepare_float_value(value):
     value = "{0:.3f}".format(value)#str(value)
     if len(value.split('.')) > 1:
         v0 = value.split('.')[0]
-        v0 = str(int(v0))
+        #v0 = str(int(v0))
         v1 = value.split('.')[1].rstrip('0')
         if len(v1) == 0:
             return v0 + '.'
         else:
             if len(v1) > 2: # Trimming decimals to 2 caracters
                 v1 = v1[0:2]
-            return v0 + '.' + v1
+            return v0 + '.' + v1      
     return value        
 
 
@@ -311,7 +311,6 @@ class VisDataLabel(FigureCanvas):
             
 
     def set_xlim(self, xlim):
-        #print '\nVisDataLabel.set_xlim'
         if self.xlim == xlim:
             return
         xmin, xmax = xlim
