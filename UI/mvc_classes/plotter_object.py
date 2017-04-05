@@ -9,11 +9,12 @@ import matplotlib
 matplotlib.interactive(False)
 matplotlib.use('WXAgg')
 from matplotlib.axes import Axes
-from matplotlib.figure import Figure
 import numpy as np
 from matplotlib.colors import colorConverter
 import Parms
+
 from App.utils import LogPlotDisplayOrder
+from App.utils import parse_string_to_uid
 from App import log
 
 
@@ -22,6 +23,7 @@ from App import log
 
 FLOAT_NULL_VALUE = -9999.25
 VALID_PLOT_TYPES = ['index', 'line', 'partition', 'density', 'wiggle']
+
 
 
 def get_extremes_from_object(obj, gap_percent=5):
@@ -44,16 +46,13 @@ class TrackObjectController(UIControllerBase):
     def plot(self):
         if not self.model.obj_uid:
             return
+        tid, oid = parse_string_to_uid(self.model.obj_uid)    
         _OM = ObjectManager(self)
-        obj = _OM.from_string(self.model.obj_uid)     
+        obj = _OM.get((tid, oid))     
         index_data = obj.get_index_data()
         if obj.tid == 'partition':
-            #print '\n\ngetaslog:'
-            #print obj.getaslog()
-            #print 
             xdata = {}
             for part in obj.list('part'): 
-                #print part.name, part.code, part.color
                 xdata[part.code] = (part.color, part.data)
         else:
             xdata = obj.data
@@ -73,9 +72,16 @@ class TrackObjectController(UIControllerBase):
         self._set_model_on_new_uid(kwargs.get('new_value'))
         
 
-    def _set_model_on_new_uid(self, obj_uid):
+
+    def get_curve_value(self, pixelsdata):
+        value = self.view.eixo.transData.inverted().transform_point(pixelsdata)  
+        return self.model.obj_uid, value.tolist()[0]
+            
+
+    def _set_model_on_new_uid(self, obj_str_uid):
+        tid, oid = parse_string_to_uid(obj_str_uid)
         _OM = ObjectManager(self)
-        obj = _OM.from_string(obj_uid)
+        obj = _OM.get((tid, oid))
     
         if obj.tid == 'log':
             # TODO: Rever isso
@@ -601,59 +607,7 @@ class TrackObjectView(UIViewBase):
             
         parent_controller.view.track.dummy_ax.get_figure().canvas.draw_idle()    
             
-            
-            
-            
-            
-            
-        """    
-        _UIM = UIManager()
-        controller = _UIM.get(self._controller_uid)
-        if not controller.model.obj_uid:
-            return
-        self.eixo.cla()    
-        _OM = ObjectManager(self)
-        obj = _OM.from_string(controller.model.obj_uid)    
-        xdata = obj.data 
-        ydata = obj.get_index_data()
-        """
 
-
-            
-        """
-            def __init__(self, xdata, ydata,
-                         linewidth=None,  # all Nones default to rc
-                         linestyle=None,
-                         color=None,
-                         marker=None,
-                         markersize=None,
-                         markeredgewidth=None,
-                         markeredgecolor=None,
-                         markerfacecolor=None,
-                         markerfacecoloralt='none',
-                         fillstyle='full',
-                         antialiased=None,
-                         dash_capstyle=None,
-                         solid_capstyle=None,
-                         dash_joinstyle=None,
-                         solid_joinstyle=None,
-                         pickradius=5,
-                         drawstyle=None,
-                         markevery=None,
-                         **kwargs
-                         ):
-                     
-        """
-        """    
-        elif plottype == 'partition':
-            self.eixo.add_image()
-            axes_image = self.eixo.imshow(im, extent=extent, interpolation='none', aspect='auto')
-           
-            def imshow(self, X, cmap=None, norm=None, aspect=None,
-                       interpolation=None, alpha=None, vmin=None, vmax=None,
-                       origin=None, extent=None, shape=None, filternorm=1,
-                       filterrad=4.0, imlim=None, resample=None, url=None, **kwargs):
-        """
             
 
     def plot_data(self, *args):

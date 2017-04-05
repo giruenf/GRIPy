@@ -9,6 +9,7 @@ from UI.uimanager import UIViewBase
 from track_base import TrackFigureCanvas
 from title_base import PlotLabel
 from App.utils import LogPlotState  
+from App.utils import parse_string_to_uid
 from App import log
 
 
@@ -233,14 +234,25 @@ class TrackView(UIViewBase):
         self.track.SetDropTarget(self.dt2)
         #self.track.SetDropTarget(self.dt)
 
+        self.track.mpl_connect('motion_notify_event', self.on_track_move)
+        
 
-    
-
-    def message(self, message):
+    def on_track_move(self, event):
+        if event.inaxes is None:
+            return
+        info = 'Index: ' + "{:0.2f}".format(event.ydata)    
+        OM = ObjectManager(self)
         UIM = UIManager()
+        pixelsdata = event.inaxes.transData.transform_point((event.xdata, event.ydata))
+        for to in UIM.list('track_object_controller', self._controller_uid):
+            uid_string, value = to.get_curve_value(pixelsdata)
+            tid, oid = parse_string_to_uid(uid_string)
+            obj = OM.get((tid, oid))
+            info += ', ' + obj.name + ': {:0.2f}'.format(value)    
         parent_controller_uid = UIM._getparentuid(self._controller_uid)
         parent_controller =  UIM.get(parent_controller_uid)
-        parent_controller.show_status_message(message)
+        parent_controller.show_status_message(info)
+
 
 
     def PostInit(self):  

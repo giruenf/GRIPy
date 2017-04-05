@@ -12,6 +12,7 @@ from collections import OrderedDict
 import numpy as np
 import zipfile
 import os
+import App.utils
 from App import log
 
 try:
@@ -572,8 +573,8 @@ class ObjectManager(object):
         ObjectManager._changed  = False
         return True
 
-
-    def from_string(self, obj_string):
+    '''
+    def get_object(self, obj_uid_string):
         """
         Load an object in ObjectManager from a given string.
         
@@ -588,18 +589,9 @@ class ObjectManager(object):
             An object if exits for given string, or None if the object was not
             added in the ObjectManager or if the string cannot identify an object.
         """
-        left_index = obj_string.find('(')
-        right_index = obj_string.rfind(')')
-        if left_index == -1 or right_index == -1:
-            return None
-        elif right_index < left_index:
-            return None
-        obj_string = obj_string[left_index+1:right_index]
-        tid, oid = obj_string.split(',')
-        tid = tid.strip('\'\" ')
-        oid = int(oid.strip('\'\" '))
+        tid, oid = App.utils.parse_string_to_uid(obj_uid_string)
         for obj in self.list(tid):
             if obj.oid == oid:
                 return obj
         return None        
-        
+    '''        
