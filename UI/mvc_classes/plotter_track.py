@@ -272,8 +272,7 @@ class TrackView(UIViewBase):
                                       controller.model.width
         )         
         
-
-
+        
     def PreDelete(self):
         #print 'PreDelete TrackView start'
         try:
@@ -287,8 +286,10 @@ class TrackView(UIViewBase):
             #self.track.SetDropTarget(None)
             #self.dt.set_callback(None)
             #del self.dt
-            del self.label
-            del self.track
+            self.label.Destroy()
+            self.track.Destroy()
+           # del self.label
+           # del self.track
         except Exception, e:
             print'PreDelete TrackView ended with error:', e.args
             raise
