@@ -11,8 +11,22 @@ from matplotlib.figure import Figure
 import numpy as np
 from matplotlib.ticker import NullFormatter, MultipleLocator
 from matplotlib.colors import colorConverter
-import matplotlib.cm as cm
-from scipy.interpolate import spline
+
+
+# TODO: Review it!
+# Keeping MPL version 1 parameters
+if matplotlib.__version__.startswith('2.'):
+    matplotlib.rcParams['mathtext.fontset'] = 'cm'
+    matplotlib.rcParams['mathtext.rm'] = 'serif'
+    #
+    matplotlib.rcParams['figure.figsize'] = [8.0, 6.0]
+    matplotlib.rcParams['figure.dpi'] = 80
+    matplotlib.rcParams['savefig.dpi'] = 100
+    #    
+    matplotlib.rcParams['font.size'] = 12
+    matplotlib.rcParams['legend.fontsize'] = 'large'
+    matplotlib.rcParams['figure.titlesize'] = 'medium'
+
 
 
 # Constants
@@ -1847,7 +1861,8 @@ class PlotLabel(wx.Panel):
 ###
 ###############################################################################
 
-
+SASH_DRAG_NONE = 0 
+SASH_DRAG_DRAGGING = 1
       
 class OverviewFigureCanvas(_BaseFigureCanvas):
 
@@ -1874,7 +1889,7 @@ class OverviewFigureCanvas(_BaseFigureCanvas):
         self.create_depth_canvas(min_pos, max_pos)
         #self.set_depth(min_depth, max_depth) 
         self._in_canvas = -1
-        self._drag_mode = wx.SASH_DRAG_NONE
+        self._drag_mode = SASH_DRAG_NONE
         
         #self.mpl_connect('motion_notify_event', self.on_move)
         #self.mpl_connect('button_press_event', self.on_mouse_pressed)
@@ -1890,6 +1905,7 @@ class OverviewFigureCanvas(_BaseFigureCanvas):
         #self.d1_canvas.Bind(wx.EVT_PAINT, self.on_paint)
         #self.d2_canvas.Bind(wx.EVT_PAINT, self.on_paint)
      
+
 
     def set_callback(self, callback):
         self._callback = callback
@@ -1990,7 +2006,7 @@ class OverviewFigureCanvas(_BaseFigureCanvas):
 
     def on_paint(self, event):
         event.Skip()
-        if self._drag_mode == wx.SASH_DRAG_DRAGGING:
+        if self._drag_mode == SASH_DRAG_DRAGGING:
             return
         #print 'OverviewFigureCanvas.on_paint'
         self._reload_canvas_positions_from_depths()
@@ -2020,11 +2036,11 @@ class OverviewFigureCanvas(_BaseFigureCanvas):
         #data_y = self.wx_position_to_depth((y)
         ##print '_on_mouse:', x, y, data_y, event.GetEventType()
             
-        if self._drag_mode == wx.SASH_DRAG_NONE:    
+        if self._drag_mode == SASH_DRAG_NONE:    
             self._set_in_canvas(self._canvas_hit_test(x, y))              
             if event.LeftDown():
                 self.start_dragging(y)
-        elif self._drag_mode == wx.SASH_DRAG_DRAGGING:
+        elif self._drag_mode == SASH_DRAG_DRAGGING:
             if event.LeftIsDown():
                 self.drag_it(y)       
             elif event.LeftUp():
@@ -2051,13 +2067,13 @@ class OverviewFigureCanvas(_BaseFigureCanvas):
         ##print '\nPressed button on canvas ', self._in_canvas
         if self._in_canvas == -1:
             return 
-        if self._drag_mode != wx.SASH_DRAG_NONE:
+        if self._drag_mode != SASH_DRAG_NONE:
             return
         if self._in_canvas == 1:
             canvas = self.d1_canvas
         else:
             canvas = self.d2_canvas
-        self._drag_mode = wx.SASH_DRAG_DRAGGING
+        self._drag_mode = SASH_DRAG_DRAGGING
         self.CaptureMouse()
         self._old_y = start_y
         canvas.SetBackgroundColour(self.canvas_alt_color)
@@ -2068,7 +2084,7 @@ class OverviewFigureCanvas(_BaseFigureCanvas):
         ##print '\nDragging canvas:', self._in_canvas
         if self._in_canvas == -1:
             return 
-        if self._drag_mode != wx.SASH_DRAG_DRAGGING:
+        if self._drag_mode != SASH_DRAG_DRAGGING:
             return       
         ##print new_y, self._old_y 
         if new_y != self._old_y:
@@ -2080,13 +2096,13 @@ class OverviewFigureCanvas(_BaseFigureCanvas):
         ##print 'Release button of canvas', self._in_canvas
         if self._in_canvas == -1:
             return 
-        if self._drag_mode != wx.SASH_DRAG_DRAGGING:
+        if self._drag_mode != SASH_DRAG_DRAGGING:
             return    
         if self._in_canvas == 1:
             canvas = self.d1_canvas
         else:
             canvas = self.d2_canvas
-        self._drag_mode = wx.SASH_DRAG_NONE
+        self._drag_mode = SASH_DRAG_NONE
         self._old_y = None
         if self.HasCapture():
             self.ReleaseMouse()
@@ -2117,7 +2133,12 @@ class OverviewFigureCanvas(_BaseFigureCanvas):
             if canvas_number != -1:
                 ##print 'Entrou -', canvas_number
                 self._in_canvas = canvas_number
-                self.SetCursor(wx.StockCursor(wx.CURSOR_SIZENS))
+                if wx.__version__.startswith('3.0.3'):
+                    # Phoenix code
+                    self.SetCursor(wx.Cursor(wx.CURSOR_SIZENS))
+                else:
+                    # wxPython classic code
+                    self.SetCursor(wx.StockCursor(wx.CURSOR_SIZENS))
             else:
                 ##print 'Saiu -', self._in_canvas
                 self._in_canvas = -1
