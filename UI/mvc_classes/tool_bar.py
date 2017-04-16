@@ -58,12 +58,19 @@ class ToolBarView(UIViewBase, wx.ToolBar):
         parent_controller_uid = _UIM._getparentuid(self._controller_uid)
         parent_controller =  _UIM.get(parent_controller_uid)
         #wx.SystemOptions.SetOption("msw.remap", '0')
-        wx.ToolBar.__init__(self, parent_controller.view, controller.model.id, controller.model.pos,
-                            controller.model.size, controller.model.style)
+        wx.ToolBar.__init__(self, parent_controller.view, controller.model.id, 
+                            controller.model.pos,
+                            controller.model.size, controller.model.style
+        )
         self.Realize()  
 
         if isinstance(parent_controller, MainWindowController):
-            mgr = wx.aui.AuiManager_GetManager(parent_controller.view)
+            if wx.__version__.startswith('3.0.3'):
+                # Phoenix code
+                mgr = wx.aui.AuiManager.GetManager(parent_controller.view)
+            else:
+                # wxPython classic code
+                mgr = wx.aui.AuiManager_GetManager(parent_controller.view)
             mgr.AddPane(self, self.paneinfo)
             mgr.Update()
 

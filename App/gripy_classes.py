@@ -26,7 +26,7 @@ from UI.mvc_classes.plotter_log import LogPlotController, LogPlotModel, LogPlot
 from UI.mvc_classes.plotter_track import TrackController, TrackModel, TrackView
 from UI.mvc_classes.plotter_object import TrackObjectController, \
     TrackObjectModel, TrackObjectView
-    
+from UI.mvc_classes.lpf import LogPlotEditorController, LogPlotEditor        
 
 
 
@@ -67,7 +67,7 @@ def register_UIManager_classes():
     UIManager.register_class(TrackObjectController, TrackObjectModel, 
                              TrackObjectView, TrackController
     )
-    
+    UIManager.register_class(LogPlotEditorController, None, LogPlotEditor, LogPlotController)
     
     #UIManager.register_class(ToolBarController, ToolBarModel, ToolBarView, LogPlotController) 
     

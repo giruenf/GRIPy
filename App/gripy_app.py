@@ -483,18 +483,22 @@ class GripyApp(wx.App):
         # freeze on exiting (1-2 seconds). Then I opted delegate it do compiler.
         #_UIM = UIManager()      
         #_UIM.close()
-
-
         UIM = UIManager()  
         UIM.PreExit()
-        #print 'FIM PRE-EXIT'
+        
+        # As indicated by https://forums.wxwidgets.org/viewtopic.php?t=32138        
+        aui_manager = wx.aui.AuiManager.GetManager(self.GetTopWindow())
+        aui_manager.UnInit()        
+        
         
 
     def OnExit(self):
         msg = 'GriPy Application has finished.'
         log.info(msg)
         print msg, '\n'
-
+        if wx.__version__.startswith('3.0.3'):
+            # Phoenix code
+            return super(GripyApp, self).OnExit()
         
     # Convenience function    
     def getLogger(self):    

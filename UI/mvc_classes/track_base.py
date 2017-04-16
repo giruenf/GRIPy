@@ -595,7 +595,7 @@ class TrackFigureCanvas(FigureCanvas):
             text = self.index_axes.text(0.5, loc, "%g" % loc, ha='center', 
                                         va='center',  fontsize=10
             )
-            text.set_bbox(dict(color='white', alpha=0.5, edgecolor='white'))  
+            text.set_bbox(dict(color='white', alpha=0.5))#, edgecolor='white'))  
         self.draw()     
 
 

@@ -2,11 +2,11 @@
 import os
 import json
 import logging
-import wx
+#import wx
 _APP_INIT_FILE = '.gripy_app_config.json'
 
-def get():
-    return wx.App.Get()
+#def get():
+#    return wx.App.Get()
 
 def _read_app_basic_config():
     try:

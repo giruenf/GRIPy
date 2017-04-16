@@ -40,18 +40,24 @@ class LogPlotController(PlotterController):
         
     def insert_track(self):
         UIM = UIManager()
-        tracks = self.get_tracks_selected()
-        if not tracks:
+        selected_tracks = self.get_tracks_selected()
+        if not selected_tracks:
             new_track = UIM.create('track_controller', self.uid)
-         #   new_track.set_ylim(self.model.y_min, self.model.y_max)
-        else:
-            for track in tracks[::-1]:
-                #print '\nINSERINDO NA POSICAO:', track.model.pos
-                new_track = UIM.create('track_controller', self.uid)
-                new_track.model.pos = track.model.pos
-          #      new_track.set_ylim(self.model.y_min, self.model.y_max)
-        #self.refresh_child_positions()         
+            return [new_track.uid] 
+        ret_list = []    
+        for track in selected_tracks[::-1]:
+																 
+            new_track = UIM.create('track_controller', self.uid)
+            new_track.model.pos = track.model.pos
+            ret_list.append(new_track.uid)
+        return ret_list
 
+
+    def remove_selected_tracks(self):
+        UIM = UIManager()
+        for track in self.get_tracks_selected():
+            UIM.remove(track.uid)    
+        self.refresh_child_positions() 
 
     def show_status_message(self, msg):
         self.view.status_bar.SetStatusText(msg, 0)
@@ -64,13 +70,16 @@ class LogPlotController(PlotterController):
        
 
     def get_track_on_position(self, pos):
+       # print 'get_track_on_position:', pos
         try:
             window = self.view.main_panel.top_splitter.GetWindow(pos)
         except Exception:
             window = None
         if window:
             UIM = UIManager()
-            return UIM.get(window.track_view_object._controller_uid)
+            for track in UIM.list('track_controller', self.uid):
+                if track.view.label == window:
+                    return track
         else:
             return None
  
@@ -96,19 +105,7 @@ class LogPlotController(PlotterController):
             #except Exception:
             #    msg = 'ERROR on setting position {} to TrackController {}'.format(i, track_ctrl.uid)
             #    log.exception(msg)
-            #    raise
-       
-         
-    def remove_selected_tracks(self):
-        UIM = UIManager()
-        for track in self.get_tracks_selected():
-            #pos = track.model.pos
-            #self.destroy_track(track)
-            #for i in range(pos, len(self)):
-            #    track = self.get_track_on_position(i)
-            #    track.model.pos = i
-            UIM.remove(track.uid)    
-        self.refresh_child_positions()    
+            #    raise  
 
 
     #def add_to_selection(self, track_controller):
@@ -243,7 +240,7 @@ class LogPlot(Plotter):
                             controller.model.y_max,
 
         )
-        #print 'after\n'
+        
         self.overview_track.set_callback(self._set_new_depth)
         op_sizer.Add(self.overview_track, 1, wx.EXPAND|wx.ALL, self.overview_border)
         self.overview_panel.SetSizer(op_sizer)
@@ -295,7 +292,12 @@ class LogPlot(Plotter):
     def PreDelete(self):
         #print 'PreDelete LogPlot start'
         try:
-            self.vbox.Remove(self.tb)
+            if wx.__version__.startswith('3.0.3'):
+                # Phoenix code
+                self.vbox.Remove(0)
+            else:
+                # wxPython classic code    
+                self.vbox.Remove(self.tb)
             del self.tb
             #print 'PreDelete LogPlot ended normally'
         except Exception, e:
@@ -392,6 +394,10 @@ class LogPlot(Plotter):
             raise Exception()    
 
 
+    def _OnEditFormat(self, event): 
+        UIM = UIManager()
+        lp_editor_ctrl = UIM.create('log_plot_editor_controller', self._controller_uid)
+        lp_editor_ctrl.view.Show()							  
         
             
      #   print aui.AUI_BUTTON_STATE_NORMAL    
@@ -571,7 +577,14 @@ class LogPlotToolBar(aui.AuiToolBar):
         self.Bind(wx.EVT_TOOL, self.GetParent()._on_toolbar_remove_track, tb_item)
   
         self.AddSeparator()  
-   
+
+        if wx.__version__.startswith('3.0.3'):
+            # Phoenix code
+            button_edit_format = wx.Button(self, label='Edit LogPlot')
+            button_edit_format.Bind(wx.EVT_BUTTON , self.GetParent()._OnEditFormat)
+            self.AddControl(button_edit_format, '')
+            self.AddSeparator() 
+            
         self.Realize()  
     
 

@@ -22,7 +22,7 @@ _RENDER_VER = (2,6,1,1)
 
 #----------------------------------------------------------------------
 
-class MultiSplitterWindow(wx.Panel):
+class MultiSplitterWindow(wx.PyPanel):
     """
     This class is very similar to `wx.SplitterWindow` except that it
     allows for more than two windows and more than one sash.  Many of
@@ -67,7 +67,7 @@ class MultiSplitterWindow(wx.Panel):
         style |= wx.BORDER_NONE
 
         # initialize the base class
-        wx.Panel.__init__(self, parent, *args, **kwargs)#id, pos, size, style, name)
+        wx.PyPanel.__init__(self, parent, *args, **kwargs)#id, pos, size, style, name)
         self.SetBackgroundStyle(wx.BG_STYLE_CUSTOM)
 
         # initialize data members
@@ -879,10 +879,8 @@ class MultiSplitterWindow(wx.Panel):
          #   #print '    self.SetSize([{}, {}])'.format(soma, self.GetSize().GetHeight()) 
         #self.Bind(wx.EVT_SIZE, self._OnSize)
         
-        if not wx.__version__.startswith('3.0.3'):
-            # wxPython classic code
-            self.SetBestSize(self.GetSize())    
-            
+
+        self.SetBestSize(self.GetSize())    
         self._SizeWindows()
         
         

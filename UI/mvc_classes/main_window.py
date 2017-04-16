@@ -89,11 +89,19 @@ class MainWindow(UIViewBase, wx.Frame):
             style=controller.model.style              
         ) 
         self.Maximize
-        self._mgr = aui.AuiManager(self)
-        self._mgr .GetArtProvider().SetColor(aui.AUI_DOCKART_BACKGROUND_COLOUR, 
-               wx.SystemSettings.GetColour(wx.SYS_COLOUR_3DFACE))
-        self._mgr.GetArtProvider().SetColor(aui.AUI_DOCKART_INACTIVE_CAPTION_COLOUR,
-               wx.SystemSettings.GetColour(wx.SYS_COLOUR_3DFACE)) 
+        self._mgr = aui.AuiManager(self)       
+        if wx.__version__.startswith('3.0.3'):
+            # Phoenix wx.aui.AuiDockArt changed SetColor to SetColour 
+            self._mgr.GetArtProvider().SetColour(aui.AUI_DOCKART_BACKGROUND_COLOUR, 
+                   wx.SystemSettings.GetColour(wx.SYS_COLOUR_3DFACE))
+            self._mgr.GetArtProvider().SetColour(aui.AUI_DOCKART_INACTIVE_CAPTION_COLOUR,
+                   wx.SystemSettings.GetColour(wx.SYS_COLOUR_3DFACE)) 
+        else:    
+            # wxPython classic code
+            self._mgr.GetArtProvider().SetColor(aui.AUI_DOCKART_BACKGROUND_COLOUR, 
+                   wx.SystemSettings.GetColour(wx.SYS_COLOUR_3DFACE))
+            self._mgr.GetArtProvider().SetColor(aui.AUI_DOCKART_INACTIVE_CAPTION_COLOUR,
+                   wx.SystemSettings.GetColour(wx.SYS_COLOUR_3DFACE)) 
         self.note = aui.AuiNotebook(self)
         self._mgr.AddPane(self.note, aui.AuiPaneInfo().Name("notebook").
                           CenterPane())                           

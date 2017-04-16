@@ -59,7 +59,7 @@ class TreeController(UIControllerBase):
                 treeparentid = self.view.AppendItem(self._mapobjects[parentuid], obj._OM_TREE_PARENT_LABEL)
             except AttributeError:  
                 treeparentid = self.view.AppendItem(self._mapobjects[parentuid], obj.tid)
-            self.view.SetPyData(treeparentid, (parentuid, obj.tid))
+            self.view.SetItemData(treeparentid, (parentuid, obj.tid))
             self._maptypes[parentuid][obj.tid] = treeparentid
         if isinstance(obj, DT.DataTypes.DataTypeUnitMixin):    
             try:    
@@ -69,7 +69,8 @@ class TreeController(UIControllerBase):
         else:
             obj_str = obj.name
         newtreeid = self.view.AppendItem(treeparentid, obj_str)
-        self.view.SetPyData(newtreeid, (obj.uid, None))
+        self.view.SetItemData(newtreeid, (obj.uid, None))
+
         try:
             #attr_str = 'Object Id: ' + str(obj.oid)
             #attrtreeid = self.view.AppendItem(newtreeid, attr_str)
@@ -77,7 +78,7 @@ class TreeController(UIControllerBase):
             for attr, attr_label in obj._OM_TREE_ATTR_SHOWN:
                 attr_str = attr_label + ': ' + str(obj.attributes.get(attr, 'None'))
                 attrtreeid = self.view.AppendItem(newtreeid, attr_str)
-                self.view.SetPyData(attrtreeid, (None, None))
+                self.view.SetItemData(attrtreeid, (None, None))
         except AttributeError:    
             pass
         self._mapobjects[obj.uid] = newtreeid
@@ -87,7 +88,7 @@ class TreeController(UIControllerBase):
     def om_remove_cb(self, objuid):
         treeid = self._mapobjects[objuid]
         treeparentid = self.view.GetItemParent(treeid)
-        parentuid, tid = self.view.GetPyData(treeparentid)
+        parentuid, tid = self.view.GetItemData(treeparentid)
         if self.view.GetChildrenCount(treeid):
             return False
         del self._maptypes[objuid]
@@ -113,9 +114,17 @@ class TreeView(UIViewBase, wx.TreeCtrl):
         wx.TreeCtrl.__init__(self, parent_controller.view, -1, wx.Point(0, 0), wx.Size(200, 250),
                            wx.TR_DEFAULT_STYLE | wx.NO_BORDER)
         self._rootid = self.AddRoot(wx.EmptyString)                  
-        self._set_project_name()  
-        self.SetPyData(self._rootid, (controller._PSEUDOROOTUID, None))
-        self.Bind(wx.EVT_TREE_ITEM_RIGHT_CLICK, self.on_rightclick)        
+        self._set_project_name() 
+        
+        if not wx.__version__.startswith('3.0.3'):
+            # Phoenix code
+            self.SetItemData = self.SetPyData
+            self.GetItemData = self.GetPyData
+            
+        self.SetItemData(self._rootid, (controller._PSEUDOROOTUID, None))
+        
+        self.Bind(wx.EVT_TREE_ITEM_RIGHT_CLICK, self.on_rightclick)     
+        
         '''
         imglist = wx.ImageList(16, 16, True, 2)
         imglist.Add(wx.ArtProvider_GetBitmap(wx.ART_FOLDER, wx.ART_OTHER, wx.Size(16,16)))
@@ -130,15 +139,10 @@ class TreeView(UIViewBase, wx.TreeCtrl):
         parent_controller.view._mgr.Update()
         
         self.Bind(wx.EVT_TREE_BEGIN_DRAG, self._on_begin_drag) 
-        #self.Bind(wx.EVT_TREE_END_DRAG, self.on_end_drag)
 
-    '''
-    def refresh(self):
-        for uid, treeid in self._mapobjects.items():
-            if uid == self._PSEUDOROOTUID:
-                continue
-            self.SetItemText(treeid, self._OM.get(uid).name)
-    '''        
+
+        
+    
 
     def _set_project_name(self, name=wx.EmptyString):
         _UIM = UIManager()
@@ -155,7 +159,7 @@ class TreeView(UIViewBase, wx.TreeCtrl):
         tree = event.GetEventObject()
         if item == tree.GetRootItem():
             return   
-        uid, tree_tid = tree.GetPyData(item)
+        uid, tree_tid = tree.GetItemData(item)
         if tree_tid is not None:
             # Objects have tree_tid == None
             return
@@ -169,11 +173,12 @@ class TreeView(UIViewBase, wx.TreeCtrl):
             drag_source = wx.DropSource(tree)
             drag_source.SetData(data_obj)    
             drag_source.DoDragDrop()  
+            
         # TODO: Verificar se wx.CallAfter pode retornar
         # Motivo: wx.CallAfter não estava funcionando adequadamente em Gtk 
         # no DragAndDrop pois wx.DropSource.DoDragDrop retornava wx.DragNone
         # não permitia entrar no modo Dragging.
-        # Essa a unica solução encontrada - Adriano - 22/3/2017
+        # Essa foi a unica solução encontrada - Adriano - 22/3/2017
         if os.name == 'posix':
             DoDragDrop()
         else:    
@@ -183,7 +188,7 @@ class TreeView(UIViewBase, wx.TreeCtrl):
 
     def on_rightclick(self, event):
         treeid = event.GetItem()
-        uid, tree_tid = self.GetPyData(treeid)
+        uid, tree_tid = self.GetItemData(treeid)
         _UIM = UIManager()
         controller = _UIM.get(self._controller_uid)
         _OM = ObjectManager(self)

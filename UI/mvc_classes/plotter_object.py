@@ -43,6 +43,7 @@ class TrackObjectController(UIControllerBase):
     def __init__(self):
         super(TrackObjectController, self).__init__()
         
+	'''	   
     def plot(self):
         if not self.model.obj_uid:
             return
@@ -63,26 +64,32 @@ class TrackObjectController(UIControllerBase):
             self.model.zmax = np.nanmax(xdata)
         self.view.set_alpha(self.model.alpha)
         
-     
-    def set_uid(self, obj_uid):
-        self.model.obj_uid = obj_uid
+    ''' 
+    #def set_uid(self, obj_uid):
+    #    self.model.obj_uid = obj_uid
      
     def on_change_objuid(self, **kwargs):    
         #print '\nTrackObjectController.on_change_objuid: ', kwargs.get('new_value')
-        self._set_model_on_new_uid(kwargs.get('new_value'))
-        
+        self._set_model_on_new_uid((self.model.obj_tid, self.model.obj_oid))
+          
 
 
     def get_curve_value(self, pixelsdata):
         value = self.view.eixo.transData.inverted().transform_point(pixelsdata)  
-        return self.model.obj_uid, value.tolist()[0]
-            
+        return (self.model.obj_tid, self.model.obj_oid), value.tolist()[0]
+               
 
-    def _set_model_on_new_uid(self, obj_str_uid):
-        tid, oid = parse_string_to_uid(obj_str_uid)
-        _OM = ObjectManager(self)
-        obj = _OM.get((tid, oid))
-    
+    def _set_model_on_new_uid(self, obj_uid):
+												   
+        _OM = ObjectManager(self) 
+        try:
+            obj = _OM.get(obj_uid)
+        except KeyError:
+            #print '\nKeyError'
+            return
+        #if not obj:
+        #    print '\nNOT OBJ\n'
+        #    return	  
         if obj.tid == 'log':
             # TODO: Rever isso
             parms = Parms.ParametersManager.get().get_curve_parms(obj.name)     
@@ -156,6 +163,20 @@ class TrackObjectController(UIControllerBase):
         self.view.set_title(obj.name)
         self.view.set_object_uid(obj.uid)     
 
+        index_data = obj.get_index_data()
+        if obj.tid == 'partition':
+            xdata = {}
+            for part in obj.list('part'): 
+                xdata[part.code] = (part.color, part.data)
+        else:
+            xdata = obj.data
+        self.view.set_data(xdata, index_data)
+        
+        if self.model.plottype == 'density':
+            self.model.zmin = np.nanmin(xdata)
+            self.model.zmax = np.nanmax(xdata)
+        self.view.set_alpha(self.model.alpha)
+
 
     def on_change_plottype(self, **kwargs):
         #print '\nTrackObjectController.on_change_plottype'
@@ -214,9 +235,13 @@ class TrackObjectModel(UIModelBase):
     tid = 'track_object_model'
     
     _ATTRIBUTES = {
-        'obj_uid': {'default_value': wx.EmptyString, 
-                    'type': str, 
-                    'on_change': TrackObjectController.on_change_objuid
+        'obj_tid': {'default_value': wx.EmptyString, 
+                'type': str, 
+                'on_change': TrackObjectController.on_change_objuid
+        },
+        'obj_oid': {'default_value': -1, 
+                'type': int, 
+                'on_change': TrackObjectController.on_change_objuid
         },
         'left_scale': {'default_value': FLOAT_NULL_VALUE, 
                        'type': float,
@@ -437,7 +462,9 @@ class TrackObjectView(UIViewBase):
         #if isinstance(self._mplot_obj, matplotlib.image.AxesImage):
         self.eixo.set_xlim((left_scale, right_scale))
         self.cima.set_xlim((left_scale, right_scale)) 
-       
+        # TODO: Tentar retirar a linha abaixo assim que possivel, pois o self.cima nao precisa dela e
+        # não estamos dando draw() em todo o FigureCanvas
+        self.draw()
 
 
     def set_xlabel_lim(self, xmin, xmax):

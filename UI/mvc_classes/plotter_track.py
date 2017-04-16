@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 import wx
 from App.utils import DropTarget
+from App.utils import DropTargetClassic
 from OM.Manager import ObjectManager
 from UI.uimanager import UIManager
 from UI.uimanager import UIControllerBase 
@@ -44,28 +45,28 @@ class TrackController(UIControllerBase):
     def append_object(self, obj_uid):
         UIM = UIManager()
         toc = UIM.create('track_object_controller', self.uid)  
-        toc.set_uid(obj_uid)
-        toc.plot()
-        #toc.set_data(obj.data, index_data)
-        
-        """
-        _ATTRIBUTES = {
-            'obj_uid': {'default_value': wx.EmptyString, 
-                        'type': str, 
-                        'on_change': TrackObjectController.on_change_objuid
-            },
-            'left_scale': {'default_value': FLOAT_NULL_VALUE, 'type': float},
-            'right_scale': {'default_value': FLOAT_NULL_VALUE, 'type': float},
-            'unit': {'default_value': wx.EmptyString, 'type': str},
-            'backup': {'default_value': wx.EmptyString, 'type': str},
-            'thickness': {'default_value': 1, 'type': int},
-            'color': {'default_value': 'black', 'type': str},
-            'x_scale': {'default_value': 0, 'type': int},
-            'plottype': {'default_value': wx.EmptyString, 'type': str},
-            'visible': {'default_value': True, 'type': bool},
-            'cmap': {'default_value': 'rainbow', 'type': str},
-        }     
-        """
+        tid, oid = parse_string_to_uid(obj_uid)
+        #print 'append_object:', tid, oid
+        toc.model.obj_tid = tid
+        #print 'oid'
+        toc.model.obj_oid = oid
+        #print 'fim'
+        #toc.set_uid(obj_uid)
+       # toc.plot()
+
+			  
+																			 
+																			  
+																   
+																	 
+														   
+															 
+														 
+																	   
+															 
+															  
+			  
+	
         
     def set_ylim(self, ymin, ymax):
         self.view._set_ylim(ymin, ymax) 
@@ -127,10 +128,7 @@ class TrackController(UIControllerBase):
                             for track in UIM.do_query(self.tid, pos=i):
                                 if track is not self:
                                     track.model.pos -= 1 
-                #i = kwargs.get('old_value')
-                #for i in range(kwargs.get('old_value')-1, kwargs.get('new_value'), -1):
-                    
-                
+
             if not self.model.label:
                 self.view.update_title(kwargs.get('new_value')+1)                
             
@@ -226,13 +224,17 @@ class TrackView(UIViewBase):
                 **controller.model.get_state()
         ) 
         
-        self.dt1 = DropTarget(controller.append_object)
-        #self.dt1.set_callback(controller.append_object)
-        self.label.SetDropTarget(self.dt1)
-        self.dt2 = DropTarget(controller.append_object)
-        #self.dt2.set_callback(controller.append_object)
+        if wx.__version__.startswith('3.0.3'):
+            # Phoenix code
+            self.dt1 = DropTarget(controller.append_object)
+            self.dt2 = DropTarget(controller.append_object)
+        else:
+            self.dt1 = DropTargetClassic(controller.append_object)
+            self.dt2 = DropTargetClassic(controller.append_object)            
+        
+        self.label.SetDropTarget(self.dt1)        
         self.track.SetDropTarget(self.dt2)
-        #self.track.SetDropTarget(self.dt)
+
 
         self.track.mpl_connect('motion_notify_event', self.on_track_move)
         
@@ -245,9 +247,9 @@ class TrackView(UIViewBase):
         UIM = UIManager()
         pixelsdata = event.inaxes.transData.transform_point((event.xdata, event.ydata))
         for to in UIM.list('track_object_controller', self._controller_uid):
-            uid_string, value = to.get_curve_value(pixelsdata)
-            tid, oid = parse_string_to_uid(uid_string)
-            obj = OM.get((tid, oid))
+            uid, value = to.get_curve_value(pixelsdata)
+													  
+            obj = OM.get(uid)
             info += ', ' + obj.name + ': {:0.2f}'.format(value)    
         parent_controller_uid = UIM._getparentuid(self._controller_uid)
         parent_controller =  UIM.get(parent_controller_uid)
@@ -272,7 +274,8 @@ class TrackView(UIViewBase):
                                       controller.model.width
         )         
         
-        
+
+
     def PreDelete(self):
         #print 'PreDelete TrackView start'
         try:
@@ -294,6 +297,7 @@ class TrackView(UIViewBase):
             print'PreDelete TrackView ended with error:', e.args
             raise
         #print 'PreDelete TrackView ended normally'
+
 
 
     def update_title(self, new_title):
@@ -484,7 +488,7 @@ class TrackView(UIViewBase):
                     event.canvas.Bind(wx.EVT_MENU, self.menu_selection, id=Decades10000Id)
                     decades_submenu.AppendRadioItem(Decades100000Id, '100.000')
                     event.canvas.Bind(wx.EVT_MENU, self.menu_selection, id=Decades100000Id)
-                    decades_submenu.AppendRadioItem(Decades100000Id, '1.000.000')
+                    decades_submenu.AppendRadioItem(Decades1000000Id, '1.000.000')
                     event.canvas.Bind(wx.EVT_MENU, self.menu_selection, id=Decades1000000Id)
                     if controller.model.decades == 1:
                         decades_submenu.Check(Decades1Id, True)  

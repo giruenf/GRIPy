@@ -87,8 +87,28 @@ class Chronometer(object):
         self.total = timeit.default_timer() - self.start_time
         return 'Execution in {:0.3f}s'.format(self.total)        
           
+# Phoenix DropTarget code
+class DropTarget(wx.DropTarget):
+    
+    def __init__(self, callback):
+        wx.DropTarget.__init__(self)
+        self.data = wx.CustomDataObject('obj_uid')
+        self.SetDataObject(self.data)
+        self.callback = callback
         
-class DropTarget(wx.PyDropTarget):
+    def OnDrop(self, x, y):
+        return True
+
+    def OnData(self, x, y, d):
+        if self.GetData(): 
+            data = self.data.GetData().tobytes()
+            if data:
+                wx.CallAfter(self.callback, repr(data))
+        return d   
+        
+# TODO: Remove it!
+# wxPython classic DropTarget code        
+class DropTargetClassic(wx.PyDropTarget):
     
     def __init__(self, callback):
         wx.PyDropTarget.__init__(self)

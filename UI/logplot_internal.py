@@ -1,14 +1,20 @@
 # -*- coding: utf-8 -*-
 import wx
 from wx.lib.scrolledpanel import ScrolledPanel
-from trackssplitter import MultiSplitterWindow
+        
+if wx.__version__.startswith('3.0.3'):
+    # Phoenix code
+    from trackssplitter import MultiSplitterWindow
+else:    
+    # wxPython classic code
+    from trackssplitter_classic import MultiSplitterWindow
 
 
 class LogPlotInternal(wx.SplitterWindow):  
     SASH_POSITION = 100    
     
     def __init__(self, parent):
-        super(LogPlotInternal, self).__init__(parent) 
+        super(LogPlotInternal, self).__init__(parent, style=wx.SP_THIN_SASH) 
         self._top_panel = BaseScrolled(self)
         self._bottom_panel = BaseScrolled(self)
         self.SplitHorizontally(self._top_panel, self._bottom_panel)

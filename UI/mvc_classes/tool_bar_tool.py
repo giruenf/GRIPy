@@ -28,8 +28,13 @@ class ToolBarToolController(UIControllerBase):
         grampa_uid = _UIM._getparentuid(parent_uid)
         parent = _UIM.get(parent_uid)
         grampa =  _UIM.get(grampa_uid)
-        if isinstance(grampa, MainWindowController):    
-            mgr = wx.aui.AuiManager_GetManager(root_ctrl.view)
+        if isinstance(grampa, MainWindowController):  
+            if wx.__version__.startswith('3.0.3'):
+                # Phoenix code
+                mgr = wx.aui.AuiManager.GetManager(root_ctrl.view)
+            else:    
+                # wxPython classic code
+                mgr = wx.aui.AuiManager_GetManager(root_ctrl.view)
             if mgr is not None:
                 mgr.DetachPane(parent.view)
             
@@ -46,11 +51,25 @@ class ToolBarToolController(UIControllerBase):
             bitmap = wx.Bitmap()
         else:
             bitmap = wx.Bitmap(self.model.bitmap)
+            
         # TODO: Rever isso
         try:
-            tool = parent.view.DoInsertTool(self.model.pos, 
-                self.model.id, self.model.label, bitmap, wx.NullBitmap, 
-                self.model.kind, self.model.help, self.model.long_help, None)
+            if wx.__version__.startswith('3.0.3'):
+                # Phoenix code
+                tool = parent.view.InsertTool(self.model.pos, self.model.id,
+                                                self.model.label, bitmap, 
+                                                wx.NullBitmap, self.model.kind,
+                                                self.model.help, 
+                                                self.model.long_help, None
+                )
+            else:
+                # wxPython classic code
+                tool = parent.view.DoInsertTool(self.model.pos, self.model.id,
+                                                self.model.label, bitmap, 
+                                                wx.NullBitmap, self.model.kind,
+                                                self.model.help, 
+                                                self.model.long_help, None
+                )
         except Exception:
             msg = 'Error in creating ToolBarTool.'
             logging.exception(msg)
@@ -58,6 +77,7 @@ class ToolBarToolController(UIControllerBase):
         if self.model.callback and tool:
             root_ctrl.view.Bind(wx.EVT_TOOL, self.model.callback, tool)
             parent.view.Realize()
+            
         # AtachPane again if granpa object had it detached...    
         if isinstance(grampa, MainWindowController):        
             mgr.AddPane(parent.view, parent.view.paneinfo)
