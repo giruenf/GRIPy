@@ -7,6 +7,7 @@ from UI.uimanager import UIViewBase
 from UI.uimanager import UI_MODEL_ATTR_CLASS
 from menu_bar import MenuBarController
 from App import log
+from App.utils import is_wxPhoenix
 
 
 class MenuController(UIControllerBase):
@@ -91,7 +92,7 @@ class MenuView(UIViewBase, wx.Menu):
                 msg = 'Invalid position for Menu with label={}. Position will be setting to {}'.format(controller.model.label, parent_controller.view.GetMenuItemCount())
                 log.warning(msg)
                 controller.model.pos = parent_controller.view.GetMenuCount() 
-            if wx.__version__.startswith('3.0.3'):
+            if is_wxPhoenix():
                 # Phoenix code
                 parent_controller.view.Insert(controller.model.pos, 
                                                   controller.model.id, 
@@ -125,7 +126,7 @@ class MenuView(UIViewBase, wx.Menu):
 
 
     def _InsertItem(self, pos, menu_item_view):
-        if wx.__version__.startswith('3.0.3'):
+        if is_wxPhoenix():
             # Phoenix code
             self.Insert(pos, menu_item_view)
         else:

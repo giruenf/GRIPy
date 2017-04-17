@@ -7,6 +7,7 @@ from UI.uimanager import UIModelBase
 from UI.uimanager import UIViewBase 
 from UI.uimanager import UI_MODEL_ATTR_CLASS
 from App import log
+from App.utils import is_wxPhoenix
 
     
 class MainWindowController(UIControllerBase):
@@ -89,8 +90,8 @@ class MainWindow(UIViewBase, wx.Frame):
             style=controller.model.style              
         ) 
         self.Maximize
-        self._mgr = aui.AuiManager(self)       
-        if wx.__version__.startswith('3.0.3'):
+        self._mgr = aui.AuiManager(self)      
+        if is_wxPhoenix():
             # Phoenix wx.aui.AuiDockArt changed SetColor to SetColour 
             self._mgr.GetArtProvider().SetColour(aui.AUI_DOCKART_BACKGROUND_COLOUR, 
                    wx.SystemSettings.GetColour(wx.SYS_COLOUR_3DFACE))

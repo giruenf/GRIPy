@@ -496,7 +496,7 @@ class GripyApp(wx.App):
         msg = 'GriPy Application has finished.'
         log.info(msg)
         print msg, '\n'
-        if wx.__version__.startswith('3.0.3'):
+        if utils.is_wxPhoenix():
             # Phoenix code
             return super(GripyApp, self).OnExit()
         

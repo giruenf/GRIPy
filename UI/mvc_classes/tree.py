@@ -7,6 +7,7 @@ from UI.uimanager import UIManager
 from UI.uimanager import UIControllerBase 
 from UI.uimanager import UIViewBase 
 from App import log 
+from App.utils import is_wxPhoenix
       
       
 class TreeController(UIControllerBase):
@@ -116,7 +117,7 @@ class TreeView(UIViewBase, wx.TreeCtrl):
         self._rootid = self.AddRoot(wx.EmptyString)                  
         self._set_project_name() 
         
-        if not wx.__version__.startswith('3.0.3'):
+        if not is_wxPhoenix():
             # Phoenix code
             self.SetItemData = self.SetPyData
             self.GetItemData = self.GetPyData

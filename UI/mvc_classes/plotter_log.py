@@ -8,7 +8,8 @@ from UI.uimanager import UIManager
 from UI.logplot_base import OverviewFigureCanvas
 from UI.logplot_internal import LogPlotInternal
 from UI.plotstatusbar import PlotStatusBar
-from App.utils import LogPlotState        
+from App.utils import LogPlotState  
+from App.utils import is_wxPhoenix      
 from App import log   
       
       
@@ -292,7 +293,7 @@ class LogPlot(Plotter):
     def PreDelete(self):
         #print 'PreDelete LogPlot start'
         try:
-            if wx.__version__.startswith('3.0.3'):
+            if is_wxPhoenix():
                 # Phoenix code
                 self.vbox.Remove(0)
             else:
@@ -578,7 +579,7 @@ class LogPlotToolBar(aui.AuiToolBar):
   
         self.AddSeparator()  
 
-        if wx.__version__.startswith('3.0.3'):
+        if is_wxPhoenix():
             # Phoenix code
             button_edit_format = wx.Button(self, label='Edit LogPlot')
             button_edit_format.Bind(wx.EVT_BUTTON , self.GetParent()._OnEditFormat)

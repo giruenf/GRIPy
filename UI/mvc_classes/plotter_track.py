@@ -12,7 +12,7 @@ from title_base import PlotLabel
 from App.utils import LogPlotState  
 from App.utils import parse_string_to_uid
 from App import log
-
+from App.utils import is_wxPhoenix
 
 
 
@@ -224,7 +224,7 @@ class TrackView(UIViewBase):
                 **controller.model.get_state()
         ) 
         
-        if wx.__version__.startswith('3.0.3'):
+        if is_wxPhoenix():
             # Phoenix code
             self.dt1 = DropTarget(controller.append_object)
             self.dt2 = DropTarget(controller.append_object)

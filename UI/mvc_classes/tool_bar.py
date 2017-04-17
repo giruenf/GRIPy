@@ -7,7 +7,7 @@ from UI.uimanager import UIViewBase
 from UI.uimanager import UI_MODEL_ATTR_CLASS
 from main_window import MainWindowController
 from App import log
-
+from App.utils import is_wxPhoenix
 
 
  
@@ -65,7 +65,7 @@ class ToolBarView(UIViewBase, wx.ToolBar):
         self.Realize()  
 
         if isinstance(parent_controller, MainWindowController):
-            if wx.__version__.startswith('3.0.3'):
+            if is_wxPhoenix():
                 # Phoenix code
                 mgr = wx.aui.AuiManager.GetManager(parent_controller.view)
             else:

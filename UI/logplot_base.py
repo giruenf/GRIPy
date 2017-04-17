@@ -11,6 +11,7 @@ from matplotlib.figure import Figure
 import numpy as np
 from matplotlib.ticker import NullFormatter, MultipleLocator
 from matplotlib.colors import colorConverter
+from App.utils import is_wxPhoenix
 
 
 # TODO: Review it!
@@ -2133,7 +2134,7 @@ class OverviewFigureCanvas(_BaseFigureCanvas):
             if canvas_number != -1:
                 ##print 'Entrou -', canvas_number
                 self._in_canvas = canvas_number
-                if wx.__version__.startswith('3.0.3'):
+                if is_wxPhoenix():
                     # Phoenix code
                     self.SetCursor(wx.Cursor(wx.CURSOR_SIZENS))
                 else:

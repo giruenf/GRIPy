@@ -11,6 +11,11 @@ from enum import Enum
 #from App import log
 
 
+
+def is_wxPhoenix():
+    return 'phoenix' in wx.version()
+
+   
 def get_caller_info():
     """
         It is a Python 2 hack for a feature only avaialable in Python 3.3+

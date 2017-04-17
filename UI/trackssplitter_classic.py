@@ -82,12 +82,8 @@ class MultiSplitterWindow(wx.PyPanel):
         self._checkRequestedSashPosition = False
         self._minimumPaneSize = 0
         
-        if wx.__version__.startswith('3.0.3'):
-            # Phoenix code
-            self._sashCursorWE = wx.Cursor(wx.CURSOR_SIZEWE)
-        else:
-            # wxPython classic code
-            self._sashCursorWE = wx.StockCursor(wx.CURSOR_SIZEWE)
+
+        self._sashCursorWE = wx.StockCursor(wx.CURSOR_SIZEWE)
 
 
         self._needUpdating = False
@@ -389,46 +385,28 @@ class MultiSplitterWindow(wx.PyPanel):
     #            #print '  construindo'
                 #
                 panel = wx.Panel(window.GetParent())
-                if wx.__version__.startswith('3.0.3'):
-                    # Phoenix code
-                    panel.SetSize(x, y, w, self._GetSashSize())
-                else:
-                    # wxPython classic code
-                    panel.SetDimensions(x, y, w, self._GetSashSize())
+
+                panel.SetDimensions(x, y, w, self._GetSashSize())
                 panel.SetBackgroundColour(self.selectedWindowColor)
                 window.selectedCanvas.append(panel)
                 #    
     #            #print 1
                 panel = wx.Panel(window.GetParent()) 
-                if wx.__version__.startswith('3.0.3'):
-                    # Phoenix code
-                    panel.SetSize(x, h, w, self._GetSashSize())
-                else:
-                    # wxPython classic code
-                    panel.SetDimensions(x, h, w, self._GetSashSize())
+
+                panel.SetDimensions(x, h, w, self._GetSashSize())
                 panel.SetBackgroundColour(self.selectedWindowColor)
                 window.selectedCanvas.append(panel)
     #            #print 2
                 #            
-                panel = wx.Panel(window.GetParent()) 
-                if wx.__version__.startswith('3.0.3'):
-                    # Phoenix code
-                    panel.SetSize(x, y, self._GetSashSize(), h)
-                else:
-                    # wxPython classic code
-                    panel.SetDimensions(x, y, self._GetSashSize(), h)
+
+                panel.SetDimensions(x, y, self._GetSashSize(), h)
                 panel.SetBackgroundColour(self.selectedWindowColor)
                 window.selectedCanvas.append(panel)
     #            #print 3
                 #            
                 panel = wx.Panel(window.GetParent()) 
-                if wx.__version__.startswith('3.0.3'):
-                    # Phoenix code
-                    panel.SetSize((x + w - self._GetSashSize()), y, 
-                                    self._GetSashSize(), h)
-                else:
-                    # wxPython classic code
-                    panel.SetDimensions((x + w - self._GetSashSize()), y, 
+
+                panel.SetDimensions((x + w - self._GetSashSize()), y, 
                                     self._GetSashSize(), h)
                 panel.SetBackgroundColour(self.selectedWindowColor)
                 
@@ -436,38 +414,16 @@ class MultiSplitterWindow(wx.PyPanel):
     #            #print 4
             else:
     #            #print '  atualizando'
-            
-                if wx.__version__.startswith('3.0.3'):
-                    # Phoenix code
-                    window.selectedCanvas[0].SetSize(x, y, w, self._GetSashSize())
-                else:
-                    # wxPython classic code
-                    window.selectedCanvas[0].SetDimensions(x, y, w, self._GetSashSize())
+                window.selectedCanvas[0].SetDimensions(x, y, w, self._GetSashSize())
                 window.selectedCanvas[0].Refresh()
-                
-                if wx.__version__.startswith('3.0.3'):
-                    # Phoenix code
-                    window.selectedCanvas[1].SetSize(x, h, w, self._GetSashSize())
-                else:
-                    # wxPython classic code
-                    window.selectedCanvas[1].SetDimensions(x, h, w, self._GetSashSize())
+
+                window.selectedCanvas[1].SetDimensions(x, h, w, self._GetSashSize())
                 window.selectedCanvas[1].Refresh()
 
-                if wx.__version__.startswith('3.0.3'):       
-                    # Phoenix code
-                    window.selectedCanvas[2].SetSize(x, y, self._GetSashSize(), h)
-                else:
-                    # wxPython classic code
-                    window.selectedCanvas[2].SetDimensions(x, y, self._GetSashSize(), h)
+                window.selectedCanvas[2].SetDimensions(x, y, self._GetSashSize(), h)
                 window.selectedCanvas[2].Refresh()
                 
-                if wx.__version__.startswith('3.0.3'):       
-                    # Phoenix code
-                    window.selectedCanvas[3].SetSize((x + w - self._GetSashSize()), y, 
-                                        self._GetSashSize(), h)
-                else:
-                    # wxPython classic code
-                    window.selectedCanvas[3].SetDimensions((x + w - self._GetSashSize()), y, 
+                window.selectedCanvas[3].SetDimensions((x + w - self._GetSashSize()), y, 
                                         self._GetSashSize(), h)
                 window.selectedCanvas[3].Refresh()                        
                                     
@@ -753,12 +709,7 @@ class MultiSplitterWindow(wx.PyPanel):
             border = self._GetBorderSize()
             h = self.GetClientSize().GetHeight() - 2*border
             sash = self._GetSashSize()
-            if wx.__version__.startswith('3.0.3'):
-                # Phoenix code            
-                self.trackerCanvas.SetSize(posx, border, sash, h)
-            else:    
-                # wxPython classic code
-                self.trackerCanvas.SetDimensions(posx, border, sash, h)
+            self.trackerCanvas.SetDimensions(posx, border, sash, h)
         
     def _DragSashTracker(self, x):
         if self.trackerCanvas:
@@ -916,12 +867,7 @@ class MultiSplitterWindow(wx.PyPanel):
             ##print '    _sash:', idx, spos
             window = self.GetWindow(idx)
             if window.IsShown():
-                if wx.__version__.startswith('3.0.3'):
-                    # Phoenix code
-                    window.SetSize(x, y, spos, h)
-                else:
-                    # wxPython classic code
-                    window.SetDimensions(x, y, spos, h)
+                window.SetDimensions(x, y, spos, h)
                 ##print '    {} - SetDimensions({}, {}, {}, {})'.format(window._view._controller_uid, x, y, spos, h)
                 
                 #for panel in window.selectedCanvas:

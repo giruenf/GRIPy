@@ -8,6 +8,7 @@ from UI.uimanager import UIModelBase
 from UI.uimanager import UI_MODEL_ATTR_CLASS
 from main_window import MainWindowController
 from App import log
+from App.utils import is_wxPhoenix
 
 
 class ToolBarToolController(UIControllerBase):
@@ -29,7 +30,7 @@ class ToolBarToolController(UIControllerBase):
         parent = _UIM.get(parent_uid)
         grampa =  _UIM.get(grampa_uid)
         if isinstance(grampa, MainWindowController):  
-            if wx.__version__.startswith('3.0.3'):
+            if is_wxPhoenix():
                 # Phoenix code
                 mgr = wx.aui.AuiManager.GetManager(root_ctrl.view)
             else:    
@@ -54,7 +55,7 @@ class ToolBarToolController(UIControllerBase):
             
         # TODO: Rever isso
         try:
-            if wx.__version__.startswith('3.0.3'):
+            if is_wxPhoenix():
                 # Phoenix code
                 tool = parent.view.InsertTool(self.model.pos, self.model.id,
                                                 self.model.label, bitmap, 

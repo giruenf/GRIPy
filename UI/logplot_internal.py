@@ -1,8 +1,9 @@
 # -*- coding: utf-8 -*-
 import wx
 from wx.lib.scrolledpanel import ScrolledPanel
+from App.utils import is_wxPhoenix
         
-if wx.__version__.startswith('3.0.3'):
+if is_wxPhoenix():
     # Phoenix code
     from trackssplitter import MultiSplitterWindow
 else:    
