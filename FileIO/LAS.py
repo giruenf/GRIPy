@@ -364,11 +364,14 @@ class LASReader(LASFile):
                     new_mnem = old_mnem
                     count = 0
                     while new_mnem in section:
-                        if _VERBOSE: print "Nome de curva repetido:", new_mnem
                         count += 1
                         new_mnem = old_mnem + '_{:0>4}'.format(count)
-                        if _VERBOSE: print "Substituindo por:", new_mnem
-
+                    
+                    if _VERBOSE and count:
+                        print "Nome de curva repetido:", old_mnem
+                        print "Substituindo por:", new_mnem
+                    
+                    parsedline['MNEM'] = new_mnem
                     section[new_mnem] = parsedline
                     sectionlayout[new_mnem] = linelayout
                     
@@ -1027,22 +1030,23 @@ class LASWriter(LASFile):
         else:
             allignsymbol = '>'
         
+        maxwidth = 80
         pattern = '{{:{}{}.{}g}}'.format(allignsymbol, collumnwidth, maxprecision)
         
         lines = []
         if wrap:
-            ncolumns = 80//collumnwidth
+            ncolumns = (maxwidth + 1)//(collumnwidth + 1)
             nrows = (newdata.shape[0] - 1)//ncolumns
             nrest = (newdata.shape[0] - 1) % ncolumns
-            linepattern = pattern*ncolumns
-            restpattern = pattern*nrest
+            linepattern = ' '.join([pattern]*ncolumns)
+            restpattern = ' '.join([pattern]*nrest)
             for line in newdata.T:
                 lines.append(pattern.format(line[0]))
                 for i in range(nrows):
                     lines.append(linepattern.format(*line[1+i*ncolumns:1+(i+1)*ncolumns]))
                 lines.append(restpattern.format(*line[1+nrows*ncolumns:]))
         else:
-            linepattern = pattern*newdata.shape[0]
+            linepattern = ' '.join([pattern]*newdata.shape[0])
             for line in newdata.T:
                 lines.append(linepattern.format(*line))
         
