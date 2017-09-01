@@ -1,4 +1,4 @@
-Gripy Change log
+﻿Gripy Change log
 
 Versão 0.6:
 ===========
@@ -22,12 +22,10 @@ Versão 0.6:
       relativa lentidão devido a interpolação realizada para o preenchimento;
     - Os codigos relacionados ao Matplotlib (tracks e track_labels) 
       foram concentrados no arquivo UI\mvc_classes\mpl_base.py
-    - Inclusão de changelog ;-)
-	
-	###
-	
-	- OM.registertype -> OM.register_class
+   - OM.registertype -> OM.register_class
    - Novos DataTypes: Inversion, WellGather, etc
    - Novo sistema de criacao de dialogos;
    - Utilização de wx.WindowDisabler e wx.BusyInfo para avisar ao usuário da
      execução de um processo que necessite uma "pausa" da interface;
+   - Correção de erro nas telas de importação de arquivos .las (por @fvizeus) 
+   - Inclusão de changelog ;-)		
