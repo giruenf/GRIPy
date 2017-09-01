@@ -7,17 +7,45 @@ import numpy as np
 
 from OM.Manager import ObjectManager
 
+from App import utils
+
 from Basic.Colors import COLOR_CYCLE_RGB
 
 # TODO: Tirar a necessidade do uso disso
 NAME_UNIT_SEPARATOR = ':::'
+_iswxphoenix = utils.is_wxPhoenix()
 
 COLOUR_DATA = wx.ColourData()
 for i, color in enumerate(COLOR_CYCLE_RGB):
     COLOUR_DATA.SetCustomColour(i, color)
 
 
-class PartitionTable(wx.grid.PyGridTableBase):
+if _iswxphoenix:
+    _gridtablebase = wx.grid.GridTableBase
+else:
+    _gridtablebase = wx.grid.PyGridTableBase
+
+
+__DEBUG = False
+
+def debugdecorator(func):
+    if not __DEBUG:
+        return func
+    funcname = func.__name__
+    def wrapper(*args, **kwargs):
+        print funcname, "IN"
+        print "args:", repr(args)
+        print "kwargs:", repr(kwargs)
+        result = func(*args, **kwargs)
+        print "return:", repr(result)
+        print funcname, "OUT"
+        return result
+    wrapper.__name__ = funcname
+    return wrapper
+
+
+class PartitionTable(_gridtablebase):
+    @debugdecorator
     def __init__(self, partitionuid):
         super(PartitionTable, self).__init__()
         
@@ -32,7 +60,8 @@ class PartitionTable(wx.grid.PyGridTableBase):
             self.N_PROPS = 4
         else:
             self.N_PROPS = 2
-
+    
+    @debugdecorator
     def AppendCols(self, numCols=1):
         for i in range(numCols):
             prop = self._OM.new('property')
@@ -46,7 +75,8 @@ class PartitionTable(wx.grid.PyGridTableBase):
         self.GetView().EndBatch()
 
         return True
-
+    
+    @debugdecorator
     def DeleteCols(self, pos=0, numCols=1):
         if pos >= self.N_PROPS:
             i = pos - self.N_PROPS
@@ -62,6 +92,7 @@ class PartitionTable(wx.grid.PyGridTableBase):
         else:
             return False
 
+    @debugdecorator
     def GetColLabelValue(self, col):
         if col >= self.N_PROPS:
             i = col - self.N_PROPS
@@ -84,7 +115,7 @@ class PartitionTable(wx.grid.PyGridTableBase):
 #            if label:
 #                return "Topo - " + label
 #            else:
-                return "Topo"
+            return "Topo"
         elif col == 3:
 #            TODO: rever isso para particoes topo-base
 #            label = self.partition.depth.name
@@ -94,11 +125,13 @@ class PartitionTable(wx.grid.PyGridTableBase):
 #            if label:
 #                return "Base - " + label
 #            else:
-                return "Base"
+            return "Base"
 
+    @debugdecorator
     def GetRowLabelValue(self, row):
         return str(row + 1)
 
+    @debugdecorator
     def SetColLabelValue(self, col, label):
         if col >= self.N_PROPS:
             i = col - self.N_PROPS
@@ -109,37 +142,41 @@ class PartitionTable(wx.grid.PyGridTableBase):
         else:
             return
 
+    @debugdecorator
     def SetRowLabelValue(self, row, label):
         return
 
+    @debugdecorator
     def GetNumberCols(self):
         return len(self.propmap) + self.N_PROPS
 
+    @debugdecorator
     def GetNumberRows(self):
         return len(self.partmap)
 
+    @debugdecorator
     def GetAttr(self, row, col, kind):
-        if col >= self.N_PROPS:
+        
+        if _iswxphoenix:
+            attr = wx.grid.GridCellAttr().Clone()
+        else:
             attr = wx.grid.GridCellAttr()
+        
+        if col >= self.N_PROPS:
             attr.SetAlignment(wx.ALIGN_RIGHT, wx.ALIGN_CENTER)
-            return attr
         elif col == 0:
-            return
+            attr.SetAlignment(wx.ALIGN_RIGHT, wx.ALIGN_CENTER)
         elif col == 1:
             part = self._OM.get(self.partmap[row])
-            attr = wx.grid.GridCellAttr()
             attr.SetBackgroundColour(part.color)
             attr.SetReadOnly(True)
-            return attr
         elif col == 2:
-            attr = wx.grid.GridCellAttr()
             attr.SetAlignment(wx.ALIGN_RIGHT, wx.ALIGN_CENTER)
-            return attr
         elif col == 3:
-            attr = wx.grid.GridCellAttr()
             attr.SetAlignment(wx.ALIGN_RIGHT, wx.ALIGN_CENTER)
-            return attr
+        return attr
 
+    @debugdecorator
     def GetValue(self, row, col):
         if col >= self.N_PROPS:
             i = col - self.N_PROPS
@@ -160,15 +197,16 @@ class PartitionTable(wx.grid.PyGridTableBase):
 #            if not np.isnan(value):
 #                return str(value)
 #            else:
-                return ''
+            return ''
         elif col == 3:
 #            TODO: rever isso para particoes topo-base
 #            value = self.partition.bottoms[row]
 #            if not np.isnan(value):
 #                return str(value)
 #            else:
-                return ''
+            return ''
 
+    @debugdecorator
     def SetValue(self, row, col, value):
         if col >= self.N_PROPS:
             i = col - self.N_PROPS
@@ -200,20 +238,24 @@ class PartitionTable(wx.grid.PyGridTableBase):
 #            self.partition.bottoms[row] = value
             return
 
+    @debugdecorator
     def set_color(self, row, color):
         part = self._OM.get(self.partmap[row])
         part.color = color
 
+    @debugdecorator
     def get_color(self, row):
         part = self._OM.get(self.partmap[row])
         return part.color
     
+    @debugdecorator
     def get_nameunit(self, col):
         if col >= self.N_PROPS:
             i = col - self.N_PROPS
             prop = self._OM.get(self.propmap[i])
             return prop.name, prop.unit
 
+    @debugdecorator
     def set_nameunit(self, col, name, unit):
         if col >= self.N_PROPS:
             i = col - self.N_PROPS
@@ -238,9 +280,13 @@ class PropertyEntryDialog(wx.Dialog):
         sizer = wx.BoxSizer(wx.VERTICAL)
 
         button_sizer = self.CreateButtonSizer(wx.OK | wx.CANCEL)
-
-        sizer.AddSizer(fgs, proportion=1, flag=wx.EXPAND)
-        sizer.AddSizer(button_sizer, proportion=0, flag=wx.EXPAND)
+        
+        if _iswxphoenix:
+            sizer.Add(fgs, proportion=1, flag=wx.EXPAND)
+            sizer.Add(button_sizer, proportion=0, flag=wx.EXPAND)
+        else:
+            sizer.AddSizer(fgs, proportion=1, flag=wx.EXPAND)
+            sizer.AddSizer(button_sizer, proportion=0, flag=wx.EXPAND)
 
         self.SetSizer(sizer)
 
@@ -255,12 +301,11 @@ class PropertyEntryDialog(wx.Dialog):
 
 
 class Dialog(wx.Dialog):
+    @debugdecorator
     def __init__(self, *args, **kwargs):
         if 'size' not in kwargs:
             kwargs['size'] = (640, 480)
-            
-        print args[0]
-        print
+        
         super(Dialog, self).__init__(*args, **kwargs)
         
         # TODO: Adaptar para quando não houver partições
@@ -313,11 +358,15 @@ class Dialog(wx.Dialog):
         toolbar_sizer.Add(remove_property_button, 0, wx.ALIGN_LEFT)
 
         main_sizer = wx.BoxSizer(wx.VERTICAL)
-        main_sizer.AddSizer(toolbar_sizer, proportion=0, flag=wx.EXPAND)
+        if _iswxphoenix:
+            main_sizer.Add(toolbar_sizer, proportion=0, flag=wx.EXPAND)
+        else:
+            main_sizer.AddSizer(toolbar_sizer, proportion=0, flag=wx.EXPAND)
         main_sizer.Add(self.grid, proportion=1, flag=wx.EXPAND)
 
         self.SetSizer(main_sizer)
 
+    @debugdecorator
     def on_well_choice(self, event):
         idx = event.GetSelection()
         if idx != self.currentwellindex:
@@ -331,6 +380,7 @@ class Dialog(wx.Dialog):
 
             self.grid.ForceRefresh()
 
+    @debugdecorator
     def on_partition_choice(self, event):
         idx = event.GetSelection()
         if idx != self.currentpartitionindex:
@@ -339,6 +389,7 @@ class Dialog(wx.Dialog):
 
             self.grid.ForceRefresh()
 
+    @debugdecorator
     def on_add(self, event):
         dlg = PropertyEntryDialog(self)
         if dlg.ShowModal() == wx.ID_OK:
@@ -351,6 +402,7 @@ class Dialog(wx.Dialog):
 
             self.grid.ForceRefresh()
 
+    @debugdecorator
     def on_remove(self, event):
         to_remove = self.grid.GetSelectedCols()
         self.grid.ClearSelection()
@@ -360,6 +412,7 @@ class Dialog(wx.Dialog):
 
         self.grid.ForceRefresh()
 
+    @debugdecorator
     def on_cell_dlclick(self, event):
         if event.GetCol() == 1:
             row = event.GetRow()
@@ -381,6 +434,7 @@ class Dialog(wx.Dialog):
         else:
             event.Skip()
 
+    @debugdecorator
     def on_label_dlclick(self, event):
         row = event.GetRow()
         col = event.GetCol()

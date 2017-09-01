@@ -62,8 +62,14 @@ class _OMSingleInput(_GenericInput):
         self._uiobj.Clear()
         self._uiobj.AppendItems(self.items)
     
+    # def get_input(self):
+        # return self.index2uid[self._uiobj.GetSelection()]
+    
     def get_input(self):
-        return self.index2uid[self._uiobj.GetSelection()]
+        selection = self._uiobj.GetSelection()
+        uid = self.index2uid[selection]
+        data = self._OM.get(uid).data
+        return data
     
     def bind(self, handler, id):
         self._uiobj.Bind(wx.EVT_CHOICE, handler, id=id)
@@ -98,12 +104,81 @@ class _OMMultiInput(_GenericInput):
         self._uiobj.Clear()
         self._uiobj.AppendItems(self.items)
     
+    # def get_input(self):
+        # n = len(self._uiobj.Items)
+        # return [self.index2uid[i] for i in range(n) if self._uiobj.IsChecked(i)]
+    
     def get_input(self):
         n = len(self._uiobj.Items)
-        return [self.index2uid[i] for i in range(n) if self._uiobj.IsChecked(i)]
+        selection = [i for i in range(n) if self._uiobj.IsChecked(i)]
+        uids = [self.index2uid[i] for i in selection]
+        data = [self._OM.get(uid).data for uid in uids]
+        return data
     
     def bind(self, handler, id):
         self._uiobj.Bind(wx.EVT_CHECKLISTBOX, handler, id=id)
+
+
+class _OMLogLikeInput(_GenericInput):
+    def __init__(self, *args, **kwargs):
+        self._uiobj = wx.ComboBox(*args, **kwargs)
+        self._OM = ObjectManager(self)
+        self.well_uid = None
+        self.index2uid = None
+        self.propuid2pttnuid = None
+        self.items = None
+        self.default = None
+    
+    def set_well_uid(self, well_uid):
+        self.well_uid = well_uid
+    
+    def set_default(self, default):
+        self.default = default
+        self.refresh()
+    
+    def refresh(self):
+        if self.well_uid is None:
+            return False
+        
+        self.index2uid = []
+        self.propuid2pttnuid = {}
+        self.items = []
+        
+        for log in self._OM.list('log', self.well_uid):
+            self.index2uid.append(log.uid)
+            self.items.append(log.name)
+        
+        for pttn in self._OM.list('partition', self.well_uid):
+            pttn_uid = pttn.uid
+            for prop in self._OM.list('property', pttn_uid):
+                self.index2uid.append(prop.uid)
+                self.items.append(prop.name)
+                self.propuid2pttnuid[prop.uid] = pttn_uid
+        
+        self._uiobj.Clear()
+        self._uiobj.SetItems(self.items)
+        
+        if self.default is not None:
+            self._uiobj.SetValue(str(self.default))
+    
+    def get_input(self):
+        sel = self._uiobj.GetSelection()
+        if sel == wx.NOT_FOUND:
+            value = self._uiobj.GetValue()
+            value = float(value)
+            return value
+        else:
+            uid = self.index2uid[sel]
+            if uid[0] == 'log':
+                data = self._OM.get(uid).data
+            elif uid[0] == 'property':
+                propuid = uid
+                pttnuid = self.propuid2pttnuid[propuid]
+                data = self._OM.get(pttnuid).getaslog(propuid)
+            return data
+    
+    def bind(self, handler, id):
+        self._uiobj.Bind(wx.EVT_COMBOBOX, handler, id=id)
 
 
 class _FloatInput(_GenericInput):
@@ -337,6 +412,8 @@ class AutoGenPanel(wx.Panel):
             widget = self._create_widget_omsingle(inputdesc)
         elif input_type == 'ommulti':
             widget = self._create_widget_ommulti(inputdesc)
+        elif input_type == 'omloglike':
+            widget = self._create_widget_omloglike(inputdesc)
         else:
             return
         
@@ -430,12 +507,26 @@ class AutoGenPanel(wx.Panel):
         
         return widget
     
+    def _create_widget_omloglike(self, inputdesc):
+        widget = _OMLogLikeInput(self)
+        
+        default = inputdesc.get('default', None)
+        
+        if default is not None:
+            widget.set_default(default)
+        
+        widget.set_well_uid(self.well_uid)
+        
+        widget.refresh()
+        
+        return widget        
+    
     def set_well_uid(self, well_uid):
         self.well_uid = well_uid
         
         for idesc in self.inputdesc:
             input_type = idesc['type']
-            if input_type in ('omsingle', 'ommulti'):
+            if input_type in ('omsingle', 'ommulti', 'omloglike'):
                 name = idesc['name']
                 widget = self.widgets[name]
                 widget.set_well_uid(self.well_uid)
@@ -450,20 +541,18 @@ class AutoGenPanel(wx.Panel):
             
             widget = self.widgets[name]
             
-            if input_type == 'omsingle':
-                uid = widget.get_input()
-                obj = self._OM.get(uid)
-                value = obj.data
-            elif input_type == 'ommulti':
-                uids = widget.get_input()
-                value = []
-                for uid in uids:
-                    obj = self._OM.get(uid)
-                    value.append(obj.data)
-            else:
-                value = widget.get_input()
+            # if input_type == 'omsingle':
+                # uid = widget.get_input()
+                # obj = self._OM.get(uid)
+                # value = obj.data
+            # elif input_type == 'ommulti':
+                # uids = widget.get_input()
+                # value = []
+                # for uid in uids:
+                    # obj = self._OM.get(uid)
+                    # value.append(obj.data)
             
-            input[name] = value
+            input[name] = widget.get_input()
         
         return input
 
