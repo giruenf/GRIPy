@@ -607,6 +607,9 @@ class UIManager(PublisherMixin):#GenericObject):
         except Exception:
             msg = 'ERROR found in Model-View creation for class {}.'.format(class_.__name__)      
             log.exception(msg)
+            print '\nbase_state:', base_state
+            print msg
+            print
             raise         
         try:
             obj._PostInit()

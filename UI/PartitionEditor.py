@@ -13,7 +13,7 @@ from Basic.Colors import COLOR_CYCLE_RGB
 
 # TODO: Tirar a necessidade do uso disso
 NAME_UNIT_SEPARATOR = ':::'
-_iswxphoenix = utils.is_wxPhoenix()
+
 
 COLOUR_DATA = wx.ColourData()
 for i, color in enumerate(COLOR_CYCLE_RGB):
