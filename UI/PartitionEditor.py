@@ -20,10 +20,10 @@ for i, color in enumerate(COLOR_CYCLE_RGB):
     COLOUR_DATA.SetCustomColour(i, color)
 
 
-if _iswxphoenix:
-    _gridtablebase = wx.grid.GridTableBase
-else:
-    _gridtablebase = wx.grid.PyGridTableBase
+#if _iswxphoenix:
+#    _gridtablebase = wx.grid.GridTableBase
+#else:
+#    _gridtablebase = wx.grid.PyGridTableBase
 
 
 __DEBUG = False
@@ -44,7 +44,7 @@ def debugdecorator(func):
     return wrapper
 
 
-class PartitionTable(_gridtablebase):
+class PartitionTable(wx.grid.GridTableBase):
     @debugdecorator
     def __init__(self, partitionuid):
         super(PartitionTable, self).__init__()
@@ -157,10 +157,10 @@ class PartitionTable(_gridtablebase):
     @debugdecorator
     def GetAttr(self, row, col, kind):
         
-        if _iswxphoenix:
-            attr = wx.grid.GridCellAttr().Clone()
-        else:
-            attr = wx.grid.GridCellAttr()
+        #if _iswxphoenix:
+        attr = wx.grid.GridCellAttr().Clone()
+        #else:
+        #    attr = wx.grid.GridCellAttr()
         
         if col >= self.N_PROPS:
             attr.SetAlignment(wx.ALIGN_RIGHT, wx.ALIGN_CENTER)
@@ -281,12 +281,12 @@ class PropertyEntryDialog(wx.Dialog):
 
         button_sizer = self.CreateButtonSizer(wx.OK | wx.CANCEL)
         
-        if _iswxphoenix:
-            sizer.Add(fgs, proportion=1, flag=wx.EXPAND)
-            sizer.Add(button_sizer, proportion=0, flag=wx.EXPAND)
-        else:
-            sizer.AddSizer(fgs, proportion=1, flag=wx.EXPAND)
-            sizer.AddSizer(button_sizer, proportion=0, flag=wx.EXPAND)
+        #if _iswxphoenix:
+        sizer.Add(fgs, proportion=1, flag=wx.EXPAND)
+        sizer.Add(button_sizer, proportion=0, flag=wx.EXPAND)
+        #else:
+        #    sizer.AddSizer(fgs, proportion=1, flag=wx.EXPAND)
+        #    sizer.AddSizer(button_sizer, proportion=0, flag=wx.EXPAND)
 
         self.SetSizer(sizer)
 
@@ -358,10 +358,10 @@ class Dialog(wx.Dialog):
         toolbar_sizer.Add(remove_property_button, 0, wx.ALIGN_LEFT)
 
         main_sizer = wx.BoxSizer(wx.VERTICAL)
-        if _iswxphoenix:
-            main_sizer.Add(toolbar_sizer, proportion=0, flag=wx.EXPAND)
-        else:
-            main_sizer.AddSizer(toolbar_sizer, proportion=0, flag=wx.EXPAND)
+        #if _iswxphoenix:
+        main_sizer.Add(toolbar_sizer, proportion=0, flag=wx.EXPAND)
+        #else:
+        #    main_sizer.AddSizer(toolbar_sizer, proportion=0, flag=wx.EXPAND)
         main_sizer.Add(self.grid, proportion=1, flag=wx.EXPAND)
 
         self.SetSizer(main_sizer)
