@@ -379,7 +379,7 @@ class CrossPlotPanel(wx.Panel):
                 y = (tick - self.zlim[0])/(self.zlim[1] - self.zlim[0])
                 classname = self.classnames[self.classes[tick]]
                 self.zlabel_ax.text(self.ZLABELTEXTLEFT, y, classname, ha='left', va='center', fontsize=self.TEXTFONTSIZE, rotation=270)
-        elif self.zmode == 'contiunuous':
+        elif self.zmode == 'continuous':
             self._plot_zcontinuous()
             self.clear_zlabel()
             for tick in self.zticks:
@@ -404,8 +404,8 @@ class CrossPlotPanel(wx.Panel):
         else:
             parts = self.parts
    
-        print 
-        print parts
+#        print 
+#        print parts
     
         good = np.sum(parts, axis=0, dtype=bool)
         good *= np.isfinite(self.xdata)
