@@ -516,12 +516,12 @@ class GripyApp(wx.App):
             #"""
             #fullfilename = 'C:\\Users\\Adriano\\Desktop\\AVO_INV_teste.pgg'
             
-            fullfilename = 'C:\\Users\\Adriano\\Desktop\\teste_jul.pgg'
-            self.load_project_data(fullfilename)      
+            #fullfilename = 'C:\\Users\\Adriano\\Desktop\\teste_jul.pgg'
+            #self.load_project_data(fullfilename)      
             
             
-            lpc = UIM.create('logplot_controller', mwc.uid)
-            tc1 = UIM.create('track_controller', lpc.uid)
+            #lpc = UIM.create('logplot_controller', mwc.uid)
+            #tc1 = UIM.create('track_controller', lpc.uid)
             
             
             #tc1.model.x_scale = 1
@@ -582,8 +582,8 @@ class GripyApp(wx.App):
             #lpc.model.y_min_shown = 2100
             #lpc.model.y_max_shown = 3330
             #lpc.model.fit = True
-            mwc.model.pos = (-1374, 453)
-            mwc.model.maximized = True
+            #mwc.model.pos = (-1374, 453)
+            #mwc.model.maximized = True
                 
                 
               
