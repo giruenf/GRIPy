@@ -3,7 +3,6 @@
 import wx
 
 
-
 class PlotStatusBar(wx.StatusBar):
     def __init__(self, parent, pixelsPerUnit=20):
         wx.StatusBar.__init__(self, parent, -1)

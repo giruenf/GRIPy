@@ -12,8 +12,12 @@ from collections import OrderedDict
 import numpy as np
 import zipfile
 import os
+
 import App.utils
+from App.pubsub import PublisherMixin
+
 from App import log
+
 
 try:
     import zlib
@@ -32,7 +36,7 @@ except ImportError:
 # TODO: Acesso simultâneo (multiprocessing)
 
 
-class ObjectManager(object):
+class ObjectManager(PublisherMixin):
     """
     The Object Manager.
     
@@ -50,28 +54,31 @@ class ObjectManager(object):
     owner
         The object that is instantiating a new ObjectManager.
     """
-    _data = OrderedDict()
+    
+    # Types 
     _types = OrderedDict()
     _currentobjectids = {}
+    _parenttidmap = {}
+    # Data
+    _data = OrderedDict()
     _parentuidmap = {}
     _childrenuidmap = {}
-    _parenttidmap = {}
-    _CBTYPES = ["add", "pre-remove", "post-remove"]
-    _callbacks = {cbtype: [] for cbtype in _CBTYPES}
+    # Other
     _NPZIDENTIFIER = "__NPZ;;"
     _changed = False
-
+    _PUB_NAME = 'ObjectManager'
+        
+    
     def __init__(self, owner):
         self._ownerref = weakref.ref(owner)
-        self._data = ObjectManager._data
         self._types = ObjectManager._types
         self._currentobjectids = ObjectManager._currentobjectids
+        self._parenttidmap = ObjectManager._parenttidmap        
+        self._data = ObjectManager._data
         self._parentuidmap = ObjectManager._parentuidmap
         self._childrenuidmap = ObjectManager._childrenuidmap
-        self._parenttidmap = ObjectManager._parenttidmap
-        self._callbacks = ObjectManager._callbacks
         log.debug('ObjectManager new instance was solicitated by {}'.format(str(owner)))
-        
+    
     def get_changed_flag(self):
         """
         Return a flag used by Application know if ObjectManager was changed
@@ -180,10 +187,10 @@ class ObjectManager(object):
         if parentuid:
             self._data[parentuid]._children[obj.uid] = obj
             self._childrenuidmap[parentuid].append(obj.uid)
-        for cb in self._callbacks["add"]:
-            cb(obj.uid)
+        self.send_message('add', objuid=obj.uid)
         ObjectManager._changed  = True       
         return True
+
 
     def get(self, uid):  # TODO: colocar "Raises" na docstring
         """
@@ -212,7 +219,10 @@ class ObjectManager(object):
         >>> obj2 == obj
         True
         """
+        if isinstance(uid, basestring):
+            uid = App.utils.parse_string_to_uid(uid)
         return self._data[uid]
+
 
     def remove(self, uid):
         """
@@ -239,9 +249,8 @@ class ObjectManager(object):
         >>> om.get(obj.uid)
         KeyError: obj.uid
         """
-        for cb in self._callbacks["pre-remove"]:
-            cb(uid)
-        
+        #print 'remove.pre_remove'
+        self.send_message('pre_remove', objuid=uid)
         for childuid in self._childrenuidmap[uid][::-1]:
             self.remove(childuid)
         
@@ -250,15 +259,18 @@ class ObjectManager(object):
             del self._data[parentuid]._children[uid]
             del self._parentuidmap[uid]
             self._childrenuidmap[parentuid].remove(uid)
-
+            
         del self._childrenuidmap[uid]
         obj = self._data.pop(uid)
+        #
+        obj._being_deleted()
+        #
         del obj
-
-        for cb in self._callbacks["post-remove"]:
-            cb(uid)
+        #print 'remove.post_remove'
+        self.send_message('post_remove', objuid=uid)
         ObjectManager._changed  = True    
         return True
+
 
     def list(self, tidfilter=None, parentuidfilter=None):
         """
@@ -305,6 +317,90 @@ class ObjectManager(object):
         else:
             return self.get(parentuidfilter).list(tidfilter)
 
+
+    @classmethod
+    def register_class(cls, obj_type_class, parent_type_class=None):
+        # TODO: Editar isso
+        """
+        Register a type which instances are now able to be managed.
+        
+        Parameters
+        ----------
+        type_ : type
+            The new type that will be registered within `ObjectManager`.
+        parenttype : type, optional
+            The parent type of `type_`
+        
+        Returns
+        -------
+        bool
+            Whether the remove operation was successful.
+        
+        Examples
+        --------
+        >>> om = ObjectManager(owner)
+        >>> obj = om.new('unregisteredtypeid', name='nameofobj')
+        KeyError: 'unregisteredtypeid'
+        >>> ObjectManager.registertype(UnregeristeredType)
+        True
+        >>> obj = om.new('unregisteredtypeid', name='nameofobj')
+        >>> om.add(obj)
+        True
+        """
+        tid = None
+        parent_tid = None
+        # obj_type_class validation 
+        try:    
+            tid = obj_type_class.tid
+        except AttributeError:
+            msg = "Type indentifier (tid) not found for class: {}.".format(obj_type_class)
+            log.exception(msg)
+            return False
+        if not tid:
+            msg = "Wrong tid for class: {}.".format(obj_type_class)
+            log.error(msg)  
+            return False
+        if parent_type_class:
+            try:    
+                parent_tid = parent_type_class.tid
+            except AttributeError:
+                msg = "Type indentifier (tid) not found for parent type class: {}.".format(obj_type_class)
+                log.exception(msg)
+                return False
+            if not parent_tid:
+                msg = "Wrong tid for parent type class: {}.".format(parent_type_class)
+                log.error(msg)  
+                return False
+        # parent_type_class validation 
+        if parent_tid:
+            if parent_tid not in cls._types.keys():
+                msg = "Parent type Class {} must be registered before accept children types.".format(\
+                             obj_type_class.__name__, parent_type_class.__name__
+                )
+                log.error(msg)   
+                return False
+            if cls._parenttidmap.get(tid) and parent_tid in cls._parenttidmap.get(tid):
+                msg = "Class {} was registered previously for parent type class {}.".format(\
+                             obj_type_class.__name__, parent_type_class.__name__)
+                log.error(msg) 
+                return False
+        # Actual registering...
+        if tid not in cls._types.keys():
+            cls._types[tid] = obj_type_class
+            cls._currentobjectids[tid] = 0
+            cls._parenttidmap[tid] = [parent_tid]
+        else:                
+            cls._parenttidmap.get(tid).append(parent_tid)
+        # Logging for successful operation       
+        class_full_name = str(obj_type_class.__module__) + '.' + str(obj_type_class.__name__)
+        if parent_type_class:
+            parent_full_name = str(parent_type_class.__module__) + '.' + str(parent_type_class.__name__)
+            log.info('ObjectManager registered class {} for parent class {} successfully.'.format(class_full_name, parent_full_name))
+        else:    
+            log.info('ObjectManager registered class {} successfully.'.format(class_full_name))
+        return True        
+
+    '''
     @classmethod
     def registertype(cls, type_, parenttype=None):
         """
@@ -334,7 +430,7 @@ class ObjectManager(object):
         True
         """
         typeid = type_.tid
-        if typeid in cls._data.keys():
+        if typeid in cls._types.keys():
             msg = "Type {} is already registered".format(typeid)
             log.exception(msg)
             raise TypeError(msg)
@@ -351,63 +447,8 @@ class ObjectManager(object):
         else:    
             log.info('ObjectManager registered class {} successfully.'.format(class_full_name))
         return True
+    '''
 
-    @classmethod
-    def addcallback(cls, cbtype, cb):
-        """
-        Add a function to the callback system.
-        
-        Parameters
-        ----------
-        cbtype : {"add", "pre-remove", "post-remove"}
-            The type of the callback, i.e. the kind of action that will make
-            `cb` get called.
-        cb : callable
-            The function that will be called when the callback is thrigerred.
-            A pertinent object unique identificator will be passed to `cb`.
-        
-        Examples
-        --------
-        >>> def somefunctions(uid):
-        >>>     print "Function was called!"
-        >>> ObjectManager.addcallback("add", somefunction)
-        >>> om = ObjectManager(owner)
-        >>> obj = om.new('typeid')
-        >>> om.add(obj)
-        "Function was called!"
-        """
-        cls._callbacks[cbtype].append(cb)
-
-    @classmethod
-    def removecallback(cls, cbtype, cb):
-        """
-        Remove a callback from the callback system.
-        
-        Parameters
-        ----------
-        cbtype : {"add", "pre-remove", "post-remove"}
-            The type of the callback, i.e. the kind of action that made `cb`
-            get called.
-        cb : callable
-            The callback function, i.e. the function that was called when the
-            callback was thrigerred.
-        
-        Examples
-        --------
-        >>> def somefunctions(uid):
-        >>>     print "Function was called!"
-        >>> ObjectManager.addcallback("add", somefunction)
-        >>> om = ObjectManager(owner)
-        >>> obj = om.new('typeid')
-        >>> om.add(obj)
-        "Function was called!"
-        >>> ObjectManager.removecallback("add", somefunction)
-        >>> obj2 = om.new('typeid')
-        >>> # No function was called this time.
-        
-        """
-        cls._callbacks[cbtype].remove(cb)
-    
     def _isvalidparent(self, objuid, parentuid):
         """
         Verify if a given parent is suited for an object using their `uid`s.
@@ -434,7 +475,7 @@ class ObjectManager(object):
             parenttid = None
         else:
             parenttid = parentuid[0]
-        return self._parenttidmap[objtid] == parenttid
+        return parenttid in self._parenttidmap[objtid]
 
     def _getparentuid(self, uid):
         """
@@ -573,25 +614,28 @@ class ObjectManager(object):
         ObjectManager._changed  = False
         return True
 
-    '''
-    def get_object(self, obj_uid_string):
-        """
-        Load an object in ObjectManager from a given string.
+
+    @classmethod
+    def get_tid_friendly_name(cls, tid):
+        class_ = cls._types.get(tid)
+        if class_:
+            try:
+                return class_._TID_FRIENDLY_NAME
+            except:
+                pass
+        return None
+
+
+    @classmethod
+    def get_tid(cls, tid_friendly_name):  
+        for tid, class_ in cls._types.items():
+            try:
+                if class_._TID_FRIENDLY_NAME == tid_friendly_name:
+                    return tid
+            except AttributeError: # if class_ has no attribute '_TID_FRIENDLY_NAME' 
+                continue
+        return None
         
-        Parameters
-        ----------
-        obj_string : str
-            The path (i.e. the filename) of the file to load the state from.
         
-        Returns
-        -------
-        object
-            An object if exits for given string, or None if the object was not
-            added in the ObjectManager or if the string cannot identify an object.
-        """
-        tid, oid = App.utils.parse_string_to_uid(obj_uid_string)
-        for obj in self.list(tid):
-            if obj.oid == oid:
-                return obj
-        return None        
-    '''        
+        
+        

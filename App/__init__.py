@@ -2,23 +2,19 @@
 import os
 import json
 import logging
-#import wx
+import wx
+
 _APP_INIT_FILE = '.gripy_app_config.json'
 
-#def get():
-#    return wx.App.Get()
-
-def _read_app_basic_config():
+def _read_app_definitions():
     try:
         f = open(_APP_INIT_FILE, 'r')
         file_dict = json.load(f)
         f.close()
-        #for key, value in file_dict.items():
-        #    print key, value
         return file_dict
     except Exception as e:
         print e.args
-         
+
 def start_logging(logging_dict):
     logging_level = logging_dict.get('logging_level', logging.DEBUG)
     log = logging.Logger('gripy', logging_level)
@@ -39,11 +35,20 @@ def start_logging(logging_dict):
     log.addHandler(hdlr)
     return log
 
-if os.name not in ['nt', 'posix']: 
-    raise Exception('GriPy is not ready yet to this system platform. Sorry.')       
-_APP_BASIC_CONFIG = _read_app_basic_config()   
- 
-log = start_logging(_APP_BASIC_CONFIG.get('logging'))
+def check_platform():
+    if os.name not in ['nt', 'posix']: 
+        raise Exception('GriPy is not ready yet to this system platform. Sorry.')
+   
+def check_dependencies():
+    if not 'phoenix' in wx.version():    
+        raise Exception('Gripy works only with wxPython 4.')
+#
+check_platform()    
+check_dependencies()
+# App definitions
+DEFS = _read_app_definitions()   
+# Logging 
+log = start_logging(DEFS.get('logging'))
 
 
 

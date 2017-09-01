@@ -11,6 +11,9 @@ from collections import OrderedDict
 import App.utils
 from App import log
 
+from App.pubsub import PublisherMixin
+
+from OM.Manager import ObjectManager
 
 ###############################################################################
 ###############################################################################
@@ -29,9 +32,6 @@ class UIBase(object):
         self.check_creator()
         self.oid = None
       
-    #def __del__(self):
-    #    print 'deleting ', self.uid
-
     def PostInit(self):
         """To be overrriden"""
         pass
@@ -80,17 +80,20 @@ class UIBase(object):
 ###############################################################################
 ###############################################################################
                                  
-class UIControllerBase(UIBase):
+
+class UIControllerBase(UIBase, PublisherMixin):
     tid = None
     # TODO: verificar se vale a pena manter esses singletons
     _singleton = False
     _singleton_per_parent = False
        
+    
     def __init__(self):
         super(UIControllerBase, self).__init__()  
         _UIM = UIManager()
         self.oid = _UIM._getnewobjectid(self.tid)
           
+
     def _create_model_view(self, **base_state): 
         _UIM = UIManager()           
         model_class, view_class = _UIM.get_model_view_classes(self.tid)
@@ -141,36 +144,62 @@ class UIControllerBase(UIBase):
             print '\n', msg
             raise
         
+
+    def _call_self_remove(self):
+        UIM = UIManager()
+        wx.CallAfter(UIM.remove, self.uid)
+  
+    def attach(self, OM_objuid):
+        print 'attach:', OM_objuid
+        OM = ObjectManager(self)
+        obj = OM.get(OM_objuid)
+        try:
+            # TODO: REVER ISSO
+            obj.subscribe(self._call_self_remove, 'remove')
+        except:
+            pass
         
-    def get_root_controller(self):
-        """
-        TODO: Traduzir e melhorar isso
-    
-        Em vez de retornar self._UIM.list('main_window_controller')[0], 
-        retorna o controller raiz da qual o objeto se encontra. E provavel que 
-        quase sempre (ou sempre) seja retornado self._UIM.list('main_window_controller')[0],
-        porem a ideia eh nao restringir isso facilitando futuras implementacoes.
-                
-        """    
-        _UIM = UIManager()
-        parent_uid = self.uid
-        while parent_uid:
-            obj_uid = parent_uid
-            parent_uid = _UIM._getparentuid(obj_uid)  
-        return _UIM.get(obj_uid)    
+    def detach(self, OM_objuid):
+        print 'detach:', OM_objuid
+        OM = ObjectManager(self)
+        obj = OM.get(OM_objuid)
+        try:
+            # TODO: REVER ISSO
+            obj.unsubscribe(self._call_self_remove, 'remove')        
+        except:
+            pass
         
-    def _getstate(self):
-        if self.model:
-            return self.model._getstate()
-        return None    
-                       
-    def _loadstate(self, **state):
-        if self.model:
-            return self.model._loadstate(**state)
-                    
+    def get_state(self):
+        if not self.model:
+            return None 
+        state = self.model._getstate()
+        UIM = UIManager()
+        children = UIM.list(parentuidfilter=self.uid)
+        if children:
+            state['children'] = []
+            for child in children:
+                state['children'].append(child.get_state())
+        return self.tid, state
+  
+      
+    # TODO: ver se deve-se manter o tid na chamada abaixo (@staticmethod)
+    @staticmethod    
+    def load_state(state, tid, parentuid=None):
+        children = state.pop('children', None)
+        UIM = UIManager()
+        obj = UIM.create(tid, parentuid, **state)
+        if children:
+            for child_tid, child_state in children:
+                UIControllerBase.load_state(child_state, child_tid, obj.uid)
+        return obj
+        
+
+           
+            
 ###############################################################################
 ###############################################################################    
     
+
 class UIModelBase(UIBase):
     """
     The base class for all Model classes (MVC software architectural pattern).
@@ -181,19 +210,21 @@ class UIModelBase(UIBase):
     _SPECIALS_KEYS = ['oid', 
                       '_controller_uid', 
                       '_UIModelBase__initialised',
-                      '_processing_value_from_event'
+                      '_processing_value_from_event',
+                      '_redirects_to'
     ]
 
     def __init__(self, controller_uid, **state):
+        # TODO: REVER NECESSIDADE DE 'attr_class' e DE 'base_attr'
         super(UIModelBase, self).__init__()
         self.__initialised = False        
         self._controller_uid = controller_uid
         self._processing_value_from_event = False
-        _UIM = UIManager()
-        self.oid = _UIM._getnewobjectid(self.tid)   
+        UIM = UIManager()
+        self.oid = UIM._getnewobjectid(self.tid)   
         # We are considering that only Controller class objects 
         # can create Model class objects. Then, we must verify it
-        model_class = _UIM.get_model_view_classes(controller_uid[0])[0]
+        model_class = UIM.get_model_view_classes(controller_uid[0])[0]
         if self.__class__ != model_class:
             msg = 'Error! Only the controller can create the model.'
             raise Exception(msg)    
@@ -204,8 +235,8 @@ class UIModelBase(UIBase):
             #        attr_props.get('attr_class')
             #    )
             #    print '\n', msg
-            if attr_props.get('attr_class') == UI_MODEL_ATTR_CLASS.APPLICATION \
-                                                and state.has_key(attr_name):
+            #if attr_props.get('attr_class') == UI_MODEL_ATTR_CLASS.APPLICATION \
+            if state.has_key(attr_name):
                 self[attr_name] = state.get(attr_name)
             else:    
                 self[attr_name] = attr_props.get('default_value')                       
@@ -213,6 +244,9 @@ class UIModelBase(UIBase):
         
     def PostInit(self):
         pass
+
+    def initialised(self):
+        return self.__dict__.get('_UIModelBase__initialised')
 
     def set_value_from_event(self, key, value):
         self._processing_value_from_event = True
@@ -224,6 +258,9 @@ class UIModelBase(UIBase):
             self._processing_value_from_event = False
 
     def __getattr__(self, key):
+        # http://docs.python.org/2/library/functions.html#getattr
+        if self.__dict__.has_key('_redirects_to'):
+            return self._redirects_to[key]
         raise AttributeError(key)
 
     def __setattr__(self, key, value):
@@ -233,6 +270,7 @@ class UIModelBase(UIBase):
         self._do_set(key, value)
 
     def __getitem__(self, key):
+        # http://docs.python.org/2/reference/datamodel.html#object.__getitem__
         try:
             return self.__dict__.get(key)
         except KeyError:
@@ -242,19 +280,26 @@ class UIModelBase(UIBase):
         self._do_set(key, value)
 
     def _do_set(self, key, value):
-        if (not self.__dict__['_UIModelBase__initialised'] and not self._ATTRIBUTES.has_key(key)) or \
-                        (self.__dict__['_UIModelBase__initialised'] and not self.__dict__.has_key(key)):
+        if (not self.initialised() and not self._ATTRIBUTES.has_key(key)) or \
+                       (self.initialised() and not self.__dict__.has_key(key)):
             msg = '{} does not have attribute {}.'.format(\
-                self.__class__.__name__, str(key))
+                                             self.__class__.__name__, str(key))
+            if self.__dict__.has_key('_redirects_to'):
+                self._redirects_to._do_set(key, value)
+                return
             log.warning(msg)
+            print msg
             return
+        '''
         base_attr = self._ATTRIBUTES.get(key).get('base_attr')    
         if self.__initialised and base_attr:
             msg = 'Base attributes are only loaded before initialization. {}.{} = {}'.format(\
                 self.__class__.__name__, str(key), str(value))
             log.warning(msg)
             return
+        '''   
         type_ = self._ATTRIBUTES.get(key).get('type')
+
         # Special treatment for functions
         if type_ == types.FunctionType:
             if isinstance(value, basestring):
@@ -266,7 +311,8 @@ class UIModelBase(UIBase):
                 raise AttributeError(msg)
         elif not isinstance(value, type_):
             try:
-                value = type_(value)
+                if value is not None:    
+                    value = type_(value)
             except Exception:
                 raise 
         if not self.__initialised:
@@ -277,11 +323,13 @@ class UIModelBase(UIBase):
             old_value = self[key]    
             self.__dict__[key] = value
             if not self._processing_value_from_event:
-                on_change = self._ATTRIBUTES.get(key).get('on_change')
-                if on_change:
-                    _UIM = UIManager()
-                    controller = _UIM.get(self._controller_uid)
-                    on_change(controller, key=key, old_value=old_value, new_value=value)
+                UIM = UIManager()
+                controller = UIM.get(self._controller_uid)
+                topic = 'change.' + key
+                controller.send_message(topic, 
+                                  old_value=old_value, 
+                                  new_value=value
+                )
         k = key.encode('utf-8')            
         v = self[key]
         if isinstance(v, basestring):        
@@ -292,18 +340,20 @@ class UIModelBase(UIBase):
         msg = '    {} has setted attribute {} = {}'.format(self.uid, k, v)       
         log.debug(msg)
 
-
+    
     # TODO: VERIFICAR ISSO TUDO 
-
+    """
     def get_application_state(self):
         return self.get_state(UI_MODEL_ATTR_CLASS.APPLICATION)
         
     def get_user_state(self):
         return self.get_state(UI_MODEL_ATTR_CLASS.USER)    
-        
-    def get_state(self, state_type=None):
+    """
+    
+    def _getstate(self, state_type=None):
         try:
-            if state_type is not None and state_type not in UI_MODEL_ATTR_CLASS.__members__.values():
+            if state_type is not None and state_type not in \
+                                    UI_MODEL_ATTR_CLASS.__members__.values():
                 return None
             state = OrderedDict()                
             for attr_name in self.__dict__.keys(): 
@@ -364,7 +414,7 @@ class UIViewBase(UIBase):
 ###############################################################################
 
 
-class UIManager(object):#GenericObject):
+class UIManager(PublisherMixin):#GenericObject):
     #tid = 'ui_manager'
     #__metaclass__ = Singleton
 
@@ -375,8 +425,9 @@ class UIManager(object):#GenericObject):
     _childrenuidmap = {}
     _parenttidmap = {}
     _MVC_CLASSES = {}
-    _wx_ID = 2000  # for a shortcut do wx.NewId. See self.new_wx_id   
-    #_NPZIDENTIFIER = "__NPZ;;"
+    _wx_ID = 2000  # for a shortcut do wx.NewId. See self.new_wx_id  
+    _PUB_NAME = 'UIManager'
+    #_VALID_PUBSUB_TOPICS = ['uim', 'uim.object_removed']
 
     def __init__(self):
         caller_info = App.utils.get_caller_info()
@@ -384,6 +435,8 @@ class UIManager(object):#GenericObject):
         #print caller_info
         #print 
         owner = caller_info[0][1]
+        #print '\n', owner
+        # TODO:
         # Armengue feito para as funcoes dos menus.. tentar corrigir isso
         if not owner:
             owner = wx.GetApp()
@@ -401,7 +454,13 @@ class UIManager(object):#GenericObject):
         self._childrenuidmap = UIManager._childrenuidmap
         self._parenttidmap = UIManager._parenttidmap
         self._MVC_CLASSES = UIManager._MVC_CLASSES
-        
+
+
+    def get_root_controller(self):
+        main_ctrl_view = wx.App.Get().GetTopWindow()
+        controller_uid = main_ctrl_view._controller_uid
+        return self.get(controller_uid)
+
 
     #### Remover isso assim que possivel
     def print_info(self):
@@ -414,18 +473,31 @@ class UIManager(object):#GenericObject):
         print '\nUIManager._MVC_CLASSES: ', UIManager._MVC_CLASSES    
     ####
 
-    # Analogue to OM.Manager.registertype
+
+
+
     @classmethod
     def register_class(cls, controller_class, model_class, view_class,
-                           controller_parent_class=None):  
+                                               controller_parent_class=None):  
+        #
         if controller_class is None:
             msg = "Controller class cannot be None"
             log.exception(msg)
             raise TypeError(msg)
+        #    
+        if not issubclass(controller_class, UIControllerBase):
+            msg = "Controller class must inherit from UIControllerBase."
+            log.exception(msg)
+            raise TypeError(msg)           
+        #    
         cls._types[controller_class.tid] = controller_class 
         cls._currentobjectids[controller_class.tid] = 0    
-        
+        #
         if model_class is not None:
+            if not issubclass(model_class, UIModelBase):
+                msg = "Model class must inherit from UIModelBase."
+                log.exception(msg)
+                raise TypeError(msg)     
             model_class_tid = model_class.tid
             if model_class_tid not in cls._types.keys():    
                 cls._types[model_class_tid] = model_class
@@ -439,7 +511,7 @@ class UIManager(object):#GenericObject):
                 cls._currentobjectids[view_class_tid] = 0     
         else:
             view_class_tid = None
-            
+        #    
         if controller_class.tid not in cls._MVC_CLASSES.keys():    
             cls._MVC_CLASSES[controller_class.tid] = (model_class_tid, view_class_tid)
         else:
@@ -447,10 +519,11 @@ class UIManager(object):#GenericObject):
                 msg = 'Cannot register another model or another view for controller {}'.format(controller_class.tid)
                 log.exception(msg)
                 raise Exception(msg)
+        #        
         if controller_parent_class:
             try:
                 if controller_parent_class.tid is None:
-                    msg = "Controller tid cannot be None."
+                    msg = "Controller parent class tid cannot be None."
                     log.exception(msg)
                     raise TypeError(msg)
                 if controller_parent_class.tid not in cls._MVC_CLASSES.keys():
@@ -467,26 +540,34 @@ class UIManager(object):#GenericObject):
             controller_parent_class_tid = controller_parent_class.tid   
         else:
             controller_parent_class_tid  = None   
-                 
+        #         
         if controller_class.tid not in cls._parenttidmap.keys():   
             cls._parenttidmap[controller_class.tid] = [controller_parent_class_tid]
         else:
             cls._parenttidmap.get(controller_class.tid).append(controller_parent_class_tid)
-
-        class_full_name = str(controller_class.__module__) + '.' + str(controller_class.__name__)
+        #    
+        class_full_name = str(controller_class.__module__) + '.' + \
+                                                str(controller_class.__name__)
         if controller_parent_class:
-            parent_full_name = str(controller_parent_class.__module__) + '.' + str(controller_parent_class.__name__)
+            parent_full_name = str(controller_parent_class.__module__) + '.' + \
+                                        str(controller_parent_class.__name__)
             log.info('UIManager registered class {} for parent class {} successfully.'.format(class_full_name, parent_full_name))
         else:    
             log.info('UIManager registered class {} successfully.'.format(class_full_name))                          
         return True
       
+        
+
     def get(self, uid):
+        if isinstance(uid, basestring):
+            uid = App.utils.parse_string_to_uid(uid)
         return self._data.get(uid)
+
 
     # Something like a mix between new and add in ObjectManager
     # Object Factory        
-    def create(self, controller_tid, parent_uid=None, **base_state):
+    def create(self, controller_tid, 
+                               parent_uid=None, **base_state):
         try:
             class_ = self._check_controller_tid(controller_tid)
         except Exception, e:
@@ -498,7 +579,7 @@ class UIManager(object):#GenericObject):
             parent_obj = self.get(parent_uid)
             parent_tid = parent_obj.tid
         if parent_tid not in self._parenttidmap.get(controller_tid):
-            msg = "Parent object given is not a instance of {} parent class.".format(controller_tid)
+            msg = "Parent object given ({}) is not a instance of {} parent class.".format(parent_tid, controller_tid)
             raise TypeError(msg)  
         if class_._singleton:
             objs = self.list(controller_tid)    
@@ -521,7 +602,7 @@ class UIManager(object):#GenericObject):
         self._childrenuidmap[obj.uid] = []
         if parent_uid:
             self._childrenuidmap[parent_uid].append(obj.uid)
-        try: 
+        try:
             obj._create_model_view(**base_state)
         except Exception:
             msg = 'ERROR found in Model-View creation for class {}.'.format(class_.__name__)      
@@ -532,6 +613,8 @@ class UIManager(object):#GenericObject):
         except Exception:
             msg = 'Error found in {}._PostInit(). Object was not created.'.format(obj.__class__.__name__)
             log.exception(msg)
+            
+        self.send_message('create', objuid=obj.uid, parentuid=parent_uid)    
         return obj
  
     def get_children(self, parent_uid):
@@ -599,26 +682,30 @@ class UIManager(object):#GenericObject):
     def remove(self, uid):
         msg = 'Removing object from UI Manager: {}.'.format(uid)
         log.debug(msg)
-        #print msg
+        #print '\n', msg
+        self.send_message('pre_remove', objuid=uid)
         obj = self.get(uid)
         if not isinstance(obj, UIControllerBase):
             return False
         for childuid in self._childrenuidmap.get(uid)[::-1]:
             self.remove(childuid) 
+        # Unsubscribing listeners from controller
+        obj.unsubAll()    
         # PreDelete must close (delete) all references from object's parent.    
-        obj.PreDelete()    
-        if obj.model:
-            obj.model.PreDelete()  
-            msg = 'Deleting UI model object {}.'.format(obj.model.uid)
-            #print msg
-            log.debug(msg)
-            del obj.model
+        obj.PreDelete()
         if obj.view:
             obj.view.PreDelete() 
             msg = 'Deleting UI view object {}.'.format(obj.view.uid)
             #print msg
             log.debug(msg)
             del obj.view
+        if obj.model:
+            #
+            obj.model.PreDelete()  
+            msg = 'Deleting UI model object {}.'.format(obj.model.uid)
+            #print msg
+            log.debug(msg)
+            del obj.model    
         # Removing from _childrenuidmap    
         parent_uid = self._parentuidmap.get(uid)
         if parent_uid:
@@ -634,6 +721,7 @@ class UIManager(object):#GenericObject):
         # Finally, deletes the controller
         del obj
         gc.collect()
+        self.send_message('post_remove', objuid=uid)
         msg = 'UI Manager removed sucessfully {}.'.format(uid) 
         #print msg
         log.debug(msg)    
@@ -641,12 +729,20 @@ class UIManager(object):#GenericObject):
 
     # Before exit application
     def PreExit(self):
-        #print '\nUIM.PreExit()'
         for obj in self.list():
-            if obj.model:
-                obj.model.PreDelete()  
-            if obj.view:
-                obj.view.PreDelete()
+            try:
+                obj.model.PreDelete() 
+            except AttributeError:
+                pass
+            except:
+                raise
+            try:
+                obj.view.PreDelete() 
+            except AttributeError:
+                pass
+            except Exception as e:
+                print '\n\n', obj.uid, e.args, e.message, '\n\n'
+                raise                
             obj.PreDelete()    
 
     # TODO: escolher um melhor nome para este método
@@ -742,28 +838,73 @@ class UIManager(object):#GenericObject):
         self._currentobjectids[object_tid] += 1
         return idx
 
-
-    def do_query(self, tid, **kwargs):
-        objects = self.list(tid)
-        if not objects: return None
-        ret_val = []
+    def do_query(self, tid, parent_uid=None, *args, **kwargs):
+        objects = self.list(tid, parent_uid)
+        if not objects: return None  
+        comparators = self._create_comparators(*args)  
+        ret_list = []
         for obj in objects:
-            obj_ok = True
-            for key, value in kwargs.items():
-                if obj.model[key] != value:
-                    obj_ok = False                    
+            ok = True
+            for (key, operator, value) in comparators:
+                ok = False
+                type_ = obj.model._ATTRIBUTES.get(key).get('type')
+                value = type_(value)
+                if operator == '>=':
+                    ok = obj.model[key] >= value
+                elif operator == '<=':
+                    ok = obj.model[key] <= value                  
+                elif operator == '>':
+                    ok = obj.model[key] > value
+                elif operator == '<':
+                    ok = obj.model[key] < value     
+                elif operator == '!=':
+                    ok = obj.model[key] != value
+                elif operator == '=':
+                    ok = obj.model[key] == value
+                if not ok:
                     break
-            if obj_ok:    
-                ret_val.append(obj)
-        return ret_val
+            if ok:
+                ret_list.append(obj)
+        if kwargs:
+            orderby = kwargs.get('orderby')
+            if orderby and len(ret_list) >= 2:
+                aux_list = []
+                while len(ret_list) > 0:
+                    minor_idx = 0
+                    for idx, obj in enumerate(ret_list):
+                        if obj.model[orderby] < ret_list[minor_idx].model[orderby]:
+                            minor_idx = idx
+                    aux_list.append(ret_list[minor_idx])
+                    del ret_list[minor_idx]
+                ret_list = aux_list
+            reverse = kwargs.get('reverse')
+            if reverse:
+                ret_list.reverse()                     
+        return ret_list
         
-
+    def _create_comparators(self, *args):
+        operators = ['>=', '<=', '>', '<', '!=', '=']
+        ret_list = []
+        for arg in args:
+            operator = None
+            for oper in operators:
+                if oper in arg:
+                    operator = oper
+                    break
+            if not operator:
+                raise ValueError('Operator not found. Valid operators are: {}'\
+                                 .format(operators)
+                )
+            ret_list.append((arg.split(operator)[0], operator, 
+                             arg.split(operator)[1])
+            )
+        return ret_list       
 
 
     # TODO:
     # DAQUI PARA BAIXO PRECISA SER REVISTO
     # 
-
+    """
     def get_application_state(self, start_from_obj_uid=None):
         if start_from_obj_uid is None:
             obj_uid, obj = list(self._data.items())[0]
@@ -910,7 +1051,7 @@ class UIManager(object):#GenericObject):
             except Exception:
                 raise        
         
-        
+    """    
 
 
                 

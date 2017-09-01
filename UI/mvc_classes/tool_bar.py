@@ -7,7 +7,7 @@ from UI.uimanager import UIViewBase
 from UI.uimanager import UI_MODEL_ATTR_CLASS
 from main_window import MainWindowController
 from App import log
-from App.utils import is_wxPhoenix
+
 
 
  
@@ -47,7 +47,7 @@ class ToolBarModel(UIModelBase):
                
         
         
-class ToolBarView(UIViewBase, wx.ToolBar):
+class ToolBar(UIViewBase, wx.ToolBar):
     tid = 'toolbar'
     paneinfo = wx.aui.AuiPaneInfo().Name(tid).ToolbarPane().Top()
                           
@@ -65,15 +65,10 @@ class ToolBarView(UIViewBase, wx.ToolBar):
         self.Realize()  
 
         if isinstance(parent_controller, MainWindowController):
-            if is_wxPhoenix():
-                # Phoenix code
-                mgr = wx.aui.AuiManager.GetManager(parent_controller.view)
-            else:
-                # wxPython classic code
-                mgr = wx.aui.AuiManager_GetManager(parent_controller.view)
+            mgr = wx.aui.AuiManager.GetManager(parent_controller.view)
             mgr.AddPane(self, self.paneinfo)
             mgr.Update()
-
+    '''        
     # TESTES
         self.counter = 1
         self.Bind(wx.EVT_PAINT, self.teste)    
@@ -85,3 +80,7 @@ class ToolBarView(UIViewBase, wx.ToolBar):
         event.Skip()
     
     # FIM TESTES        
+    '''
+    
+    
+    

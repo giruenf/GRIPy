@@ -330,6 +330,8 @@ class CrossPlotPanel(wx.Panel):
     def draw(self):
         self.canvas.draw()
 
+
+
 class PdfsMixin(object):
     _FAC = 0.1
 
@@ -366,6 +368,7 @@ class PdfsMixin(object):
         self.crossplot_ax.set_xlim(*self.xlim)
         self.crossplot_ax.set_ylim(*self.ylim)
 
+
     def create_y_pdf(self, where=None, color=None):
         if where is None:
             where = self.good
@@ -393,6 +396,7 @@ class PdfsMixin(object):
         self.crossplot_ax.set_xlim(*self.xlim)
         self.crossplot_ax.set_ylim(*self.ylim)
 
+
 #    def create_z_pdf(self):
 #        xmin, xmax = self.crossplot_ax.get_xlim()
 #        ymin, ymax = self.crossplot_ax.get_ylim()
@@ -409,6 +413,7 @@ class PdfsMixin(object):
 #
 #        self.crossplot_ax.set_xlim(xmin, xmax)
 #        self.crossplot_ax.set_ylim(ymin, ymax)
+
 
     def create_xy_pdf(self, where=None, color=None):
         if where is None:
@@ -442,14 +447,17 @@ class PdfsMixin(object):
         self.crossplot_ax.set_xlim(*self.xlim)
         self.crossplot_ax.set_ylim(*self.ylim)
 
+
     def show_x_pdf(self, i, visible=True):
         self.x_pdfs[i].set_visible(visible)
+
 
     def show_y_pdf(self, i, visible=True):
         self.y_pdfs[i].set_visible(visible)
 
 #    def show_z_pdf(self, visible=True):
 #        self.z_pdf.set_visible(visible)
+
 
     def show_xy_pdf(self, i, visible=True):
         #self.xy_pdfs[i].set_visible(visible)

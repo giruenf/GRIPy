@@ -114,8 +114,10 @@ class Dialog(wx.Dialog):
         super(Dialog, self).__init__(*args, **kwargs)
 
         self._OM = ObjectManager(self)
-        self._OM.addcallback("add", self.on_wells_change)
-        self._OM.addcallback("post-remove", self.on_wells_change)
+        self._OM.subscribe(self.on_wells_changed, 'add')
+        self._OM.subscribe(self.on_wells_changed, 'post_remove')    
+        #self._OM.addcallback("add", self.on_wells_change)
+        #self._OM.addcallback("post-remove", self.on_wells_change)
 
         self._mapui = []
 
@@ -139,7 +141,7 @@ class Dialog(wx.Dialog):
 
         self.on_wells_change(None)
 
-    def on_wells_change(self, uid):
+    def on_wells_changed(self, objuid):
         wellnames = []
         self._mapui = []
         self.choice.Clear()

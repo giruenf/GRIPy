@@ -1,29 +1,33 @@
 # -*- coding: utf-8 -*-
+import sys
 import wx
 from UI.uimanager import UIManager
 from UI.uimanager import UIControllerBase  
+from UI.uimanager import UIModelBase
 from UI.uimanager import UIViewBase 
 from App import log
 #
 ###
 import wx.dataview as dv
+import wx.propgrid as pg
+from wx.propgrid import PropertyGrid
 #from wx.combo import OwnerDrawnComboBox
 import wx.lib.colourdb
 from collections import OrderedDict
 from OM.Manager import ObjectManager
-import Parms
-import copy
-#from logplotformat import LogPlotFormat, TrackFormat, CurveFormat
-import cPickle
 ###
-from App.utils import parse_string_to_uid    
-from plotter_track import TrackController    
-from plotter_object import TrackObjectController     
-    
-import wx.propgrid as wxpg
+from track import TrackController    
+from track_object import TrackObjectController     
+from App.utils import parse_string_to_uid
 
-   
-    
+from wx.adv import OwnerDrawnComboBox  
+
+import App.pubsub as pub
+
+from log_plot import LogPlotController
+
+
+
 class LogPlotEditorController(UIControllerBase):
     tid = 'log_plot_editor_controller'
      
@@ -33,6 +37,134 @@ class LogPlotEditorController(UIControllerBase):
         log.debug('Successfully created Controller object from class: {}.'.format(class_full_name))
 
 
+    def PostInit(self):
+        UIM = UIManager()
+        UIM.create('lpe_track_panel_controller', self.uid)
+        UIM.create('lpe_objects_panel_controller', self.uid)
+        #
+        UIM.subscribe(self.object_created, 'create')
+        UIM.subscribe(self.object_removed, 'pre_remove')
+        #
+        logplot_ctrl_uid = UIM._getparentuid(self.uid)
+        for track in UIM.list('track_controller', logplot_ctrl_uid):
+            track.subscribe(self._on_change_prop, 'change')
+            for toc in UIM.list('track_object_controller', track.uid):
+                toc.subscribe(self._on_change_prop, 'change')
+            
+        
+    def PreDelete(self):
+        UIM = UIManager()
+        UIM.unsubscribe(self.object_created, 'create')
+        UIM.unsubscribe(self.object_removed, 'pre_remove') 
+        #
+        logplot_ctrl_uid = UIM._getparentuid(self.uid)
+        for track in UIM.list('track_controller', logplot_ctrl_uid):
+            track.unsubscribe(self._on_change_prop, 'change')
+            for toc in UIM.list('track_object_controller', track.uid):
+                toc.unsubscribe(self._on_change_prop, 'change')        
+        #
+        #TODO: verificar isso....
+        try:
+            self.view.Close()
+        except RuntimeError:    
+            # Error on executing PreDelete on App exit
+            pass
+
+
+    def object_created(self, objuid, parentuid):
+        if objuid[0] != 'track_controller' and \
+                                    objuid[0] != 'track_object_controller':
+            return
+        UIM = UIManager()
+        logplot_ctrl_uid = UIM._getparentuid(self.uid) 
+        if objuid[0] == 'track_controller' and parentuid == logplot_ctrl_uid:       
+            track = UIM.get(objuid)
+            #print 'LogPlotEditorController._object_created:', objuid, track.model.pos
+            lpe_tp = UIM.list('lpe_track_panel_controller', self.uid)[0]
+            lpe_op = UIM.list('lpe_objects_panel_controller', self.uid)[0]
+            lpe_tp.create_item(track)
+            lpe_op.create_item(track)
+            track.subscribe(self._on_change_prop, 'change')
+        
+        elif objuid[0] == 'track_object_controller':
+            logplot_candidate = UIM._getparentuid(parentuid)
+            if logplot_candidate == logplot_ctrl_uid:
+                lpe_op = UIM.list('lpe_objects_panel_controller', self.uid)[0]
+                track = UIM.get(parentuid)
+                toc = UIM.get(objuid)
+                lpe_op.create_item(toc, track)
+                toc.subscribe(self._on_change_prop, 'change')
+
+        
+    def object_removed(self, objuid):   
+        print 'object_removed', objuid
+        UIM = UIManager()
+        if objuid[0] == 'track_controller':
+            track_parent_uid = UIM._getparentuid(objuid)
+            logplot_ctrl_uid = UIM._getparentuid(self.uid)
+            if track_parent_uid == logplot_ctrl_uid:
+                track = UIM.get(objuid)
+                lpe_tp = UIM.list('lpe_track_panel_controller', self.uid)[0]
+                lpe_op = UIM.list('lpe_objects_panel_controller', self.uid)[0]
+                track.unsubscribe(self._on_change_prop, 'change')
+                lpe_tp.remove_item(track)
+                lpe_op.remove_item(track)       
+        elif objuid[0] == 'track_object_controller':
+            print 'object_removed:', objuid
+            track_uid = UIM._getparentuid(objuid)
+            track_parent_uid = UIM._getparentuid(track_uid)
+            logplot_ctrl_uid = UIM._getparentuid(self.uid)
+            if track_parent_uid == logplot_ctrl_uid:     
+                toc = UIM.get(objuid)
+                toc.unsubscribe(self._on_change_prop, 'change')
+                lpe_op = UIM.list('lpe_objects_panel_controller', self.uid)[0]
+                lpe_op.remove_item(toc)
+                pgcs = UIM.list('property_grid_controller', lpe_op.uid)
+                if pgcs:
+                    pgc = pgcs[0]
+                    if pgc.get_object_uid():
+                        UIM = UIManager()
+                        toc = UIM.get(pgc.get_object_uid())
+                        if toc.uid == objuid:
+                            pgc.clear()                
+                track = UIM.get(track_uid)            
+                track_op_item = lpe_op._get_real_model().ObjectToItem(track)      
+                lpe_op.expand_dvc_item(track_op_item)
+     
+                
+    def _on_change_prop(self, topicObj=pub.AUTO_TOPIC, 
+                                              new_value=None, old_value=None):
+        UIM = UIManager()
+        obj_uid = pub.pubuid_to_uid(topicObj.getName().split('.')[0])
+        
+        
+        if obj_uid[0] == 'track_controller':
+            #print '\n_on_change_prop:', self.oid, '-', topicObj.getName(), obj_uid
+            track = UIM.get(obj_uid)
+            lpe_tp = UIM.list('lpe_track_panel_controller', self.uid)[0]
+            track_tp_item = lpe_tp._get_real_model().ObjectToItem(track)
+            lpe_tp._get_real_model().ItemChanged(track_tp_item)
+            lpe_tp.update_dvc()
+            
+            lpe_op = UIM.list('lpe_objects_panel_controller', self.uid)[0]
+            track_op_item = lpe_op._get_real_model().ObjectToItem(track)
+            lpe_op._get_real_model().ItemChanged(track_op_item)
+            lpe_op.update_dvc()
+
+            
+        elif obj_uid[0] == 'track_object_controller':
+            toc = UIM.get(obj_uid)
+            lpe_op = UIM.list('lpe_objects_panel_controller', self.uid)[0]
+            toc_item = lpe_op._get_real_model().ObjectToItem(toc)
+            lpe_op._get_real_model().ItemChanged(toc_item)
+            #print '_on_change_prop:', self.oid, '-', topicObj.getName()
+            #lpe_op.view.reload_propgrid(toc)
+        
+        #elif objuid[0] == 'track_object_controller':    
+
+            
+          
+
 
 class LogPlotEditor(UIViewBase, wx.Frame):
     tid = 'log_plot_editor'
@@ -40,20 +172,24 @@ class LogPlotEditor(UIViewBase, wx.Frame):
     def __init__(self, controller_uid):
         UIViewBase.__init__(self, controller_uid)
         wx.Frame.__init__(self, None, -1, title='LogPlotEditor',
-                                          size=(860, 600),
+                                          size=(950, 600),
                                           style=wx.DEFAULT_FRAME_STYLE & 
                                           (~wx.RESIZE_BORDER) &(~wx.MAXIMIZE_BOX)
         )   
-        UIM = UIManager()
-        parent_controller_uid = UIM._getparentuid(self._controller_uid)
+
 
         main_sizer = wx.BoxSizer(wx.VERTICAL)  
         self.base_panel = wx.Panel(self)
-        note = wx.Notebook(self.base_panel)
+        self.note = wx.Notebook(self.base_panel)
         bsizer = wx.BoxSizer(wx.HORIZONTAL)
-        bsizer.Add(note, 1, wx.ALL|wx.EXPAND, border=5)        
+        bsizer.Add(self.note, 1, wx.ALL|wx.EXPAND, border=5)        
         self.base_panel.SetSizer(bsizer)
                 
+        #UIM = UIManager()
+        #UIM.create('lpe_track_panel_controller', self.uid)
+        #parent_controller_uid = UIM._getparentuid(self._controller_uid)        
+        
+        '''
         tracks_base_panel = wx.Panel(note, style=wx.SIMPLE_BORDER)
         sizer_grid_panel = wx.BoxSizer(wx.VERTICAL)
         self.tracks_model = TracksModel(parent_controller_uid)
@@ -61,217 +197,97 @@ class LogPlotEditor(UIViewBase, wx.Frame):
         sizer_grid_panel.Add(tp, 1, wx.EXPAND|wx.ALL, border=10)
         tracks_base_panel.SetSizer(sizer_grid_panel)
         note.AddPage(tracks_base_panel, "Tracks", True)
+        '''
         
+        '''
         curves_base_panel = wx.Panel(note, style=wx.SIMPLE_BORDER)
         sizer_curves_panel = wx.BoxSizer(wx.VERTICAL)
         self.curves_model = CurvesModel(parent_controller_uid)
-        cp = CurvesPanel(curves_base_panel, self.curves_model)
+        cp = TrackObjectsPanel(curves_base_panel, self.curves_model)
         sizer_curves_panel.Add(cp, 1, wx.EXPAND|wx.ALL, border=10)
         curves_base_panel.SetSizer(sizer_curves_panel)
         note.AddPage(curves_base_panel, "Objects", True)
-     
-     
-        main_sizer.Add(self.base_panel, 1, wx.EXPAND)
+        '''
         
+        main_sizer.Add(self.base_panel, 1, wx.EXPAND)
         bottom_panel = wx.Panel(self)
         sizer = wx.BoxSizer(wx.VERTICAL)
         btn_close = wx.Button(bottom_panel, -1, "Close")
         sizer.Add(btn_close, 0, wx.ALIGN_RIGHT|wx.RIGHT|wx.BOTTOM, border=10)
-        btn_close.Bind(wx.EVT_BUTTON, self._OnButtonClose)
+        btn_close.Bind(wx.EVT_BUTTON, self.on_close)
         bottom_panel.SetSizer(sizer)        
         main_sizer.Add(bottom_panel, 0,  wx.EXPAND)
         self.SetSizer(main_sizer)
         class_full_name = str(self.__class__.__module__) + '.' + str(self.__class__.__name__)    
         log.debug('Successfully created View object from class: {}.'.format(class_full_name))
-        
-        
-    def _OnButtonClose(self, evt):
-        self.Close()
-
-
-
-###############################################################################
-
-
-class VarNodeDropData(wx.CustomDataObject):
-    NAME = "VarNode"
-    PICKLE_PROTOCOL = 2
-	   
-    def __init__(self):
-        wx.CustomDataObject.__init__(self, VarNodeDropData.GetFormat())
-        
-    def SetItem(self, item):
-        oid = item.GetID()
-        data = cPickle.dumps(oid, VarNodeDropData.PICKLE_PROTOCOL)       
-        self.SetData(data)
-        
-    def GetItem(self):
-        oid = cPickle.loads(self.GetData())
-        return dv.DataViewItem(oid)
-        
-    @staticmethod  
-    def GetFormat():
-        return wx.DataFormat(VarNodeDropData.NAME)
-        
-
-###############################################################################
-
-
-class TracksPanel(wx.Panel):
-        
-    def __init__(self, parent, model):
-        wx.Panel.__init__(self, parent, -1)
-        self.model = model
-        self.dvc = dv.DataViewCtrl(self, style=wx.BORDER_THEME | dv.DV_VERT_RULES | dv.DV_MULTIPLE| dv.DV_ROW_LINES) 
-        self.dvc.AssociateModel(self.model)
-
-        # Track
-        dv_col = self.dvc.AppendTextColumn("Track", 0, width=45, align=wx.ALIGN_CENTER)
-        dv_col.SetMinWidth(45)
-        # Track Name
-        dv_col = self.dvc.AppendTextColumn("Track Title", 1, width=80, mode=dv.DATAVIEW_CELL_EDITABLE)
-        dv_col.SetMinWidth(80)
-        # Width
-        dv_col = self.dvc.AppendTextColumn("Width", 2, width=50, mode=dv.DATAVIEW_CELL_EDITABLE)      
-        dv_col.SetMinWidth(60)
-        # Visible (Track)
-        dv_col = self.dvc.AppendToggleColumn("Visible",  3, width=50,  mode=dv.DATAVIEW_CELL_ACTIVATABLE)
-        dv_col.SetMinWidth(50)
-        # Plot Grid
-        self.dvc.AppendToggleColumn("Plot Grid", 4, width=60,  mode=dv.DATAVIEW_CELL_ACTIVATABLE)
-        # Depth Lines
-        dvcr = dv.DataViewChoiceRenderer(['All', 'Left', 'Right', 'Center', 'Left & Right', 'None'],
-                                         mode=dv.DATAVIEW_CELL_EDITABLE
-        )
-        dvcol = dv.DataViewColumn("Depth Lines", dvcr, 5, width=85)
-        self.dvc.AppendColumn(dvcol)
-        # Scale Lines
-        dv_col = self.dvc.AppendTextColumn("Scale Lines",   6, width=70,  mode=dv.DATAVIEW_CELL_EDITABLE)
-        dv_col.SetMinWidth(70)   
-        # Scale (Track)
-        dvcr = dv.DataViewChoiceRenderer(['Linear', 'Logarithmic'], mode=dv.DATAVIEW_CELL_EDITABLE)
-        dvcol = dv.DataViewColumn("Scale", dvcr, 7, width=80)
-        dv_col.SetMinWidth(75)    
-        self.dvc.AppendColumn(dvcol)
-        # Decimation
-        dv_col = self.dvc.AppendTextColumn("Log Decimation", 8, width=100, mode=dv.DATAVIEW_CELL_EDITABLE)
-        dv_col.SetMinWidth(85)        
-        # Left Scale
-        dv_col = self.dvc.AppendTextColumn("Log Left Scale", 9, width=85, mode=dv.DATAVIEW_CELL_EDITABLE)
-        dv_col.SetMinWidth(80)   
-        # Minor Lines  
-        self.dvc.AppendToggleColumn("Log Minor Lines", 10, width=100, mode=dv.DATAVIEW_CELL_ACTIVATABLE)
-        dv_col.SetMinWidth(90) 
-
-        for dv_col in self.dvc.Columns:
-            dv_col.Renderer.Alignment = wx.ALIGN_CENTER 
-            dv_col.SetAlignment(wx.ALIGN_CENTER)         
-        
-        self.Sizer = wx.BoxSizer(wx.VERTICAL) 
-        self.Sizer.Add(self.dvc, 1, wx.EXPAND)
-        button_add_track = wx.Button(self, label="Add track")
-        self.Bind(wx.EVT_BUTTON, self.OnInsertTrack, button_add_track)
-        button_delete_track = wx.Button(self, label="Delete track(s)")
-        self.Bind(wx.EVT_BUTTON, self.OnDeleteSelectedTracks, button_delete_track)
-        button_select_all = wx.Button(self, label="Select All")
-        self.Bind(wx.EVT_BUTTON, self.OnSelectAll, button_select_all)
-        button_select_none = wx.Button(self, label="Select None")
-        self.Bind(wx.EVT_BUTTON, self.OnSelectNone, button_select_none)
-        btnbox = wx.BoxSizer(wx.HORIZONTAL)
-        btnbox.Add(button_add_track, 0, wx.LEFT|wx.RIGHT, 5)
-        btnbox.Add(button_delete_track, 0, wx.LEFT|wx.RIGHT, 5)
-        btnbox.Add(button_select_all, 0, wx.LEFT|wx.RIGHT, 5)
-        btnbox.Add(button_select_none, 0, wx.LEFT|wx.RIGHT, 5)
-        self.Sizer.Add(btnbox, 0, wx.TOP|wx.BOTTOM, 5)
-        
-        self.dvc.EnableDragSource(VarNodeDropData.GetFormat())
-        self.dvc.EnableDropTarget(VarNodeDropData.GetFormat())
-        self.dvc.Bind(dv.EVT_DATAVIEW_ITEM_BEGIN_DRAG, self.OnItemBeginDrag)
-        self.dvc.Bind(dv.EVT_DATAVIEW_ITEM_DROP_POSSIBLE, self.OnItemDropPossible)
-        self.dvc.Bind(dv.EVT_DATAVIEW_SELECTION_CHANGED, self.OnSelectionChanged)
-
-        
-   # def get_dataview_ctrl(self):
-   #     return self.dvc
-      
-    def OnItemBeginDrag(self, evt):
-        item = evt.GetItem()
-        if not item.IsOk():
-            evt.Veto()
-            return
-        self.node = VarNodeDropData()
-        self.node.SetItem(item)
-        evt.SetDataObject(self.node)
-        evt.SetDragFlags(wx.Drag_DefaultMove)
-        
-        
-    def OnItemDropPossible(self, event):
-        new_pos_item = event.GetItem()
-        old_pos_item = self.node.GetItem()
-        if new_pos_item == old_pos_item:
-            return False   
-        self.dvc.UnselectAll() # Change Selection    
-        if new_pos_item.IsOk() and \
-                            event.GetDataFormat() == VarNodeDropData.GetFormat():
-            self.dvc.Select(new_pos_item)    
-            new_pos_track = self.model.ItemToObject(new_pos_item)
-            old_pos_track = self.model.ItemToObject(old_pos_item)
-            new_pos_track.model.pos = old_pos_track.model.pos
-            self.model.ChangedItem(new_pos_item) 
-            self.model.ChangedItem(old_pos_item)
-            return True    
-        return False        
-                        
-    def OnSelectAll(self, evt):
-        self.dvc.SelectAll()
-        self._DoSelectionChanged()
-        self.dvc.SetFocus()
-   
-    def OnSelectNone(self, evt):
-        self.dvc.UnselectAll()        
-        self._DoSelectionChanged()
-           
-    def OnSelectionChanged(self, event):
-        self._DoSelectionChanged()
-
-    def _DoSelectionChanged(self):        
-        items = self.dvc.GetSelections()
+        self.Bind(wx.EVT_CLOSE, self.on_close) 
+         
+    def on_close(self, event):
+        event.Skip()
         UIM = UIManager()
-        tracks = UIM.list('track_controller', self.model.logplot_ctrl_uid)
-        tracks_selected = [self.model.ItemToObject(item) for item in items]
-        for track in tracks:
-            track.model.selected = track in tracks_selected
-            
-    def OnInsertTrack(self, event):
-        self.model.InsertTracks()
-          
-    def OnDeleteSelectedTracks(self, event):
-        self.model.DeleteTracks()
+        wx.CallAfter(UIM.remove, self._controller_uid)
+        self.Unbind(wx.EVT_CLOSE)
 
 
-###############################################################################
 
 
-class TracksModel(dv.PyDataViewModel):
+
+
+
+class LPETrackPanelController(UIControllerBase):
+    tid = 'lpe_track_panel_controller'
+    
+    def __init__(self):
+        super(LPETrackPanelController, self).__init__()
+        # LPETrackPanelModel is not a UIModelBase object
+        self._real_model = LPETrackPanelModel(self.uid)
+
+    def PostInit(self):
+        self.view.dvc.AssociateModel(self._real_model)
+
+    def _get_real_model(self):
+        # LPETrackPanel needs the model
+        return self._real_model
+    
+    def create_item(self, obj):    
+        if obj.tid != 'track_controller':
+            raise Exception('Cannot insert {}.'.format(obj.uid))   
+        item = self._get_real_model().ObjectToItem(obj)
+        self._get_real_model().ItemAdded(dv.NullDataViewItem, item)
+
+    def remove_item(self, obj):  
+        if obj.tid != 'track_controller':
+            raise Exception('Cannot remove {}.'.format(obj.uid))    
+        item = self._get_real_model().ObjectToItem(obj)    
+        self._get_real_model().ItemDeleted(dv.NullDataViewItem, item)    
+        
+    def update_dvc(self):
+        self.view.dvc.Refresh()     
+
+    
+# TODO: include some observation below....   
+# Despite it's name       
+class LPETrackPanelModel(dv.PyDataViewModel):        
+    
     TRACKS_MODEL_MAPPING = {
         0: 'pos',
         1: 'label',
         2: 'width', 
-        3: 'show_track',
+        3: 'visible',
         4: 'plotgrid',
         5: 'depth_lines',
         6: 'scale_lines',
         7: 'x_scale', 
         8: 'decades',
         9: 'leftscale',
-        10: 'minorgrid'
+        10: 'minorgrid',
+        11: 'overview'
     }    
 
-    def __init__(self, logplot_ctrl_uid):
+    def __init__(self, controller_uid):   
         dv.PyDataViewModel.__init__(self)
-        self.logplot_ctrl_uid = logplot_ctrl_uid
-        #self.objmapper.UseWeakRefs(True)
-
+        self._controller_uid = controller_uid  # To send commands to controller...
+            
     def IsContainer(self, item):
         if not item:
             return True
@@ -280,19 +296,22 @@ class TracksModel(dv.PyDataViewModel):
     def GetParent(self, item):
         return dv.NullDataViewItem
         
-    def GetChildren(self, parent, children):     
+    def GetChildren(self, parent, children):   
+        #print '\nGetChildren'
         UIM = UIManager()
-        tracks = UIM.list('track_controller', self.logplot_ctrl_uid)
+        #controller = UIM.get(self._controller_uid)
+        lpe_ctrl_uid = UIM._getparentuid(self._controller_uid) 
+        logplot_ctrl_uid = UIM._getparentuid(lpe_ctrl_uid)
+        tracks = UIM.list('track_controller', logplot_ctrl_uid)
         for track in tracks:
             children.append(self.ObjectToItem(track)) 
         return len(tracks)
-
+            
+            
     def GetValue(self, item, col):
         track = self.ItemToObject(item)
         if col == 0:
             return track.model.pos+1
-        elif col == 3:
-            return True
         elif col == 5:
             value = track.model[self.TRACKS_MODEL_MAPPING.get(col)]
             if value == 0:
@@ -319,6 +338,7 @@ class TracksModel(dv.PyDataViewModel):
 
     def SetValue(self, value, item, col):
         track = self.ItemToObject(item)
+        #print 'SetValue', track.uid, col, value
         if col == 5:
             if value == 'All':
                 track.model.depth_lines = 0
@@ -341,13 +361,22 @@ class TracksModel(dv.PyDataViewModel):
                 track.model.x_scale = 1
             else:
                 raise Exception('Error.')    
+        elif col == 11:
+            UIM = UIManager()
+            logplot_uid = UIM._getparentuid(track.uid)
+            logplot_ctrl = UIM.get(logplot_uid)
+            if value:
+                logplot_ctrl.set_overview_track(track.uid)
+            else:
+                logplot_ctrl.unset_overview_track()  
         else:       
             track.model[self.TRACKS_MODEL_MAPPING.get(col)] = value
         return True
 
-    def ChangedItem(self, item):
-        print '\nChangedItem'
-        self.ItemChanged(item)
+    #def ChangedItem(self, item):
+        #print 'ChangedItem'
+        #obj = self.ItemToObject(item)
+    #    self.ItemChanged(item)
 
     def GetAttr(self, item, col, attr):
         if col == 0:
@@ -362,7 +391,7 @@ class TracksModel(dv.PyDataViewModel):
         track1 = self.ItemToObject(item1)
         track2 = self.ItemToObject(item2)
         if track1.model.pos == track2.model.pos:
-            raise Exception('Two tracks cannot have same position.')
+            raise Exception('Two tracks cannot have same position: {} - {}.'.format(track1.uid, track2.uid))
         if ascending: 
             if track1.model.pos > track2.model.pos:
                 return 1
@@ -373,230 +402,321 @@ class TracksModel(dv.PyDataViewModel):
                 return -1
             else:
                 return 1
-        
+         
     def IsEnabled(self, item, col):
         return True 
    
+    '''
     def InsertTracks(self):
         UIM = UIManager()
-        log_plot_ctrl = UIM.get(self.logplot_ctrl_uid)
+        lpe_ctrl_uid = UIM._getparentuid(self._controller_uid) 
+        logplot_ctrl_uid = UIM._getparentuid(lpe_ctrl_uid)
+        log_plot_ctrl = UIM.get(logplot_ctrl_uid)
         new_tracks_uid = log_plot_ctrl.insert_track()
         for uid in new_tracks_uid:
             new_track = UIM.get(uid)
             item = self.ObjectToItem(new_track)
             self.ItemAdded(dv.NullDataViewItem, item)
         return True
-               
-    def DeleteTracks(self):
-        UIM = UIManager()
-        log_plot_ctrl = UIM.get(self.logplot_ctrl_uid)
-        selected_tracks = log_plot_ctrl.get_tracks_selected()
-        items_selected = [self.ObjectToItem(track) for track in selected_tracks]
-        all_tracks = UIM.list('track_controller', self.logplot_ctrl_uid)
-        not_selected_tracks = [track for track in all_tracks if track not in selected_tracks]
-        items_not_selected = [self.ObjectToItem(track) for track in not_selected_tracks]
-        log_plot_ctrl.remove_selected_tracks()
-        for item in items_selected:
-            self.ItemDeleted(dv.NullDataViewItem, item)  
-        for item in items_not_selected:
-            self.ItemChanged(item)  
+    '''           
+
         
+        
+class LPETrackPanel(UIViewBase, wx.Panel):
+    tid = 'lpe_track_panel'
+
+    def __init__(self, controller_uid):
+        UIViewBase.__init__(self, controller_uid)
+        wx.Panel.__init__(self, self._get_lpeview_notebook(), -1, style=wx.SIMPLE_BORDER)       
+
+
+    def PostInit(self):
+        self.base_panel = wx.Panel(self)
+        self.dvc = self.create_data_view_ctrl()
+        
+        self.base_panel.Sizer = wx.BoxSizer(wx.VERTICAL) 
+        self.base_panel.Sizer.Add(self.dvc, 1, wx.EXPAND)
+        button_add_track = wx.Button(self.base_panel, label="Add track")
+        self.Bind(wx.EVT_BUTTON, self.OnInsertTrack, button_add_track)
+        button_delete_track = wx.Button(self.base_panel, label="Delete track(s)")
+        self.Bind(wx.EVT_BUTTON, self.OnDeleteSelectedTracks, button_delete_track)
+        button_select_all = wx.Button(self.base_panel, label="Select All")
+        self.Bind(wx.EVT_BUTTON, self.OnSelectAll, button_select_all)
+        button_select_none = wx.Button(self.base_panel, label="Select None")
+        self.Bind(wx.EVT_BUTTON, self.OnSelectNone, button_select_none)
+        btnbox = wx.BoxSizer(wx.HORIZONTAL)
+        btnbox.Add(button_add_track, 0, wx.LEFT|wx.RIGHT, 5)
+        btnbox.Add(button_delete_track, 0, wx.LEFT|wx.RIGHT, 5)
+        btnbox.Add(button_select_all, 0, wx.LEFT|wx.RIGHT, 5)
+        btnbox.Add(button_select_none, 0, wx.LEFT|wx.RIGHT, 5)
+        self.base_panel.Sizer.Add(btnbox, 0, wx.TOP|wx.BOTTOM, 5)
+        
+        self.dvc.EnableDragSource(VarNodeDropData.GetFormat())
+        self.dvc.EnableDropTarget(VarNodeDropData.GetFormat())
+        
+        self.dvc.Bind(dv.EVT_DATAVIEW_ITEM_BEGIN_DRAG, self.OnItemBeginDrag)
+        self.dvc.Bind(dv.EVT_DATAVIEW_ITEM_DROP_POSSIBLE, self.OnItemDropPossible)
+        self.dvc.Bind(dv.EVT_DATAVIEW_SELECTION_CHANGED, self.OnSelectionChanged)          
+        ###
+        sizer_grid_panel = wx.BoxSizer(wx.VERTICAL)
+        sizer_grid_panel.Add(self.base_panel, 1, wx.EXPAND|wx.ALL, border=10)
+        self.SetSizer(sizer_grid_panel)
+        self._get_lpeview_notebook().AddPage(self, "Tracks", True)
+  
+
+    def _get_lpeview_notebook(self):
+        UIM = UIManager()
+        parent_controller_uid = UIM._getparentuid(self._controller_uid) 
+        lpe_ctrl = UIM.get(parent_controller_uid)
+        return lpe_ctrl.view.note
+        
+
+    def create_data_view_ctrl(self):
+        dvc = dv.DataViewCtrl(self.base_panel, style=wx.BORDER_THEME | \
+                            dv.DV_VERT_RULES | dv.DV_MULTIPLE| dv.DV_ROW_LINES
+        ) 
+
+        # Track
+        dv_col = dvc.AppendTextColumn("Track", 0, width=45, align=wx.ALIGN_CENTER)
+        dv_col.SetMinWidth(45)
+        # Track Name
+        dv_col = dvc.AppendTextColumn("Track Title", 1, width=80, mode=dv.DATAVIEW_CELL_EDITABLE)
+        dv_col.SetMinWidth(80)
+        # Width
+        dv_col = dvc.AppendTextColumn("Width", 2, width=50, mode=dv.DATAVIEW_CELL_EDITABLE)      
+        dv_col.SetMinWidth(60)
+        # Visible (Track)
+        dv_col = dvc.AppendToggleColumn("Visible",  3, width=50,  mode=dv.DATAVIEW_CELL_ACTIVATABLE)
+        dv_col.SetMinWidth(50)
+        # Plot Grid
+        dvc.AppendToggleColumn("Plot Grid", 4, width=60,  mode=dv.DATAVIEW_CELL_ACTIVATABLE)
+        # Depth Lines
+        dvcr = dv.DataViewChoiceRenderer(['All', 'Left', 'Right', 'Center', 'Left & Right', 'None'],
+                                         mode=dv.DATAVIEW_CELL_EDITABLE
+        )
+        dvcol = dv.DataViewColumn("Depth Lines", dvcr, 5, width=85)
+        dvc.AppendColumn(dvcol)
+        # Scale Lines
+        dv_col = dvc.AppendTextColumn("Scale Lines",   6, width=70,  mode=dv.DATAVIEW_CELL_EDITABLE)
+        dv_col.SetMinWidth(70)   
+        # Scale (Track)
+        dvcr = dv.DataViewChoiceRenderer(['Linear', 'Logarithmic'], mode=dv.DATAVIEW_CELL_EDITABLE)
+        dvcol = dv.DataViewColumn("Scale", dvcr, 7, width=80)
+        dv_col.SetMinWidth(75)    
+        dvc.AppendColumn(dvcol)
+        # Decimation
+        dv_col = dvc.AppendTextColumn("Log Decimation", 8, width=100, mode=dv.DATAVIEW_CELL_EDITABLE)
+        dv_col.SetMinWidth(85)        
+        # Left Scale
+        dv_col = dvc.AppendTextColumn("Log Left Scale", 9, width=85, mode=dv.DATAVIEW_CELL_EDITABLE)
+        dv_col.SetMinWidth(80)   
+        # Minor Lines  
+        dv_col = dvc.AppendToggleColumn("Log Minor Lines", 10, width=100, mode=dv.DATAVIEW_CELL_ACTIVATABLE)
+        dv_col.SetMinWidth(90) 
+        # Overview Track
+        dv_col = dvc.AppendToggleColumn("Overview", 11, width=90, mode=dv.DATAVIEW_CELL_ACTIVATABLE)
+        dv_col.SetMinWidth(90) 
+        
+        for dv_col in dvc.Columns:
+            dv_col.Renderer.Alignment = wx.ALIGN_CENTER 
+            dv_col.SetAlignment(wx.ALIGN_CENTER)         
+        
+        return dvc    
+      
+         
+    def OnItemBeginDrag(self, event):
+        item = event.GetItem()
+        if not item.IsOk():
+            event.Veto()
+            return
+        UIM = UIManager()
+        controller = UIM.get(self._controller_uid)
+        model = controller._get_real_model()
+        obj = model.ItemToObject(item)
+        self.node = VarNodeDropData()
+        self.node.SetObject(obj) 
+        event.SetDataObject(self.node)
+        event.SetDragFlags(wx.Drag_DefaultMove)
+
+        
+    def OnItemDropPossible(self, event):
+        new_pos_item = event.GetItem()
+        UIM = UIManager()
+        controller = UIM.get(self._controller_uid)
+        model = controller._get_real_model()
+        old_pos_track = self.node.GetObject()
+        old_pos_item = model.ObjectToItem(old_pos_track)
+
+        if new_pos_item == old_pos_item:
+            return False   
+        self.dvc.UnselectAll() # Change Selection    
+        
+        if new_pos_item.IsOk() and \
+                            event.GetDataFormat() == VarNodeDropData.GetFormat():                
+            UIM = UIManager()
+            controller = UIM.get(self._controller_uid)
+            model = controller._get_real_model()                    
+            self.dvc.Select(new_pos_item)    
+            new_pos_track = model.ItemToObject(new_pos_item)
+            new_pos_track.model.pos = old_pos_track.model.pos
+
+            #model.ItemChanged(new_pos_item) 
+            #model.ItemChanged(old_pos_item)
+            return True    
+        return False        
+                 
+
+    def OnSelectAll(self, evt):
+        self.dvc.SelectAll()
+        self._DoSelectionChanged()
+        self.dvc.SetFocus()
+   
+    def OnSelectNone(self, evt):
+        self.dvc.UnselectAll()        
+        self._DoSelectionChanged()
+           
+    def OnSelectionChanged(self, event):
+        pass
+        #self._DoSelectionChanged()
+
+    def _DoSelectionChanged(self):        
+        items = self.dvc.GetSelections()
+        UIM = UIManager()
+        controller = UIM.get(self._controller_uid)
+        model = controller._get_real_model()
+        lpe_ctrl_uid = UIM._getparentuid(self._controller_uid)
+        logplot_ctrl_uid = UIM._getparentuid(lpe_ctrl_uid)
+        tracks = UIM.list('track_controller', logplot_ctrl_uid)
+        tracks_selected = [model.ItemToObject(item) for item in items]
+        for track in tracks:
+            track.model.selected = track in tracks_selected
+            
+            
+    def OnInsertTrack(self, event):
+        UIM = UIManager()
+        lpe_ctrl_uid = UIM._getparentuid(self._controller_uid)
+        logplot_ctrl_uid = UIM._getparentuid(lpe_ctrl_uid)
+        log_plot_ctrl = UIM.get(logplot_ctrl_uid)
+        log_plot_ctrl.insert_track()  
+        
+        
+    def OnDeleteSelectedTracks(self, event):
+        UIM = UIManager()
+        lpe_ctrl_uid = UIM._getparentuid(self._controller_uid)
+        logplot_ctrl_uid = UIM._getparentuid(lpe_ctrl_uid)
+        log_plot_ctrl = UIM.get(logplot_ctrl_uid)
+        log_plot_ctrl.remove_selected_tracks()
+        
+
+
+
+
+
+###############################################################################
+
+
+class VarNodeDropData(wx.CustomDataObject):
+    NAME = "VarNode"
+    PICKLE_PROTOCOL = 2
+	   
+    def __init__(self):
+        wx.CustomDataObject.__init__(self, VarNodeDropData.GetFormat())
+    
+    def SetObject(self, obj):
+        self.SetData(str(obj.uid))
+        
+    def GetObject(self):
+        obj_uid_str = self.GetData().tobytes()
+        UIM = UIManager()
+        return UIM.get(obj_uid_str)
+    
+    @staticmethod  
+    def GetFormat():
+        return wx.DataFormat(VarNodeDropData.NAME)
+        
+
+###############################################################################
+###############################################################################
+
+
+class LPEObjectsPanelController(UIControllerBase):
+    tid = 'lpe_objects_panel_controller'
+    
+    def __init__(self):
+        super(LPEObjectsPanelController, self).__init__()
+        # LPEObjectsPanelModel is not a UIModelBase object
+        self._real_model = LPEObjectsPanelModel(self.uid)
+        
+    def PostInit(self):
+        self.view.dvc.AssociateModel(self._real_model)
+        self.expand_dvc_all_items()
+ 
+    def PreDelete(self):
+        pass
+      
+    def create_item(self, obj, parent_obj=None):
+        if obj.tid != 'track_controller' and \
+                                        obj.tid != 'track_object_controller':
+            raise Exception('Cannot insert {}.'.format(obj.tid))                                    
+    
+        item = self._get_real_model().ObjectToItem(obj)
+        if obj.tid == 'track_controller':
+            self._get_real_model().ItemAdded(dv.NullDataViewItem, item)
+            self.expand_dvc_item(item)
+        else:
+            if parent_obj is None:
+                raise Exception('Cannot insert a object whose parent is None.')
+            parent_item = self._get_real_model().ObjectToItem(parent_obj)
+            self._get_real_model().ItemAdded(parent_item, item)
+            self.expand_dvc_item(parent_item)
+            
+    def remove_item(self, obj):  
+        if obj.tid != 'track_controller' and \
+                                        obj.tid != 'track_object_controller':            
+            raise Exception('Cannot remove {}.'.format(obj.tid))   
+        item = self._get_real_model().ObjectToItem(obj)
+        if obj.tid == 'track_controller':
+            self._get_real_model().ItemDeleted(dv.NullDataViewItem, item)
+        else:
+            parent_item = self._get_real_model().GetParent(item)
+            self._get_real_model().ItemDeleted(parent_item, item)
+
+    def expand_dvc_item(self, item):
+        return self.view.dvc.Expand(item)
+
+    def expand_dvc_all_items(self):
+        self.view.expand_dvc_all_items()
+        
+    def _get_real_model(self):
+        # LPETrackPanel needs the model
+        return self._real_model
+
+    def update_dvc(self):
+        self.view.dvc.Refresh()
         
         
 ###############################################################################
 
 
-            
-class CurvesPanel(wx.Panel):
-    
-    DEPTH_LINES_CHOICE = ['Full', 'Left', 'Right', 'Center', 'Left & Right', 'None']    
-    
-    def __init__(self, parent, model):
-        wx.Panel.__init__(self, parent, -1)
-        
-        self.model = model
-        self.dvc = dv.DataViewCtrl(self, style=dv.DV_ROW_LINES|dv.DV_VERT_RULES|dv.DV_MULTIPLE)
-        self.dvc.AssociateModel(self.model)
-       
-        # Track
-        dv_col = self.dvc.AppendTextColumn("Track",  0, width=85)      
-        dv_col.SetMinWidth(55)    
+class LPEObjectsPanelModel(dv.PyDataViewModel):
 
-        # Object Type 
-        dvcr_curve_type = dv.DataViewChoiceRenderer(['Log', 'Seismic'],  mode=dv.DATAVIEW_CELL_EDITABLE)
-        dv_col = dv.DataViewColumn("Object Type", dvcr_curve_type, 1, width=85)#, flags=dv.DATAVIEW_COL_REORDERABLE) , mode=dv.DATAVIEW_CELL_EDITABLE)          
-        dv_col.SetMinWidth(85)
-        self.dvc.AppendColumn(dv_col)
-        
-        # Object Name 
-        #dvcr_curve_name = dv.DataViewChoiceRenderer([],  mode=dv.DATAVIEW_CELL_EDITABLE)
-        dvcr_curve_name = LogRenderer(self.model)
-        dv_col = dv.DataViewColumn("Object Name", dvcr_curve_name, 2, width=130)#, flags=dv.DATAVIEW_COL_REORDERABLE)           
-        dv_col.SetMinWidth(85)
-        self.dvc.AppendColumn(dv_col)
-        
-        # Left Scale        
-        dv_col = self.dvc.AppendTextColumn("Left Scale",   3, width=70,  mode=dv.DATAVIEW_CELL_EDITABLE)
-        dv_col.SetMinWidth(70) 
-        
-        # Right Scale
-        dv_col = self.dvc.AppendTextColumn("Right Scale",   4, width=70,  mode=dv.DATAVIEW_CELL_EDITABLE)
-        dv_col.SetMinWidth(70)
-        
-        # Visible (Curve)        
-        dv_col = self.dvc.AppendToggleColumn("Visible",   5, width=50,  mode=dv.DATAVIEW_CELL_ACTIVATABLE)
-        dv_col.SetMinWidth(50)
-        
-        # Back up
-        dv_col = self.dvc.AppendTextColumn("Back up",   6, width=60,  mode=dv.DATAVIEW_CELL_EDITABLE)
-        dv_col.SetMinWidth(60)
-        
-        # Scale (Curve)
-        #print CurveFormat.SCALE_MAPPING.values()
-        dvcr = dv.DataViewChoiceRenderer(['Linear', 'Logarithmic'], mode=dv.DATAVIEW_CELL_EDITABLE)
-        dv_col = dv.DataViewColumn("Scale", dvcr,7, width=75)
-        dv_col.SetMinWidth(75)    
-        self.dvc.AppendColumn(dv_col)
-           
-        
-        # Line Color
-        dv_col = self.dvc.AppendTextColumn("Color", 8, width=75,  mode=dv.DATAVIEW_CELL_EDITABLE)
-        #dvcr = dv.DataViewChoiceRenderer([], mode=dv.DATAVIEW_CELL_EDITABLE)
-        #dv_col = dv.DataViewColumn("Color", dvcr, 7, width=75)
-        dv_col.SetMinWidth(75)    
-        #self.dvc.AppendColumn(dv_col)
-
-        
-        
-        # Width         
-        dv_col = self.dvc.AppendTextColumn("Width",   9, width=45,  mode=dv.DATAVIEW_CELL_EDITABLE)
-        dv_col.SetMinWidth(45)
-        # Style   
-        
-        dv_col = self.dvc.AppendTextColumn("Style",   10, width=90,  mode=dv.DATAVIEW_CELL_EDITABLE)      
-        dv_col.SetMinWidth(90) 
-            
-
-        for idx, dv_col in enumerate(self.dvc.Columns):
-            dv_col.Renderer.Alignment = wx.ALIGN_CENTER 
-            dv_col.SetAlignment(wx.ALIGN_CENTER) 
-
-        self.Sizer = wx.BoxSizer(wx.VERTICAL) 
-        self.Sizer.Add(self.dvc, 1, wx.EXPAND)
-        
-        button_add_track = wx.Button(self, label="Add curve")
-    #    self.Bind(wx.EVT_BUTTON, self._OnAddCurve, button_add_track)
-        button_delete_track = wx.Button(self, label="Delete curve(s)")
-    #    self.Bind(wx.EVT_BUTTON, self._OnDeleteCurves, button_delete_track)
-        btnbox = wx.BoxSizer(wx.HORIZONTAL)
-        btnbox.Add(button_add_track, 0, wx.LEFT|wx.RIGHT, 5)
-        btnbox.Add(button_delete_track, 0, wx.LEFT|wx.RIGHT, 5)
-        self.Sizer.Add(btnbox, 0, wx.TOP|wx.BOTTOM, 5)
-
-        
-      
-        UIM = UIManager()
-        all_tracks = UIM.list('track_controller', self.model.logplot_ctrl_uid)
-        for track in all_tracks:     
-            item = self.model.ObjectToItem(track)
-            self.dvc.Expand(item)
-          #  self.model.Resort()
-                
-        self.dvc.Bind(dv.EVT_DATAVIEW_ITEM_START_EDITING, self.OnItemStartEditing)        
-        self.dvc.Bind(dv.EVT_DATAVIEW_ITEM_EDITING_STARTED, self.OnItemEditingStart)
-        self.dvc.Bind(dv.EVT_DATAVIEW_ITEM_EDITING_DONE, self.OnItemEditingDone)
-        #dv.
-
-
-    def OnItemStartEditing(self, event):
-        print '\nOnItemStartEditing'
-        
-
-    def OnItemEditingStart(self, event):
-        print '\nOnItemEditingStart:'
-        '''
-        editing_col = event.GetDataViewColumn().GetModelColumn()
-        if editing_col == 2:
-            OM = ObjectManager(self)
-            renderer = event.GetDataViewColumn().GetRenderer()
-            obj_type_value = event.GetModel().GetValue(event.GetItem(), 1)
-            if obj_type_value == 'Log':
-                tid = 'log'
-            elif obj_type_value == 'Seismic':    
-                tid = 'seismic'
-            self.obj_values = OrderedDict()    
-            for obj in OM.list(tid):
-                self.obj_values[obj.name] = obj.oid
-            renderer.GetEditorCtrl().AppendItems(self.obj_values.keys())
-       '''   
-         
-         
-    def OnItemEditingDone(self, event):
-        #import PySwigObject
-        #psobj = PySwigObject
-       # dv._swig_getattr()
-       # import wx.dataview as dv
-        #_dv.DataViewRenderer_GetVariantType
-        #wxDVCVariant_in_helper
-        #_dataview. wxDVCVariant_in_helper(event.GetValue())
-                
-        print '\nOnItemEditingDone:'
-        '''
-        py_swig_obj = event.GetValue()
-        print dv._swig_repr(py_swig_obj)
-        print py_swig_obj,'\n'
-        '''
-        '''
-        print  wxpg._propgrid.__dict__
-        
-        PGProperty('label', 'name')
-        val = prop.ValueToString(py_swig_obj, wxpg.PG_FULL_VALUE)
-       
-        print 'VAL:', val
-        '''
-
-        
-        '''
-        if not self.obj_values:
-            event.SetValue(wx.EmptyString)
-        else:
-            selected_choice_value = event.GetValue()
-            print str(selected_choice_value)
-            #real_value = self.obj_values.get(selected_choice_value)
-            #event.SetValue(real_value)
-        '''
-        '''          
-        wxDataViewEvent event( wxEVT_DATAVIEW_ITEM_EDITING_DONE, dv_ctrl->GetId() );
-        event.SetDataViewColumn( GetOwner() );
-        event.SetModel( dv_ctrl->GetModel() );
-        event.SetItem( m_item );
-        event.SetValue( value );
-        event.SetColumn( col );
-        event.SetEditCanceled( !isValid );
-        event.SetEventObject( dv_ctrl );
-        dv_ctrl->GetEventHandler()->ProcessEvent( event );
-        '''
-        
-        
-        
-class CurvesModel(dv.PyDataViewModel):
-
-    def __init__(self, logplot_ctrl_uid):
+    def __init__(self, controller_uid):
         dv.PyDataViewModel.__init__(self)
-        self.logplot_ctrl_uid = logplot_ctrl_uid
-        #self.objmapper.UseWeakRefs(True)
+        self._controller_uid = controller_uid  # To send commands to controller...
         
-
+        
     def GetChildren(self, parent, children):  
-        print 'GetChildren'
         UIM = UIManager()
         # Root
         if not parent:
-            tracks = UIM.list('track_controller', self.logplot_ctrl_uid)
+            lpe_ctrl_uid = UIM._getparentuid(self._controller_uid) 
+            logplot_ctrl_uid = UIM._getparentuid(lpe_ctrl_uid)
+            tracks = UIM.list('track_controller', logplot_ctrl_uid)
             if not tracks:
                 return 0
             for track in tracks:
-                children.append(self.ObjectToItem(track))
+                item = self.ObjectToItem(track)
+                children.append(item)
             return len(children)
             
         # Child    
@@ -607,24 +727,26 @@ class CurvesModel(dv.PyDataViewModel):
                 children.append(self.ObjectToItem(track_object))
             return len(track_objects)
         return 0
-
     
+
     def IsContainer(self, item):
+        #print '\nIsContainer'
         if not item:
+        #    print 'not item - True'
             return True
         obj = self.ItemToObject(item)
         if isinstance(obj, TrackController):
+        #    print obj.uid, '- TrackController - True'
             return True
-        return False    
-      
-    
+        #print obj.uid, '- not TrackController - False'
+        return False         
     
     def GetParent(self, item):
+        #print '\nGetParent:'
         if not item:
-            #print 'GetParent: None'
             return dv.NullDataViewItem
         obj = self.ItemToObject(item)    
-        #print 'GetParent:', obj.uid
+        #print obj.uid
         if isinstance(obj, TrackController):
             return dv.NullDataViewItem
         elif isinstance(obj, TrackObjectController):
@@ -632,176 +754,64 @@ class CurvesModel(dv.PyDataViewModel):
             track_uid = UIM._getparentuid(obj.uid)
             track_ctrl = UIM.get(track_uid)
             item = self.ObjectToItem(track_ctrl)
-            #print item
             return item
-        #print 'GetParent: RUIM'    
-            
-            
-    """                
-    _ATTRIBUTES = {
-        'obj_uid': {'default_value': wx.EmptyString, 
-                    'type': str, 
-                    'on_change': TrackObjectController.on_change_objuid
-        },
-        'left_scale': {'default_value': FLOAT_NULL_VALUE, 
-                       'type': float,
-                       'on_change': TrackObjectController.on_change_xlim
-        },
-        'right_scale': {'default_value': FLOAT_NULL_VALUE, 
-                        'type': float,
-                        'on_change': TrackObjectController.on_change_xlim
-        },
-        'unit': {'default_value': wx.EmptyString, 'type': str},
-        'backup': {'default_value': wx.EmptyString, 'type': str},
-        'thickness': {'default_value': 0, 
-                      'type': int,
-                      'on_change': TrackObjectController.on_change_thickness
-        },
-        'color': {'default_value': wx.EmptyString,
-                  'type': str,
-                  'on_change': TrackObjectController.on_change_color       
-        },
-        'x_scale': {'default_value': 0, 
-                    'type': int,
-                    'on_change': TrackObjectController.on_change_xscale
-        },
-        'plottype': {'default_value': wx.EmptyString, 
-                     'type': str, 
-                     'on_change': TrackObjectController.on_change_plottype
-        },
-        'visible': {'default_value': True, 'type': bool},
-        'cmap': {'default_value': 'rainbow', 
-                 'type': str,
-                 'on_change': TrackObjectController.on_change_colormap
-        },
-        'zmin':  {'default_value': FLOAT_NULL_VALUE, 
-                  'type': float,
-                  'on_change': TrackObjectController.on_change_zlim
-        }, 
-        'zmax':  {'default_value': FLOAT_NULL_VALUE, 
-                  'type': float,
-                  'on_change': TrackObjectController.on_change_zlim
-        },
-        'alpha':  {'default_value': FLOAT_NULL_VALUE, 
-                  'type': float,
-                  'on_change': TrackObjectController.on_change_alpha
-        },
-        'zorder':  {'default_value': -1, 
-                   'type': LogPlotDisplayOrder,
-                   'on_change': TrackObjectController.on_change_zorder
-        } 
-        
-    CURVES_DICT_MAPPING = {
-        1: 'Name', 
-        2: 'LeftScale', 
-        3: 'RightScale',
-        5: 'Backup',
-        6: 'LogLin',
-        7: 'Color',
-        8: 'LineWidth',
-        9: 'LineStyle'
-    } 
-    """    
-
-
-    def SetValue(self, value, item, col):
-        print 'SetValue:', col, value
-        try:
-            obj = self.ItemToObject(item)    
-        except KeyError:
-            print '\nPERDEU O ITEM: AQUI JAZ O PROBLEMA'
-            return False
-        if isinstance(obj, TrackController):
-            raise Exception()
-            
-        if isinstance(obj, TrackObjectController):
-            if col == 1:
-                if value == 'Log':
-                    obj.model.obj_tid = 'log'
-                elif value == 'Seismic':
-                    obj.model.obj_tid = 'seismic'
-            if col == 2:
-                print 'value:', value
-                obj.model.obj_oid = value[1]
-            if col == 3:
-                obj.model.left_scale = value
-            elif col == 4:
-                obj.model.right_scale = value
-            elif col == 5:
-                obj.model.visible = value 
-            elif col == 6:
-                pass
-            elif col == 7:
-                if value == 'Linear':
-                    obj.model.x_scale = 0  
-                elif value == 'Logarithmic':
-                    obj.model.x_scale = 1
-                else:
-                    raise Exception()
-            elif col == 8:
-                obj.model.color = value
-            elif col == 9:  
-                obj.model.thickness = value      
-            elif col == 10:
-                pass                    
-        return True
-
-                   
+             
     def GetValue(self, item, col):
-        #print 'GetValue:', col
         obj = self.ItemToObject(item)    
         if isinstance(obj, TrackController):
             if col == 0:
+                if obj.model.label:
+                    return obj.model.label
                 return 'Track ' + str(obj.model.pos + 1)
-            return wx.EmptyString
-            
+            return wx.EmptyString     
         elif isinstance(obj, TrackObjectController):
             if col == 0:
                 return wx.EmptyString 
             elif col == 1:
-                if obj.model.obj_tid == 'log':
-                    return 'Log'
-                elif obj.model.obj_tid  == 'seismic':
-                    return 'Seismic'
-                else:
-                        return 'Outros'
-            elif col == 2:    
-                OM = ObjectManager(self)
                 try:
-                    om_obj = OM.get((obj.model.obj_tid, obj.model.obj_oid))
-                    ret_val = om_obj.name
-                except:
-                    ret_val = wx.EmptyString
-                if not om_obj:
-                    ret_val = wx.EmptyString
-                print '\nGetValue:', (obj.model.obj_tid, obj.model.obj_oid), ret_val    
-                return ret_val 
-            elif col == 3:
-                return obj.model.left_scale
-            elif col == 4:
-                return obj.model.right_scale 
-            elif col == 5:
-                return True
-            elif col == 6:
-                return 'None'     
-            elif col == 7:
-                if obj.model.x_scale == 0:
-                    return 'Linear'
-                elif obj.model.x_scale == 1:
-                    return 'Logarithmic'
-                else:
-                    raise Exception()                    
-            elif col == 8:
-                return obj.model.color  
-            elif col == 9:
-                return obj.model.thickness  
-            elif col == 10:
-                return 'None'      
-            else:               
-               return wx.EmptyString      
+                    if obj.model.obj_tid:
+                        ret = ObjectManager.get_tid_friendly_name(obj.model.obj_tid)
+                        if ret:
+                            return ret
+                        return wx.EmptyString
+                    else:
+                        return 'Select...'
+                except AttributeError:
+                    print '\nERRO! O objeto nao possui model: ' + str(obj.uid) + '\n'
+                    return ''
+            elif col == 2:    
+                om_obj = obj.get_object()
+                if om_obj:
+                    return om_obj.name
+                return 'Select...' 
         else:
             raise RuntimeError("unknown node type")
             
+
+    def SetValue(self, value, item, col):
+        obj = self.ItemToObject(item)    
+        if isinstance(obj, TrackController):
+            raise Exception()  
+        #TODO: rever isso, pois esta horrivel    
+        if isinstance(obj, TrackObjectController):
+            UIM = UIManager()
+            ctrl = UIM.get(self._controller_uid)
+            if col == 1 or col == 2:
+                print 'SetValue:', col, value
+                pgcs = UIM.list('property_grid_controller', self._controller_uid)
+                if pgcs:
+                    pgc = pgcs[0]
+                    ctrl.view.splitter.Unsplit(pgc.view)  
+                    UIM.remove(pgc.uid)
+            if col == 1:
+                obj.model.obj_tid = value
+            if col == 2:
+                if isinstance(value, tuple):
+                    print 'aqui' 
+                    obj.model.obj_oid = value[1]
+                    ctrl.view.dvc.Select(item)
+        #            
+        return True
             
             
     def GetAttr(self, item, col, attr):
@@ -812,140 +822,319 @@ class CurvesModel(dv.PyDataViewModel):
                 return True
         return False
         
-        
+
     def HasDefaultCompare(self):    
-        return False
-        
-        
+        return True
+           
     def Compare(self, item1, item2, col, ascending):
-        # ascending does not matter here
-        pass
-        '''
         obj1 = self.ItemToObject(item1)
         obj2 = self.ItemToObject(item2)
-        if isinstance(obj1, TrackFormat) and isinstance(obj2, TrackFormat):
-            # I think it won't occur, but...
-            if self.logplotformat.get_track_index(obj1) == self.logplotformat.get_track_index(obj2):
-                return 0
+        #print 'Compare:', obj1.uid, obj2.uid  
+        if obj1.tid == 'track_controller' and obj2.tid == 'track_controller'\
+                                or obj1.tid == 'track_object_controller' and \
+                                obj2.tid == 'track_object_controller':
+            if obj1.model.pos == obj2.model.pos:
+                raise Exception('Two tracks cannot have same position.')
             if ascending: 
-                if self.logplotformat.get_track_index(obj1) > self.logplotformat.get_track_index(obj2):
+                if obj1.model.pos > obj2.model.pos:
                     return 1
                 else:
                     return -1
             else:
-                if self.logplotformat.get_track_index(obj1) > self.logplotformat.get_track_index(obj2):
+                if obj1.model.pos > obj2.model.pos:
                     return -1
                 else:
-                    return 1
-        elif isinstance(obj1, CurveFormat) and isinstance(obj2, CurveFormat): 
-            i1 = int(obj1.get_id().lstrip('CurveFormat '))
-            i2 = int(obj2.get_id().lstrip('CurveFormat '))
-            # I think it won't occur, but...
-            if i1 == i2:
-                return 0
-            if i1 > i2:
-                return 1
-            else:
-                return -1           
-
-        '''      
-
-    def ValueChanged(self, item, col):
-        """
-        ValueChanged(self, DataViewItem item, unsigned int col) -> bool
-
-        Call this to inform the registered notifiers that a value in the model
-        has been changed.  This will eventually result in a EVT_DATAVIEW_ITEM_VALUE_CHANGED
-        event.
-        """
-        print 'CurvesModel.ValueChanged'
-        return super(CurvesModel, self).ValueChanged(item, col)
+                    return 1                                
+        #print 'Compare:', obj1, obj2        
+        # TODO: Falta
         
-        
+            
     def ChangeValue(self, value, item, col):
         """ChangeValue(self, wxVariant variant, DataViewItem item, unsigned int col) -> bool"""
         print 'CurvesModel.ChangeValue: ', col, value
-        return super(CurvesModel, self).ChangeValue(value, item, col)
+        return super(LPEObjectsPanelModel, self).ChangeValue(value, item, col)
         if item is None:
             print 'item is None'
             return False
         return False           
-      
 
-'''
-class MyDVC(dv.DataViewCtrl):
+
+###############################################################################
+
+
+
+class LPEObjectsPanel(UIViewBase, wx.Panel):
+    tid = 'lpe_objects_panel'
+    DEPTH_LINES_CHOICE = ['Full', 'Left', 'Right', 'Center', 'Left & Right', 'None']   
     
-    def __init__(self):
-        super(MyDVC, self).__init__(style=wx.BORDER_THEME | dv.DV_VERT_RULES | dv.DV_MULTIPLE| dv.DV_ROW_LINES) 
-      
-
-    def FinishedEditing()          
-'''
-
-
-#class Teste(dv.DataViewChoiceRenderer):      
-
-class LogRenderer(dv.DataViewCustomRenderer):
     
-    def __init__(self, model):
-        print '\n\nLogRenderer.__init__'
+    def __init__(self, controller_uid):
+        UIViewBase.__init__(self, controller_uid)
+        wx.Panel.__init__(self, self._get_lpeview_notebook(), -1, style=wx.SIMPLE_BORDER)       
+
+
+    def PostInit(self):
+        self.splitter = wx.SplitterWindow(self, -1)
+        self.dvc = self.create_data_view_ctrl()
+
+        self.splitter.Initialize(self.dvc)
+        self.splitter.SetSashPosition(400)
+
+        self.splitter.Bind(wx.EVT_SPLITTER_DOUBLECLICKED, self._OnSplitterDclick)
+    
+        self.Sizer = wx.BoxSizer(wx.VERTICAL) 
+        self.Sizer.Add(self.splitter, 1, wx.EXPAND|wx.ALL, border=10)
+       
+        button_add_track = wx.Button(self, label="Add Object")
+        self.Bind(wx.EVT_BUTTON, self.on_add_track_object, button_add_track)
+        button_delete_track = wx.Button(self, label="Delete Object")
+        self.Bind(wx.EVT_BUTTON, self.on_delete_track_object, 
+                                              button_delete_track
+        )
+        btnbox = wx.BoxSizer(wx.HORIZONTAL)
+        btnbox.Add(button_add_track, 0, wx.LEFT|wx.RIGHT, 5)
+        btnbox.Add(button_delete_track, 0, wx.LEFT|wx.RIGHT, 5)
+        
+        self.Sizer.Add(btnbox, 0, wx.TOP|wx.BOTTOM, 5)
+
+        """
+        UIM = UIManager()
+        controller = UIM.get(self._controller_uid)
+        model = controller._get_real_model()
+        lpe_ctrl_uid = UIM._getparentuid(self._controller_uid) 
+        logplot_ctrl_uid = UIM._getparentuid(lpe_ctrl_uid)
+        all_tracks = UIM.list('track_controller', logplot_ctrl_uid)
+        
+        for track in all_tracks:     
+            print 'expanding:', track.uid
+            item = model.ObjectToItem(track)
+            print item
+            self.dvc.Expand(item)
+            print self.dvc.IsExpanded(item)
+            #model.Resort()
+            #print self.dvc.IsExpanded(item)
+        """
+        #self.dvc.Bind(dv.EVT_DATAVIEW_ITEM_START_EDITING, self.OnItemStartEditing)        
+        #self.dvc.Bind(dv.EVT_DATAVIEW_ITEM_EDITING_STARTED, self.OnItemEditingStart)
+        #self.dvc.Bind(dv.EVT_DATAVIEW_ITEM_EDITING_DONE, self.OnItemEditingDone)
+        self.dvc.Bind(dv.EVT_DATAVIEW_SELECTION_CHANGED, self.OnSelectionChanged)
+
+        ###
+        #sizer_grid_panel = wx.BoxSizer(wx.VERTICAL)
+        #sizer_grid_panel.Add(self.splitter, 1, wx.EXPAND|wx.ALL, border=10)
+        self.SetSizer(self.Sizer)
+        self._get_lpeview_notebook().AddPage(self, "Objects", True)
+
+
+        #self.dvc.Bind(wx.EVT_IDLE, self._dvc_idle)
+        
+    #def _dvc_idle(self, event):
+    #    print 'DVC IDLE'
+
+    def _get_lpeview_notebook(self):
+        UIM = UIManager()
+        parent_controller_uid = UIM._getparentuid(self._controller_uid) 
+        lpe_ctrl = UIM.get(parent_controller_uid)
+        return lpe_ctrl.view.note
+
+
+    def create_data_view_ctrl(self):
+        dvc = dv.DataViewCtrl(self.splitter, style=dv.DV_ROW_LINES|
+                                    dv.DV_VERT_RULES|dv.DV_MULTIPLE
+        )
+        UIM = UIManager()
+        controller = UIM.get(self._controller_uid)
+        model = controller._get_real_model()
+        # Track
+        dv_col = dvc.AppendTextColumn("Track",  0, width=85)      
+        dv_col.SetMinWidth(55)    
+        # Object Type 
+        dvcr_object_tid = ObjectTidRenderer()
+        dv_col = dv.DataViewColumn("Object Type", dvcr_object_tid, 1, width=85)          
+        dv_col.SetMinWidth(85)
+        dvc.AppendColumn(dv_col)
+        # Object Name 
+        dvcr_curve_name = ObjectNameRenderer(model)
+        dv_col = dv.DataViewColumn("Object Name", dvcr_curve_name, 2, width=130)      
+        dv_col.SetMinWidth(85)
+        dvc.AppendColumn(dv_col)
+        # Adjusting
+        for idx, dv_col in enumerate(dvc.Columns):
+            dv_col.Renderer.Alignment = wx.ALIGN_CENTER 
+            dv_col.SetAlignment(wx.ALIGN_CENTER) 
+        return dvc
+
+
+    def expand_dvc_all_items(self):
+        UIM = UIManager()
+        controller = UIM.get(self._controller_uid)
+        model = controller._get_real_model()
+        lpe_ctrl_uid = UIM._getparentuid(self._controller_uid) 
+        logplot_ctrl_uid = UIM._getparentuid(lpe_ctrl_uid)
+        all_tracks = UIM.list('track_controller', logplot_ctrl_uid)
+        
+        for track in all_tracks:     
+            #print 'expanding:', track.uid
+            item = model.ObjectToItem(track)
+            #print item
+            self.dvc.Expand(item)
+           #print self.dvc.IsExpanded(item)
+            #model.Resort()
+            #print self.dvc.IsExpanded(item)
+
+
+    def OnSelectionChanged(self, event):
+        UIM = UIManager()
+        controller = UIM.get(self._controller_uid)
+        model = controller._get_real_model()
+        items = self.dvc.GetSelections()
+        objs = [model.ItemToObject(item) for item in items]
+        toc_objs = [obj for obj in objs if isinstance(obj, TrackObjectController)]
+        pg_shown = False
+        if toc_objs:
+            toc_obj = toc_objs[-1]
+            if toc_obj.is_valid():
+                pgcs = UIM.list('property_grid_controller', self._controller_uid)
+                if not pgcs:
+                    print '\nself._controller_uid:', self._controller_uid
+                    print
+                    pgc = UIM.create('property_grid_controller', 
+                                           self._controller_uid
+                    )
+                else:
+                    pgc = pgcs[0]   
+                pgc.set_object_uid(toc_obj.uid)    
+                if not self.splitter.IsSplit():
+                    self.splitter.SplitVertically(self.dvc, pgc.view)
+                pg_shown = True
+        if not pg_shown and self.splitter.IsSplit():
+            pgc = UIM.list('property_grid_controller', self._controller_uid)[0]
+            self.splitter.Unsplit(pgc.view)       
+            
+
+    def on_add_track_object(self, event):
+        tracks, track_objs = self._get_objects_selected() 
+        UIM = UIManager()
+        for track in tracks:
+            UIM.create('track_object_controller', track.uid)
+        for track_obj in track_objs:
+            UIM = UIManager()
+            track_uid = UIM._getparentuid(track_obj.uid)
+            track =  UIM.get(track_uid)
+            UIM.create('track_object_controller', track.uid)
+
+
+    def on_delete_track_object(self, event):
+        _, track_objs = self._get_objects_selected()
+        UIM = UIManager()
+        for track_obj in track_objs:
+            UIM.remove(track_obj.uid)
+           
+            
+    def _OnSplitterDclick(self, event):
+        print '_OnSplitterDclick:', event
+
+
+    def _get_objects_selected(self):
+        UIM = UIManager()
+        controller = UIM.get(self._controller_uid)
+        model = controller._get_real_model()
+        items = self.dvc.GetSelections()
+        objects_selected = [model.ItemToObject(item) for item in items]
+        tracks = []
+        track_objs = []
+        for obj in objects_selected:
+            if isinstance(obj, TrackController):
+                tracks.append(obj)
+            if isinstance(obj, TrackObjectController):
+                track_objs.append(obj)    
+        return tracks, track_objs           
+        
+             
+
+        
+
+###############################################################################        
+###############################################################################
+
+
+    
+class TextChoiceRenderer(dv.DataViewCustomRenderer):
+ 
+    def __init__(self, model=None):
         dv.DataViewCustomRenderer.__init__(self, mode=dv.DATAVIEW_CELL_EDITABLE)
         self.model = model
         self._value = None    
-        self.curves = {}
   
     def GetValue(self):
-        print 'LogRenderer.GetValue:', self._value
         return self._value 
         
-        
     def SetValue(self, value):
-        print 'LogRenderer.SetValue', value
         self._value = value
         return True
         
     def GetSize(self):
-        print 'LogRenderer.GetSize'
         return wx.Size(100, 20)
         
     def Render(self, rect, dc, state):
-        """
-        RenderText(self, String text, int xoffset, Rect cell, DC dc, int state)
-        """
-        print 'LogRenderer.Render'#, str(self._value), dc, state
         self.RenderText(str(self._value), 0, rect, dc, state)
         return True
 
-    #def HasEditorCtrl(self):
-    #    print 'LogRenderer.HasEditorCtrl'
-    #    return True      
-   
-    """
-        wxWindow* wxDataViewChoiceRenderer::CreateEditorCtrl( wxWindow *parent, wxRect labelRect, const wxVariant &value )
-        {
-            wxChoice* c = new wxChoice
-                              (
-                                  parent,
-                                  wxID_ANY,
-                                  labelRect.GetTopLeft(),
-                                  wxSize(labelRect.GetWidth(), -1),
-                                  m_choices
-                              );
-            c->Move(labelRect.GetRight() - c->GetRect().width, wxDefaultCoord);
-            c->SetStringSelection( value.GetString() );
-            return c;
-        }   
-    """
-   
+    def StartEditing(self, item, rect):
+        self.item = item 
+        super(TextChoiceRenderer, self).StartEditing(item, rect)
+        return True
+         
+    def CreateEditorCtrl(self, parent, rect, value):  
+        raise NotImplemented('CreateEditorCtrl need to be implemented by child Class.')
+        
+    def GetValueFromEditorCtrl(self, editor):       
+        raise NotImplemented('GetValueFromEditorCtrl need to be implemented by child Class.')
+
+
+
+class ObjectTidRenderer(TextChoiceRenderer):
+
     def CreateEditorCtrl(self, parent, rect, value):    
-        print 'LogRenderer.CreateEditorCtrl:', parent
+        OM = ObjectManager(self)
+        acceptable_tids = LogPlotController.get_acceptable_tids()
+        tids = list(set([obj._TID_FRIENDLY_NAME for obj in OM.list() \
+                         if obj.tid in acceptable_tids
+                        ]
+                       )
+        )
+        #print 'tids:', tids
+        _editor = wx.Choice(parent, 
+                            wx.ID_ANY,
+                            rect.GetTopLeft(),
+                            wx.Size(rect.GetWidth(), -1),
+                            choices=tids
+        )
+        _editor.SetRect(rect)
+        return _editor
+
+    def GetValueFromEditorCtrl(self, editor):
+        selected_index = editor.GetSelection()
+        #print 'GetValueFromEditorCtrl:', selected_index
+        if selected_index == -1:
+            return True, wx.EmptyString
+        self._value = editor.GetString(selected_index)
+        self._value = ObjectManager.get_tid(self._value)
+        return True, self._value
+
+
+
+class ObjectNameRenderer(TextChoiceRenderer):
+
+    def CreateEditorCtrl(self, parent, rect, value):    
         OM = ObjectManager(self)
         obj = self.model.ItemToObject(self.item)
         self._options = OrderedDict()
-        for om_obj in OM.list(obj.model.obj_tid):
-            print '   Adding:', om_obj.uid, om_obj.name  
-            self._options[om_obj.uid] = om_obj.name    
-        
+        #print 'ObjectNameRenderer:', obj.model.obj_tid
+        if obj.model.obj_tid in LogPlotController.get_acceptable_tids():
+            for om_obj in OM.list(obj.model.obj_tid):
+                #print '   Adding:', om_obj.uid, om_obj.name  
+                self._options[om_obj.uid] = om_obj.name    
         _editor = wx.Choice(parent, 
                             wx.ID_ANY,
                             rect.GetTopLeft(),
@@ -955,208 +1144,548 @@ class LogRenderer(dv.DataViewCustomRenderer):
         _editor.SetRect(rect)
         return _editor
 
-
-
     def GetValueFromEditorCtrl(self, editor):
-        print 'LogRenderer.GetValueFromEditorCtrl'
+        if editor.GetSelection() == -1:
+            return True, -1
         self._value = self._options.keys()[editor.GetSelection()]
         return True, self._value
-       
-
-    """
-    wxWindow* wxDataViewChoiceRenderer::CreateEditorCtrl( wxWindow *parent, 
-                                                         wxRect labelRect, const wxVariant &value )
-    {
-        wxChoice* c = new wxChoice
-                          (
-                              parent,
-                              wxID_ANY,
-                              labelRect.GetTopLeft(),
-                              wxSize(labelRect.GetWidth(), -1),
-                              m_choices
-                          );
-        c->Move(labelRect.GetRight() - c->GetRect().width, wxDefaultCoord);
-        c->SetStringSelection( value.GetString() );
-        return c;
-    }
     
-    bool wxDataViewChoiceRenderer::GetValueFromEditorCtrl( wxWindow* editor, wxVariant &value )
-    {
-        wxChoice *c = (wxChoice*) editor;
-        wxString s = c->GetStringSelection();
-        value = s;
-        return true;
-    }
-    """
+    
+    
+    
+###############################################################################        
+###############################################################################
 
-    def StartEditing(self, item, rect):
-        self.item = item 
-        print 'LogRenderer.StartEditing:', item
-        super(LogRenderer, self).StartEditing(item, rect)
-        return True
-         
-    """  
-    def StartEditing(self, item, rect):
-        self.item = item 
-        #print 'LogRenderer.StartEditing:', item
-        #super(LogRenderer, self).StartEditing(item, rect)
-        #return True
-              
-        value = self.model.GetValue(item, 2)
-        print 'LogRenderer.StartEditing:', value
-        dvc = self.GetOwner().GetOwner()
-        self.editorCtrl = self.CreateEditorCtrl(dvc.GetMainWindow(), rect, value)        
-        
-        if not self.editorCtrl:
-            return False
 
-        handler = DataViewEditorCtrlEvtHandler(self.editorCtrl, self)
-        self.editorCtrl.PushEventHandler(handler)
-        self.editorCtrl.SetFocus()
-        #handler.SetFocusOnIdle()
-        
-        '''
-        // Now we should send Editing Started event
-        wxDataViewEvent event( wxEVT_DATAVIEW_ITEM_EDITING_STARTED, dv_ctrl->GetId() );
-        event.SetDataViewColumn( GetOwner() );
-        event.SetModel( dv_ctrl->GetModel() );
-        event.SetItem( item );
-        event.SetEventObject( dv_ctrl );
-        dv_ctrl->GetEventHandler()->ProcessEvent( event );
-        '''
-            
-        return True
-       
-       
-        
-   
-    def FinishEditing(self):
-        print '\nLogRenderer.FinishedEditing'
-        #editor = self.GetEditorCtrl()
-        pos = self.editorCtrl.GetCurrentSelection()
-        choice_val =  self._options.items()[pos]
-        #editor.Destroy()
-        if not choice_val:
-            return False
-        om_uid = choice_val[0]    
-        column = self.GetOwner()
-        col = column.GetModelColumn()
-        
-        #print 'LogRenderer.StartEditing:'
-        '''
-        if not self.item:
-            print 'item is None'
-        elif self.item == dv.NullDataViewItem:
-            print 'dv.NullDataViewItem'
-        else:
-            print 'LEGAL:', self.item
-        '''    
-        #value = self.model.ChangeValue(om_uid, self.item, col)
-        print self.item
-        value = self.model.SetValue(om_uid, self.item, col)
-        print 'VOLTOU DO ALÉM'
-        return value   
+class PropertyMixin(object):
+    
+    def _get_value(self):
+        UIM = UIManager()
+        controller = UIM.get(self._controller_uid)
+        return controller.model[self._model_key]
 
-    """
+    def _set_value(self, value):
+        UIM = UIManager()
+        controller = UIM.get(self._controller_uid)
+        controller.model[self._model_key] = value   
+
+
+
+class EnumProperty(pg.EnumProperty, PropertyMixin):    
+ 
+    def __init__(self, controller_uid, model_key, 
+                 label = wx.propgrid.PG_LABEL,
+                 name = wx.propgrid.PG_LABEL,
+                 labels=[], values=[]):
+        super(EnumProperty, self).__init__(label, name, labels, values)
+        self._controller_uid = controller_uid
+        self._model_key = model_key
+        self._labels = labels
+        self._values = values
+
+    def IntToValue(self, variant, int_value, flag): 
+        raise NotImplemented('IntToValue need to be implemented by child Class.')
+           
+    def ValueToString(self, value, flag):
+        raise NotImplemented('ValueToString need to be implemented by child Class.')
+        
+    def GetIndexForValue(self, value):
+        raise NotImplemented('GetIndexForValue need to be implemented by child Class.')
+    
      
-"""
-bool wxDataViewRendererBase::FinishEditing()        
-{
-    if (!m_editorCtrl)
-        return true;
-
-    wxVariant value;
-    GetValueFromEditorCtrl( m_editorCtrl, value );
-
-    wxDataViewCtrl* dv_ctrl = GetOwner()->GetOwner();
-
-    DestroyEditControl();
-
-    dv_ctrl->GetMainWindow()->SetFocus();
-
-    bool isValid = Validate(value);
-    unsigned int col = GetOwner()->GetModelColumn();
-
-    // Now we should send Editing Done event
-    wxDataViewEvent event( wxEVT_DATAVIEW_ITEM_EDITING_DONE, dv_ctrl->GetId() );
-    event.SetDataViewColumn( GetOwner() );
-    event.SetModel( dv_ctrl->GetModel() );
-    event.SetItem( m_item );
-    event.SetValue( value );
-    event.SetColumn( col );
-    event.SetEditCanceled( !isValid );
-    event.SetEventObject( dv_ctrl );
-    dv_ctrl->GetEventHandler()->ProcessEvent( event );
-
-    if ( isValid && event.IsAllowed() )
-    {
-        dv_ctrl->GetModel()->ChangeValue(value, m_item, col);
-        return true;
-    }
-
-    return false;
-}        
+# Set and Get integer indexes to the model and display theirs labels.    
+class IndexesEnumProperty(EnumProperty):  
+    
+    def IntToValue(self, variant, int_value, flag):
+        self._set_value(int_value)
+        return True
         
-"""    
+    def ValueToString(self, value, flag):
+        idx = self._get_value()
+        return self._labels[idx]
+        
+    def GetIndexForValue(self, value):
+        return self._get_value()
 
+
+# Set and Get label values to the model.    
+class LabelsEnumProperty(EnumProperty):  
+    
+    def IntToValue(self, variant, int_value, flag):
+        val = self._labels[int_value]
+        self._set_value(val)
+        return True
+        
+    def ValueToString(self, value, flag):
+        return self._get_value()
+        #return self._labels[idx]
+        
+    def GetIndexForValue(self, value):
+        val = self._get_value()
+        return self._labels.index(val)
+    
+
+
+class IntProperty(pg.IntProperty):    
+
+    def __init__(self, controller_uid, model_key, 
+                 label = wx.propgrid.PG_LABEL,
+                 name = wx.propgrid.PG_LABEL):
+        
+        self._controller_uid = controller_uid
+        self._model_key = model_key
+        super(IntProperty, self).__init__(label, name)
+
+    def ValueToString(self, *args):
+        UIM = UIManager()
+        controller = UIM.get(self._controller_uid)
+        value = controller.model[self._model_key]
+        return str(value)
+
+    def StringToValue(self, variant, text, flag):
+        UIM = UIManager()
+        controller = UIM.get(self._controller_uid)
+        controller.model[self._model_key] = text
+        return True    
+    
+    
+    
+class FloatProperty(pg.FloatProperty):    
+
+    def __init__(self, controller_uid, model_key, 
+                 label = wx.propgrid.PG_LABEL,
+                 name = wx.propgrid.PG_LABEL):
+
+        self._controller_uid = controller_uid
+        self._model_key = model_key
+        super(FloatProperty, self).__init__(label, name)
+
+    def ValueToString(self, *args):
+        UIM = UIManager()
+        controller = UIM.get(self._controller_uid)
+        value = controller.model[self._model_key]
+        return str(value)
+
+    def StringToValue(self, variant, text, flag):
+        UIM = UIManager()
+        controller = UIM.get(self._controller_uid)
+        controller.model[self._model_key] = text
+        return True    
+
+
+
+class StringProperty(pg.StringProperty):
+    
+    def __init__(self, controller_uid, model_key, 
+                 label = wx.propgrid.PG_LABEL,
+                 name = wx.propgrid.PG_LABEL):
+        self._controller_uid = controller_uid
+        self._model_key = model_key
+        super(StringProperty, self).__init__(label, name)
+
+    def ValueToString(self, *args):
+        UIM = UIManager()
+        controller = UIM.get(self._controller_uid)
+        value = controller.model[self._model_key]
+        return value
+
+    def StringToValue(self, variant, text, flag):
+        UIM = UIManager()
+        controller = UIM.get(self._controller_uid)
+        controller.model[self._model_key] = text
+        return True
 
     
-# Translated from wxDataViewEditorCtrlEvtHandler found in datavcmn.cpp        
-# Custom handler pushed on top of the edit control used by wxDataViewCtrl to
-# forward some events to the main control itself.
-class DataViewEditorCtrlEvtHandler(wx.EvtHandler):
+
+
+
+
+
+
+
+class ColorSelectorComboBox(OwnerDrawnComboBox):
+    colors = OrderedDict()
+    colors['Black'] = None
+    colors['Maroon'] = None
+    colors['Green'] = wx.Colour(0, 100, 0) # Dark Green
+    colors['Olive'] = wx.Colour(128, 128, 0)
+    colors['Navy'] = None
+    colors['Purple'] = None
+    colors['Teal'] = wx.Colour(0, 128, 128)
+    colors['Gray'] = None
+    colors['Silver'] = wx.Colour(192, 192, 192)
+    colors['Red'] = None
+    colors['Lime'] = wx.Colour(0, 255, 0) # Green
+    colors['Yellow'] = None
+    colors['Blue'] = None
+    colors['Fuchsia'] = wx.Colour(255, 0, 255)
+    colors['Aqua'] = wx.Colour(0, 255, 255)
+    colors['White'] = None
+    colors['SkyBlue'] = wx.Colour(135, 206, 235)
+    colors['LightGray'] = wx.Colour(211, 211, 211)
+    colors['DarkGray'] = wx.Colour(169, 169, 169)
+    colors['SlateGray'] = wx.Colour(112, 128, 144)
+    colors['DimGray'] = wx.Colour(105, 105, 105)
+    colors['BlueViolet'] = wx.Colour(138, 43, 226)
+    colors['DarkViolet'] = wx.Colour(148, 0, 211)
+    colors['Magenta'] = None
+    colors['DeepPink'] = wx.Colour(148, 0, 211)
+    colors['Brown'] = None
+    colors['Crimson'] = wx.Colour(220, 20, 60)
+    colors['Firebrick'] = None
+    colors['DarkRed'] = wx.Colour(139, 0, 0)
+    colors['DarkSlateGray'] = wx.Colour(47, 79, 79)
+    colors['DarkSlateBlue'] = wx.Colour(72, 61, 139)
+    colors['Wheat'] = None
+    colors['BurlyWood'] = wx.Colour(222, 184, 135)
+    colors['Tan'] = None
+    colors['Gold'] = None
+    colors['Orange'] = None
+    colors['DarkOrange'] = wx.Colour(255, 140, 0)
+    colors['Coral'] = None
+    colors['DarkKhaki'] = wx.Colour(189, 183, 107)
+    colors['GoldenRod'] = None
+    colors['DarkGoldenrod'] = wx.Colour(184, 134, 11)
+    colors['Chocolate'] = wx.Colour(210, 105, 30)
+    colors['Sienna'] = None
+    colors['SaddleBrown'] = wx.Colour(139, 69, 19)
+    colors['GreenYellow'] = wx.Colour(173, 255, 47)
+    colors['Chartreuse'] = wx.Colour(127, 255, 0)
+    colors['SpringGreen'] = wx.Colour(0, 255, 127)
+    colors['MediumSpringGreen'] = wx.Colour(0, 250, 154)
+    colors['MediumAquamarine'] = wx.Colour(102, 205, 170)
+    colors['LimeGreen'] = wx.Colour(50, 205, 50)
+    colors['LightSeaGreen'] = wx.Colour(32, 178, 170)
+    colors['MediumSeaGreen'] = wx.Colour(60, 179, 113)
+    colors['DarkSeaGreen'] = wx.Colour(143, 188, 143)
+    colors['SeaGreen'] = wx.Colour(46, 139, 87)
+    colors['ForestGreen'] = wx.Colour(34, 139, 34)
+    colors['DarkOliveGreen'] = wx.Colour(85, 107, 47)
+    colors['DarkGreen'] = wx.Colour(1, 50, 32)
+    colors['LightCyan'] = wx.Colour(224, 255, 255)
+    colors['Thistle'] = None
+    colors['PowderBlue'] = wx.Colour(176, 224, 230)
+    colors['LightSteelBlue'] = wx.Colour(176, 196, 222)
+    colors['LightSkyBlue'] = wx.Colour(135, 206, 250)
+    colors['MediumTurquoise'] = wx.Colour(72, 209, 204)
+    colors['Turquoise'] = None
+    colors['DarkTurquoise'] = wx.Colour(0, 206, 209)
+    colors['DeepSkyBlue'] = wx.Colour(0, 191, 255)
+    colors['DodgerBlue'] = wx.Colour(30, 144, 255)
+    colors['CornflowerBlue'] = wx.Colour(100, 149, 237)
+    colors['CadetBlue'] = wx.Colour(95, 158, 160)
+    colors['DarkCyan'] = wx.Colour(0, 139, 139)
+    colors['SteelBlue'] = wx.Colour(70, 130, 180)
+    colors['RoyalBlue'] = wx.Colour(65, 105, 225)
+    colors['SlateBlue'] = wx.Colour(106, 90, 205)
+    colors['DarkBlue'] = wx.Colour(0, 0, 139)
+    colors['MediumBlue'] = wx.Colour(0, 0, 205)
+    colors['SandyBrown'] = wx.Colour(244, 164, 96)
+    colors['DarkSalmon'] = wx.Colour(233, 150, 122)
+    colors['Salmon'] = None
+    colors['Tomato'] = wx.Colour(255, 99, 71) 
+    colors['Violet'] = wx.Colour(238, 130, 238)
+    colors['HotPink'] = wx.Colour(255, 105, 180)
+    colors['RosyBrown'] = wx.Colour(188, 143, 143)
+    colors['MediumVioletRed'] = wx.Colour(199, 21, 133)
+    colors['DarkMagenta'] = wx.Colour(139, 0, 139)
+    colors['DarkOrchid'] = wx.Colour(153, 50, 204)
+    colors['Indigo'] = wx.Colour(75, 0, 130)
+    colors['MidnightBlue'] = wx.Colour(25, 25, 112)
+    colors['MediumSlateBlue'] = wx.Colour(123, 104, 238)
+    colors['MediumPurple'] = wx.Colour(147, 112, 219)
+    colors['MediumOrchid'] = wx.Colour(186, 85, 211)        
+  
     
-    def __init__(self, editor, renderer):
-        print 'DVEvtHandler.__init__'
-        wx.EvtHandler.__init__(self)
-        self.editorCtrl = editor
-        self.owner = renderer
-        self.finished = False
-        self.focusOnIdle = False
-        self.editorCtrl.Bind(wx.EVT_CHAR, self.OnChar)
-        self.editorCtrl.Bind(wx.EVT_KILL_FOCUS, self.OnKillFocus)
-        self.editorCtrl.Bind(wx.EVT_IDLE, self.OnIdle)
-        self.editorCtrl.Bind(wx.EVT_TEXT_ENTER, self.OnTextEnter)
+    def __init__(self, *args, **kwargs): 
+        print 'ColorSelectorComboBox.__init__'
+        kwargs['choices'] = self.colors.keys()
+        OwnerDrawnComboBox.__init__(self, *args, **kwargs)
+        print 'ColorSelectorComboBox.__init__ ENDED'
+        #super(ColorSelectorComboBox, self).SetSelection().#SetSelection()
+        
+    """    
+    def OnDrawItem(self, dc, rect, item, flags):
+        print 'OnDrawItem:' , item, flags
+        if wx.adv.ODCB_PAINTING_CONTROL == flags:
+            print 'wx.adv.ODCB_PAINTING_CONTROL'
+        elif wx.adv.ODCB_PAINTING_SELECTED == flags:
+            print 'ODCB_PAINTING_SELECTED'
+        if item == wx.NOT_FOUND:
+            # painting the control, but there is no valid item selected yet
+            return 
+        font = wx.Font(8, wx.FONTFAMILY_DEFAULT, wx.FONTSTYLE_NORMAL, wx.FONTWEIGHT_NORMAL, False, 'Segoe UI')             
+        dc.SetFont(font)
+        
+        if flags == 3:
+            margin = 3    
+        else:
+            margin = 1
+        r = wx.Rect(*rect)  # make a copy
+        r.Deflate(margin, margin)
+        tam = self.OnMeasureItem(item)-2
+        dc.SetPen(wx.Pen("grey", style=wx.TRANSPARENT))
+        color_name = self.GetString(item)     
+        color = self.colors.get(color_name)
+        if not color:
+            color = wx.Colour(color_name)
+        dc.SetBrush(wx.Brush(color))
+        dc.DrawRectangle(r.x, r.y, tam, tam)
+        dc.DrawText(self.GetString(item), r.x + tam + 2, r.y)            
+    """   
+        
+    def OnMeasureItem(self, item):
+        #print 'OnMeasureItem'
+        return 15
 
-    def AcceptChangesAndFinish(self):
-        print 'DVEvtHandler.AcceptChangesAndFinish'
-        #pass
+
+    @staticmethod
+    def get_colors():
+        return ColorSelectorComboBox.colors.keys()
+
     
-    def SetFocusOnIdle(self, focus=True):
-        print 'DVEvtHandler.SetFocusOnIdle'
-        self.focusOnIdle = focus
-
-    def OnIdle(self, event):
-        print 'DVEvtHandler.OnIdle'
-        if self.focusOnIdle:
-            if wx.Window.FindFocus() != self.editorCtrl:
-                self.editorCtrl.SetFocus()
-        event.Skip()
-
-    def OnTextEnter(self, event):
-        print 'DVEvtHandler.OnTextEnter'
-        self.finished = True
-        self.owner.FinishEditing()            
-
-    def OnChar(self, event):
-        print 'DVEvtHandler.OnChar'
-        if event.m_keyCode == wx.WXK_RETURN:
-            self.finished = True
-            self.owner.FinishEditing()
-        elif event.m_keyCode == wx.WXK_ESCAPE:
-            self.finished = True
-            self.owner.CancelEditing()
-        else:    
-            event.Skip()    
-
-    def OnKillFocus(self, event):
-        print 'DVEvtHandler.OnKillFocus'
-        if not self.finished:
-            self.finished = True
-            self.owner.FinishEditing()
-        event.Skip()    
 
 
 
+class ColorPropertyEditor(pg.PGEditor):
+
+    def __init__(self):
+        print 'ColorPropertyEditor.__init__'
+        pg.PGEditor.__init__(self)
+        print 'ColorPropertyEditor.__init__ ENDED'
+        
+        
+    def CreateControls(self, propgrid, property, pos, size):
+        print '\nCreateControls'
+        csc = ColorSelectorComboBox(propgrid.GetPanel(), pos=pos, size=size)
+        idx = ColorSelectorComboBox.get_colors().index(property.get_value())
+        csc.SetSelection(idx)
+        window_list = pg.PGWindowList(csc)
+        return window_list
+
+
+    def GetName(self):
+        return 'ColorPropertyEditor'
+    
+    
+    def UpdateControl(self, property, ctrl):
+        idx = ColorSelectorComboBox.get_colors().index(property.get_value())
+        print 'UpdateControl:', idx
+        ctrl.SetSelection(idx)
+
+
+    def DrawValue(self, dc, rect, property, text):        
+        print 'DrawValue:', text
+        #dc.SetPen( wxPen(propertyGrid->GetCellTextColour(), 1, wxSOLID) )
+        #pen = dc.GetPen()
+        #print pen.GetColour(), pen.GetStyle(), wx.PENSTYLE_SOLID
+        #dc.SetPen(wx.Pen(wx.Colour(0, 0, 255, 255), 1, wx.SOLID))
+        cell_renderer = property.GetCellRenderer(1)
+        cell_renderer.DrawText(dc, rect, 0, text) # property.get_value())#rect.x+15, rect.y)
+        #dc.DrawText(property.get_value(), rect.x+15, rect.y)
+    #    if not property.IsValueUnspecified():
+    #        dc.DrawText(property.get_value(), rect.x+5, rect.y)
+
+
+    def OnEvent(self, propgrid, property, ctrl, event):
+        if isinstance(event, wx.CommandEvent):
+            if event.GetEventType() == wx.EVT_COMBOBOX:
+                print 'COMBAO DA MASSA\n\n\n'
+            if event.GetString():
+                print 'VALUE:', event.GetString(), '\n'
+                return True
+        return False
+
+
+    def GetValueFromControl(self, variant, property, ctrl):
+        """ Return tuple (wasSuccess, newValue), where wasSuccess is True if
+            different value was acquired succesfully.
+        """
+        print '\nGetValueFromControl:', ctrl.GetValue()
+        if property.UsesAutoUnspecified() and not ctrl.GetValue():
+            return True
+        ret_val = property.StringToValue(ctrl.GetValue(), pg.PG_EDITABLE_VALUE)
+        return ret_val
+
+
+    def SetValueToUnspecified(self, property, ctrl):
+        print '\nSetValueToUnspecified'
+        ctrl.SetSelection(0) #Remove(0, len(ctrl.GetValue()))
+
+
+    """
+    def SetControlIntValue(self, property, ctrl, value):
+        print 'SetControlIntValue:', value
+
+    def SetControlStringValue(self, property, ctrl, text):
+        print 'SetControlStringValue'
+        ctrl.SetValue(text)
+    """     
+
+    """
+    def SetControlAppearance(self, pg, property, ctrl, cell, old_cell, unspecified):
+        print 'SetControlAppearance' 
+        '''
+        cb = ctrl
+        tc = ctrl.GetTextCtrl()
+        
+        changeText = False
+        
+        if cell.HasText() and not pg.IsEditorFosuced():
+            print '   ENTROU A'
+            tcText = cell.GetText()
+            changeText = True
+        elif old_cell.HasText():
+            print '   ENTROU B'
+            tcText = property.get_value()
+            changeText = True
+        else:
+            print '   NEM A NEM B'
+        if changeText:
+            if tc:
+                print '   ENTROU C'
+                pg.SetupTextCtrlValue(tcText)
+                tc.SetValue(tcText)
+            else:
+                print '   ENTROU D'
+                cb.SetText(tcText)
+        else:
+            print '   NEM C NEM D'
+        '''    
+        '''    
+        # Do not make the mistake of calling GetClassDefaultAttributes()
+        # here. It is static, while GetDefaultAttributes() is virtual
+        # and the correct one to use.
+        vattrs = ctrl.GetDefaultAttributes()
+    
+        #Foreground colour
+        fgCol = cell.GetFgCol()
+        if fgCol.IsOk():
+            ctrl.SetForegroundColour(fgCol)
+            print 'fgCol:', fgCol
+        
+        elif old_cell.GetFgCol().IsOk():
+            ctrl.SetForegroundColour(vattrs.colFg)
+            print 'vattrs.colFg:', vattrs.colFg
+    
+        # Background colour
+        bgCol = cell.GetBgCol()
+        if bgCol.IsOk():
+            ctrl.SetBackgroundColour(bgCol)
+        elif old_cell.GetBgCol().IsOk():
+            ctrl.SetBackgroundColour(vattrs.colBg)
+    
+        # Font
+        font = cell.GetFont()
+        if font.IsOk():
+            ctrl.SetFont(font)
+        elif old_cell.GetFont().IsOk():
+            ctrl.SetFont(vattrs.font)
+        '''    
+        # Also call the old SetValueToUnspecified()
+        #if unspecified
+        #    SetValueToUnspecified(property, ctrl);
+
+                
+        #print 'cell.GetText():', cell.GetText()
+        #print 'old_cell.GetText():', old_cell.GetText()
+        
+        #print tc#, tc.GetText()
+        super(ColorPropertyEditor, self).SetControlAppearance(pg, property, ctrl, cell, old_cell, unspecified)
+    """    
+
+    def InsertItem(self, ctrl, label, index):
+        print 'InsertItem:', label, index
+        
+        
+    def CanContainCustomImage(self):
+        print 'CanContainCustomImage'
+        return True
+    
+    def OnFocus(self, property, ctrl):
+        #print 'OnFocus:' #, property, ctrl
+        #ctrl.SetSelection(-1)#,-1)
+        ctrl.SetFocus()
+
+
+
+class ColorProperty(pg.PGProperty):
+    # All arguments of this ctor should have a default value -
+    # use wx.propgrid.PG_LABEL for label and name
+    def __init__(self, controller_uid, model_key, 
+             label = wx.propgrid.PG_LABEL,
+             name = wx.propgrid.PG_LABEL):
+        print 'ColorProperty.__init__'
+        self._controller_uid = controller_uid
+        self._model_key = model_key
+        super(pg.PGProperty, self).__init__(label, name)
+        self.SetValue(self.get_value())
+        print 'ColorProperty.__init__ ENDED'
+        
+        
+    #def OnSetValue(self):
+    #    print 'ColorProperty.OnSetValue'
+        
+    def DoGetEditorClass(self):
+        #print 'ColorProperty.DoGetEditorClass'
+        return pg.PropertyGridInterface.GetEditorByName('ColorPropertyEditor')
+        #_CPEditor #ColorPropertyEditor #wx.PGEditor_TextCtrl
+
+    def ValueToString(self, value, flags):
+        print '\nColorProperty.ValueToString'
+        value = self.get_value()
+        return value
+
+    def StringToValue(self, text, flags):
+        print 'ColorProperty.StringToValue:', text
+        value = self.set_value(text) 
+        self.SetValue(value)
+        return value      
+    
+    def get_value(self):
+        UIM = UIManager()
+        controller = UIM.get(self._controller_uid)
+        print 'ColorProperty.get_value:', controller.model[self._model_key]
+        return controller.model[self._model_key]
+
+
+    def set_value(self, new_value):
+        print 'ColorProperty.set_value', new_value
+        try:
+            UIM = UIManager()
+            controller = UIM.get(self._controller_uid)
+            controller.model[self._model_key] = new_value  
+            return True
+        except:
+            return False
+
+
+    def GetDisplayedString(self):
+        print 'GetDisplayedString'
+        return self.get_value()
+
+    def GetChoiceSelection(self):
+        idx = ColorSelectorComboBox.get_colors().index(self.get_value())
+        print 'GetChoiceSelection:', idx
+        return idx
+
+    def IsTextEditable(self):
+        ret = super(pg.PGProperty, self).IsTextEditable()
+        print 'IsTextEditable'
+        return ret
+
+    def IsValueUnspecified(self):
+        print '\n\nColorProperty.IsValueUnspecified\n\n'
+        return False
+  
+    def SetLabel(self, label):
+        print 'SetLabel:', label
+        super(pg.PGProperty, self).SetLabel(label)
+    
+    
+    
+#_CPEditor = pg.PropertyGrid.RegisterEditorClass(ColorPropertyEditor())  
+#_CPEditor = pg.PropertyGrid.RegisterEditorClass(ColorPropertyEditor())#, wx.EmptyString, False)  
+        
         
     

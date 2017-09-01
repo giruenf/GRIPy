@@ -625,7 +625,8 @@ class CurvesPanel(wx.Panel):
         
                
         #self.dvc.GetMainWindowOfCompositeControl        
-        
+ 
+ 
 ###############################################################################        
         
         # Line Color

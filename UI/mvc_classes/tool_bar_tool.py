@@ -8,7 +8,6 @@ from UI.uimanager import UIModelBase
 from UI.uimanager import UI_MODEL_ATTR_CLASS
 from main_window import MainWindowController
 from App import log
-from App.utils import is_wxPhoenix
 
 
 class ToolBarToolController(UIControllerBase):
@@ -17,25 +16,21 @@ class ToolBarToolController(UIControllerBase):
     def __init__(self): 
         super(ToolBarToolController, self).__init__()
       
-
     def PostInit(self):
         logging.debug('{}.AfterInit started'.format(self.name))
-        root_ctrl = self.get_root_controller()
+        UIM = UIManager()
+        root_ctrl = UIM.get_root_controller()
+        
         if not isinstance(root_ctrl, MainWindowController):
             raise Exception()
-        _UIM = UIManager()    
+            
         # DetachPane if granpa object has a AuiManager...    
-        parent_uid = _UIM._getparentuid(self.uid)
-        grampa_uid = _UIM._getparentuid(parent_uid)
-        parent = _UIM.get(parent_uid)
-        grampa =  _UIM.get(grampa_uid)
+        parent_uid = UIM._getparentuid(self.uid)
+        grampa_uid = UIM._getparentuid(parent_uid)
+        parent = UIM.get(parent_uid)
+        grampa =  UIM.get(grampa_uid)
         if isinstance(grampa, MainWindowController):  
-            if is_wxPhoenix():
-                # Phoenix code
-                mgr = wx.aui.AuiManager.GetManager(root_ctrl.view)
-            else:    
-                # wxPython classic code
-                mgr = wx.aui.AuiManager_GetManager(root_ctrl.view)
+            mgr = wx.aui.AuiManager.GetManager(root_ctrl.view)
             if mgr is not None:
                 mgr.DetachPane(parent.view)
             
@@ -55,22 +50,12 @@ class ToolBarToolController(UIControllerBase):
             
         # TODO: Rever isso
         try:
-            if is_wxPhoenix():
-                # Phoenix code
-                tool = parent.view.InsertTool(self.model.pos, self.model.id,
-                                                self.model.label, bitmap, 
-                                                wx.NullBitmap, self.model.kind,
-                                                self.model.help, 
-                                                self.model.long_help, None
-                )
-            else:
-                # wxPython classic code
-                tool = parent.view.DoInsertTool(self.model.pos, self.model.id,
-                                                self.model.label, bitmap, 
-                                                wx.NullBitmap, self.model.kind,
-                                                self.model.help, 
-                                                self.model.long_help, None
-                )
+            tool = parent.view.InsertTool(self.model.pos, self.model.id,
+                                            self.model.label, bitmap, 
+                                            wx.NullBitmap, self.model.kind,
+                                            self.model.help, 
+                                            self.model.long_help, None
+            )
         except Exception:
             msg = 'Error in creating ToolBarTool.'
             logging.exception(msg)

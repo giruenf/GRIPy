@@ -37,10 +37,10 @@ class _LASSectionCtrl(wx.ListCtrl, TextEditMixin, CheckListCtrlMixin,
     def set_section(self, section):
         for line in section.values():
             index = self.InsertStringItem(sys.maxint, '')
-            self.SetStringItem(index, 1, line["MNEM"])
-            self.SetStringItem(index, 2, line["UNIT"])
-            self.SetStringItem(index, 3, line["DATA"])
-            self.SetStringItem(index, 4, line["DESC"])
+            self.SetItem(index, 1, line["MNEM"])
+            self.SetItem(index, 2, line["UNIT"])
+            self.SetItem(index, 3, line["DATA"])
+            self.SetItem(index, 4, line["DESC"])
         self.RefreshRows()
 
     def get_section(self):

@@ -100,16 +100,19 @@ class SEGYFile(object):
     
     def __init__(self, filename):
         self.filename = filename
-        self.filesize = None
-        self.text_header = None
-        self.binary_header = None
-        self.header = []
-        self.data = []
-        self.sample_rate = None
-        self.number_of_samples = None 
-        self.data_format_code = None
-        
-    def read(self):
+        #self.filesize = None
+        #self.text_header = None
+        #self.binary_header = None
+        self.headers = None
+        self.traces = None
+        #self.sample_rate = None
+        #self.number_of_samples = None 
+        #self.data_format_code = None
+        #self.trace_data_size = None
+        self._pre_read()
+    
+    
+    def _pre_read(self):
         self.file = open(self.filename, mode='rb')
         self.filesize = os.fstat(self.file.fileno()).st_size
         self.text_header = self.file.read(SEGY_HEADER_TEXT_SIZE).decode('EBCDIC-CP-BE')
@@ -117,16 +120,298 @@ class SEGYFile(object):
         self.sample_rate = float(int16(self.binary_header, 17))/1000000  # from us to seconds 
         self.number_of_samples = int16(self.binary_header, 21)    # number of samples 
         self.data_format_code = int16(self.binary_header, 25)
-        if self.data_format_code == 1:
-            trace_data_size = 4
-        else:
+        # At this time, only data format code 1 is accepted.
+        if self.data_format_code != 1:
             raise Exception('Data sample format code {} is not accepted.'.format(self.data_format_code))
-        while self.file.tell() < self.filesize:
+        # for future...
+        if self.data_format_code == 1:
+            self.trace_data_size = 4
+        self.file.close()     
+
+
+    def get_dump_data(self, samples=3000, start=0):
+        self.file = open(self.filename, mode='rb')
+        start_offset = SEGY_HEADER_TEXT_SIZE + SEGY_HEADER_BINARY_SIZE
+        if start:
+            start_offset += start * (TRACE_BINARY_HEADER_SIZE + 
+                                self.number_of_samples * self.trace_data_size
+            )
+        if start_offset > self.filesize:
+            raise Exception('Cannot start a dump beyond file size position.')
+        dump_data = []    
+        self.file.seek(start_offset)
+        i = 1
+        while self.file.tell() < self.filesize and i <= samples:
             trace_bin_header = self.file.read(TRACE_BINARY_HEADER_SIZE)
-            trace_data = self.file.read(self.number_of_samples * trace_data_size)            
-            trace = get_trace_from_data(trace_data)
-            self.header.append(trace_bin_header)
-            self.data.append(trace)
+            self.file.seek(self.number_of_samples * self.trace_data_size, 1)
+            dump_data.append(trace_bin_header)
+            i += 1
+        self.file.close()  
+        return dump_data
+    
+
+    """ Se um dos comparadores satisfaz (OR), retorna True"""
+    # TODO: implementar AND
+    def _satisfies(self, trace_bin_header, comparators_list):
+        if not comparators_list:
+            return True
+        for (header_byte_pos, bytes_len, operator, value) in comparators_list:
+            if operator == '>=':
+                ok = get_value(trace_bin_header, header_byte_pos, bytes_len) >= value
+            elif operator == '<=':
+                ok = get_value(trace_bin_header, header_byte_pos, bytes_len) <= value                  
+            elif operator == '>':
+                ok = get_value(trace_bin_header, header_byte_pos, bytes_len) > value
+            elif operator == '<':
+                ok = get_value(trace_bin_header, header_byte_pos, bytes_len) < value     
+            elif operator == '!=':
+                ok = get_value(trace_bin_header, header_byte_pos, bytes_len) != value
+            elif operator == '==':
+                ok = get_value(trace_bin_header, header_byte_pos, bytes_len) == value
+            if ok:
+                break 
+        return ok    
+     
+ 
+    def read(self, comparators_list=None):
+        self.headers = []
+        self.traces = []
+        self.file = open(self.filename, mode='rb')
+        self.file.seek(SEGY_HEADER_TEXT_SIZE + SEGY_HEADER_BINARY_SIZE)
+        while self.file.tell() < self.filesize:
+            print '{:.2f}'.format((float(self.file.tell()) / self.filesize) * 100)
+            trace_bin_header = self.file.read(TRACE_BINARY_HEADER_SIZE)
+            if self._satisfies(trace_bin_header, comparators_list):
+                trace_data = self.file.read(self.number_of_samples * self.trace_data_size)            
+                trace = get_trace_from_data(trace_data)
+                self.headers.append(trace_bin_header)
+                self.traces.append(trace)
+            else:
+                self.file.seek(self.number_of_samples * self.trace_data_size, 1)
         self.file.close()    
-        self.data = np.array(self.data)
+        self.traces = np.array(self.traces)
+
+
+    def _get_dimensions(self, *args):
+        if not args:
+            raise Exception('')
+        dims = []
+        for arg in args:
+            dims.append([])
+        for idx, data in enumerate(self.traces):
+            for dim, pos in enumerate(args):
+                val = get_value(self.headers[idx], pos, 4)
+                if val not in dims[dim]:
+                    dims[dim].append(val)
+        for list_ in dims:
+            list_.sort()
+        return dims          
+
+
+    def organize_3D_data(self, iline_byte=9, xline_byte=21, offset_byte=37):
+        dimensions = self._get_dimensions(iline_byte, xline_byte, offset_byte)
+        if len(dimensions) == 2 or (len(dimensions) == 2 and len(dimensions[2])==1):
+            data = np.zeros((len(dimensions[0]), len(dimensions[1]), 
+                             len(self.traces[0])), np.float32
+            )
+        else:
+            data = np.zeros((len(dimensions[0]), len(dimensions[1]), 
+                             len(dimensions[2]), len(self.traces[0])), np.float32
+            )
+        for idx, trace in enumerate(self.traces):
+            il = get_value(self.headers[idx], iline_byte, 4)
+            xl = get_value(self.headers[idx], xline_byte, 4)
+            idx_il = dimensions[0].index(il)
+            idx_xl = dimensions[1].index(xl)
+            if len(data.shape) == 4:
+                offset = get_value(self.headers[idx], offset_byte, 4)         
+                idx_offset = dimensions[2].index(offset)
+                data[idx_il][idx_xl][idx_offset] = trace
+            elif len(data.shape) == 3:
+                data[idx_il][idx_xl] = trace
+            else:
+                raise Exception()
+        if len(data.shape) == 4:
+            xd, yd, zd, wd = data.shape 
+            if zd == 1:  # Stacked data
+                data = data.reshape((xd, yd, zd*wd))
+                self.dimensions = [
+                    ('Iline', dimensions[0]), 
+                    ('Xline', dimensions[1])
+                ]
+            else:    
+                self.dimensions = [
+                        ('Iline', dimensions[0]), 
+                        ('Xline', dimensions[1]), 
+                        ('Offset', dimensions[2])
+                ]
+        else:
+            raise Exception('')        
+        self.traces = data    
+
+
+
+
+    def print_dump(self, samples=3000, start=0):
+        template_positions = [
+            (1, 4), # trace number absolute
+            (5, 4), # trace number absolute
+            (9, 4), 
+            (13, 4), # order in the shot (1-120)
+            (17, 4), # shot record
+            (21, 4),
+            (25, 4),
+            (27, 2),
+            (29, 2),
+            (31, 2),
+            (33, 2),
+            (35, 2),
+            (37, 4),
+            (41, 4),
+            (45, 4),
+            (49, 4),
+            (53, 4),
+            (57, 4),
+            (61, 4),
+            (65, 4),
+            (69, 2),
+            (71, 2),           
+            (73, 4),
+            (77, 4),
+            (81, 4),
+            (85, 4),
+            (89, 4),
+            (93, 4),
+            (181, 4),
+            (185, 4),
+            (189, 4),
+            (193, 4),
+            (197, 4)            
+        ]
         
+        template_positions = [
+            (1, 4), # trace number absolute
+            (5, 4), # trace number absolute
+            (9, 4), 
+            (21, 4),
+            (37, 4)
+        ]
+        
+        for data in self.get_dump_data(samples, start):
+            print
+            for pos, nbytes in template_positions:
+                print 'byte {}: {}'.format(pos, get_value(data, pos, nbytes))
+
+
+
+
+"""        
+if __name__=='__main__':
+    #filename = 'D:\Sergio_Adriano\NothViking\Mobil_AVO_Viking_pstm_16_CIP_stk.sgy'
+    filename = 'D:\\repo\\AVO_INVTRACE_FUNCIONANDO\\data\\finais\\pp_curvr_curv_curvr2_wrmo_qfilter_mute_sg2.sgy'
+    #filename = 'D:\\Sergio_Adriano\\NothViking\\Mobil_AVO_Viking_pstm_16_stk.sgy'
+    sgf = SEGYFile(filename)    
+
+
+    #dump = sgf.get_dump_data(200000)
+    
+    sgf.read()
+    
+    print 'fim read'
+    
+    sgf.organize_3D_data()
+    
+    
+    '''
+    sgf.read()
+    
+    old_il = None
+    old_xl = None
+    
+    for idx, data in enumerate(sgf.header):
+
+
+        print    
+        print idx
+        il = get_value(data, 9, 4)
+        xl = get_value(data, 21, 4)
+        offset = get_value(data, 37, 4)     
+
+        if il != old_il:
+            print '\nTROCOU ILINE\n'
+        
+        if xl != old_xl:
+            print '\nTROCOU XLINE\n'
+            
+        
+        #
+        print 'iline:', il
+        print 'xline:', xl
+        print 'offset:', offset
+        #
+    
+        old_il = il
+        old_xl = xl
+    '''    
+    
+    #sgf.read([(21, 4, '==', 808), (21, 4, '==', 1572)])
+    
+
+    #dump_data = sgf.get_dump_data(samples=1000000)
+
+    for idx, data in enumerate(sgf.header):
+        #'''
+        #if get_value(data, 21, 4) == 808:
+        print    
+        print idx
+        print 'cip:', get_value(data, 21, 4)
+        print 'idx:', get_value(data, 5, 4)
+        print 'offset:', get_value(data, 37, 4)
+        #'''    
+        #
+        '''
+        if get_value(data, 193, 4) == 1572:
+            print '\nb1:', get_value(data, 1, 4) # trace number absolute
+            print 'b5:', get_value(data, 5, 4) # trace number absolute
+            print 'b9:', get_value(data, 9, 4)
+            print 'b13:', get_value(data, 13, 4) # order in the shot (1-120)
+            print 'b17:', get_value(data, 17, 4) #shot record
+            print 'b21:', get_value(data, 21, 4)
+            print 'b25:', get_value(data, 25, 4)
+            print 'b27:', get_value(data, 27, 2)
+            print 'b29:', get_value(data, 29, 2)
+            print 'b31:', get_value(data, 31, 2)
+            print 'b33:', get_value(data, 33, 2)
+            print 'b35:', get_value(data, 33, 2)
+            print 'b37:', get_value(data, 37, 4)
+            print 'b41:', get_value(data, 41, 4)
+            print 'b45:', get_value(data, 45, 4)  
+            print 'b49:', get_value(data, 49, 4)
+            print 'b53:', get_value(data, 53, 4)
+            print 'b57:', get_value(data, 57, 4)
+            print 'b61:', get_value(data, 61, 4)
+            print 'b65:', get_value(data, 65, 4)
+            print 'b69:', get_value(data, 69, 2)
+            print 'b71:', get_value(data, 71, 2)            
+            print 'cdp_x:', get_value(data, 73, 4)
+            print 'cdp_y:', get_value(data, 77, 4)
+            print 'cdp_x:', get_value(data, 81, 4)
+            print 'cdp_y:', get_value(data, 85, 4)
+            print 'b89:', get_value(data, 89, 4)
+            print 'b93:', get_value(data, 93, 4)
+            print 'b181:', get_value(data, 181, 4)
+            print 'b185:', get_value(data, 185, 4)
+            print 'b189:', get_value(data, 189, 4)
+            print 'b193:', get_value(data, 193, 4)
+            print 'b197:', get_value(data, 197, 4)
+        '''
+    #print i, 100*(self.file.tell() / float(self.filesize))
+    #i += 1
+    #
+    #'''
+    #print get_value(data, 37, 4)
+     
+    print 
+
+    print len(sgf.header)
+"""

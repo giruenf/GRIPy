@@ -3,6 +3,7 @@ import numpy as np
 from Algo import ProbabilisticModel as PM
 from Algo.Classifier import Classifier
 
+
 class ProbabilisticClassifier(Classifier):
     def __init__(self, classpm_key="uniform", featurepm_key="normal", classpm_kwargs=None, featurepm_kwargs=None):
         self.classpm_key = classpm_key

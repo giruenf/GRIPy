@@ -8,7 +8,7 @@ import wx
 from OM.Manager import ObjectManager
 import UI 
 from utils import Chronometer
-from UI.dialog import Dialog
+from UI.dialog_new import Dialog
 #import log
 
 
@@ -92,7 +92,6 @@ class DebugConsoleFrame(wx.Frame):
         output_attr = wx.TextAttr(wx.Colour(255,0,0),font=font)
         self.outputCtrl.SetDefaultStyle(output_attr)        
         
-
         #self.promptLabel = wx.StaticText(self, wx.ID_ANY)
         #top_sizer.Add(self.promptLabel, flag=wx.EXPAND)
         self.inputCtrl = wx.TextCtrl(top_panel, wx.ID_ANY, 
@@ -172,6 +171,7 @@ class DebugConsoleFrame(wx.Frame):
         if self.file_name and self.dir_name:
             self._load_file()            
                     
+            
     def onLoadFile(self, evt):
         style = wx.FD_OPEN | wx.FD_FILE_MUST_EXIST
         wildcard = "Arquivo de console GRIPy (*.gripy_console)|*.gripy_console"
@@ -241,10 +241,10 @@ class DebugConsoleFrame(wx.Frame):
         evt.Skip()
 
     def output(self, data):
-        self.outputCtrl.write(data)
+        self.outputCtrl.WriteText(data)
 
     def echo(self, data):
-        self.outputCtrl.write(data)
+        self.outputCtrl.WriteText(data)
 
     def setPrompt(self, prompt):
         self.promptLabel.SetLabel(prompt)

@@ -7,28 +7,36 @@ from UI.uimanager import UIManager
 from UI.uimanager import UIControllerBase 
 from UI.uimanager import UIViewBase 
 from App import log 
-from App.utils import is_wxPhoenix
-      
-      
+
+from UI.dialog_new import Dialog
+from DT.UOM import uom as UOM
+from collections import OrderedDict
+import numpy as np
+
+
+
 class TreeController(UIControllerBase):
     tid = 'tree_controller'
-    _singleton_per_parent = True
+    #_singleton_per_parent = True
     _PSEUDOROOTUID = "__ROOT__"
     _DEFAULT_ROOT_NAME = u"GRIPy Project"
+    
     
     def __init__(self): 
         super(TreeController, self).__init__()
         self._mapobjects = {}
         self._maptypes = {}
            
+        
     def PostInit(self):
         self._mapobjects[self._PSEUDOROOTUID] = self.view._rootid
         self._maptypes[self._PSEUDOROOTUID] = {} 
-        _OM = ObjectManager(self)
-        _OM.addcallback('add', self.om_add_cb)
-        _OM.addcallback('post-remove', self.om_remove_cb)
-        #self._UIM = UIManager()
-        #self.model.attributes['hidden'] = OrderedDict()   
+        OM = ObjectManager(self)
+        OM.subscribe(self.get_treeitem, 'add')
+        OM.subscribe(self.remove_treeitem, 'post_remove')
+        #OM.addcallback('add', self.om_add_cb)
+        #OM.addcallback('post-remove', self.om_remove_cb)
+
 
     def PreDelete(self):
         del self._maptypes
@@ -36,28 +44,142 @@ class TreeController(UIControllerBase):
     
      
     def refresh(self):
-        _OM = ObjectManager(self)
+        OM = ObjectManager(self)
         for uid, treeid in self._mapobjects.items():
             if uid == self._PSEUDOROOTUID:
                 continue
-            self.view.SetItemText(treeid, _OM.get(uid).name)
+            self.view.SetItemText(treeid, OM.get(uid).name)
+
 
     def set_project_name(self, name=wx.EmptyString):
         if name:
             _, name = os.path.split(name)      
         self.view._set_project_name(name)
            
-              
+
+    ###
+    
+
+    def get_treeitem(self, objuid):
+        # If object's treeitemid already exists, we are done
+        treeitem = self._mapobjects.get(objuid)
+        if treeitem:
+            return treeitem
+        # Else, we will check for object parent treeitemid
+        parent_treeitem = self.get_parent_treeitem(objuid)
+        # Dealing with object treeitemid creation
+        obj_str = self._get_object_label(objuid)
+        treeitem = self.view.AppendItem(parent_treeitem, obj_str)
+        self.view.SetItemData(treeitem, (objuid, None))
+        self._mapobjects[objuid] = treeitem
+        self._maptypes[objuid] = {}
+        # Dealing with object attributes
+        self._create_object_attributes(objuid)
+        #
+        return treeitem
+  
+    
+    def _create_object_attributes(self, objuid):
+        OM = ObjectManager(self)
+        obj = OM.get(objuid)
+        treeitem = self._mapobjects.get(objuid)
+        if not treeitem:
+            raise Exception('Creating object attributes for an object not exists.')
+        # Create item obj parameters
+        try:
+            for attr, attr_label in obj._SHOWN_ATTRIBUTES:
+                value = obj.attributes.get(attr)
+                if value is None:
+                    value = getattr(obj, attr)
+                attr_str = attr_label + ': ' + str(value)
+                attrtreeid = self.view.AppendItem(treeitem, attr_str)
+                self.view.SetItemData(attrtreeid, (None, None))
+        except AttributeError:    
+            pass        
+    
+    
+    def _create_tid_data(self, obj, parentuid):
+        parent_treeid = self.get_treeitem(parentuid)
+        try:
+            treeparentid = self.view.AppendItem(parent_treeid, obj._TID_FRIENDLY_NAME)
+        except AttributeError:  
+            treeparentid = self.view.AppendItem(parent_treeid, obj.tid)
+        self.view.SetItemData(treeparentid, (parentuid, obj.tid))
+        self._maptypes[parentuid][obj.tid] = treeparentid
+        return treeparentid
+    
+    
+    def get_parent_treeitem(self, objuid):
+        if objuid !=  self._PSEUDOROOTUID:
+            OM = ObjectManager(self)
+            obj = OM.get(objuid)
+            parentuid = OM._getparentuid(objuid)
+        if not parentuid:
+            parentuid = self._PSEUDOROOTUID
+        treeitem_parent = self._maptypes[parentuid].get(obj.tid)  
+        if not treeitem_parent:
+            treeitem_parent = self._create_tid_data(obj, parentuid)
+        return treeitem_parent   
+    
+
+    def _get_object_label(self, objuid):
+        OM = ObjectManager(self)
+        obj = OM.get(objuid)
+        # Unit labels
+        if isinstance(obj, DT.DataTypes.DataTypeUnitMixin):    
+            try:    
+                obj_str = obj.name + ' (' + obj.unit + ')'    
+            except AttributeError:
+                obj_str = obj.name + ' (unitless)'
+        else:
+            obj_str = obj.name
+        # 
+        return obj_str
+
+    
+    def reload_object(self, objuid):
+        treeitem = self._mapobjects.get(objuid)
+        if not treeitem:
+            raise Exception('Trying to reload an object not exists.')
+        self.view.DeleteChildren(treeitem)
+        self.view.SetItemText(treeitem, self._get_object_label(objuid))
+        self._create_object_attributes(objuid)
+
+        
+    def remove_treeitem(self, objuid):
+        #print 'remove_treeitem:', objuid
+        treeitem = self._mapobjects.get(objuid)
+        if not treeitem:
+            raise Exception('Removing treeitem for an object not exists.')
+        #        
+        treeitem_parent = self.view.GetItemParent(treeitem)
+        parentuid, tid = self.view.GetItemData(treeitem_parent)
+        #if self.view.GetChildrenCount(treeitem):
+        #    return False
+        del self._maptypes[objuid]
+        del self._mapobjects[objuid]
+        #
+        self.view.Delete(treeitem)
+        #
+        if not self.view.GetChildrenCount(treeitem_parent):
+            del self._maptypes[parentuid][objuid[0]]
+            self.view.Delete(treeitem_parent)
+        #self.view.Expand(treeparentid)    
+        return True        
+
+    '''
     def om_add_cb(self, objuid):
-        _OM = ObjectManager(self)
-        obj = _OM.get(objuid)
-        parentuid = _OM._getparentuid(objuid)
+        OM = ObjectManager(self)
+        obj = OM.get(objuid)
+        parentuid = OM._getparentuid(objuid)
         if not parentuid:
             parentuid = self._PSEUDOROOTUID
         treeparentid = self._maptypes[parentuid].get(obj.tid)  
         if not treeparentid:
             try:
-                treeparentid = self.view.AppendItem(self._mapobjects[parentuid], obj._OM_TREE_PARENT_LABEL)
+                treeparentid = self.view.AppendItem(self._mapobjects[parentuid], 
+                                                    obj._TID_FRIENDLY_NAME
+                )
             except AttributeError:  
                 treeparentid = self.view.AppendItem(self._mapobjects[parentuid], obj.tid)
             self.view.SetItemData(treeparentid, (parentuid, obj.tid))
@@ -69,6 +191,7 @@ class TreeController(UIControllerBase):
                 obj_str = obj.name + ' (unitless)'
         else:
             obj_str = obj.name
+         
         newtreeid = self.view.AppendItem(treeparentid, obj_str)
         self.view.SetItemData(newtreeid, (obj.uid, None))
 
@@ -76,8 +199,13 @@ class TreeController(UIControllerBase):
             #attr_str = 'Object Id: ' + str(obj.oid)
             #attrtreeid = self.view.AppendItem(newtreeid, attr_str)
             #self.view.SetPyData(attrtreeid, (None, None))    
-            for attr, attr_label in obj._OM_TREE_ATTR_SHOWN:
-                attr_str = attr_label + ': ' + str(obj.attributes.get(attr, 'None'))
+            for attr, attr_label in obj._SHOWN_ATTRIBUTES:
+                value = obj.attributes.get(attr)
+                if value is None:
+                    #value = obj.__dict__.get(attr)
+                    #if value is None:
+                    value = getattr(obj, attr)
+                attr_str = attr_label + ': ' + str(value)
                 attrtreeid = self.view.AppendItem(newtreeid, attr_str)
                 self.view.SetItemData(attrtreeid, (None, None))
         except AttributeError:    
@@ -85,21 +213,11 @@ class TreeController(UIControllerBase):
         self._mapobjects[obj.uid] = newtreeid
         self._maptypes[obj.uid] = {}
         #self.view.ExpandAll()
-      
-    def om_remove_cb(self, objuid):
-        treeid = self._mapobjects[objuid]
-        treeparentid = self.view.GetItemParent(treeid)
-        parentuid, tid = self.view.GetItemData(treeparentid)
-        if self.view.GetChildrenCount(treeid):
-            return False
-        del self._maptypes[objuid]
-        del self._mapobjects[objuid]
-        self.view.Delete(treeid)
-        if not self.view.GetChildrenCount(treeparentid):
-            del self._maptypes[parentuid][objuid[0]]
-            self.view.Delete(treeparentid)
-        #self.view.Expand(treeparentid)    
-        return True        
+    
+    '''    
+
+
+
 
 
 class TreeView(UIViewBase, wx.TreeCtrl):
@@ -107,21 +225,17 @@ class TreeView(UIViewBase, wx.TreeCtrl):
     
     def __init__(self, controller_uid):
         UIViewBase.__init__(self, controller_uid)
-        _UIM = UIManager()
-        controller = _UIM.get(self._controller_uid)
-        parent_controller_uid = _UIM._getparentuid(self._controller_uid)
-        parent_controller =  _UIM.get(parent_controller_uid)  
+        UIM = UIManager()
+        controller = UIM.get(self._controller_uid)
+        parent_controller_uid = UIM._getparentuid(self._controller_uid)
+        parent_controller =  UIM.get(parent_controller_uid)  
         
         wx.TreeCtrl.__init__(self, parent_controller.view, -1, wx.Point(0, 0), wx.Size(200, 250),
                            wx.TR_DEFAULT_STYLE | wx.NO_BORDER)
+        
         self._rootid = self.AddRoot(wx.EmptyString)                  
         self._set_project_name() 
-        
-        if not is_wxPhoenix():
-            # Phoenix code
-            self.SetItemData = self.SetPyData
-            self.GetItemData = self.GetPyData
-            
+    
         self.SetItemData(self._rootid, (controller._PSEUDOROOTUID, None))
         
         self.Bind(wx.EVT_TREE_ITEM_RIGHT_CLICK, self.on_rightclick)     
@@ -142,12 +256,10 @@ class TreeView(UIViewBase, wx.TreeCtrl):
         self.Bind(wx.EVT_TREE_BEGIN_DRAG, self._on_begin_drag) 
 
 
-        
-    
 
     def _set_project_name(self, name=wx.EmptyString):
-        _UIM = UIManager()
-        controller = _UIM.get(self._controller_uid)
+        UIM = UIManager()
+        controller = UIM.get(self._controller_uid)
         if name:          
             self._root_name = controller._DEFAULT_ROOT_NAME + ' [' + name + ']'
         else:
@@ -190,37 +302,133 @@ class TreeView(UIViewBase, wx.TreeCtrl):
     def on_rightclick(self, event):
         treeid = event.GetItem()
         uid, tree_tid = self.GetItemData(treeid)
-        _UIM = UIManager()
-        controller = _UIM.get(self._controller_uid)
-        _OM = ObjectManager(self)
+        UIM = UIManager()
+        controller = UIM.get(self._controller_uid)
+        OM = ObjectManager(self)
         
+        if uid is None:  # Object attributes
+            return
         if uid == controller._PSEUDOROOTUID and tree_tid is None:
-            return    
+            return
+        #
+        self.popup_obj = (uid, tree_tid)
+        self.popupmenu = wx.Menu()  
+        if uid[0] == 'log':
+            item = self.popupmenu.Append(wx.NewId(), 'Convert unit')
+            self.Bind(wx.EVT_MENU, self.OnUnitConvert, item)
+            self.popupmenu.AppendSeparator()
+        #
         if tree_tid is not None:
             # Exclude all objects from a class
             menu_option_str = u'Exclude all objects [{}]'.format(tree_tid) 
         else:
             # Exclude a specific object
-            classid, oid = uid
+            obj = OM.get(uid)
+            #classid, oid = uid
             menu_option_str = u'Exclude object ['
-            menu_option_str = menu_option_str + str(_OM.get(uid).name) + u']'
-        self.popup_obj = (uid, tree_tid)
-        self.popupmenu = wx.Menu()            
+            menu_option_str = menu_option_str + str(obj.name) + u']'
+        #
         item = self.popupmenu.Append(wx.NewId(), menu_option_str)
         self.Bind(wx.EVT_MENU, self.OnPopupItemSelected, item)
+        #
         pos = event.GetPoint()
         self.PopupMenu(self.popupmenu, pos)
 
 
     def OnPopupItemSelected(self, event):
         uid, tree_tid = self.popup_obj
-        _OM = ObjectManager(self)
+        OM = ObjectManager(self)
         if tree_tid is None:
-            _OM.remove(uid)
+            OM.remove(uid)
         else:
             if tree_tid == 'well':
-                items = _OM.list(tree_tid)
+                items = OM.list(tree_tid)
             else:    
-                items = _OM.list(tree_tid, uid)
+                items = OM.list(tree_tid, uid)
             for item in items:
-                _OM.remove(item.uid)
+                OM.remove(item.uid)
+              
+                          
+    def OnUnitConvert(self, event):     
+        uid, tree_tid = self.popup_obj
+        OM = ObjectManager(self)       
+        obj = OM.get(uid)
+
+        #
+        #print obj.uid, obj.unit
+        unit = UOM.get_unit(obj.unit)
+        dim = UOM.get_unit_dimension(unit.dimension)
+        #print dim.getstate()
+        qc = UOM.get_quantity_class(dim.name)
+        UNITS_OPTIONS = OrderedDict()
+        for mu in qc.memberUnit:
+            UNITS_OPTIONS[mu] = mu
+            
+        #print '\n'
+       # UOM.get_quantity_class
+        #
+        
+        
+        dlg = Dialog(None, title='Unit conversion', 
+                     flags=wx.OK|wx.CANCEL
+        )
+        
+        container = dlg.AddStaticBoxContainer(label='Object details', 
+                                              orient=wx.VERTICAL, proportion=0, 
+                                              flag=wx.EXPAND|wx.TOP, border=5
+        )   
+
+        dlg.AddStaticText(container, proportion=0, flag=wx.EXPAND|wx.TOP, 
+                          border=5, label='Name: ' + obj.name
+        )
+
+
+        dlg.AddStaticText(container, proportion=0, flag=wx.EXPAND|wx.TOP, 
+                          border=5, label='Type id: ' + obj.tid
+        )
+        
+        dlg.AddStaticText(container, proportion=0, flag=wx.EXPAND|wx.TOP, 
+                          border=5, label='Object id: ' + str(obj.oid)
+        )
+
+        dlg.AddStaticText(container, proportion=0, flag=wx.EXPAND|wx.TOP, 
+                          border=5, label='Current unit: ' + obj.unit
+        )        
+
+
+        container2 = dlg.AddStaticBoxContainer(label='New unit', 
+                                              orient=wx.VERTICAL, proportion=0, 
+                                              flag=wx.EXPAND|wx.TOP, border=5
+        )   
+                
+        dlg.AddChoice(container2, proportion=0, flag=wx.EXPAND|wx.TOP, border=5, 
+                      widget_name='new_unit', initial=UNITS_OPTIONS
+        ) 
+
+        dlg.SetSize((300, 330))
+        
+        answer = dlg.ShowModal()
+        
+        if answer == wx.ID_OK:
+            results = dlg.get_results()  
+            new_unit_name = results.get('new_unit')
+            new_data = UOM.convert(obj.data, obj.unit,  new_unit_name)
+            print '\nnew_data:', np.nanmin(new_data), np.nanmax(new_data)
+            obj._data = new_data
+            obj.unit = new_unit_name
+            
+            UIM = UIManager()
+            controller = UIM.get(self._controller_uid)
+            controller.reload_object(obj.uid)
+            
+        dlg.Destroy()       
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        

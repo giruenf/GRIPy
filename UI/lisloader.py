@@ -6,7 +6,7 @@ from FileIO.LIS import LISFile
 from FileIO.LISWELL import LISWells, LISWell, LISWellLog
 from OM.Manager import ObjectManager
 from collections import OrderedDict
-from Parms import ParametersManager2
+from Parms import ParametersManager
 import DT
 
 W_MNEMS = OrderedDict()
@@ -186,11 +186,11 @@ class LISImportFrame(wx.Frame):
             depth = self._OM.new('depth', depth_curve.data, name=depth_curve.mnem, unit=depth_curve.unit, curvetype='Depth')
             self._OM.add(depth, well.uid)            
         
+            PM = ParametersManager.get()
             # Implementar selecao de datatypes e curvetypes a moda Vizeu
-            print ParametersManager2.getdatatypes()
             for lis_well_log in lis_well.get_logs():
-                logtype = ParametersManager2.getcurvetypefrommnem(lis_well_log.mnem)
-                datatype = ParametersManager2.getdatatypefrommnem(lis_well_log.mnem)
+                logtype = PM.getcurvetypefrommnem(lis_well_log.mnem)
+                datatype = PM.getdatatypefrommnem(lis_well_log.mnem)
                 if not datatype:
                     datatype = 'Log'
                 if datatype == 'Log':    

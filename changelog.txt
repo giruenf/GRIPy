@@ -1,0 +1,33 @@
+Gripy Change log
+
+Versão 0.6:
+===========
+    - Utilização de Messaging pattern (Pypubsub) evitando o uso de Eventos Wx
+      e facilitando a troca de mensagens entre os objetos;  
+    - Unificação dos ParametersManager desenvolvidos anteriormente
+      por Vizeu e Adriano;
+    - Significativa restilização do LogPlotController, incluindo:
+        - Reinclusão do botão "Edit LogPlot" no LogPlot. A propriedades dos 
+          tracks e dos objetos 'plottados' podem ser 'settadas' nessa tela;
+        - Overview track (track de referência à esquerda do LogPlot)
+          agora também é um objeto da classe TrackController e 
+          pode ser habilitado através do "Edit LogPlot";
+    - Partições passam a ser representadas por MPL Patches e não mais por 
+      MPL AxesImage. Isso leva a um significativo ganho de performance ao 
+      'plottar' partições;
+    - Dados de densidade, como dados sísmicos, podem ser 'plottados' como 
+      somente Density, somente Wiggle ou ambos. Também passa a ser possível 
+      realizar preenchimentos de cores nos Wiggles de forma a demarcar 
+      amplitudes positivas e negativas. Essa última feature é executada com
+      relativa lentidão devido a interpolação realizada para o preenchimento;
+    - Os codigos relacionados ao Matplotlib (tracks e track_labels) 
+      foram concentrados no arquivo UI\mvc_classes\mpl_base.py
+    - Inclusão de changelog ;-)
+	
+	###
+	
+	- OM.registertype -> OM.register_class
+   - Novos DataTypes: Inversion, WellGather, etc
+   - Novo sistema de criacao de dialogos;
+   - Utilização de wx.WindowDisabler e wx.BusyInfo para avisar ao usuário da
+     execução de um processo que necessite uma "pausa" da interface;

@@ -1,14 +1,8 @@
 # -*- coding: utf-8 -*-
 import wx
-from wx.lib.scrolledpanel import ScrolledPanel
-from App.utils import is_wxPhoenix
-        
-if is_wxPhoenix():
-    # Phoenix code
-    from trackssplitter import MultiSplitterWindow
-else:    
-    # wxPython classic code
-    from trackssplitter_classic import MultiSplitterWindow
+from wx.lib.scrolledpanel import ScrolledPanel     
+from trackssplitter import MultiSplitterWindow
+
 
 
 class LogPlotInternal(wx.SplitterWindow):  

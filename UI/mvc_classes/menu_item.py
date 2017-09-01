@@ -15,14 +15,12 @@ class MenuItemController(UIControllerBase):
     def __init__(self):
         super(MenuItemController, self).__init__()
 
-
     def PostInit(self):
         _UIM = UIManager()
         parent_controller_uid = _UIM._getparentuid(self.uid)
         parent_controller =  _UIM.get(parent_controller_uid)
         parent_controller.insert_menu_item(self)
         
-
     def PreRemove(self):
         _UIM = UIManager()
         parent_controller_uid = _UIM._getparentuid(self.uid)
@@ -70,9 +68,6 @@ class MenuItemModel(UIModelBase):
 class MenuItemView(UIViewBase, wx.MenuItem):
     tid = 'menu_item_view'
      
-    # MenuItem.__init__(self, parentMenu=None, id=ID_SEPARATOR, text="", 
-    #          helpString="", kind=ITEM_NORMAL, subMenu=None) 
- 
     def __init__(self, controller_uid):
         UIViewBase.__init__(self, controller_uid)
         _UIM = UIManager()
@@ -86,7 +81,6 @@ class MenuItemView(UIViewBase, wx.MenuItem):
         except Exception, e:
             print e.message
             raise e
-
 
     def PostInit(self):
         log.debug('{}.PostInit started'.format(self.name))

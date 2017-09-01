@@ -8,9 +8,10 @@ This file defines the base classes for objects that can be managed by
 """
 
 from collections import OrderedDict
+from App.pubsub import PublisherMixin
 
 
-class GenericObject(object):
+class GenericObject(PublisherMixin):
     """
     The simplest object that can be managed by `ObjectManager`.
     
@@ -35,6 +36,12 @@ class GenericObject(object):
 
     def __str__(self):
         return str(self.uid)        
+
+    ###
+    def _being_deleted(self):
+        topic = 'remove'
+        self.send_message(topic)
+    ###
 
     @property
     def oid(self):
@@ -84,6 +91,7 @@ class GenericObject(object):
         object.
         """
         return {}
+
 
 
 class ParentObject(GenericObject):

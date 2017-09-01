@@ -11,7 +11,7 @@
         "class_name": "App.gripy_app.GripyApp", 
         "vendor_display_name": "UENF/LENEP/GIR", 
         "app_version": "0.5 Development", 
-        "app_display_name": "GriPy 0.5 Development",
+        "app_display_name": "GriPy 0.6 - Under Development",
         "app_UI_file": "user_data/.gripy_UI_appdata.json", 
         "user_UI_file": "user_data/.gripy_UI_userdata.json", 
         "gripy_debug_file": "user_data/debug.gripy_console"

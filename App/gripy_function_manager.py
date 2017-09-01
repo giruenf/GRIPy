@@ -37,7 +37,7 @@ class FunctionManager(object):
             raise 
 
     @classmethod
-    def register_function(cls, func, friendly_name='',  *args, **kwargs):
+    def register_function(cls, func, friendly_name=None,  *args, **kwargs):
         try:
             name = func.__name__
         except:
@@ -61,9 +61,14 @@ class FunctionManager(object):
 
 
     @classmethod
-    def functions_available_for_class(cls, class_):     
-        return [cls._registered.get(f) for f in cls._with_classes[class_]]
-        
+    def functions_available_for_class(cls, class_):
+        #print '\n\nfunctions_available_for_class:', str(class_)
+        try:
+            return [cls._registered.get(f) for f in cls._with_classes[class_]]
+        except KeyError:
+            #print 'ERROR:'
+            #print cls._with_classes
+            return []
                 
 """                
 class Base(object):
@@ -115,10 +120,12 @@ c = C(9)
 
 for f in FunctionManager.functions_available_for_class(B):
     print 
-    print f['name']
-    print f['friendly_name']
-    print f['function']
-    print f['args']
-    print f['kwargs']                
-    
+    print 'function name:', f['name']
+    print 'function friendy name:', f['friendly_name']
+    print 'function:', f['function']
+    print 'args:', f['args']
+    print 'kwargs:', f['kwargs']        
+        
+    #if f['name'] == 'ab':
+    #    f['function']()
 """    

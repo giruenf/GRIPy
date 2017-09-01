@@ -5,6 +5,7 @@ from matplotlib.transforms import blended_transform_factory
 
 
 class MultiCursor(object):
+    
     def __init__(self, canvas, axes, lineprops):
         self.canvas = canvas
         self.axes = axes

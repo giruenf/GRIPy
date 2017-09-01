@@ -8,7 +8,6 @@ else:
     
 _jsonfilename = 'parameters2.json'
 
-# global _parametersdict
 
 def _removetrailingdigits(text):
     count = 0
@@ -95,6 +94,7 @@ def votefordatatype(mnem, datatype):
     _parametersdict['mnemtodatatype'][key][datatype] += 1
 
 def getdatatypes():
-    # global _parametersdict
-    # return _parametersdict['datatypes']
     return ['Index', 'Log', 'Partition']
+
+
+

@@ -16,7 +16,7 @@
 import math        
 import xml.etree.ElementTree as ElementTree
 
-UOM_FILENAME = '/home/adriano/Downloads/Energistics_Unit_of_Measure_Standard_V1/Energistics_Unit_of_Measure_Dictionary_V1.0.xml'
+UOM_FILENAME = 'DT/Energistics_Unit_of_Measure_Dictionary_V1.0.xml'
 NAMESPACE_KEY = 'uom'
 NAMESPACE_VALUE = 'http://www.energistics.org/energyml/data/uomv1'
 
@@ -58,17 +58,22 @@ class UOM(object):
 
     def convert(self, value, from_unit_symbol, to_unit_symbol):
         unit_from = self.get_unit(from_unit_symbol)
+        if unit_from is None:
+            raise Exception('Invalid unit from')
         unit_to = self.get_unit(to_unit_symbol)
+        if unit_to is None:
+            raise Exception('Invalid unit to')        
         if unit_from.dimension != unit_to.dimension:
-            raise Exception('Cannot convert between diferent dimensions.')
-        print 'Converting {} {} to {}'.format(value, from_unit_symbol, to_unit_symbol)
-        if unit_from.isSI:
-            si_value = value
+            raise Exception('Cannot convert between diferent dimensions.')       
+        units_dimension = self.get_unit_dimension(unit_from.dimension)
+        #
+        if units_dimension.baseForConversion == unit_from.symbol: 
+            base_value = value
         else:    
-            si_value = (unit_from.A + unit_from.B * value) / (unit_from.C + unit_from.D * value) 
-        if unit_to.isSI:
-            return si_value
-        return (unit_to.A - unit_to.C * si_value) / (unit_to.D * si_value - unit_to.B)
+            base_value = (unit_from.A + unit_from.B * value) / (unit_from.C + unit_from.D * value) 
+        if units_dimension.baseForConversion == unit_to.symbol:
+            return base_value
+        return (unit_to.A - unit_to.C * base_value) / (unit_to.D * base_value - unit_to.B)
 
     def get_unit_dimension(self, dimension):
         return self._unit_dimensions.get(dimension)
@@ -83,8 +88,20 @@ class UOM(object):
         return self._references.get(ID)
     
     def get_prefix(self, symbol):
-        return self._prefixes.get(symbol)    
+        return self._prefixes.get(symbol)
 
+    def is_valid_unit(self, unit_symbol, quantity_name=None):
+        unit = self.get_unit(unit_symbol)
+        if not unit:
+            return False
+        elif quantity_name is None:
+            return True
+        quantity = self.get_quantity_class(quantity_name)
+        if quantity is None:
+            return False
+        return unit_symbol in quantity.memberUnit
+            
+        
     def _load_XML(self, filename):
         tree = ElementTree.parse(filename)
         uds = tree.findall(TAG_UNIT_DIMENSION_SET, namespace)[0]
@@ -277,3 +294,30 @@ class Prefix(object):
     
     
 uom = UOM(UOM_FILENAME)
+
+"""
+def print_(dict_):
+    for key, value in dict_.items():
+        print key, '-', value
+    print    
+
+
+if __name__ == '__main__':
+    uom_ = UOM('D:\\repo\\GRIPy\\DT\\Energistics_Unit_of_Measure_Dictionary_V1.0.xml')
+    #print uom_
+    #
+    unit = uom_.get_unit('km')
+    print_(unit.getstate())
+    #
+    ud = uom_.get_unit_dimension('L')
+    print_(ud.getstate())
+    #
+    qc = uom_.get_quantity_class('length')
+    print_(qc.getstate())
+    
+    print uom_.is_valid_unit('ms', 'length') 
+    #value = 1555
+    #new_value = UOM_.convert(value, 'g/cm3', 'kg/m3')#, 'g/cm3')
+    #print 'new_value:', new_value
+
+"""

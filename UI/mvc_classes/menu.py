@@ -7,7 +7,7 @@ from UI.uimanager import UIViewBase
 from UI.uimanager import UI_MODEL_ATTR_CLASS
 from menu_bar import MenuBarController
 from App import log
-from App.utils import is_wxPhoenix
+
 
 
 class MenuController(UIControllerBase):
@@ -22,14 +22,16 @@ class MenuController(UIControllerBase):
     def insert_menu_item(self, menu_item_ctrl):
         self.view._InsertItem(menu_item_ctrl.model.pos, menu_item_ctrl.view)
         if menu_item_ctrl.model.callback:
-            root_ctrl = self.get_root_controller()
+            UIM = UIManager()
+            root_ctrl = UIM.get_root_controller()
             root_ctrl.view.Bind(wx.EVT_MENU, menu_item_ctrl.model.callback, 
                                 id=menu_item_ctrl.model.id
             )        
 
     def remove_menu_item(self, menu_item_ctrl):
         if menu_item_ctrl.model.callback:
-            root_ctrl = self.get_root_controller()
+            UIM = UIManager()
+            root_ctrl = UIM.get_root_controller()
             root_ctrl.view.Unbind(wx.EVT_MENU, id=menu_item_ctrl.model.id)
         self.view._RemoveItem(menu_item_ctrl.view)
         
@@ -92,22 +94,14 @@ class MenuView(UIViewBase, wx.Menu):
                 msg = 'Invalid position for Menu with label={}. Position will be setting to {}'.format(controller.model.label, parent_controller.view.GetMenuItemCount())
                 log.warning(msg)
                 controller.model.pos = parent_controller.view.GetMenuCount() 
-            if is_wxPhoenix():
-                # Phoenix code
-                parent_controller.view.Insert(controller.model.pos, 
-                                                  controller.model.id, 
-                                                  controller.model.label, 
-                                                  self, 
-                                                  controller.model.help
-                )
-            else:
-                # wxPython classic code    
-                parent_controller.view.InsertMenu(controller.model.pos, 
-                                                  controller.model.id, 
-                                                  controller.model.label, 
-                                                  self, 
-                                                  controller.model.help
-                )
+
+            parent_controller.view.Insert(controller.model.pos, 
+                                              controller.model.id, 
+                                              controller.model.label, 
+                                              self, 
+                                              controller.model.help
+            )
+
         elif isinstance(parent_controller, MenuBarController):
             if controller.model.pos == -1:
                 # Appending - Not needed to declare pos
@@ -126,14 +120,8 @@ class MenuView(UIViewBase, wx.Menu):
 
 
     def _InsertItem(self, pos, menu_item_view):
-        if is_wxPhoenix():
-            # Phoenix code
-            self.Insert(pos, menu_item_view)
-        else:
-            # wxPython classic code
-            self.InsertItem(pos, menu_item_view)
-            
-            
+        self.Insert(pos, menu_item_view)
+
     def _RemoveItem(self, menu_item_view):   
         self.RemoveItem(menu_item_view)       
         
