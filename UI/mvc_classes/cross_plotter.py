@@ -372,7 +372,7 @@ class CrossPlotPanel(wx.Panel):
         self.shownparts[i] = show
 
     def plot(self):
-        print '\n\nzmode\n\n', self.zmode
+        print '\n\nzmode', self.zmode
         if self.zmode == 'classes':
             self._plot_zclasses()
             self.clear_zlabel()
@@ -387,6 +387,7 @@ class CrossPlotPanel(wx.Panel):
                 y = (tick - self.zlim[0])/(self.zlim[1] - self.zlim[0])
                 self.zlabel_ax.text(self.ZLABELTEXTLEFT, y, "{:g}".format(tick), ha='left', va='center', fontsize=self.NUMBERFONTSIZE)
         else:
+            print '\n\nzsolid'
             self._plot_zsolid()
             self.clear_zlabel()
             
@@ -398,54 +399,54 @@ class CrossPlotPanel(wx.Panel):
         
         
         collection = self.crossplot_ax.plot(self.xdata, self.ydata, 'bo')
-        
-        
-        if self.parts is None:
-            parts = [np.ones_like(self.xdata, dtype=bool)]
-        else:
-            parts = self.parts
-   
-        print 
-        print parts
-    
-        good = np.sum(parts, axis=0, dtype=bool)
-        good *= np.isfinite(self.xdata)
-        good *= np.isfinite(self.ydata)
-        
-        #if self.zdata is not None:
-        #    good *= np.isfinite(self.zdata)  # TODO: Sem essa linha, onde não houver perfil z será plotado de ?preto? 
-            
-#        zticks = self.zlocator(np.min(self.zdata[good]), np.max(self.zdata[good]))
-#        self.zlim = [zticks[0], zticks[-1]]
-#        self.zticks = zticks[1:-1]
-        
-        #        
-        #norm = Normalize(*self.zlim)
-        #
-        '''
-        for part in parts:
-            x = self.xdata[part * good]
-            y = self.ydata[part * good]
-            #c = self.zdata[part*good]
-            collection = self.crossplot_ax.scatter(x, y, #c=c, cmap=self.cmap, 
-                                                   zorder=-len(x), 
-                                                   **self.collectionproperties
-            )
-            self.collections.append(collection)
-        #    
-        '''
-        xticks = self.xlocator(np.min(self.xdata), np.max(self.xdata))
-        self.set_xlim([xticks[0], xticks[-1]])
-        
-        yticks = self.ylocator(np.min(self.ydata), np.max(self.ydata))
-        self.set_ylim([yticks[0], yticks[-1]])
-
-        self.colorbar = None
-
-        #self.colorbar = ColorbarBase(self.colorbar_ax, cmap=self.cmap, 
-        #                             norm=norm, ticks=self.zticks
-        #)
-        #self.colorbar_ax.yaxis.set_major_formatter(NullFormatter())
+        self.collections.append(collection)
+#        
+#        if self.parts is None:
+#            parts = [np.ones_like(self.xdata, dtype=bool)]
+#        else:
+#            parts = self.parts
+#   
+##        print 
+##        print parts
+#    
+#        good = np.sum(parts, axis=0, dtype=bool)
+#        good *= np.isfinite(self.xdata)
+#        good *= np.isfinite(self.ydata)
+#        
+#        #if self.zdata is not None:
+#        #    good *= np.isfinite(self.zdata)  # TODO: Sem essa linha, onde não houver perfil z será plotado de ?preto? 
+#            
+##        zticks = self.zlocator(np.min(self.zdata[good]), np.max(self.zdata[good]))
+##        self.zlim = [zticks[0], zticks[-1]]
+##        self.zticks = zticks[1:-1]
+#        
+#        #        
+#        #norm = Normalize(*self.zlim)
+#        #
+#        '''
+#        for part in parts:
+#            x = self.xdata[part * good]
+#            y = self.ydata[part * good]
+#            #c = self.zdata[part*good]
+#            collection = self.crossplot_ax.scatter(x, y, #c=c, cmap=self.cmap, 
+#                                                   zorder=-len(x), 
+#                                                   **self.collectionproperties
+#            )
+#            self.collections.append(collection)
+#        #    
+#        '''
+#        xticks = self.xlocator(np.min(self.xdata), np.max(self.xdata))
+#        self.set_xlim([xticks[0], xticks[-1]])
+#        
+#        yticks = self.ylocator(np.min(self.ydata), np.max(self.ydata))
+#        self.set_ylim([yticks[0], yticks[-1]])
+#
+#        self.colorbar = None
+#
+#        #self.colorbar = ColorbarBase(self.colorbar_ax, cmap=self.cmap, 
+#        #                             norm=norm, ticks=self.zticks
+#        #)
+#        #self.colorbar_ax.yaxis.set_major_formatter(NullFormatter())
 
     def _plot_zcontinuous(self):
         if self.parts is None:

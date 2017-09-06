@@ -615,7 +615,7 @@ def open(name, mode='r'):
 if __name__ == '__main__':
 #    print os.getcwd()
 #    headerlines = ODTReader("1RJS-0074--RJ-^1.wll")
-    odt_file = ODTReader("C:\\Users\\rtabelini\\Downloads\\WellInfo v4\\1RJS-0074--RJ-.wlm")
+    odt_file = ODTReader("C:\\Users\\Tabelini\\Dropbox\\Python\\opendetect_export.wll")
 #print 'odt', odt_file    
     headerlines, dept, value = odt_file.read()
     odt_file.LogHeader (headerlines)

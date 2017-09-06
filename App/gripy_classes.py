@@ -18,8 +18,8 @@ from DT.DataTypes import Inversion
 #from DT.DataTypes import InvIndexCurve
 from DT.DataTypes import InversionParameter
 from DT.DataTypes import WellGather
-
-
+from DT.DataTypes import Rock
+from DT.DataTypes import Fluid
 
 
 from UI.uimanager import UIManager
@@ -88,6 +88,8 @@ def register_OM_classes():
     ObjectManager.register_class(InversionParameter, Inversion)
     #
     ObjectManager.register_class(WellGather, Well)
+    ObjectManager.register_class(Rock, Well)
+    ObjectManager.register_class(Fluid, Well)
     #
     
     

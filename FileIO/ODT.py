@@ -15,6 +15,7 @@ References
 
 
 import numpy as np
+import os
 from collections import OrderedDict
 
 try:
@@ -40,7 +41,6 @@ class ODTManager():
         
     @staticmethod
     def proj(self, dirct, filename):
-        import os
         list_files = os.listdir(dirct)
         log_files = []
         for i in list_files:
@@ -50,7 +50,6 @@ class ODTManager():
         data = []
         depth = []
         for filename in log_files:
-            
             odt_file = ODTReader(os.path.join(dirct,filename))
             odt_file.read()
             self.fileheader = odt_file.fileheader
@@ -63,7 +62,7 @@ class ODTManager():
             data.append(odt_file.data)
 #            self.data = np.asarray(data)
         
-#        print depth!
+#        print '\ndepth', depth
         maxdepts = []
         mindepts = []
         for d in depth:
@@ -130,7 +129,6 @@ class ODTReader(ODTFile):
         fileobject.seek(0)
         fileheader = []
         logheader = []
-        
         line = fileobject.readline()
         while not line.startswith('!'):
             fileheader.append(line.strip())
@@ -192,8 +190,10 @@ def open(dirct, filename, mode='r'):
     
     return odtfile
   
-#if __name__ == '__main__':
-#    dirct = "C:\\Users\\rtabelini\\Downloads\\WellInfo v4\\"
-#    filename = "7-ll-234--RJ-.wll"
-#    odt_file = ODTManager(dirct, filename)
-#    print odt_file.logheader
+if __name__ == '__main__':
+    dirct = "C:\\Users\\Tabelini\\Dropbox\\Python\\"
+    filename = "1RJS-0074--RJ-^2.wll"
+#    odt_file = ODTReader("C:\\Users\\Tabelini\\Dropbox\\Python\\1RJS-0074--RJ-^2.wll")
+#    odt_file.read()
+    odt_file = open(dirct, filename)
+    print odt_file.fileheader, '\n\n',odt_file.logheader, '\n\n', odt_file.ndepth

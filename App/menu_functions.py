@@ -1078,12 +1078,160 @@ def on_new_logplot(event):
     root_controller = UIM.get_root_controller()        
     UIM.create('logplot_controller', root_controller.uid)
     
+def on_rock(event):
+    OM = ObjectManager(event.GetEventObject()) 
+    dlg = Dialog(None, title='Rock selector', flags=wx.OK|wx.CANCEL)
+    dlg.SetSize((800, 600))
+    cont_sup = dlg.AddStaticBoxContainer(label='Support', 
+                                          orient=wx.HORIZONTAL, proportion=0, 
+                                          flag=wx.EXPAND|wx.TOP, border=5
+    )
+    cont_grain = dlg.AddStaticBoxContainer(label='Grain Parts', 
+                                          orient=wx.HORIZONTAL, proportion=0, 
+                                          flag=wx.EXPAND|wx.TOP, border=5
+    )
+    cont_matr = dlg.AddStaticBoxContainer(label='Matrix Parts', 
+                                          orient=wx.HORIZONTAL, proportion=0, 
+                                          flag=wx.EXPAND|wx.TOP, border=5
+    )
+    options = OrderedDict()
+    partitions = OrderedDict()
+    
+    options['PT'] = 'PT'
+    options['FACIES'] = 'FACIES'
+    options['TOP&BASE'] = 'TOP&BASE'
+    
+    for well in OM.list('well'):
+        for partition in OM.list('partition', well.uid):
+            partitions[partition.get_friendly_name()] = partition.uid
+            
+    #reference
+    dlg.AddStaticText(cont_sup, initial='Type of Support   ')
+    dlg.AddChoice  (cont_sup, widget_name='suporte', initial=options)
+    dlg.AddTextCtrl(cont_sup, widget_name='point', initial='1500')
+    dlg.AddTextCtrl(cont_sup, widget_name='top', initial='1000')
+    dlg.AddTextCtrl(cont_sup, widget_name='base', initial='2000')
+    dlg.AddChoice(cont_sup, widget_name='fac', initial=partitions)
+#    def text_return(self, event):
+#        lst = ['3','4']
+#        print '1\n'
+#    vels = OrderedDict()
+#    for vel in OM.list('velocity'):
+#        vels[vel.name] = vel.uid
+#    print '\n\nchoice\n', choice, type(choice), type(cont_matr)
+    #matrix grain
+    dlg.AddStaticText(cont_grain, proportion=0, initial='Fraction '
+#                  widget_name='fraction1', initial='Fraction '
+    )
+    dlg.AddTextCtrl(cont_grain, proportion=0, 
+                  widget_name='frac1', initial='0.20'
+    )
+    dlg.AddStaticText(cont_grain,
+                  widget_name='K_Modulus', initial='K Modulus (GPa) '
+    )
+    dlg.AddTextCtrl(cont_grain, 
+                  widget_name='kmod1', initial='36.5'
+    )
+    dlg.AddStaticText(cont_grain,  
+                  widget_name='G_Modulus', initial='G Modulus (GPa) '
+    )
+    dlg.AddTextCtrl(cont_grain, 
+                  widget_name='gmod1', initial='78.6'
+    )
+    dlg.AddStaticText(cont_grain,
+                  widget_name='Density', initial='Density (g/cc) '
+    )
+    dlg.AddTextCtrl(cont_grain,
+                  widget_name='dens1', initial='2.65'
+    )
+    # matrix content
+    dlg.AddStaticText(cont_matr, proportion=0, 
+                  widget_name='fraction2', initial='Fraction '
+    )
+    dlg.AddTextCtrl(cont_matr, proportion=0, 
+                  widget_name='frac2', initial='0.20'
+    )
+    dlg.AddStaticText(cont_matr,
+                  widget_name='K_Modulus2', initial='K Modulus (GPa) '
+    )
+    dlg.AddTextCtrl(cont_matr, 
+                  widget_name='kmod2', initial='36.5'
+    )
+    dlg.AddStaticText(cont_matr,  
+                  widget_name='G_Modulus2', initial='G Modulus (GPa) '
+    )
+    dlg.AddTextCtrl(cont_matr, 
+                  widget_name='gmod2', initial='78.6'
+    )
+    dlg.AddStaticText(cont_matr,
+                  widget_name='Density2', initial='Density (g/cc) '
+    )
+    dlg.AddTextCtrl(cont_matr,
+                  widget_name='dens2', initial='2.65'
+    )
+#    dlg.AddStaticText(c1, proportion=0, flag=wx.EXPAND|wx.TOP, border=5, 
+#                  widget_name='xaxis')#, initial=options)
+#    dlg.AddStaticText(c2, proportion=0, flag=wx.EXPAND|wx.TOP, border=5, 
+#                  widget_name='Yaxis')#, initial=options)
+#    dlg.AddStaticText(c3, proportion=0, flag=wx.EXPAND|wx.TOP, border=5, 
+#                  widget_name='Zaxis')#, initial=options)
+#    results = dlg.get_results()  
+#        print '\nresults:', results
+        #
+#    print '\n\nresults\n',results.get('suporte')
+    result = dlg.ShowModal()
+    print 'result0'
+    if result == wx.ID_OK:
+        print 'result1'
+        results = dlg.get_results()  
+        print '\nresults2'
+        #
+        print '\nresult.get', results.get('suporte')
+    dlg.Destroy()
+#    if result != wx.ID_OK:
+#        dlg.destroy()
+#    #
+#    c1 = dlg.AddStaticBoxContainer(label='X-axis', 
+#                                          orient=wx.VERTICAL, proportion=0, 
+#                                          flag=wx.EXPAND|wx.TOP, border=5
+#    )   
+#    dlg.AddChoice(c1, proportion=0, flag=wx.EXPAND|wx.TOP, border=5, 
+#                  widget_name='xaxis', initial=options
+#    ) 
+#    #
+#    c2 = dlg.AddStaticBoxContainer(label='Y-axis', 
+#                                          orient=wx.VERTICAL, proportion=0, 
+#                                          flag=wx.EXPAND|wx.TOP, border=5
+#    )   
+#    dlg.AddChoice(c2, proportion=0, flag=wx.EXPAND|wx.TOP, border=5, 
+#                  widget_name='yaxis', initial=options
+#    )     
+#    #
+#    c3 = dlg.AddStaticBoxContainer(label='Colorbar', 
+#                                          orient=wx.VERTICAL, proportion=0, 
+#                                          flag=wx.EXPAND|wx.TOP, border=5
+#    )   
+#    options.update(partitions)
+#    dlg.AddChoice(c3, proportion=0, flag=wx.EXPAND|wx.TOP, border=5, 
+#                  widget_name='zaxis', initial=options
+#    )       
+#    dlg.SetSize((230, 300))
+##    dlg.SetSize((230, 350))
+#    result = dlg.ShowModal()
+#    if result == wx.ID_OK:
+#        results = dlg.get_results()  
+##        print '\nresults:', results
+#        #
+#        if not results.get('xaxis') or not results.get('yaxis'):# or not results.get('zaxis'):
+#            dlg.Destroy()
+#            return
     
 def on_new_crossplot(event):
     
     OM = ObjectManager(event.GetEventObject()) 
     #
     options = OrderedDict()
+    partitions = OrderedDict()
     
     for inv in OM.list('inversion'):
         for index in OM.list('index_curve', inv.uid):
@@ -1095,6 +1243,8 @@ def on_new_crossplot(event):
             options[index.get_friendly_name()] = index.uid
         for log in OM.list('log', well.uid):
             options[log.get_friendly_name()] = log.uid
+        for partition in OM.list('partition', well.uid):
+            partitions[partition.get_friendly_name()] = partition.uid
             
     #    
     dlg = Dialog(None, title='Crossplot selector', flags=wx.OK|wx.CANCEL)
@@ -1119,25 +1269,27 @@ def on_new_crossplot(event):
                                           orient=wx.VERTICAL, proportion=0, 
                                           flag=wx.EXPAND|wx.TOP, border=5
     )   
+    options.update(partitions)
     dlg.AddChoice(c3, proportion=0, flag=wx.EXPAND|wx.TOP, border=5, 
                   widget_name='zaxis', initial=options
     ) 
     #
-    c4 = dlg.AddStaticBoxContainer(label='Partition', 
-                                          orient=wx.VERTICAL, proportion=0, 
-                                          flag=wx.EXPAND|wx.TOP, border=5
-    )   
-    dlg.AddChoice(c4, proportion=0, flag=wx.EXPAND|wx.TOP, border=5, 
-                  widget_name='waxis', initial=options
-    ) 
+#    c4 = dlg.AddStaticBoxContainer(label='Partition', 
+#                                          orient=wx.VERTICAL, proportion=0, 
+#                                          flag=wx.EXPAND|wx.TOP, border=5
+#    )   
+#    dlg.AddChoice(c4, proportion=0, flag=wx.EXPAND|wx.TOP, border=5, 
+#                  widget_name='waxis', initial=partitions
+#    ) 
     #        
-    dlg.SetSize((230, 400))
+    dlg.SetSize((230, 300))
+#    dlg.SetSize((230, 350))
     result = dlg.ShowModal()
     if result == wx.ID_OK:
         results = dlg.get_results()  
-        print '\nresults:', results
+#        print '\nresults:', results
         #
-        if not results.get('xaxis') or not results.get('yaxis') or not results.get('zaxis'):
+        if not results.get('xaxis') or not results.get('yaxis'):# or not results.get('zaxis'):
             dlg.Destroy()
             return
         #
@@ -1147,13 +1299,13 @@ def on_new_crossplot(event):
         cpp = cp_ctrl.view
         xaxis_obj = OM.get(results.get('xaxis'))
         yaxis_obj = OM.get(results.get('yaxis'))
-        
         cpp.crossplot_panel.set_xdata(xaxis_obj.data)
         cpp.crossplot_panel.set_xlabel(xaxis_obj.name)
         cpp.crossplot_panel.set_ydata(yaxis_obj.data)
         cpp.crossplot_panel.set_ylabel(yaxis_obj.name)
         #
         #'''
+        print '\n\nzaxis', results.get('zaxis')
         if results.get('zaxis') is not None:
             zaxis_obj = OM.get(results.get('zaxis'))
             if zaxis_obj.tid == 'partition':
@@ -1173,13 +1325,16 @@ def on_new_crossplot(event):
                 cpp.crossplot_panel.set_zdata(zaxis_obj.data)
                 cpp.crossplot_panel.set_zlabel(zaxis_obj.name)
                 cpp.crossplot_panel.set_zmode('continuous')
-        else:
-            raise Exception("Not Implemented yet!")
+        elif results.get('waxis') is not None:
+            waxis_obj = OM.get(results.get('waxis'))
+            cpp.crossplot_panel.set_parts(waxis_obj.getdata())  # TODO: ver o que é necessário fazer quando não se escolhe wcpp.crossplot_panel.set_zmode('solid')
+#            raise Exception("Not Implemented yet!")
             #print "Not Implemented yet!"  # TODO: fazer alguma coisa quando não escolhe z (cor sólida)
         
-        if results.get('waxis') is not None:
-            waxis_obj = OM.get(results.get('waxis'))
-            cpp.crossplot_panel.set_parts(waxis_obj.getdata())  # TODO: ver o que é necessário fazer quando não se escolhe w
+        else:
+            cpp.crossplot_panel.set_zmode('solid')
+#            waxis_obj = OM.get(results.get('waxis'))
+#            cpp.crossplot_panel.set_parts(waxis_obj.getdata())  # TODO: ver o que é necessário fazer quando não se escolhe w
         #'''
         cpp.crossplot_panel.plot()
       #  self.notebook.AddPage(cpp, "Crossplot - {}".format(self.OM.get(welluid).name), True)
@@ -1305,24 +1460,25 @@ def on_import_las(event):
 
 
 
-def on_import_odt(self, event):
+def on_import_odt(event):
     style = wx.FD_OPEN | wx.FD_FILE_MUST_EXIST
-    wildcard="Arquivos ODT (*.wlm)|*.wlm"
+    wildcard="Arquivos ODT (*.wll)|*.wll"
 #        self.odt_dir_name = ''
-    fdlg = wx.FileDialog(self, 'Escolha o projeto a carregar', self.odt_dir_name, wildcard=wildcard, style=style)
+    fdlg = wx.FileDialog(wx.App.Get().GetTopWindow(), 'Escolha o projeto a carregar', wildcard=wildcard, style=style)
     if fdlg.ShowModal() == wx.ID_OK:
         file_proj = fdlg.GetFilename()
-        self.odt_dir_name = fdlg.GetDirectory()
+        odt_dir_name = fdlg.GetDirectory()
         fdlg.Destroy()
     else:
         fdlg.Destroy()
         return
-    odt_file = FileIO.ODT.open(self.odt_dir_name, file_proj, 'r')
-    hedlg = ODTEditor.Dialog(self)
-    print odt_file.ndepth
+    odt_file = FileIO.ODT.open(odt_dir_name, file_proj, 'r')
+    hedlg = ODTEditor.Dialog()
+#    print odt_file.ndepth
     hedlg.set_header(odt_file.fileheader, odt_file.logheader, odt_file.ndepth)
 
     if hedlg.ShowModal() == wx.ID_OK:
+        OM = ObjectManager(event.GetEventObject())
         odt_file.header = hedlg.get_header()
         print 'header 2\n', odt_file.header
 
@@ -1377,7 +1533,7 @@ def on_import_odt(self, event):
         
         # """
 
-        isdlg = ImportSelector.Dialog(self, names, units, curvetypes, datatypes)
+        isdlg = ImportSelector.Dialog(wx.App.Get().GetTopWindow(), names, units, curvetypes, datatypes)
         
         isdlg.set_curvetypes(sel_curvetypes)
         isdlg.set_datatypes(sel_datatypes)
@@ -1388,9 +1544,9 @@ def on_import_odt(self, event):
             sel_datatypes = isdlg.get_datatypes()
             
             data = odt_file.data
-            well = self.OM.new('well', name=odt_file.filename, LASheader=odt_file.header)
+            well = OM.new('well', name=odt_file.filename, LASheader=odt_file.header)
            
-            self.OM.add(well)
+            OM.add(well)
             for i in range(ncurves):
                 if sel_curvetypes[i]:
                     PM.voteforcurvetype(names[i], sel_curvetypes[i])
@@ -1400,25 +1556,25 @@ def on_import_odt(self, event):
             
                 if sel_datatypes[i] == 'Depth':
                     # print "Importing {} as '{}' with curvetype '{}'".format(names[i], sel_datatypes[i], sel_curvetypes[i])
-                    depth = self.OM.new('depth', data[i], name=names[i], unit=units[i], curvetype=sel_curvetypes[i])
-                    self.OM.add(depth, well.uid)
+                    depth = OM.new('depth', data[i], name=names[i], unit=units[i], curvetype=sel_curvetypes[i])
+                    OM.add(depth, well.uid)
                 
                 elif sel_datatypes[i] == 'Log':
                     # print "Importing {} as '{}' with curvetype '{}'".format(names[i], sel_datatypes[i], sel_curvetypes[i])
-                    log = self.OM.new('log', data[i], name=names[i], unit=units[i], curvetype=sel_curvetypes[i])
-                    self.OM.add(log, well.uid)
+                    log = OM.new('log', data[i], name=names[i], unit=units[i], curvetype=sel_curvetypes[i])
+                    OM.add(log, well.uid)
 
                 elif sel_datatypes[i] == 'Partition':
                     # print "Importing {} as '{}' with curvetype '{}'".format(names[i], sel_datatypes[i], sel_curvetypes[i])
                     booldata, codes = DT.DataTypes.Partition.getfromlog(data[i])
                     
-                    partition = self.OM.new('partition', name=names[i], curvetype=sel_curvetypes[i])
-                    self.OM.add(partition, well.uid)
+                    partition = OM.new('partition', name=names[i], curvetype=sel_curvetypes[i])
+                    OM.add(partition, well.uid)
                     
             
                     for j in range(len(codes)):
-                        part = self.OM.new('part', booldata[j], code=int(codes[j]), curvetype=sel_curvetypes[i])
-                        self.OM.add(part, partition.uid)
+                        part = OM.new('part', booldata[j], code=int(codes[j]), curvetype=sel_curvetypes[i])
+                        OM.add(part, partition.uid)
                 
                 else:
                     print "Not importing {} as no datatype matches '{}'".format(names[i], sel_datatypes[i])

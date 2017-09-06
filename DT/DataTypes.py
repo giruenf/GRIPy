@@ -1180,3 +1180,32 @@ class InvIndexCurve(Property, DataTypeMinMaxMixin):
         #return parent.name + ':' + self.name
         return self.name + '@' + parent.name
 '''
+class Rock (GenericDataType, DataTypeIndexUidMixin):
+    tid = 'rock'
+    _TID_FRIENDLY_NAME = 'Rock'
+    _SHOWN_ATTRIBUTES = [
+                            ('vp', 'Vp'),
+                            ('vs', 'Vs'),                             
+                            ('rho', 'Density'),
+                            ('k', 'Kmodulus'),
+                            ('mu', 'Gmodulus'),
+                            ('poi', 'Poisson')
+    ] 
+
+    def __init__(self, data, **attributes):
+        super(Rock, self).__init__(data, **attributes)
+
+class Fluid (GenericDataType):
+    tid = 'fluid'
+    _TID_FRIENDLY_NAME = 'Fluid'
+    _SHOWN_ATTRIBUTES = [
+                            ('vp', 'Vp'),
+                            ('vs', 'Vs'),                             
+                            ('rho', 'Density'),
+                            ('k', 'Kmodulus'),
+                            ('mu', 'Gmodulus'),
+                            ('poi', 'Poisson')
+    ] 
+
+    def __init__(self, data, **attributes):
+        super(Fluid, self).__init__(data, **attributes)

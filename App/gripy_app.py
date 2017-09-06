@@ -266,12 +266,38 @@ class GripyApp(wx.App):
             mc_tools = UIM.create('menu_controller', menubar_ctrl.uid, label=u"&Tools")
             mc_plugins = UIM.create('menu_controller', menubar_ctrl.uid, label=u"&Plugins")
             mc_debug = UIM.create('menu_controller', menubar_ctrl.uid, label=u"&Debug")      
-            #
+#            mc_init = UIM.create('menu_controller', menubar_ctrl.uid, label=u"&Initialize")
+            
+            # menu edit
             mic_edit_partitions = UIM.create('menu_item_controller', mc_edit.uid, 
                     label=u"Partitions", 
+                    help=u'Partitions',
                     callback='App.menu_functions.on_partitionedit'
-            )    
+            )
             
+            mic_loglot = UIM.create('menu_item_controller', mc_edit.uid, 
+                    label=u'&LogPlot', 
+                    help=u'LogPlot',
+                    callback='App.menu_functions.on_new_logplot'
+            ) 
+            
+            mic_crossplot = UIM.create('menu_item_controller', mc_edit.uid, 
+                    label=u'&Crossplot', 
+                    help=u'Crossplot',
+                    callback='App.menu_functions.on_new_crossplot'
+            )            
+            
+            mic_rock = UIM.create('menu_item_controller', mc_edit.uid, 
+                    label=u'&Rock', 
+                    help=u'Initialize rock model',
+                    callback='App.menu_functions.on_rock'
+            )
+            
+            mic_fluid = UIM.create('menu_item_controller', mc_edit.uid, 
+                    label=u'&Fluid', 
+                    help=u'Initialize fluid model',
+                    callback='App.menu_functions.on_rock'
+            )
             # File Menu
             mic_open = UIM.create('menu_item_controller', mc_file.uid, 
                     label=u'&Open', 
@@ -279,6 +305,7 @@ class GripyApp(wx.App):
                     id=wx.ID_OPEN,
                     callback='App.menu_functions.on_open'
             )
+
             mic_save = UIM.create('menu_item_controller', mc_file.uid, 
                     label=u'&Save', 
                     help=u'Save GriPy Project',
