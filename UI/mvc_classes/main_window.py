@@ -10,6 +10,7 @@ from wxgripy import Frame
 from App import log
 
 
+
 class MainWindowController(FrameController):
     tid = 'main_window_controller'
     _singleton = True

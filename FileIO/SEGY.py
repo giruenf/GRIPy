@@ -121,13 +121,17 @@ class SEGYFile(object):
         self.number_of_samples = int16(self.binary_header, 21)    # number of samples 
         self.data_format_code = int16(self.binary_header, 25)
         # At this time, only data format code 1 is accepted.
-        if self.data_format_code != 1:
+        if self.data_format_code != 1: # or self.data_format_code != 5:
             raise Exception('Data sample format code {} is not accepted.'.format(self.data_format_code))
-        # for future...
-        if self.data_format_code == 1:
-            self.trace_data_size = 4
+        # TODO: Melhorar data_format
+        #if self.data_format_code == 1:
+        self.trace_data_size = 4
         self.file.close()     
 
+
+    def __len__(self):
+        return len(self.traces)
+    
 
     def get_dump_data(self, samples=3000, start=0):
         self.file = open(self.filename, mode='rb')
@@ -155,6 +159,7 @@ class SEGYFile(object):
     def _satisfies(self, trace_bin_header, comparators_list):
         if not comparators_list:
             return True
+        #print 'satisfier:', comparators_list
         for (header_byte_pos, bytes_len, operator, value) in comparators_list:
             if operator == '>=':
                 ok = get_value(trace_bin_header, header_byte_pos, bytes_len) >= value
@@ -174,14 +179,16 @@ class SEGYFile(object):
      
  
     def read(self, comparators_list=None):
+        #print '\nreading:', comparators_list
         self.headers = []
         self.traces = []
         self.file = open(self.filename, mode='rb')
         self.file.seek(SEGY_HEADER_TEXT_SIZE + SEGY_HEADER_BINARY_SIZE)
         while self.file.tell() < self.filesize:
-            print '{:.2f}'.format((float(self.file.tell()) / self.filesize) * 100)
+            #print '{:.2f}'.format((float(self.file.tell()) / self.filesize) * 100)
             trace_bin_header = self.file.read(TRACE_BINARY_HEADER_SIZE)
             if self._satisfies(trace_bin_header, comparators_list):
+                #print 'SATISFACTION', '{:.2f}'.format((float(self.file.tell()) / self.filesize) * 100)
                 trace_data = self.file.read(self.number_of_samples * self.trace_data_size)            
                 trace = get_trace_from_data(trace_data)
                 self.headers.append(trace_bin_header)
@@ -190,63 +197,61 @@ class SEGYFile(object):
                 self.file.seek(self.number_of_samples * self.trace_data_size, 1)
         self.file.close()    
         self.traces = np.array(self.traces)
+        #print '\n\nTRACES:', len(self.traces)
 
 
     def _get_dimensions(self, *args):
+        #print '\n_get_dimensions'
+        #print len(self), len(self.traces), len(self.headers), args
         if not args:
             raise Exception('')
         dims = []
         for arg in args:
             dims.append([])
-        for idx, data in enumerate(self.traces):
-            for dim, pos in enumerate(args):
-                val = get_value(self.headers[idx], pos, 4)
+        for idx in range(len(self)):
+            #print 'idx:', idx
+            for dim, bytes_pos in enumerate(list(args)):
+                #print 'bytes_pos:', bytes_pos
+                val = get_value(self.headers[idx], bytes_pos, 4)
                 if val not in dims[dim]:
                     dims[dim].append(val)
         for list_ in dims:
-            list_.sort()
-        return dims          
+            list_.sort()    
+        return dims
 
 
-    def organize_3D_data(self, iline_byte=9, xline_byte=21, offset_byte=37):
-        dimensions = self._get_dimensions(iline_byte, xline_byte, offset_byte)
-        if len(dimensions) == 2 or (len(dimensions) == 2 and len(dimensions[2])==1):
+    def organize_3D_data(self, *args): #iline_byte=9, xline_byte=21, offset_byte=37):
+        # dimensions = self._get_dimensions(iline_byte, xline_byte, offset_byte)
+        #print '\norganize_3D_data:', args, len(self.traces)
+        dimensions = self._get_dimensions(*args)
+        #print 'dimensions:', dimensions
+        if len(dimensions) == 2 or (len(dimensions) == 3 and len(dimensions[2])==1):
             data = np.zeros((len(dimensions[0]), len(dimensions[1]), 
                              len(self.traces[0])), np.float32
             )
-        else:
+            if len(dimensions) == 3:    
+                del dimensions[2]    
+        elif len(dimensions) == 3:
             data = np.zeros((len(dimensions[0]), len(dimensions[1]), 
                              len(dimensions[2]), len(self.traces[0])), np.float32
             )
-        for idx, trace in enumerate(self.traces):
-            il = get_value(self.headers[idx], iline_byte, 4)
-            xl = get_value(self.headers[idx], xline_byte, 4)
-            idx_il = dimensions[0].index(il)
-            idx_xl = dimensions[1].index(xl)
-            if len(data.shape) == 4:
-                offset = get_value(self.headers[idx], offset_byte, 4)         
-                idx_offset = dimensions[2].index(offset)
-                data[idx_il][idx_xl][idx_offset] = trace
-            elif len(data.shape) == 3:
-                data[idx_il][idx_xl] = trace
-            else:
-                raise Exception()
-        if len(data.shape) == 4:
-            xd, yd, zd, wd = data.shape 
-            if zd == 1:  # Stacked data
-                data = data.reshape((xd, yd, zd*wd))
-                self.dimensions = [
-                    ('Iline', dimensions[0]), 
-                    ('Xline', dimensions[1])
-                ]
-            else:    
-                self.dimensions = [
-                        ('Iline', dimensions[0]), 
-                        ('Xline', dimensions[1]), 
-                        ('Offset', dimensions[2])
-                ]
         else:
-            raise Exception('')        
+            raise Exception('Tratar isso seja lah o que isso for....')
+        # 
+        for idx, trace in enumerate(self.traces):
+            idx_values_dim = []
+            for j in range(len(dimensions)):
+                value = get_value(self.headers[idx], args[j], 4)
+                idx_values_dim.append(dimensions[j].index(value))
+            #
+            if len(data.shape) == 4:
+                data[idx_values_dim[0]][idx_values_dim[1]][idx_values_dim[2]] = trace
+            elif len(data.shape) == 3:
+                data[idx_values_dim[0]][idx_values_dim[1]] = trace
+            else:
+                raise Exception('AAAAAAAAAAAAAAAAAA')
+        #
+        self.dimensions = [np.asarray(dim) for dim in dimensions] 
         self.traces = data    
 
 
@@ -288,7 +293,7 @@ class SEGYFile(object):
             (193, 4),
             (197, 4)            
         ]
-        
+        '''
         template_positions = [
             (1, 4), # trace number absolute
             (5, 4), # trace number absolute
@@ -296,7 +301,7 @@ class SEGYFile(object):
             (21, 4),
             (37, 4)
         ]
-        
+        '''
         for data in self.get_dump_data(samples, start):
             print
             for pos, nbytes in template_positions:

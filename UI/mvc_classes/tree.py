@@ -8,7 +8,7 @@ from UI.uimanager import UIControllerBase
 from UI.uimanager import UIViewBase 
 from App import log 
 
-from UI.dialog_new import Dialog
+#from UI.dialog_new import Dialog
 from DT.UOM import uom as UOM
 from collections import OrderedDict
 import numpy as np
@@ -65,6 +65,18 @@ class TreeController(UIControllerBase):
         treeitem = self._mapobjects.get(objuid)
         if treeitem:
             return treeitem
+        
+        #
+        OM = ObjectManager(self)
+        obj = OM.get(objuid)
+        try:
+            show = obj.SHOW_ON_TREE
+        except:
+            show = True
+        if not show:
+            return None
+        #
+        
         # Else, we will check for object parent treeitemid
         parent_treeitem = self.get_parent_treeitem(objuid)
         # Dealing with object treeitemid creation
@@ -82,21 +94,56 @@ class TreeController(UIControllerBase):
     def _create_object_attributes(self, objuid):
         OM = ObjectManager(self)
         obj = OM.get(objuid)
-        treeitem = self._mapobjects.get(objuid)
-        if not treeitem:
+        obj_treeitem = self._mapobjects.get(objuid)
+        if not obj_treeitem:
             raise Exception('Creating object attributes for an object not exists.')
         # Create item obj parameters
         try:
+            #props = obj.get_tree_properties()
+            #self._aaa(obj_treeitem, props)
+            #'''
             for attr, attr_label in obj._SHOWN_ATTRIBUTES:
-                value = obj.attributes.get(attr)
-                if value is None:
+                
+                try:
                     value = getattr(obj, attr)
+                except:
+                    print 'erro:', attr
+                    value = obj.attributes.get(attr)
+                     
+                if isinstance(value, float):
+                    value = "{0:.2f}".format(value)
+                elif value is None:
+                    value = 'None'
+
                 attr_str = attr_label + ': ' + str(value)
-                attrtreeid = self.view.AppendItem(treeitem, attr_str)
+                print attr_str
+                attrtreeid = self.view.AppendItem(obj_treeitem, attr_str)
                 self.view.SetItemData(attrtreeid, (None, None))
-        except AttributeError:    
+            #'''    
+        except Exception as e:
+            print e
             pass        
     
+    """
+    def _aaa(self, parent_treeitem, props):
+        try:
+            if isinstance(props, OrderedDict):
+                for key, value in props.items():
+                    treeitem = self.view.AppendItem(parent_treeitem, key)
+                    self.view.SetItemData(treeitem, (None, None))
+                    if value:
+                        self._aaa(treeitem, value)
+            elif isinstance(props, list):
+                for prop in props:
+                    self._aaa(parent_treeitem, prop)
+            else:    
+                # Is leaf and props is a string like
+                print '\nleaf:', props
+                treeitem = self.view.AppendItem(parent_treeitem, str(props))
+                self.view.SetItemData(treeitem, (None, None))
+        except:
+            raise
+    """        
     
     def _create_tid_data(self, obj, parentuid):
         parent_treeid = self.get_treeitem(parentuid)
@@ -117,6 +164,8 @@ class TreeController(UIControllerBase):
         if not parentuid:
             parentuid = self._PSEUDOROOTUID
         treeitem_parent = self._maptypes[parentuid].get(obj.tid)  
+        #if not treeitem_parent:
+        #    treeitem_parent = self._create_tid_data(obj, parentuid)
         if not treeitem_parent:
             treeitem_parent = self._create_tid_data(obj, parentuid)
         return treeitem_parent   
@@ -126,13 +175,16 @@ class TreeController(UIControllerBase):
         OM = ObjectManager(self)
         obj = OM.get(objuid)
         # Unit labels
+        '''
         if isinstance(obj, DT.DataTypes.DataTypeUnitMixin):    
             try:    
                 obj_str = obj.name + ' (' + obj.unit + ')'    
             except AttributeError:
                 obj_str = obj.name + ' (unitless)'
+                
         else:
-            obj_str = obj.name
+        '''    
+        obj_str = obj.name
         # 
         return obj_str
 
@@ -142,6 +194,7 @@ class TreeController(UIControllerBase):
         if not treeitem:
             raise Exception('Trying to reload an object not exists.')
         self.view.DeleteChildren(treeitem)
+        print 'aaa'
         self.view.SetItemText(treeitem, self._get_object_label(objuid))
         self._create_object_attributes(objuid)
 
@@ -313,7 +366,7 @@ class TreeView(UIViewBase, wx.TreeCtrl):
         #
         self.popup_obj = (uid, tree_tid)
         self.popupmenu = wx.Menu()  
-        if uid[0] == 'log':
+        if self._is_convertible(uid):
             item = self.popupmenu.Append(wx.NewId(), 'Convert unit')
             self.Bind(wx.EVT_MENU, self.OnUnitConvert, item)
             self.popupmenu.AppendSeparator()
@@ -335,6 +388,13 @@ class TreeView(UIViewBase, wx.TreeCtrl):
         self.PopupMenu(self.popupmenu, pos)
 
 
+    def _is_convertible(self, uid):
+        if uid[0] in ['log', 'data_index']:
+            return True
+        return False
+
+
+
     def OnPopupItemSelected(self, event):
         uid, tree_tid = self.popup_obj
         OM = ObjectManager(self)
@@ -353,77 +413,58 @@ class TreeView(UIViewBase, wx.TreeCtrl):
         uid, tree_tid = self.popup_obj
         OM = ObjectManager(self)       
         obj = OM.get(uid)
-
         #
-        #print obj.uid, obj.unit
-        unit = UOM.get_unit(obj.unit)
-        dim = UOM.get_unit_dimension(unit.dimension)
-        #print dim.getstate()
-        qc = UOM.get_quantity_class(dim.name)
-        UNITS_OPTIONS = OrderedDict()
-        for mu in qc.memberUnit:
-            UNITS_OPTIONS[mu] = mu
-            
-        #print '\n'
-       # UOM.get_quantity_class
+        #print '\nOnUnitConvert:', obj.unit
+        try:
+            unit = UOM.get_unit(obj.unit)
+            #print 'unit.dimension:', unit.dimension
+            dim = UOM.get_unit_dimension(unit.dimension)
+            qc = UOM.get_quantity_class(dim.name)
+            print qc
+            UNITS_OPTIONS = OrderedDict()
+            for mu in qc.memberUnit:
+                UNITS_OPTIONS[mu] = mu 
+            #
+        except:    
+            msg = 'Unit ' + obj.unit + ' cannot be converted.'
+            wx.MessageBox(msg, 'Warning', wx.OK | wx.ICON_WARNING)
+            return 
+            #
+        UIM = UIManager()
+        dlg = UIM.create('dialog_controller', title='Unit conversion')        
         #
-        
-        
-        dlg = Dialog(None, title='Unit conversion', 
-                     flags=wx.OK|wx.CANCEL
-        )
-        
-        container = dlg.AddStaticBoxContainer(label='Object details', 
-                                              orient=wx.VERTICAL, proportion=0, 
-                                              flag=wx.EXPAND|wx.TOP, border=5
-        )   
-
-        dlg.AddStaticText(container, proportion=0, flag=wx.EXPAND|wx.TOP, 
-                          border=5, label='Name: ' + obj.name
-        )
-
-
-        dlg.AddStaticText(container, proportion=0, flag=wx.EXPAND|wx.TOP, 
-                          border=5, label='Type id: ' + obj.tid
-        )
-        
-        dlg.AddStaticText(container, proportion=0, flag=wx.EXPAND|wx.TOP, 
-                          border=5, label='Object id: ' + str(obj.oid)
-        )
-
-        dlg.AddStaticText(container, proportion=0, flag=wx.EXPAND|wx.TOP, 
-                          border=5, label='Current unit: ' + obj.unit
-        )        
-
-
-        container2 = dlg.AddStaticBoxContainer(label='New unit', 
-                                              orient=wx.VERTICAL, proportion=0, 
-                                              flag=wx.EXPAND|wx.TOP, border=5
-        )   
-                
-        dlg.AddChoice(container2, proportion=0, flag=wx.EXPAND|wx.TOP, border=5, 
-                      widget_name='new_unit', initial=UNITS_OPTIONS
-        ) 
-
-        dlg.SetSize((300, 330))
-        
-        answer = dlg.ShowModal()
-        
-        if answer == wx.ID_OK:
-            results = dlg.get_results()  
-            new_unit_name = results.get('new_unit')
-            new_data = UOM.convert(obj.data, obj.unit,  new_unit_name)
-            print '\nnew_data:', np.nanmin(new_data), np.nanmax(new_data)
-            obj._data = new_data
-            obj.unit = new_unit_name
+        try:
+            ctn_details = dlg.view.AddCreateContainer('StaticBox', label='Object details', orient=wx.VERTICAL, proportion=0, flag=wx.EXPAND|wx.TOP, border=5)
+            dlg.view.AddStaticText(ctn_details, proportion=0, flag=wx.EXPAND|wx.TOP, border=5, label='Name: ' + obj.name)
+            #
+            dlg.view.AddStaticText(ctn_details, proportion=0, flag=wx.EXPAND|wx.TOP, border=5, label='Type id: ' + obj.tid)
+            dlg.view.AddStaticText(ctn_details, proportion=0, flag=wx.EXPAND|wx.TOP, border=5, label='Object id: ' + str(obj.oid))
+            dlg.view.AddStaticText(ctn_details, proportion=0, flag=wx.EXPAND|wx.TOP, border=5, label='Current unit: ' + obj.unit)
+            #
+            ctn_new_unit = dlg.view.AddCreateContainer('StaticBox', label='New unit', orient=wx.VERTICAL, proportion=0, flag=wx.EXPAND|wx.TOP, border=5)  
+            dlg.view.AddChoice(ctn_new_unit, proportion=0, flag=wx.EXPAND|wx.TOP, border=5, widget_name='new_unit', options=UNITS_OPTIONS)     
+            #    
+            dlg.view.SetSize((300, 330))
+            answer = dlg.view.ShowModal()
+            #
+            if answer == wx.ID_OK:
+                results = dlg.get_results()  
+                new_unit_name = results.get('new_unit')
+                print 'old:', obj.data[0], obj.data[-1]
+                new_data = UOM.convert(obj.data, obj.unit, new_unit_name)
+                print 'new_data:', new_data[0], new_data[-1]
+                obj._data = new_data
+                print 'obj.data:', obj.data[0], obj.data[-1]
+                obj.unit = new_unit_name            
+                UIM = UIManager()
+                controller = UIM.get(self._controller_uid)
+                controller.reload_object(obj.uid)                 
+        except Exception as e:
+            print e
+            #pass
+        finally:
+            UIM.remove(dlg.uid)        
             
-            UIM = UIManager()
-            controller = UIM.get(self._controller_uid)
-            controller.reload_object(obj.uid)
-            
-        dlg.Destroy()       
-        
-        
         
         
         

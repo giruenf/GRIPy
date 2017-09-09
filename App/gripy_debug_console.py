@@ -8,8 +8,11 @@ import wx
 from OM.Manager import ObjectManager
 import UI 
 from utils import Chronometer
-from UI.dialog_new import Dialog
-#import log
+#from UI.dialog_new import Dialog
+
+
+import FileIO
+from collections import OrderedDict
 
 
 class DebugConsole(code.InteractiveConsole):
@@ -23,20 +26,22 @@ class DebugConsole(code.InteractiveConsole):
         self._clearFunc = clearFunc
         self._OM = ObjectManager(self)      
         self._UIManager = UI.uimanager.UIManager()
-        self._Dialog = Dialog
+        #self._Dialog = Dialog
         
         self.namespace = {
             "self": self,
             "OM": self._OM,
+            "FileIO": FileIO,
             "UI": self._UIManager,
             "clear": self._clearFunc,
             "self": self,
-            "Dialog": self._Dialog,
+            #"Dialog": self._Dialog,
             "exit": self._exitCmd,
             "quit": self._exitCmd,
             "sys": sys,
             "os": os,
             "wx": wx,
+            "OrderedDict": OrderedDict
         }
         
         # Can't use super here because stupid code.InteractiveConsole doesn't sub-class object. Grrr!

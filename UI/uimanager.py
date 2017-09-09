@@ -149,8 +149,9 @@ class UIControllerBase(UIBase, PublisherMixin):
         UIM = UIManager()
         wx.CallAfter(UIM.remove, self.uid)
   
+    
     def attach(self, OM_objuid):
-        print 'attach:', OM_objuid
+        #print 'attach:', OM_objuid
         OM = ObjectManager(self)
         obj = OM.get(OM_objuid)
         try:
@@ -159,8 +160,9 @@ class UIControllerBase(UIBase, PublisherMixin):
         except:
             pass
         
+        
     def detach(self, OM_objuid):
-        print 'detach:', OM_objuid
+        #print 'detach:', OM_objuid
         OM = ObjectManager(self)
         obj = OM.get(OM_objuid)
         try:
@@ -168,6 +170,7 @@ class UIControllerBase(UIBase, PublisherMixin):
             obj.unsubscribe(self._call_self_remove, 'remove')        
         except:
             pass
+        
         
     def get_state(self):
         if not self.model:
@@ -414,7 +417,7 @@ class UIViewBase(UIBase):
 ###############################################################################
 
 
-class UIManager(PublisherMixin):#GenericObject):
+class UIManager(PublisherMixin):
     #tid = 'ui_manager'
     #__metaclass__ = Singleton
 
@@ -431,9 +434,6 @@ class UIManager(PublisherMixin):#GenericObject):
 
     def __init__(self):
         caller_info = App.utils.get_caller_info()
-        #print 
-        #print caller_info
-        #print 
         owner = caller_info[0][1]
         #print '\n', owner
         # TODO:
@@ -604,12 +604,10 @@ class UIManager(PublisherMixin):#GenericObject):
             self._childrenuidmap[parent_uid].append(obj.uid)
         try:
             obj._create_model_view(**base_state)
-        except Exception:
+        except Exception as e:
+            print e
             msg = 'ERROR found in Model-View creation for class {}.'.format(class_.__name__)      
             log.exception(msg)
-            print '\nbase_state:', base_state
-            print msg
-            print
             raise         
         try:
             obj._PostInit()

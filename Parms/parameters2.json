@@ -67,6 +67,7 @@
         "TVD",
         "TVDSS",
         "TwcPredicted",
+        "TWT",
         "Vcl",
         "Vcoal",
         "Velocity",
@@ -192,7 +193,7 @@
             "Caliper": 31
         },
         "cali": {
-            "Caliper": 121
+            "Caliper": 132
         },
         "caliper": {
             "Caliper": 0
@@ -273,13 +274,13 @@
             "Density": 0
         },
         "density": {
-            "Density": 3
+            "Density": 7
         },
         "dept": {
-            "MD": 124
+            "MD": 136
         },
         "depth": {
-            "MD": 43
+            "MD": 46
         },
         "dev": {
             "Deviation": 0
@@ -426,7 +427,7 @@
             "GammaRay": 0
         },
         "gr": {
-            "GammaRay": 187
+            "GammaRay": 198
         },
         "gr_": {
             "GammaRay": 10
@@ -740,6 +741,9 @@
         "offst": {
             "RB_Offset": 0
         },
+        "owt": {
+            "Time": 2
+        },
         "p1az": {
             "Tool_Azimuth": 8
         },
@@ -867,10 +871,10 @@
             "GammaRay": 12
         },
         "rho": {
-            "Density": 0
+            "Density": 3
         },
         "rhob": {
-            "Density": 104
+            "Density": 115
         },
         "rhoc": {
             "Density": 0
@@ -1152,7 +1156,7 @@
             "Spectral": 0
         },
         "time": {
-            "Time": 3
+            "Time": 8
         },
         "tnph": {
             "Neutron": 0
@@ -1183,6 +1187,9 @@
         },
         "twc": {
             "TwcPredicted": 0
+        },
+        "twt": {
+            "TWT": 1
         },
         "u": {
             "Spectral": 1
@@ -1236,10 +1243,10 @@
             "Velocity": 0
         },
         "vp": {
-            "Velocity": 47
+            "Velocity": 65
         },
         "vs": {
-            "ShearVel": 47
+            "ShearVel": 65
         },
         "vsalt": {
             "Vsalt": 0
@@ -1328,7 +1335,7 @@
             "Log": 31
         },
         "cali": {
-            "Log": 121
+            "Log": 132
         },
         "coordew": {
             "Log": 12
@@ -1356,13 +1363,13 @@
             "Log": 2
         },
         "density": {
-            "Log": 3
+            "Log": 7
         },
         "dept": {
-            "Index": 124
+            "Index": 136
         },
         "depth": {
-            "Index": 39
+            "Index": 42
         },
         "devi": {
             "Log": 4
@@ -1425,7 +1432,7 @@
             "Log": 20
         },
         "gr": {
-            "Log": 187
+            "Log": 198
         },
         "gr_": {
             "Log": 11
@@ -1517,6 +1524,9 @@
         "npor": {
             "Log": 1
         },
+        "owt": {
+            "Index": 2
+        },
         "p1az": {
             "Log": 8
         },
@@ -1548,7 +1558,7 @@
             "Log": 4
         },
         "pr": {
-            "Log": 16
+            "Log": 27
         },
         "psr": {
             "Log": 31
@@ -1586,8 +1596,11 @@
         "rhdt": {
             "Log": 4
         },
+        "rho": {
+            "Log": 3
+        },
         "rhob": {
-            "Log": 104
+            "Log": 115
         },
         "rhoma": {
             "Log": 11
@@ -1662,7 +1675,7 @@
             "Log": 1
         },
         "time": {
-            "Index": 3
+            "Index": 8
         },
         "tot": {
             "Log": 59
@@ -1686,6 +1699,9 @@
             "Index": 11,
             "Log": 1
         },
+        "twt": {
+            "Log": 1
+        },
         "u": {
             "Log": 1
         },
@@ -1696,13 +1712,13 @@
             "Log": 2
         },
         "vp": {
-            "Log": 47
+            "Log": 65
         },
         "vpvs": {
             "Log": 86
         },
         "vs": {
-            "Log": 47
+            "Log": 65
         },
         "vsh": {
             "Log": 12

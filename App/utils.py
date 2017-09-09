@@ -10,50 +10,77 @@ import collections
 from enum import Enum  
 from App import log
 
-#from wx.lib.pubsub import pub
-
-#import wx.propgrid as pg  
-
 import FileIO
 from OM.Manager import ObjectManager
 
 
+"""
+
+def create_data_object(event, obj_tid, obj_name, parent_uid=None):
+    OM = ObjectManager(event.GetEventObject())
+    obj = OM.new(obj_tid, name=obj_name) 
+    OM.add(obj)
+    axis = OM.new('data_axis', 'Z Axis')
+    OM.add(axis, obj.uid)
+    return obj
+
+
+def create_well(event, well_name, parent_uid=None):
+    return create_data_object(event, 'well', well_name, parent_uid)
+
+
+def create_seismic(event, seismic_name, parent_uid=None):
+    return create_data_object(event, 'seismic', seismic_name, parent_uid)
+
+"""
 
 
 def load_segy(event, filename, new_obj_name='', comparators_list=None, 
               iline_byte=9, xline_byte=21, offset_byte=37, tid='seismic', 
               parentuid=None):    
-    #
     OM = ObjectManager(event.GetEventObject())  
-    #
     disableAll = wx.WindowDisabler()
     wait = wx.BusyInfo("Loading SEG-Y file...")
     #
-    print '\n', comparators_list
-    print 1
-    segy_file = FileIO.SEGY.SEGYFile(filename)    
-    print 2
-    segy_file.read(comparators_list)
-    print 3
-    segy_file.organize_3D_data(iline_byte, xline_byte, offset_byte)
-    print 4
-    #
-    # TODO: trocar Time por TWT
-    seismic = OM.new(tid, 
-                             segy_file.traces,
-                             segy_file.dimensions,
-                             name=new_obj_name, 
-                             unit='ms', 
-                             domain='time', 
-                             sample_rate=segy_file.sample_rate*1000, 
-                             datum=0,
-                             samples=segy_file.number_of_samples
-    )     
-    result = OM.add(seismic, parentuid)   
-    #    
-    del wait
-    del disableAll
-    return result
+    try:
+        segy_file = FileIO.SEGY.SEGYFile(filename)    
+        #segy_file.print_dump()
+        #"""
+        segy_file.read(comparators_list)
+        segy_file.organize_3D_data(iline_byte, xline_byte, offset_byte)
+        #
+        print 'segy_file.traces.shape:', segy_file.traces.shape
+        #
+        seis_like_obj = OM.new(tid, segy_file.traces, name=new_obj_name)
+        if not OM.add(seis_like_obj, parentuid):
+            raise Exception('Object was not added. tid={}'.format(tid))
+        #
+        
+        index = OM.new('data_index', 0, 'Time', 'TIME', 'ms', start=0.0, 
+                step=(segy_file.sample_rate*1000), samples=segy_file.number_of_samples 
+        )
+        OM.add(index, seis_like_obj.uid)
+        try:
+            index = OM.new('data_index', 1, 'Offset', 'OFFSET', 'm', data=segy_file.dimensions[2]) 
+            OM.add(index, seis_like_obj.uid)
+            next_dim = 2
+        except Exception as e:
+            next_dim = 1    
+        #
+        index = OM.new('data_index', next_dim, 'X Line', 'X_LINE', None, data=segy_file.dimensions[1])
+        if OM.add(index, seis_like_obj.uid):
+            next_dim += 1
+        #
+        index = OM.new('data_index', next_dim, 'I Line', 'I_LINE', None, data=segy_file.dimensions[0])
+        OM.add(index, seis_like_obj.uid)  
+        print 'seis_like_obj.traces.shape:', seis_like_obj.data.shape
+        #"""
+    except Exception as e:
+        raise e
+    finally:
+        del wait
+        del disableAll
+
 
 
 

@@ -22,7 +22,7 @@ class GripyApp(wx.App):
     def __init__(self):
         #self._load_app_definitions()
         #
-        self._OM_file = None
+        self.OM_file = None
         #self.UIM_file = None
         self._wx_app_state = OrderedDict(DEFS.get('wx.App'))
         class_full_name = utils.get_class_full_name(self)
@@ -93,7 +93,7 @@ class GripyApp(wx.App):
         
 
     def get_project_filename(self):
-        return self._OM_file
+        return self.OM_file
         
         
     #def get_interface_filename(self):
@@ -101,7 +101,7 @@ class GripyApp(wx.App):
  
     '''
     def _load_app_definitions(self):
-        self._OM_file = None
+        self.OM_file = None
         #self.UIM_file = None
         self._wx_app_state = OrderedDict(DEFS.get('wx.App'))
         class_full_name = utils.get_class_full_name(self)
@@ -140,24 +140,24 @@ class GripyApp(wx.App):
     """
     # Falta unload data
     def load_project_data(self, fullfilename):
-        _OM = ObjectManager(self)
+        OM = ObjectManager(self)
         UIM = UIManager()
-        self._OM_file = fullfilename
-        _OM.load(self._OM_file)
+        self.OM_file = fullfilename
+        OM.load(self.OM_file)
         mwc = UIM.list('main_window_controller')[0]
         tree_ctrl = UIM.list('tree_controller', mwc.uid)[0]
         if tree_ctrl:        
-            tree_ctrl.set_project_name(self._OM_file)
+            tree_ctrl.set_project_name(self.OM_file)
                   
     """
     Save ObjectManager data.
     """                  
     def save_project_data(self, fullfilename=None):
         if fullfilename:
-            self._OM_file = fullfilename
-        if self._OM_file:
-            _OM = ObjectManager(self)
-            _OM.save(self._OM_file)
+            self.OM_file = fullfilename
+        if self.OM_file:
+            OM = ObjectManager(self)
+            OM.save(self.OM_file)
 
     """
     Load interface data.
@@ -260,17 +260,16 @@ class GripyApp(wx.App):
             # First level Menus
             mc_file = UIM.create('menu_controller', menubar_ctrl.uid, label=u"&File")      
             mc_edit = UIM.create('menu_controller', menubar_ctrl.uid, label=u"&Edit")
+            mc_well = UIM.create('menu_controller', menubar_ctrl.uid, label=u"&Well")
             mc_precond = UIM.create('menu_controller', menubar_ctrl.uid, label=u"&Preconditioning")
             mc_interp = UIM.create('menu_controller', menubar_ctrl.uid, label=u"&Interpretation")
             mc_infer = UIM.create('menu_controller', menubar_ctrl.uid, label=u"&Inference")
+            mc_specdecom = UIM.create('menu_controller', menubar_ctrl.uid, label=u"&SpecDecom")
             mc_tools = UIM.create('menu_controller', menubar_ctrl.uid, label=u"&Tools")
             mc_plugins = UIM.create('menu_controller', menubar_ctrl.uid, label=u"&Plugins")
             mc_debug = UIM.create('menu_controller', menubar_ctrl.uid, label=u"&Debug")      
-            #
-            mic_edit_partitions = UIM.create('menu_item_controller', mc_edit.uid, 
-                    label=u"Partitions", 
-                    callback='App.menu_functions.on_partitionedit'
-            )    
+            
+
             
             # File Menu
             mic_open = UIM.create('menu_item_controller', mc_file.uid, 
@@ -363,6 +362,33 @@ class GripyApp(wx.App):
             )
             
             
+            # Edit
+            mic_edit_partitions = UIM.create('menu_item_controller', mc_edit.uid, 
+                    label=u"Partitions", 
+                    callback='App.menu_functions.on_partitionedit'
+            )    
+            UIM.create('menu_item_controller', mc_edit.uid, 
+                    label=u"New Rock", 
+                    callback='App.menu_functions.on_createrock'
+            )    
+            #
+            
+            
+            # Well
+            UIM.create('menu_item_controller', mc_well.uid, 
+                                          label=u"New well",
+                                          help=u"Create new well",
+                                          callback='App.menu_functions.on_createwell'
+            ) 
+            UIM.create('menu_item_controller', mc_file.uid, 
+                           kind=wx.ITEM_SEPARATOR
+            )
+            UIM.create('menu_item_controller', mc_well.uid, 
+                    label=u"Create Synthetic Log",
+                    callback='App.menu_functions.on_create_synthetic'
+            )
+            #
+            
             mic_debug = UIM.create('menu_item_controller', mc_debug.uid, 
                     label=u"Debug Console", help=u"Gripy Debug Console", 
                     callback='App.menu_functions.on_debugconsole'
@@ -380,26 +406,10 @@ class GripyApp(wx.App):
                     callback='App.menu_functions.teste'
             )            
 
-            UIM.create('menu_item_controller', mc_debug.uid, 
-                    label=u"Load Log teste curve", 
-                    callback='App.menu_functions.teste2'
-            )      
-
-            UIM.create('menu_item_controller', mc_debug.uid, 
-                    label=u"Load Synthetic Seismic", 
-                    callback='App.menu_functions.teste3'
-            )  
-
 
             UIM.create('menu_item_controller', mc_debug.uid, 
                     label=u"Load Pre-Stack Viking CIPs 808/1572", 
                     callback='App.menu_functions.teste4'
-            )  
-
-
-            UIM.create('menu_item_controller', mc_debug.uid, 
-                    label=u"Seismic CWT", 
-                    callback='App.menu_functions.teste5'
             )  
 
 
@@ -414,8 +424,35 @@ class GripyApp(wx.App):
                     callback='App.menu_functions.teste7'
             )  
 
+            UIM.create('menu_item_controller', mc_infer.uid, 
+                    label=u"Load Original", 
+                    callback='App.menu_functions.teste8'
+            )  
 
+            UIM.create('menu_item_controller', mc_debug.uid, 
+                    label=u"Modeling PP", 
+                    callback='App.menu_functions.on_modelling_pp'
+            )              
 
+            UIM.create('menu_item_controller', mc_debug.uid, 
+                    label=u"Load Stack North Viking Data", 
+                    callback='App.menu_functions.teste10'
+            )   
+            
+            UIM.create('menu_item_controller', mc_debug.uid, 
+                    label=u"Teste 11", 
+                    callback='App.menu_functions.teste11'
+            )   
+            
+            
+            #
+            UIM.create('menu_item_controller', mc_specdecom.uid, 
+                    label=u"Wavelet Transform", 
+                    callback='App.menu_functions.teste5'
+            )  
+            #
+            
+            
 
             """                           
             menubar_ctrl.create_menu_separator('file')
@@ -516,12 +553,18 @@ class GripyApp(wx.App):
             #"""
             #fullfilename = 'C:\\Users\\Adriano\\Desktop\\AVO_INV_teste.pgg'
             
-            #fullfilename = 'C:\\Users\\Adriano\\Desktop\\teste_jul.pgg'
+            #fullfilename = 'C:\\Users\\Adriano\\Desktop\\aaa_teste_2.pgg'
             #self.load_project_data(fullfilename)      
             
             
             #lpc = UIM.create('logplot_controller', mwc.uid)
             #tc1 = UIM.create('track_controller', lpc.uid)
+            #tc1.model.width = 900
+            
+            #UIM.create('track_controller', lpc.uid)
+            #UIM.create('track_controller', lpc.uid)
+            
+            #UIM.create('track_controller', lpc.uid, overview=True, plotgrid=False)
             
             
             #tc1.model.x_scale = 1
@@ -582,15 +625,22 @@ class GripyApp(wx.App):
             #lpc.model.y_min_shown = 2100
             #lpc.model.y_max_shown = 3330
             #lpc.model.fit = True
-            #mwc.model.pos = (-1374, 453)
-            #mwc.model.maximized = True
-                
-                
-              
+            #
+            # CASA
+            #mwc.model.pos = (-8, 0)
+            #mwc.model.size = (1240, 1046)
+            #mwc.model.maximized = False
+            #
+            # BR
+            #mwc.model.pos = (-1925, -921) 
+            #mwc.model.size = (1116, 1131) 
+
                 
             # Fim - Testes
             # """
             #'''
+            
+            
         PM = GripyPluginManagerSingleton.get()
         plugins_places = self._plugins_state.get('plugins_places')
         PM.setPluginPlaces(plugins_places)
@@ -607,8 +657,8 @@ class GripyApp(wx.App):
         msg = 'GriPy Application is preparing to terminate....'
         log.info(msg)
         print '\n', msg
-        _OM = ObjectManager(self)
-        if _OM.get_changed_flag():
+        OM = ObjectManager(self)
+        if OM.get_changed_flag():
             dial = wx.MessageDialog(self.GetTopWindow(), 
                                     'Do you want to save your project?', 
                                     'GriPy', 

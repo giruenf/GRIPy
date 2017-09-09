@@ -61,7 +61,6 @@ registered_widgets = {
 }
 
 
-
 widget_special_keys = ['initial', 'listening', 'widget_name']
 
 #
@@ -145,7 +144,7 @@ class EncapsulatedControl(object):
         else:
             initial = None      
             
-        print initial, self._control_class    
+        #print initial, self._control_class    
             
         if special_kw.get('listening') is not None:
             self.listening = special_kw['listening']
@@ -159,9 +158,11 @@ class EncapsulatedControl(object):
                       
         
     def check_change(self, name):
-        if not self.listening: return
+        if not self.listening: 
+            return
         names, _function = self.listening    
-        if name not in names: return           
+        if name not in names: 
+            return           
         kwargs = {}
         for name in names:
             enc_control = DialogPool.get_object(name)
@@ -246,7 +247,7 @@ class EncapsulatedSpinCtrl(EncapsulatedControl):
         #    if kwargs.get('initial') > 100:
         #        kwargs['max'] = kwargs.get('initial')
         super(EncapsulatedSpinCtrl, self).__init__(*args, **kwargs)      
-        print self.control.GetValue()
+        #print self.control.GetValue()
         self.control.Bind(wx.EVT_SPINCTRL, self.on_change)
 
     def set_value(self, value):
@@ -286,7 +287,7 @@ class EncapsulatedListBox(EncapsulatedControl):
             self._map = None
         else:
             self._map = value
-            print '\nself.control.AppendItems:', self._map.keys(), type(self._map.keys()), self.control, '\n'
+            #print '\nself.control.AppendItems:', self._map.keys(), type(self._map.keys()), self.control, '\n'
             self.control.AppendItems(self._map.keys())       
             #self.control.Set(self._map.keys())       
         # To force on_change                  
@@ -359,7 +360,7 @@ class Dialog(wx.Dialog):
         #print '\ncontrolkw:', controlkw
         #print 'specialkw:', specialkw
         #print 'kwargs:', kwargs
-        print enc_class
+        #print enc_class
         enc_control = enc_class(container, specialkw, **controlkw)
         if enc_control.name:
             DialogPool.register(self, enc_control)

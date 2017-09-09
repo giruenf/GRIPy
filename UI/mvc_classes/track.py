@@ -13,7 +13,6 @@ from mpl_base import VisDataLabel
 from App.utils import LogPlotState  
 from App import log
 
-import numpy as np
 
 from App.gripy_function_manager import FunctionManager
 
@@ -95,12 +94,6 @@ class TrackController(UIControllerBase):
 
     def _get_windows(self):    
         return self.view.label, self.view.track
-    
-    
-    #def get_selected_track_objects(self):
-    #    UIM = UIManager()
-    #    UIM.list('track_object_controller', self.uid)
-
 
 
 class TrackModel(UIModelBase):
@@ -372,7 +365,7 @@ class TrackView(UIViewBase):
         y1 = self.d1_canvas.GetPosition()[1]
         y2 = self.d2_canvas.GetPosition()[1]
 
-        #print 'y12:', y1, y2
+        #print 'y12:', y1, y2 
 
         if y1 <= y2:
             d1 = self.track.get_depth_from_ypixel(y1)
@@ -419,6 +412,7 @@ class TrackView(UIViewBase):
             self.d1 = self.wx_position_to_depth(y1+self.canvas_width)
             self.d2 = self.wx_position_to_depth(y2)
     """      
+
 
     def _adjust_canvas_position(self, inc):
         if self._in_canvas == 1:
@@ -533,7 +527,7 @@ class TrackView(UIViewBase):
         UIM = UIManager()
         
         for toc in UIM.list('track_object_controller', self._controller_uid):
-            data = toc.get_data(event)
+            data = toc.get_data_info(event)
             if data is None:
                 continue
             if isinstance(data, float):
@@ -628,29 +622,38 @@ class TrackView(UIViewBase):
             if isinstance(gui_evt.GetEventObject(), VisDataLabel):    
                 visdl = gui_evt.GetEventObject()
                 if visdl._obj_uid[0] == 'density_representation_controller':
-                    
+                    menu = wx.Menu()
+                    id_ = wx.NewId() 
+                    menu.Append(id_, 'Show navigator')
+                    #print visdl._obj_uid
+                    event.canvas.Bind(wx.EVT_MENU, lambda event: self._show_navigator(event, visdl._obj_uid))
+                    #self.Bind(wx.EVT_BUTTON, lambda event: self.OnClick(event, 'somevalue'), b)
+                    event.canvas.PopupMenu(menu, event.guiEvent.GetPosition())  
+                    menu.Destroy() # destroy to avoid mem leak
+                    '''
                     dens_ctrl = UIM.get(visdl._obj_uid)
-                    prev_, next_ = dens_ctrl.get_previous_next_line()
+                    (prev_label, prev_idx), (next_label, next_idx) = dens_ctrl.get_previous_next_line()
+                    #((prev_label, prev_idx), (next_label, next_idx))
                     #
                     
-                    if prev_ or next_:
+                    if prev_idx or next_idx:
                         self._ids_prev_next = {}
                         menu = wx.Menu()
-                        if next_:
+                        if next_idx:
                             id_ = wx.NewId() 
-                            menu.Append(id_, 'Next [{}]'.format(next_))
+                            menu.Append(id_, next_label)
                             event.canvas.Bind(wx.EVT_MENU, self._density_prev_next, id=id_) 
-                            self._ids_prev_next[id_] = (dens_ctrl.uid, next_)
-                        if prev_:
+                            self._ids_prev_next[id_] = (dens_ctrl.uid, next_idx)
+                        if prev_idx:
                             id_ = wx.NewId() 
-                            menu.Append(id_, 'Previous [{}]'.format(prev_))        
+                            menu.Append(id_, prev_label)    
                             event.canvas.Bind(wx.EVT_MENU, self._density_prev_next, id=id_) 
-                            self._ids_prev_next[id_] = (dens_ctrl.uid, prev_)
+                            self._ids_prev_next[id_] = (dens_ctrl.uid, prev_idx)
                         #
                         event.canvas.PopupMenu(menu, event.guiEvent.GetPosition())  
                         menu.Destroy() # destroy to avoid mem leak
                         
-
+                    '''    
                 
             #
             elif isinstance(gui_evt.GetEventObject(), TrackFigureCanvas):
@@ -660,17 +663,19 @@ class TrackView(UIViewBase):
                     dens_uid = gui_evt.GetEventObject().plot_axes.images[0].get_label()
                     dens_ctrl = UIM.get(dens_uid)
                     #
-                    iline_idx = dens_ctrl.get_iline_idx()
-                    xline_idx = dens_ctrl.get_xline_idx()
+                    dens_ctrl.view.idx
+                    dens_ctrl.view._running_dim
+                    #iline_idx = dens_ctrl.get_iline_idx()
+                    #xline_idx = dens_ctrl.get_xline_idx()
                     index_idx = dens_ctrl.get_index_idx(event.ydata)
                     
                     obj = dens_ctrl.get_object()
-                    print iline_idx, xline_idx, index_idx 
-                    data = obj.data[iline_idx][xline_idx]
+                    #print iline_idx, xline_idx, index_idx 
+                    data = obj.data[0][0]
                     data = data.T
-                    print data[index_idx], len(data[index_idx])
+                    #print data[index_idx], len(data[index_idx])
                     
-                    print obj.dimensions[2][1], len(obj.dimensions[2][1])
+                    #print obj.dimensions[2][1], len(obj.dimensions[2][1])
                     
                     ####
                     root_controller = UIM.get_root_controller()        
@@ -962,15 +967,47 @@ class TrackView(UIViewBase):
 
 
 
+    def _show_navigator(self, event, obj_uid):
+        #print '_show_navigator:', obj_uid
+        UIM = UIManager()
+        toc_ctrl_uid = UIM._getparentuid(obj_uid)
+        toc_ctrl = UIM.get(toc_ctrl_uid)
+        #
+        nav_ctrl = UIM.create('navigator_controller', 
+                              data_filter_oid=toc_ctrl.model.data_filter_oid,
+                              title='Data navigator', size=(350, 600)
+        )
+        nav_ctrl.view.Show()
+        #
+        
+        """
+        #nav_ctrl = toc_ctrl.get_navigator()
+        if not nav_ctrl:
+            return
+        print nav_ctrl.uid
+        print
+        #
+        OM = ObjectManager(self)
+        for di_uid, display, start, end in nav_ctrl.model.dimensions[::-1]:
+            di = OM.get(di_uid)
+            if not display:
+                print di.name, 'Locked @', di.data[start]
+            else:
+                print di.name, 'Display from:', di.data[start], ' to:', di.data[end-1]
+       """     
+
+    '''
     def _density_prev_next(self, event):
         print '_density_prev_next'
         obj_uid, new_pos = self._ids_prev_next.get(event.GetId())
         UIM = UIManager()
         dens_ctrl = UIM.get(obj_uid)
-        dens_ctrl.model.iline = new_pos[0]
-        if len(new_pos)==2:
-            dens_ctrl.model.xline = new_pos[1]
-
+        dens_ctrl.set_data(new_pos)
+        
+        #dens_ctrl.model.iline = new_pos[0]
+        #if len(new_pos)==2:
+        #    dens_ctrl.model.xline = new_pos[1]
+    '''    
 
 ##############################################################################
 

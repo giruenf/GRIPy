@@ -16,15 +16,17 @@ from  UI import lisloader
 from  UI import PartitionEditor
 from App.gripy_debug_console import DebugConsoleFrame
 
+from DT.UOM import uom as UOM
 
 import utils
 
 from Algo.Spectral.Spectral import STFT, WaveletTransform, Morlet, Paul, DOG, Ricker
-from UI.dialog_new import Dialog
+#from UI.dialog_new import Dialog
 
+from scipy.signal import chirp
 
 from Algo import AVO 
-import copy
+#import copy
 
 
 """
@@ -53,6 +55,223 @@ WAVELET_MODES['Phase (unwrap)'] = 3
 
 
 
+def teste11(event):
+    print 'teste 11'
+
+
+def teste10(event):
+    #
+    """
+    filename = 'D:\\Sergio_Adriano\\NothViking\\Mobil_AVO_Viking_pstm_16_CIP_prec_stk.sgy'
+    name = 'Mobil_AVO_Viking_pstm_16_CIP_prec_stk'
+    utils.load_segy(event, filename, 
+        new_obj_name=name, 
+        comparators_list=None,
+        iline_byte=9, xline_byte=21, offset_byte=37
+    )
+    """
+    #"""
+    filename = 'D:\\Sergio_Adriano\\NothViking\\Mobil_AVO_Viking_pstm_16_stk.sgy'
+    name = 'Mobil_AVO_Viking_pstm_16_stk'
+    utils.load_segy(event, filename, 
+        new_obj_name=name, 
+        comparators_list=None,
+        iline_byte=9, xline_byte=21, offset_byte=37
+    )
+    #"""
+
+def on_modelling_pp(event):
+    #
+    print '\non_modelling_pp'    
+    #
+    def avo_modeling_akirichards_pp(vp, vs, rho, angles): 
+        ret_array = np.zeros((len(vp)-1, len(angles)))
+        for i in range(len(vp)-1):
+            delta_vp = vp[i+1] - vp[i]
+            delta_vs = vs[i+1] - vs[i]
+            delta_rho = rho[i+1] - rho[i]
+            if (delta_vp == 0) and (delta_vs == 0) and (delta_rho == 0):
+                continue
+            media_vp = (vp[i+1] + vp[i]) / 2.0
+            media_vs = (vs[i+1] + vs[i]) / 2.0
+            media_rho = (rho[i+1] + rho[i]) / 2.0
+            deltas = np.array([delta_vp/media_vp, delta_vs/media_vs, delta_rho/media_rho])
+            coeficientes = avoMatrix_Aki_Rich(angles, media_vp, media_vs)
+            ret_array[i] = np.dot(coeficientes, deltas)     
+        return ret_array
+
+
+    def avoMatrix_Aki_Rich(angles, media_vp, media_vs):     
+        ret_array = np.zeros((len(angles), 3))
+        gamma = media_vs/media_vp
+        for i, angle in enumerate(angles):
+            ret_array[i][0] = 1 / (2 * np.cos(angle) ** 2)
+            ret_array[i][1] = -4 * (gamma * np.sin(angle)) ** 2
+            ret_array[i][2] = 0.5 * (1 + ret_array[i][1])
+            # Old wrong value above found in Fortran code
+            #ret_array[i][2] = (-0.5 * ((np.tan(angle))**2)) + (2 * ((gamma * np.sin(angle))**2))
+        return ret_array	
+    
+    
+    OM = ObjectManager(event.GetEventObject())
+    #
+    UIM = UIManager()
+    dlg = UIM.create('dialog_controller', title='P-Wave Modeling')
+    #
+    try:
+        ctn_vp = dlg.view.AddCreateContainer('StaticBox', label='Compressional wave', orient=wx.VERTICAL, proportion=0, flag=wx.EXPAND|wx.TOP, border=5)     
+        #
+        logs = OrderedDict()
+        for log in OM.list('log'):
+            logs[log.get_friendly_name()] = log.uid
+        dlg.view.AddChoice(ctn_vp, proportion=0, flag=wx.EXPAND|wx.TOP, border=5, widget_name='vp', options=logs)    
+        #
+        ctn_vs = dlg.view.AddCreateContainer('StaticBox', label='Shear wave', orient=wx.VERTICAL, proportion=0, flag=wx.EXPAND|wx.TOP, border=5) 
+        dlg.view.AddChoice(ctn_vs, proportion=0, flag=wx.EXPAND|wx.TOP, border=5, widget_name='vs', options=logs)
+        #
+        ctn_rho = dlg.view.AddCreateContainer('StaticBox', label='Density', orient=wx.VERTICAL, proportion=0, flag=wx.EXPAND|wx.TOP, border=5) 
+        dlg.view.AddChoice(ctn_rho, proportion=0, flag=wx.EXPAND|wx.TOP, border=5, widget_name='rho', options=logs)
+        #
+        ctn_rho = dlg.view.AddCreateContainer('StaticBox', label='New object name', orient=wx.VERTICAL, proportion=0, flag=wx.EXPAND|wx.TOP, border=5) 
+        dlg.view.AddTextCtrl(ctn_rho, proportion=0, flag=wx.EXPAND|wx.TOP, border=5, widget_name='new_name', initial='') 
+        #
+        dlg.view.SetSize((270, 430))
+        result = dlg.view.ShowModal()
+        #
+        if result == wx.ID_OK:
+            results = dlg.get_results()  
+            print results
+            
+        disableAll = wx.WindowDisabler()
+        wait = wx.BusyInfo("Wait...")        
+        
+        vp_data = OM.get(results.get('vp')).data
+        vs_data = OM.get(results.get('vs')).data
+        rho_data = OM.get(results.get('rho')).data
+        
+        angles_rad = np.deg2rad(np.array(range(46)))
+        
+        reflectivity = avo_modeling_akirichards_pp(vp_data, vs_data, rho_data, angles_rad)
+        print reflectivity.shape, vp_data.shape
+        
+        #print '\n\n'
+        #for i in range(reflectivity.shape[0]):
+        #    print i, '-', reflectivity[i]
+         
+        #for i, val in enumerate(reflectivity[19685]):
+        #    print i, '-',  val
+        
+    except Exception as e:
+        print '\n', e.message, e.args
+        pass
+    finally:
+        del wait
+        del disableAll 
+        UIM.remove(dlg.uid) 
+
+
+def teste8(event):
+    
+    filename = 'D:\\Sergio_Adriano\\NothViking\\novo\\Mobil_AVO_Viking_pstm_16_prec_stk.sgy'
+    #filename = 'D:\\Sergio_Adriano\\NothViking\\novo\\Vrms_XT05_stp01_sm.sgy'
+    #filename = 'D:\\Sergio_Adriano\\NothViking\\novo\\Mobil_AVO_mb_den.sgy'
+    
+    #filename = 'D:\\Sergio_Adriano\\NothViking\\Mobil_AVO_Viking_pstm_16_CIP_prec_stk.sgy'
+    #filename = 'D:\\Sergio_Adriano\\NothViking\\seismic.sgy'
+    
+    segy_file = FileIO.SEGY.SEGYFile(filename) 
+    #segy_file.read([(17, 4, '==', 101),
+    #                (17, 4, '==', 102),
+    #                (17, 4, '==', 103)])
+
+
+    #segy_file.read([(21, 4, '==', 808)])
+    
+    
+    template_positions = [ 
+        (1, 4), # trace number absolute
+        (5, 4), # trace number absolute
+        (9, 4), 
+        (13, 4), # order in the shot (1-120)
+        (17, 4), # shot record
+        (21, 4),
+        (25, 4),
+        (27, 2),    
+        (29, 2),
+        (31, 2),
+        (33, 2),
+        (35, 2),
+        (37, 4),
+        (41, 4),
+        (45, 4),
+        (49, 4),
+        (53, 4),
+        (57, 4),
+        (61, 4),
+        (65, 4),
+        (69, 2),
+        (71, 2),   
+            
+        (73, 4),
+        (77, 4),
+    
+        (81, 4),
+        (85, 4),
+        (89, 4),
+        
+        (93, 4),
+        (181, 4),
+        (185, 4),
+        (189, 4),
+        (193, 4),
+        (197, 4)
+                
+    ]
+    
+
+    '''
+    template_positions = [
+        (1, 4), # trace number absolute
+        (5, 4), # trace number absolute
+        (9, 4), 
+        (13, 4), # order in the shot (1-120)
+        (17, 4), # shot record
+        (21, 4),
+        (25, 4),
+        (27, 2),
+        (73, 4),
+        (81, 4),
+        (89, 4)
+    ]    
+    '''
+    
+    '''
+    template_positions = [
+        (1, 4), # trace number absolute
+        (5, 4), # trace number absolute
+        (9, 4), 
+        (21, 4),
+        (37, 4)
+    ]
+    '''
+
+    for header in segy_file.get_dump_data():
+
+    #for header in segy_file.headers:
+        
+        print
+        '''
+        print 'SEQ: {}'.format(FileIO.SEGY.get_value(header, 1, 4))
+        print 'SPT: {}'.format(FileIO.SEGY.get_value(header, 17, 4))
+        print 'CDP: {}'.format(FileIO.SEGY.get_value(header, 21, 4))
+        '''
+        
+        for pos, nbytes in template_positions:
+            print 'byte {}: {}'.format(pos, FileIO.SEGY.get_value(header, pos, nbytes))
+
+
+
+
 def teste4(event):
     #
     filename = 'D:\\Sergio_Adriano\\NothViking\\Mobil_AVO_Viking_pstm_16_CIP_stk.sgy'
@@ -73,6 +292,8 @@ def teste4(event):
 
 
 def teste7(event):
+    raise Exception()
+    '''
     OM = ObjectManager(event.GetEventObject()) 
     # Init options to be used in wxChoices
     seismics = OrderedDict()
@@ -150,8 +371,8 @@ def teste7(event):
                   widget_name='invmod_name', initial='INVMOD'
     )    
     #
-    dlg.SetSize((270, 500))
-    result = dlg.ShowModal()
+    dlg.view.SetSize((270, 500))
+    result = dlg.view.ShowModal()
     #
     if result == wx.ID_OK:
         results = dlg.get_results()  
@@ -301,11 +522,11 @@ def teste7(event):
             )       
             OM.add(seis_mod_ppps_pp)     
             #
-            '''
+            """
             index = seis_mod_ppps_pp.get_index()
             print '\nMM:', index.max, index.min
             print mod_ppps_pp.shape
-            '''
+            """
             #
             seis_mod_ppps_ps = OM.new('seismic', mod_ppps_ps.T, 
                                    name=results.get('invmod_name')+'MOD_PS', 
@@ -423,11 +644,13 @@ def teste7(event):
         """
 
     dlg.Destroy() 
-
+    '''
 
 
 def teste6(event):
+    raise Exception()
     
+    """
     OM = ObjectManager(event.GetEventObject()) 
 
 
@@ -509,9 +732,9 @@ def teste6(event):
                   widget_name='invmod_name', initial=''
     )    
     
-    dlg.SetSize((270, 460))
+    dlg.view.SetSize((270, 460))
     
-    result = dlg.ShowModal()
+    result = dlg.view.ShowModal()
  
     
     
@@ -650,7 +873,7 @@ def teste6(event):
             print len(avo_data)
             print avo_data.shape
         
-            """
+            '''
             avo_data = AVO.avopp(results.get('itype'), results.get('invmod'),
                                 ntrace, 
                                 #npts,
@@ -698,86 +921,64 @@ def teste6(event):
             )       
             OM.add(seismic)  
     
-            """
+            '''
 
     dlg.Destroy() 
 
-
+    """
 
 
 def teste5(event):
     #
     OM = ObjectManager(event.GetEventObject()) 
-    dlg = Dialog(None, title='Continuous Wavelet Transform', 
-                 flags=wx.OK|wx.CANCEL
-    )
-    container = dlg.AddStaticBoxContainer(label='Seismic', 
-                                          orient=wx.VERTICAL, proportion=0, 
-                                          flag=wx.EXPAND|wx.TOP, border=5
-    )   
+    
+    UIM = UIManager()
+    dlg = UIM.create('dialog_controller', title='Continuous Wavelet Transform') 
     #
-    seismics = OrderedDict()
-    for seis in OM.list('seismic'):
-        seismics[seis.name] = seis.uid
-    
-    dlg.AddChoice(container, proportion=0, flag=wx.EXPAND|wx.TOP, border=5, 
-                  widget_name='seismic', initial=seismics
-    ) 
-
-
-    container = dlg.AddStaticBoxContainer(label='Wavelet', 
-                                          orient=wx.VERTICAL, proportion=0, 
-                                          flag=wx.EXPAND|wx.TOP, border=5
-    )   
-    dlg.AddChoice(container, proportion=0, flag=wx.EXPAND|wx.TOP, border=5, 
-                  widget_name='wavelet', initial=WAVELET_TYPES
-    ) 
-
-    container = dlg.AddStaticBoxContainer(label='Scale resolution', 
-                                          orient=wx.VERTICAL, proportion=0, 
-                                          flag=wx.EXPAND|wx.TOP, border=5
-    )   
-    dlg.AddTextCtrl(container, proportion=0, flag=wx.EXPAND|wx.TOP, border=5, 
-                  widget_name='dj', initial='0.125'
-    ) 
-
-
-    ###
-    container = dlg.AddStaticBoxContainer(label='Mode', 
-                                          orient=wx.VERTICAL, proportion=0, 
-                                          flag=wx.EXPAND|wx.TOP, border=5
-    )   
-    dlg.AddChoice(container, proportion=0, flag=wx.EXPAND|wx.TOP, border=5, 
-                  widget_name='mode', initial=WAVELET_MODES
-    ) 
-    ###
-
-    container = dlg.AddStaticBoxContainer(label='New object name', 
-                                          orient=wx.VERTICAL, proportion=0, 
-                                          flag=wx.EXPAND|wx.TOP, border=5
-    )   
-    
-    dlg.AddTextCtrl(container, proportion=0, flag=wx.EXPAND|wx.TOP, border=5, 
-                  widget_name='cwt_name', initial=''
-    )    
-
-    dlg.SetSize((270, 430))
-    result = dlg.ShowModal()
-
-    
     try:
-    
+        ctn_input_data = dlg.view.AddCreateContainer('StaticBox', label='Input data', orient=wx.VERTICAL, proportion=0, flag=wx.EXPAND|wx.TOP, border=5)
+        #
+        accept_tids = ['seismic', 'gather']
+        input_data = OrderedDict()
+        for tid in accept_tids:
+            for obj in OM.list(tid):
+                input_data[obj._TID_FRIENDLY_NAME + ': ' + obj.name] = obj.uid
+        
+        '''
+        seismics = OrderedDict()
+        for seis in OM.list('seismic'):
+            name =  'Seismic: ' + seis.name
+            seismics[name] = seis.uid
+        for seis in OM.list('gather'):
+            name =  'Gather: ' + seis.name
+            seismics[name] = seis.uid
+        '''
+        
+        dlg.view.AddChoice(ctn_input_data, proportion=0, flag=wx.EXPAND|wx.TOP, border=5, widget_name='seismic', options=input_data)     
+        #    
+        ctn_wavelet = dlg.view.AddCreateContainer('StaticBox', label='Wavelet', orient=wx.VERTICAL, proportion=0, flag=wx.EXPAND|wx.TOP, border=5)
+        dlg.view.AddChoice(ctn_wavelet, proportion=0, flag=wx.EXPAND|wx.TOP, border=5, widget_name='wavelet', options=WAVELET_TYPES)
+        #
+        ctn_scale_res = dlg.view.AddCreateContainer('StaticBox', label='Scale resolution', orient=wx.VERTICAL, proportion=0, flag=wx.EXPAND|wx.TOP, border=5)
+        dlg.view.AddTextCtrl(ctn_scale_res, proportion=0, flag=wx.EXPAND|wx.TOP, border=5, widget_name='dj', initial='0.125') 
+        #
+        ctn_mode = dlg.view.AddCreateContainer('StaticBox', label='Mode', orient=wx.VERTICAL, proportion=0, flag=wx.EXPAND|wx.TOP, border=5)
+        dlg.view.AddChoice(ctn_mode, proportion=0, flag=wx.EXPAND|wx.TOP, border=5, widget_name='mode', options=WAVELET_MODES)
+        #
+        ctn_name = dlg.view.AddCreateContainer('StaticBox', label='New object name', orient=wx.VERTICAL, proportion=0, flag=wx.EXPAND|wx.TOP, border=5)
+        dlg.view.AddTextCtrl(ctn_name, proportion=0, flag=wx.EXPAND|wx.TOP, border=5, widget_name='cwt_name')       
+        #
+        dlg.view.SetSize((330, 430))
+        result = dlg.view.ShowModal()
         if result == wx.ID_OK:
             results = dlg.get_results()  
-            print results
+            print '\nresults:', results, '\n'
             
             disableAll = wx.WindowDisabler()
             wait = wx.BusyInfo("Applying CWT. Wait...")
             
-    
             dj = float(results.get('dj'))
 
-            
             wavelet = results.get('wavelet')        
             if wavelet == 'morlet':
                 func = Morlet()
@@ -803,35 +1004,32 @@ def teste5(event):
                 func = Paul(m=6) 
             else:
                 raise Exception()   
-    
-            obj = OM.get(results.get('seismic')) 
+            #    
+            obj_uid = results.get('seismic')
+            obj = OM.get(obj_uid) 
+            mode = results.get('mode')    
+            #
+            input_indexes = obj.get_index()
+            z_axis = input_indexes[0][0]
+            #
+            #print '\n', z_axis.name, z_axis.uid, z_axis.step, z_axis.datatype
             
-            #'''
-            print
-            print obj.name
-            print obj.data.shape
-            print obj.get_index().data.shape
-            print np.isfinite(obj.data).shape
-            #'''
-    
-    
-            mode = results.get('mode')        
-
-    
+            if z_axis.datatype != 'TIME':
+                raise Exception('Only TIME datatype is accepted.')
+                
+            time = UOM.convert(z_axis.data, z_axis.unit, 's')      
+            step = UOM.convert(z_axis.step, z_axis.unit, 's') 
             
-    
-            # TODO: fazer essa conversao pelo UOM
-            time = obj.get_index().data / 1000    
-            step = obj.step / 1000
+            print 'Input obj.data.shape:', obj.data.shape
             
-            # seis.dimensions or seis.data.shape
-            if len(seis.data.shape) == 4:
-                iaxis, jaxis, kaxis, zaxis = seis.data.shape
+            if len(obj.data.shape) == 4:
+                print 'Input data shape lenght: 4'
+                iaxis, jaxis, kaxis, zaxis = obj.data.shape
                 data_out = None
                 for i in range(iaxis):
                     for j in range(jaxis):
                         for k in range(kaxis):
-                             wt = WaveletTransform(seis.data[i][j][k], dj=dj,
+                             wt = WaveletTransform(obj.data[i][j][k], dj=dj,
                                                    wavelet=func, 
                                                    dt=step,
                                                    time=time
@@ -844,135 +1042,89 @@ def teste5(event):
                                  freqs =  np.flip(wt.fourier_frequencies, 0)
                                  scales = np.flip(wt.scales, 0)
                              if mode == 0:
-                                 data_out[i][j][k] = np.abs(np.flip(wt.wavelet_transform), 0)      
+                                 data_out[i][j][k] = np.abs(np.flip(wt.wavelet_transform, 0))      
                              elif mode == 1:            
                                  # np.abs(self.wavelet_transform) ** 2
                                  data_out[i][j][k] = np.flip(wt.wavelet_power, 0)         
                              elif mode == 2 or mode ==3:   
-                                 data_out[i][j][k] = np.angle(np.flip(wt.wavelet_transform), 0)
+                                 data_out[i][j][k] = np.angle(np.flip(wt.wavelet_transform, 0))
                              if mode == 3:   
-                                 data_out[i][j][k] = np.unwrap(np.flip(wt.wavelet_transform, 0), axis=0)    
+                                 data_out[i][j][k] = np.unwrap(np.angle(np.flip(wt.wavelet_transform, 0)), axis=0)    
 
+            elif len(obj.data.shape) == 3:
+                print 'Input data shape lenght: 3'
+                iaxis, jaxis, zaxis = obj.data.shape
+                data_out = None
+                for i in range(iaxis):
+                    for j in range(jaxis):
+                         wt = WaveletTransform(obj.data[i][j], dj=dj,
+                                               wavelet=func, 
+                                               dt=step,
+                                               time=time
+                         )
+                         
+                         #print 'wt_shape:', wt.wavelet_transform.shape
+                         #print (i, j, k), wt.wavelet_transform.shape, np.flip(wt.fourier_frequencies, 0)#, wt.scales
+                         
+                         if data_out is None:
+                             wt_axis = wt.wavelet_transform.shape[0]
+                             new_shape = (iaxis, jaxis, wt_axis, zaxis)
+                             print 'New data CWT shape:', new_shape 
+                             data_out = np.zeros(new_shape)    
+                             freqs =  np.flip(wt.fourier_frequencies, 0)
+                             scales = np.flip(wt.scales, 0)
+                         if mode == 0:
+                             data_out[i][j] = np.abs(np.flip(wt.wavelet_transform, 0))      
+                         elif mode == 1:            
+                             # np.abs(self.wavelet_transform) ** 2
+                             data_out[i][j] = np.flip(wt.wavelet_power, 0)         
+                         elif mode == 2 or mode ==3:   
+                             data_out[i][j] = np.angle(np.flip(wt.wavelet_transform, 0))
+                         if mode == 3:   
+                             data_out[i][j] = np.unwrap(np.angle(np.flip(wt.wavelet_transform, 0)), axis=0)    
+
+            else:
+                raise Exception()
+            #
             
+            print '\ndata_out.shape:', data_out.shape
+            print np.nanmin(data_out), np.nanmax(data_out)
             
-            #print
-            #print obj.get_index().data
-            #print obj.step
-            #print "Fim CWT:", data_out.shape                 
-                
-            #for dim_name, dim_values in seis.dimensions:
-            #    print '\n', dim_name, dim_values
-    
-    
-            dims = copy.deepcopy(seis.dimensions)
-            dims.append(('Frequencies', freqs))
-    
-           # a = np.flip(a, 2)
-    
-    
+            #
             name = results.get('cwt_name')
+            scalogram = OM.new('scalogram', data_out, name=name)
+            if not OM.add(scalogram):
+                raise Exception('Object was not added. tid={\'scalogram\'}')
+            # 
+            
+            
+            state = z_axis._getstate()
+            index = OM.create_object_from_state('data_index', **state)
+            OM.add(index, scalogram.uid)
+            #
+            
+            index = OM.new('data_index', 1, 'Frequency', 'FREQUENCY', 'Hz', 
+                           data=freqs
+            ) 
+            OM.add(index, scalogram.uid)
+            #
+            # TODO: Inserir scales na dimensao 1
+            # 
+            # Inserindo as outras dimensões do dado
+            for idx in range(1, len(input_indexes)):
+                state = input_indexes[idx][0]._getstate()        
+                state['dimension'] = idx+1
+                index = OM.index = OM.create_object_from_state('data_index', **state)
+                OM.add(index, scalogram.uid)
 
-            
-            
-            #"""
-            scalogram = OM.new('scalogram', data_out, dims, name=name, 
-                                   unit=seis.attributes.get('unit'), 
-                                   domain=seis.attributes.get('domain', 'time'), 
-                                   sample_rate=seis.attributes.get('sample_rate'), 
-                                   datum=seis.attributes.get('datum'),
-                                   samples=seis.attributes.get('samples')
-            )
-            OM.add(scalogram)
-            #"""
-            
-            #valid_data = obj.data[np.isfinite(obj.data)]
-            #valid_index_data = obj.get_index().data[np.isfinite(obj.data)]
-           
-            
-            #wt = WaveletTransform(valid_data, dj=dj, wavelet=func, dt=obj.step,
-            #                      time=valid_index_data
-            #)
-            
-            '''
-            OM = ObjectManager(obj) 
-            seismic = OM.new('scalogram', data, name=results.get('cwt_name')+'_CWT', 
-                                   unit='m', domain='depth', 
-                                   sample_rate=wt.time[1] - wt.time[0],
-                                   datum=wt.time[0],
-                                   samples= len(wt.time),
-                                   frequencies=wt.fourier_frequencies,
-                                   periods=wt.fourier_periods,
-                                   scales=wt.scales
-            )                       
-            OM.add(seismic)  
-            '''
-        
         del wait
         del disableAll
-    except Exception as e:
-        print '\n', e.message, e.args
+    except Exception:
         pass
     finally:
-        dlg.Destroy()     
-
-        
+        UIM.remove(dlg.uid)   
 
 
-def teste3(event):
-    
-    OM = ObjectManager(event.GetEventObject())
-
-    fs = 250.0
-    #fs = 1000.0
-    ts = 1/fs
-    start = 0.0 #seconds
-    end = 6.0 #seconds
-    depth = np.arange(start, end+ts, ts)
-    
-    freq = 1.0
-    amp = 77
-    #freq = freq/1000
-    d1 = amp * np.cos(depth * 2 * np.pi * freq)
-
-    #freq = freq/1000
-    amp = 55
-    d2 = amp * np.sin(depth * 2 * np.pi * freq)
-
-
-    print d1.shape
-    print d2.shape
-    data = np.asarray([d1, d2])    
-    print data.shape
-
-
-    seismic = OM.new('seismic', data, name='Synthetic', 
-                           unit='ms', domain='depth', 
-                           sample_rate=ts*1000, datum=0,
-                           samples=int(data.shape[1]),
-                           stacked=True,
-                           traces=int(data.shape[0]),
-                           offsets=None
-    )
-             
-    OM.add(seismic) 
-    
-
-
-
-def teste2(event):
-    
-    OM = ObjectManager(event.GetEventObject())
-    well = OM.new('well', name='ACME_XPTO_002')
-    OM.add(well)
-
-    depth = np.array([1000.0, 2000.0, 3000.0, 4000.0, 5000.0, 6000.0, 7000.0])
-    index = OM.new('index_curve', depth, name='DEPTH', unit='m', curvetype='MD')
-    well.index.append(index)
-    OM.add(index, well.uid)
-
-    data = np.array([0.1, 1.0, 10.0, 100.0, 1000.0, 10000.0, 100000.0])
-    log = OM.new('log', data, name='LOG_TESTE_CURVE', unit='amplitude', curvetype='', index_uid=index.uid)
-    OM.add(log, well.uid)
     
 
 def teste(event):
@@ -1080,11 +1232,8 @@ def on_new_logplot(event):
     
     
 def on_new_crossplot(event):
-    
     OM = ObjectManager(event.GetEventObject()) 
-    #
     options = OrderedDict()
-    
     for inv in OM.list('inversion'):
         for index in OM.list('index_curve', inv.uid):
             options[index.get_friendly_name()] = index.uid
@@ -1095,113 +1244,86 @@ def on_new_crossplot(event):
             options[index.get_friendly_name()] = index.uid
         for log in OM.list('log', well.uid):
             options[log.get_friendly_name()] = log.uid
-            
-    #    
-    dlg = Dialog(None, title='Crossplot selector', flags=wx.OK|wx.CANCEL)
-    #
-    c1 = dlg.AddStaticBoxContainer(label='X-axis', 
-                                          orient=wx.VERTICAL, proportion=0, 
-                                          flag=wx.EXPAND|wx.TOP, border=5
-    )   
-    dlg.AddChoice(c1, proportion=0, flag=wx.EXPAND|wx.TOP, border=5, 
-                  widget_name='xaxis', initial=options
-    ) 
-    #
-    c2 = dlg.AddStaticBoxContainer(label='Y-axis', 
-                                          orient=wx.VERTICAL, proportion=0, 
-                                          flag=wx.EXPAND|wx.TOP, border=5
-    )   
-    dlg.AddChoice(c2, proportion=0, flag=wx.EXPAND|wx.TOP, border=5, 
-                  widget_name='yaxis', initial=options
-    )     
-    #
-    c3 = dlg.AddStaticBoxContainer(label='Colorbar', 
-                                          orient=wx.VERTICAL, proportion=0, 
-                                          flag=wx.EXPAND|wx.TOP, border=5
-    )   
-    dlg.AddChoice(c3, proportion=0, flag=wx.EXPAND|wx.TOP, border=5, 
-                  widget_name='zaxis', initial=options
-    ) 
-    #
-    c4 = dlg.AddStaticBoxContainer(label='Partition', 
-                                          orient=wx.VERTICAL, proportion=0, 
-                                          flag=wx.EXPAND|wx.TOP, border=5
-    )   
-    dlg.AddChoice(c4, proportion=0, flag=wx.EXPAND|wx.TOP, border=5, 
-                  widget_name='waxis', initial=options
-    ) 
     #        
-    dlg.SetSize((230, 400))
-    result = dlg.ShowModal()
-    if result == wx.ID_OK:
-        results = dlg.get_results()  
-        print '\nresults:', results
-        #
-        if not results.get('xaxis') or not results.get('yaxis') or not results.get('zaxis'):
-            dlg.Destroy()
-            return
-        #
-        UIM = UIManager()
-        root_controller = UIM.get_root_controller()        
-        cp_ctrl = UIM.create('crossplot_controller', root_controller.uid)  
-        cpp = cp_ctrl.view
-        xaxis_obj = OM.get(results.get('xaxis'))
-        yaxis_obj = OM.get(results.get('yaxis'))
-        
-        cpp.crossplot_panel.set_xdata(xaxis_obj.data)
-        cpp.crossplot_panel.set_xlabel(xaxis_obj.name)
-        cpp.crossplot_panel.set_ydata(yaxis_obj.data)
-        cpp.crossplot_panel.set_ylabel(yaxis_obj.name)
-        #
-        #'''
-        if results.get('zaxis') is not None:
-            zaxis_obj = OM.get(results.get('zaxis'))
-            if zaxis_obj.tid == 'partition':
-                cpp.crossplot_panel.set_zdata(zaxis_obj.getaslog())
-                cpp.crossplot_panel.set_zlabel(zaxis_obj.name)
-                classcolors = {}
-                classnames = {}
-                for part in OM.list('part', zaxis_obj.uid):
-                    classcolors[part.code] = tuple(c/255.0 for c in part.color)
-                    classnames[part.code] = part.name
-                cpp.crossplot_panel.set_classcolors(classcolors)
-                cpp.crossplot_panel.set_classnames(classnames)
-                cpp.crossplot_panel.set_nullclass(-1)
-                cpp.crossplot_panel.set_nullcolor((0.0, 0.0, 0.0))
-                cpp.crossplot_panel.set_zmode('classes')
-            else:
-                cpp.crossplot_panel.set_zdata(zaxis_obj.data)
-                cpp.crossplot_panel.set_zlabel(zaxis_obj.name)
-                cpp.crossplot_panel.set_zmode('continuous')
-        else:
-            raise Exception("Not Implemented yet!")
-            #print "Not Implemented yet!"  # TODO: fazer alguma coisa quando não escolhe z (cor sólida)
-        
-        if results.get('waxis') is not None:
-            waxis_obj = OM.get(results.get('waxis'))
-            cpp.crossplot_panel.set_parts(waxis_obj.getdata())  # TODO: ver o que é necessário fazer quando não se escolhe w
-        #'''
-        cpp.crossplot_panel.plot()
-      #  self.notebook.AddPage(cpp, "Crossplot - {}".format(self.OM.get(welluid).name), True)
-        cpp.crossplot_panel.draw()        
-        
-        
-    dlg.Destroy()
-
-
-    '''
     UIM = UIManager()
-    root_controller = UIM.get_root_controller()        
-    UIM.create('crossplot_controller', root_controller.uid)   
-    #UIM.create('workpage_controller', root_controller.uid)
-    '''        
+    dlg = UIM.create('dialog_controller',  title='Crossplot selector') 
+    #
+    try:
+        ctn_xaxis = dlg.view.AddCreateContainer('StaticBox', label='X-axis', orient=wx.VERTICAL, proportion=0, flag=wx.EXPAND|wx.TOP, border=5)
+        dlg.view.AddChoice(ctn_xaxis, proportion=0, flag=wx.EXPAND|wx.TOP, border=5,  widget_name='xaxis', options=options)     
+        #
+        ctn_yaxis = dlg.view.AddCreateContainer('StaticBox', label='Y-axis', orient=wx.VERTICAL, proportion=0, flag=wx.EXPAND|wx.TOP, border=5)
+        dlg.view.AddChoice(ctn_yaxis, proportion=0, flag=wx.EXPAND|wx.TOP, border=5,  widget_name='yaxis', options=options)          
+        #
+        ctn_zaxis = dlg.view.AddCreateContainer('StaticBox', label='Colorbar', orient=wx.VERTICAL, proportion=0, flag=wx.EXPAND|wx.TOP, border=5)
+        dlg.view.AddChoice(ctn_zaxis, proportion=0, flag=wx.EXPAND|wx.TOP, border=5,  widget_name='yaxis', options=options)
+        #
+        ctn_waxis = dlg.view.AddCreateContainer('StaticBox', label='Partition', orient=wx.VERTICAL, proportion=0, flag=wx.EXPAND|wx.TOP, border=5)
+        dlg.view.AddChoice(ctn_waxis, proportion=0, flag=wx.EXPAND|wx.TOP, border=5,  widget_name='waxis', options=options)
+        #        
+        dlg.view.SetSize((230, 400))
+        result = dlg.view.ShowModal()
+        if result == wx.ID_OK:
+            results = dlg.get_results()  
+            print '\nresults:', results
+            #
+            if not results.get('xaxis') or not results.get('yaxis') or not results.get('zaxis'):
+                dlg.Destroy()
+                return
+            #
+            UIM = UIManager()
+            root_controller = UIM.get_root_controller()        
+            cp_ctrl = UIM.create('crossplot_controller', root_controller.uid)  
+            cpp = cp_ctrl.view
+            xaxis_obj = OM.get(results.get('xaxis'))
+            yaxis_obj = OM.get(results.get('yaxis'))
+            
+            cpp.crossplot_panel.set_xdata(xaxis_obj.data)
+            cpp.crossplot_panel.set_xlabel(xaxis_obj.name)
+            cpp.crossplot_panel.set_ydata(yaxis_obj.data)
+            cpp.crossplot_panel.set_ylabel(yaxis_obj.name)
+            #
+            #'''
+            if results.get('zaxis') is not None:
+                zaxis_obj = OM.get(results.get('zaxis'))
+                if zaxis_obj.tid == 'partition':
+                    cpp.crossplot_panel.set_zdata(zaxis_obj.getaslog())
+                    cpp.crossplot_panel.set_zlabel(zaxis_obj.name)
+                    classcolors = {}
+                    classnames = {}
+                    for part in OM.list('part', zaxis_obj.uid):
+                        classcolors[part.code] = tuple(c/255.0 for c in part.color)
+                        classnames[part.code] = part.name
+                    cpp.crossplot_panel.set_classcolors(classcolors)
+                    cpp.crossplot_panel.set_classnames(classnames)
+                    cpp.crossplot_panel.set_nullclass(-1)
+                    cpp.crossplot_panel.set_nullcolor((0.0, 0.0, 0.0))
+                    cpp.crossplot_panel.set_zmode('classes')
+                else:
+                    cpp.crossplot_panel.set_zdata(zaxis_obj.data)
+                    cpp.crossplot_panel.set_zlabel(zaxis_obj.name)
+                    cpp.crossplot_panel.set_zmode('continuous')
+            else:
+                raise Exception("Not Implemented yet!")
+                #print "Not Implemented yet!"  # TODO: fazer alguma coisa quando não escolhe z (cor sólida)
+            if results.get('waxis') is not None:
+                waxis_obj = OM.get(results.get('waxis'))
+                cpp.crossplot_panel.set_parts(waxis_obj.getdata())  # TODO: ver o que é necessário fazer quando não se escolhe w
+            #'''
+            cpp.crossplot_panel.plot()
+          #  self.notebook.AddPage(cpp, "Crossplot - {}".format(self.OM.get(welluid).name), True)
+            cpp.crossplot_panel.draw()        
+    except Exception:
+        pass
+    finally:
+        UIM.remove(dlg.uid)   
+  
+    
     
 def on_debugconsole(event):
     consoleUI = DebugConsoleFrame(wx.App.Get().GetTopWindow())
     consoleUI.Show()    
     
-    
-
 
 def on_import_las(event):
     style = wx.FD_OPEN | wx.FD_FILE_MUST_EXIST
@@ -1260,7 +1382,8 @@ def on_import_las(event):
             OM.add(well)
             
             index = None
-            
+
+
             for i in range(ncurves):
                 if sel_curvetypes[i]:
                     PM.voteforcurvetype(names[i], sel_curvetypes[i])
@@ -1269,14 +1392,28 @@ def on_import_las(event):
                     PM.votefordatatype(names[i], sel_datatypes[i])
                 
                 if sel_datatypes[i] == 'Index':
-                    index = OM.new('index_curve', data[i], name=names[i], 
-                                       unit=units[i].lower(), curvetype=sel_curvetypes[i])
-                    well.index.append(index)
+
+                    index = OM.new('data_index', 0, names[i], 
+                                   sel_curvetypes[i].upper(), units[i].lower(), 
+                                   data=data[i]
+                    )
+                    print 'data_index', names[i]
                     OM.add(index, well.uid)
+                    '''
+                    index = OM.new('data_index', names[i], sel_curvetypes[i],#'TIME', 
+                                   units[i].lower(), 
+                                   data=data[i]#, datatype=sel_curvetypes[i]
+                    )
+                    OM.add(index, well.uid)
+                    '''
+                    #index = OM.new('index_curve', data[i], name=names[i], 
+                    #                   unit=units[i].lower(), curvetype=sel_curvetypes[i])
+                    #well.index.append(index)
+                    #OM.add(index, well.uid)
                 
                 elif sel_datatypes[i] == 'Log':
                     log = OM.new('log', data[i], name=names[i], 
-                                unit=units[i].lower(), curvetype=sel_curvetypes[i],
+                                unit=units[i], curvetype=sel_curvetypes[i],
                                 index_uid=index.uid
                     )
                     OM.add(log, well.uid)
@@ -1437,8 +1574,6 @@ def on_import_lis(event):
     lis_import_frame = lisloader.LISImportFrame(wx.App.Get().GetTopWindow())
     lis_import_frame.Show()
  
-    
-
 
 def on_import_segy_seis(event):
     style = wx.FD_OPEN | wx.FD_FILE_MUST_EXIST
@@ -1464,96 +1599,61 @@ def on_import_segy_seis(event):
 
 
 def on_import_segy_well_gather(event):
-    dlg = Dialog(None, title='Well Gather load', 
-                 flags=wx.OK|wx.CANCEL
-    )
-
-    container = dlg.AddStaticBoxContainer(label='File', 
-                                          orient=wx.VERTICAL, proportion=0, 
-                                          flag=wx.EXPAND|wx.TOP, border=5
-    )   
-    dlg.AddFilePickerCtrl(container, proportion=0, flag=wx.EXPAND|wx.TOP, border=5, 
-                  widget_name='filename', wildcard="SEG-Y files (*.sgy)|*.sgy",
-                  #style = wx.FD_OPEN | wx.FD_FILE_MUST_EXIST#,
-                  message='Choose SEG-Y file'
-    ) 
-
-
-    container = dlg.AddBoxSizerContainer(orient=wx.HORIZONTAL)
-    #                                  
-    c1 = dlg.AddStaticBoxContainer(container, label='ILine',
-                                          orient=wx.VERTICAL, proportion=1, 
-                                          flag=wx.EXPAND|wx.TOP, border=5
-    )  
-    
-    dlg.AddTextCtrl(c1, proportion=0, flag=wx.EXPAND|wx.TOP, border=5, 
-                  widget_name='iline_byte', initial='9'
-    ) 
-    #
-    c2 = dlg.AddStaticBoxContainer(container, label='XLine',
-                                          orient=wx.VERTICAL, proportion=1, 
-                                          flag=wx.EXPAND|wx.TOP, border=5
-    )  
-    dlg.AddTextCtrl(c2, proportion=0, flag=wx.EXPAND|wx.TOP, border=5, 
-                  widget_name='xline_byte', initial='21'
-    ) 
-    #
-    c3 = dlg.AddStaticBoxContainer(container, label='Offset',
-                                          orient=wx.VERTICAL, proportion=1, 
-                                          flag=wx.EXPAND|wx.TOP, border=5
-    )  
-    dlg.AddTextCtrl(c3, proportion=0, flag=wx.EXPAND|wx.TOP, border=5, 
-                  widget_name='offset_byte', initial='37'
-    ) 
-    #
-    container = dlg.AddStaticBoxContainer(label='Where', 
-                                          orient=wx.VERTICAL, proportion=0, 
-                                          flag=wx.EXPAND|wx.TOP, border=5
-    )  
-    
-    c1 = dlg.AddStaticBoxContainer(container, label='ILine',
-                                          orient=wx.VERTICAL, proportion=0, 
-                                          flag=wx.EXPAND|wx.TOP, border=5
-    )  
-    
-    dlg.AddTextCtrl(c1, proportion=0, flag=wx.EXPAND|wx.TOP, border=5, 
-                  widget_name='iline_number'
-    ) 
-    #
-    c2 = dlg.AddStaticBoxContainer(container, label='XLine',
-                                          orient=wx.VERTICAL, proportion=0, 
-                                          flag=wx.EXPAND|wx.TOP, border=5
-    )  
-    dlg.AddTextCtrl(c2, proportion=0, flag=wx.EXPAND|wx.TOP, border=5, 
-                  widget_name='xline_number'
-    )    
-    #
-    container = dlg.AddStaticBoxContainer(label='Well', 
-                                          orient=wx.VERTICAL, proportion=0, 
-                                          flag=wx.EXPAND|wx.TOP, border=5
-    )   
-    #
-    wells = OrderedDict()
-    OM = ObjectManager(event.GetEventObject())
-    for well in OM.list('well'):
-        wells[well.name] = well.uid
-    #
-    dlg.AddChoice(container, proportion=0, flag=wx.EXPAND|wx.TOP, border=5, 
-                  widget_name='welluid', initial=wells
-    )     
-    #
-    container = dlg.AddStaticBoxContainer(label='Well gather name', 
-                                          orient=wx.VERTICAL, proportion=0, 
-                                          flag=wx.EXPAND|wx.TOP, border=5
-    )      
-    dlg.AddTextCtrl(container, proportion=0, flag=wx.EXPAND|wx.TOP, border=5, 
-                  widget_name='wellgather_name'
-    )        
-    #
-    dlg.SetSize((460, 500))
+    UIM = UIManager()
+    dlg = UIM.create('dialog_controller', title='Import SEG-Y Well Gather') 
     #
     try:
-        result = dlg.ShowModal()
+        ctn_file = dlg.view.AddCreateContainer('StaticBox', label='File', orient=wx.VERTICAL, proportion=0, flag=wx.EXPAND|wx.TOP, border=5)
+        dlg.view.AddFilePickerCtrl(ctn_file, proportion=0,
+                flag=wx.EXPAND|wx.TOP, border=5, widget_name='filename', 
+                wildcard="SEG-Y files (*.sgy)|*.sgy", path='',  
+                message='Choose SEG-Y file'
+        )
+        #
+        print 333
+        ctn = dlg.view.AddCreateContainer('BoxSizer', orient=wx.HORIZONTAL)
+        #
+        print 222
+        ctn_iline_byte = dlg.view.AddCreateContainer('StaticBox', ctn, label='ILine', orient=wx.VERTICAL, proportion=0, flag=wx.EXPAND|wx.TOP, border=5)
+        print 999
+        dlg.view.AddTextCtrl(ctn_iline_byte, proportion=0, flag=wx.EXPAND|wx.TOP, border=5, widget_name='iline_byte', initial='9')
+        #
+        print 444
+        ctn_xline_byte = dlg.view.AddCreateContainer('StaticBox', ctn, label='XLine', orient=wx.VERTICAL, proportion=0, flag=wx.EXPAND|wx.TOP, border=5)
+        print 999
+        dlg.view.AddTextCtrl(ctn_xline_byte, proportion=0, flag=wx.EXPAND|wx.TOP, border=5, widget_name='xline_byte', initial='21')        
+        #
+        print 555
+        ctn_offset_byte = dlg.view.AddCreateContainer('StaticBox', ctn, label='Offset', orient=wx.VERTICAL, proportion=0, flag=wx.EXPAND|wx.TOP, border=5)
+        dlg.view.AddTextCtrl(ctn_offset_byte, proportion=0, flag=wx.EXPAND|wx.TOP, border=5, widget_name='offset_byte', initial='37')            
+        #
+        print 111
+        ctn_where = dlg.view.AddCreateContainer('StaticBox', label='Where', orient=wx.VERTICAL, proportion=0, flag=wx.EXPAND|wx.TOP, border=5)
+        #
+        ctn_where_iline = dlg.view.AddCreateContainer('StaticBox', ctn_where, label='ILine', orient=wx.VERTICAL, proportion=0, flag=wx.EXPAND|wx.TOP, border=5)
+        dlg.view.AddTextCtrl(ctn_where_iline, proportion=0, flag=wx.EXPAND|wx.TOP, border=5, widget_name='iline_number')
+        #
+        print 222
+        ctn_where_xline = dlg.view.AddCreateContainer('StaticBox', ctn_where, label='XLine', orient=wx.VERTICAL, proportion=0, flag=wx.EXPAND|wx.TOP, border=5)
+        dlg.view.AddTextCtrl(ctn_where_xline, proportion=0, flag=wx.EXPAND|wx.TOP, border=5, widget_name='xline_number')
+        #
+        print 333
+        ctn_wells = dlg.view.AddCreateContainer('StaticBox', label='Well', orient=wx.VERTICAL, proportion=0, flag=wx.EXPAND|wx.TOP, border=5)
+        wells = OrderedDict()
+        OM = ObjectManager(event.GetEventObject())
+        for well in OM.list('well'):
+            wells[well.name] = well.uid
+        dlg.view.AddChoice(ctn_wells, proportion=0, flag=wx.EXPAND|wx.TOP, border=5,  widget_name='welluid', options=wells)     
+        #
+        print 444
+        ctn_gather = dlg.view.AddCreateContainer('StaticBox', label='Well gather name', orient=wx.VERTICAL, proportion=0, flag=wx.EXPAND|wx.TOP, border=5)
+        print 555
+        dlg.view.AddTextCtrl(ctn_gather, proportion=0, flag=wx.EXPAND|wx.TOP, border=5, widget_name='wellgather_name')
+        #
+        print 666
+        dlg.view.SetSize((460, 500))
+        print 777
+        result = dlg.view.ShowModal()
         if result == wx.ID_OK:
             results = dlg.get_results()  
             print results
@@ -1598,12 +1698,10 @@ def on_import_segy_well_gather(event):
                 iline_byte=9, xline_byte=21, offset_byte=37
             )
             """
-    #   
     except Exception as e:
         print e
-        pass
     finally:
-        dlg.Destroy()
+        UIM.remove(dlg.uid)  
 
  
    
@@ -1642,7 +1740,7 @@ def on_import_segy_vel(event):
 def on_export_las(event):
 
     esdlg = ExportSelector.Dialog(wx.App.Get().GetTopWindow())
-    if esdlg.ShowModal() == wx.ID_OK:
+    if esdlg.view.ShowModal() == wx.ID_OK:
         OM = ObjectManager(event.GetEventObject())   
         ###
         # TODO: Colocar isso em outro lugar
@@ -1713,18 +1811,328 @@ def on_partitionedit(event):
     if not OM.list('partition'):
         return
     dlg = PartitionEditor.Dialog(wx.App.Get().GetTopWindow())
-    dlg.ShowModal()
+    dlg.view.ShowModal()
     dlg.Destroy()
     
     _UIM = UIManager()
     tree_ctrl = _UIM.list('tree_controller')[0]
     tree_ctrl.refresh() 
+ 
+    
+def on_createrock(event):
+    OM = ObjectManager(event.GetEventObject()) 
+    UIM = UIManager()
+    dlg = UIM.create('dialog_controller', title='Create Rock')
+    wells = OrderedDict()
+    for well in OM.list('well'):
+        wells[well.name] = well.uid
+
+    #    
+    c1 = dlg.view.AddCreateContainer('StaticBox', label='Well', orient=wx.VERTICAL, proportion=0, flag=wx.EXPAND|wx.TOP, border=5)
+    dlg.view.AddChoice(c1, proportion=0, flag=wx.EXPAND|wx.TOP, border=5,  widget_name='welluid', options=wells)#, listening=(None, func))
+    #
+    ctn_name = dlg.view.AddCreateContainer('StaticBox', label='Rock name:', orient=wx.VERTICAL, proportion=0, flag=wx.EXPAND|wx.TOP, border=5)
+    dlg.view.AddTextCtrl(ctn_name, proportion=0, flag=wx.EXPAND|wx.TOP, 
+                         border=5, widget_name='rock_name', initial='new_rock'#, 
+                         #listening=(None, changed_synth_name)
+    )
+
+    #
+    dlg.view.SetSize((350, 530))
+    result = dlg.view.ShowModal()
+    try:
+        if result == wx.ID_OK:
+            results = dlg.get_results()     
+            well_uid = results.get('welluid')   
+            rock_name = results.get('rock_name')
+            #                   
+            rock = OM.new('rock', name=rock_name)
+            OM.add(rock, well_uid)  
+    except Exception as e:
+        print 'ERROR:', e
+    finally:
+        UIM.remove(dlg.uid)        
+        
+    
+def on_createwell(event):
+    OM = ObjectManager(event.GetEventObject()) 
+    UIM = UIManager()
+    dlg = UIM.create('dialog_controller', title='Create Well')
+    ctn_name = dlg.view.AddCreateContainer('StaticBox', label='Name', 
+            orient=wx.VERTICAL, proportion=0, flag=wx.EXPAND|wx.TOP, border=5
+    )
+    #
+    def changed_well_name(name, old_value, new_value, **kwargs):
+        if new_value == '':
+            dlg.view.enable_button(wx.ID_OK, False)
+        else:
+            dlg.view.enable_button(wx.ID_OK, True)
+    #
+    dlg.view.AddTextCtrl(ctn_name, proportion=0, flag=wx.EXPAND|wx.TOP, 
+                         border=5, widget_name='well_name', initial='', 
+                         listening=(None, changed_well_name)
+    )
+    #
+    #container = dlg.view.AddStaticBoxContainer(label='Synthetic type', orient=wx.VERTICAL, proportion=0, flag=wx.EXPAND|wx.TOP, border=5)
+    #dlg.view.AddChoice(container, proportion=0, flag=wx.EXPAND|wx.TOP, border=5, widget_name='synth_type', initial=synth_type)  
+    ctn_index = dlg.view.AddCreateContainer('StaticBox', label='Index', orient=wx.VERTICAL, proportion=0, flag=wx.EXPAND|wx.TOP, border=5)
+    ctn_index_base = dlg.view.AddCreateContainer('BoxSizer', ctn_index, orient=wx.VERTICAL, proportion=0, flag=wx.EXPAND|wx.TOP, border=5)
+    #
+    datatypes = OrderedDict()
+    datatypes['Time'] = 'TIME'
+    datatypes['MD'] = 'MD'
+    #
+    def func(name, old_value, new_value, **kwargs):
+        textctrl_name = dlg.view.get_object('index_name')
+        statictext_start = dlg.view.get_object('static_start')
+        statictext_end = dlg.view.get_object('static_end')
+        statictext_sampling = dlg.view.get_object('static_sampling')
+        if new_value == "TIME":
+            textctrl_name.set_value('Time')
+            statictext_start.set_value('Start (ms):')
+            statictext_end.set_value('End (ms):')
+            statictext_sampling.set_value('Sampling (ms):')
+        if new_value == "MD":
+            textctrl_name.set_value('Depth')  
+            statictext_start.set_value('Start (m):')
+            statictext_end.set_value('End (m):')
+            statictext_sampling.set_value('Sampling (m):')
+        #
+    #    
+    c1 = dlg.view.AddCreateContainer('BoxSizer', ctn_index_base, orient=wx.HORIZONTAL, proportion=1, flag=wx.EXPAND|wx.ALL, border=5)
+    dlg.view.AddStaticText(c1, label='Type:', proportion=1, flag=wx.ALIGN_RIGHT)
+    dlg.view.AddChoice(c1, proportion=1, flag=wx.ALIGN_LEFT, widget_name='datatype', options=datatypes, listening=(None, func))
+    #
+    c2 = dlg.view.AddCreateContainer('BoxSizer', ctn_index_base, orient=wx.HORIZONTAL, proportion=1, flag=wx.EXPAND|wx.ALL, border=5)
+    dlg.view.AddStaticText(c2, label='Name:', proportion=1, flag=wx.ALIGN_RIGHT)
+    dlg.view.AddTextCtrl(c2, proportion=1, flag=wx.ALIGN_LEFT, widget_name='index_name', initial='') 
+    #
+    c3 = dlg.view.AddCreateContainer('BoxSizer', ctn_index_base, orient=wx.HORIZONTAL, proportion=1, flag=wx.EXPAND|wx.ALL, border=5)
+    dlg.view.AddStaticText(c3, label='', widget_name='static_start', proportion=1, flag=wx.ALIGN_RIGHT)
+    dlg.view.AddTextCtrl(c3, proportion=1, flag=wx.ALIGN_LEFT, widget_name='start', initial='0.0')     
+    #
+    c4 = dlg.view.AddCreateContainer('BoxSizer', ctn_index_base, orient=wx.HORIZONTAL, proportion=1, flag=wx.EXPAND|wx.ALL, border=5)
+    dlg.view.AddStaticText(c4, label='', widget_name='static_end', proportion=1, flag=wx.ALIGN_RIGHT) 
+    dlg.view.AddTextCtrl(c4, proportion=1, flag=wx.ALIGN_LEFT, widget_name='end', initial='5000.0')  
+    #
+    c5 = dlg.view.AddCreateContainer('BoxSizer', ctn_index_base, orient=wx.HORIZONTAL, proportion=1, flag=wx.EXPAND|wx.ALL, border=5)
+    dlg.view.AddStaticText(c5, label='', widget_name='static_sampling', proportion=1, flag=wx.ALIGN_RIGHT)    
+    dlg.view.AddTextCtrl(c5, proportion=1, flag=wx.ALIGN_LEFT, widget_name='ts', initial='4.0')  
+    #
+    #print ctn_index_base
+    #dlg.view.DetachContainer(ctn_index)
+    #dlg.view.AddContainer(ctn_index, proportion=0, flag=wx.EXPAND|wx.TOP, border=5)
+    #
+    choice_datatype = dlg.view.get_object('datatype')
+    choice_datatype.set_value(0, True)
+    dlg.view.enable_button(wx.ID_OK, False)
+    #
+    dlg.view.SetSize((280, 360))
+    result = dlg.view.ShowModal()
+    
+    try:
+        disableAll = wx.WindowDisabler()
+        wait = wx.BusyInfo("Creating new well. Wait...")
+        if result == wx.ID_OK:
+            results = dlg.get_results() 
+            well_name = results['well_name']
+            datatype = results['datatype']
+            if datatype == 'TIME':
+                unit = 'ms'
+            elif datatype == 'MD':    
+                unit = 'm'
+            index_name = results['index_name']
+            start = float(results['start'])
+            end = float(results['end'])
+            ts = float(results['ts'])
+            OM = ObjectManager(event.GetEventObject())
+            well = OM.new('well', name=well_name) 
+            OM.add(well)
+            index = OM.new('data_index', 0, index_name, datatype, unit, 
+                   start=start, samples=(end-start)/ts, step=ts
+            )
+            OM.add(index, well.uid)
+    except:
+        pass
+    finally:
+        del wait
+        del disableAll
+        UIM.remove(dlg.uid)   
+    
+    
+def on_create_synthetic(event):
+    OM = ObjectManager(event.GetEventObject()) 
+    UIM = UIManager()
+    dlg = UIM.create('dialog_controller', title='Create Synthetic Log')
+    wells = OrderedDict()
+    for well in OM.list('well'):
+        wells[well.name] = well.uid
+    #
+    def func(name, old_value, new_value, **kwargs):
+        choice = dlg.view.get_object('indexuid')
+        opt = OrderedDict()
+        print '\nnew_value', new_value, type(new_value)
+        for obj in OM.list('data_index', new_value):
+            opt[obj.name] = obj.uid
+        choice.set_options(opt)
+        choice.set_value(0, True)
+    
+    #    
+    c1 = dlg.view.AddCreateContainer('StaticBox', label='Well', orient=wx.VERTICAL, proportion=0, flag=wx.EXPAND|wx.TOP, border=5)
+    dlg.view.AddChoice(c1, proportion=0, flag=wx.EXPAND|wx.TOP, border=5,  widget_name='welluid', options=wells, listening=(None, func))
+    #
+    c2 = dlg.view.AddCreateContainer('StaticBox', label='Index', orient=wx.VERTICAL, proportion=0, flag=wx.EXPAND|wx.TOP, border=5)
+    dlg.view.AddChoice(c2, proportion=0, flag=wx.EXPAND|wx.TOP, border=5, widget_name='indexuid')  
+    #
+    choice = dlg.view.get_object('welluid')
+    choice.set_value(0, True)
+    #
+    synth_type = OrderedDict()
+    synth_type['Sine wave'] = 0
+    synth_type['Cosine wave'] = 1
+    synth_type['Linear chirp'] = 2
+    synth_type['Quadratic chirp'] = 3
+    synth_type['Logaritmic chirp'] = 4
+    synth_type['Hiperbolic chirp'] = 5
+    #
+    ctn_synth_type = dlg.view.AddCreateContainer('StaticBox', label='Synthetic type', orient=wx.VERTICAL, proportion=0, flag=wx.EXPAND|wx.TOP, border=5)
+    #
+    #choice = dlg.view.get_object('synth_type')
+    #choice.set_value(0)
+    #
+    ctn_parms = dlg.view.AddCreateContainer('StaticBox', label='Parameters', orient=wx.VERTICAL, proportion=0, flag=wx.EXPAND|wx.TOP, border=5)
+    flags = {'proportion': 0, 'flag': wx.EXPAND|wx.TOP, 'border': 5}
+    #
+    #
+    ctn_sin_cos = dlg.view.CreateContainer('BoxSizer', ctn_parms, orient=wx.VERTICAL)
+    #
+    c4 = dlg.view.AddCreateContainer('BoxSizer', ctn_sin_cos, orient=wx.HORIZONTAL, proportion=1, flag=wx.EXPAND|wx.ALL, border=5)
+    dlg.view.AddStaticText(c4, label='Frequency (Hz):', proportion=1, flag=wx.ALIGN_RIGHT)
+    dlg.view.AddTextCtrl(c4, proportion=1, flag=wx.ALIGN_LEFT, widget_name='sin_cos_freq', initial='1.0')  
+    #
+    c5 = dlg.view.AddCreateContainer('BoxSizer', ctn_sin_cos, orient=wx.HORIZONTAL, proportion=1, flag=wx.EXPAND|wx.ALL, border=5)
+    dlg.view.AddStaticText(c5, label='Amplitude:', proportion=1, flag=wx.ALIGN_RIGHT)   
+    dlg.view.AddTextCtrl(c5, proportion=1, flag=wx.ALIGN_LEFT, widget_name='sin_cos_amp', initial='1.0')   
+    #
+    #
+    ctn_chirp = dlg.view.CreateContainer('BoxSizer', ctn_parms, orient=wx.VERTICAL)
+    #
+    ctn_chirp_0 = dlg.view.AddCreateContainer('BoxSizer', ctn_chirp, orient=wx.HORIZONTAL, proportion=1, flag=wx.EXPAND|wx.ALL, border=5)
+    dlg.view.AddStaticText(ctn_chirp_0, label='Start:', proportion=1, flag=wx.ALIGN_RIGHT)  
+    dlg.view.AddTextCtrl(ctn_chirp_0, proportion=1, flag=wx.ALIGN_LEFT, widget_name='chirp_start')   
+    #
+    ctn_chirp_1 = dlg.view.AddCreateContainer('BoxSizer', ctn_chirp, orient=wx.HORIZONTAL, proportion=1, flag=wx.EXPAND|wx.ALL, border=5)
+    dlg.view.AddStaticText(ctn_chirp_1, label='Initial Frequency (Hz):', proportion=1, flag=wx.ALIGN_RIGHT)
+    dlg.view.AddTextCtrl(ctn_chirp_1, proportion=1, flag=wx.ALIGN_LEFT, widget_name='chirp_f0', initial='1.0')  
+    #
+    ctn_chirp_3 = dlg.view.AddCreateContainer('BoxSizer', ctn_chirp, orient=wx.HORIZONTAL, proportion=1, flag=wx.EXPAND|wx.ALL, border=5)
+    dlg.view.AddStaticText(ctn_chirp_3, label='End:', proportion=1, flag=wx.ALIGN_RIGHT)  
+    dlg.view.AddTextCtrl(ctn_chirp_3, proportion=1, flag=wx.ALIGN_LEFT, widget_name='chirp_end')     
+    #
+    ctn_chirp_2 = dlg.view.AddCreateContainer('BoxSizer', ctn_chirp, orient=wx.HORIZONTAL, proportion=1, flag=wx.EXPAND|wx.ALL, border=5)
+    dlg.view.AddStaticText(ctn_chirp_2, label='End Frequency (Hz):', proportion=1, flag=wx.ALIGN_RIGHT)   
+    dlg.view.AddTextCtrl(ctn_chirp_2, proportion=1, flag=wx.ALIGN_LEFT, widget_name='chirp_f1', initial='10.0')   
+    #
+    ctn_chirp.Show(False)    
+    #
+    def changed_synth_type(name, old_value, new_value, **kwargs):
+        print '\nchanged_synth_type:', name, old_value, new_value, kwargs
+        if old_value is None:
+            if new_value in [0, 1]:
+                dlg.view.AddContainer(ctn_sin_cos, ctn_parms, **flags)
+            else:
+                dlg.view.AddContainer(ctn_chirp, ctn_parms, **flags)  
+        elif new_value in [0, 1]:
+            if old_value in [2, 3, 4, 5]:
+                if dlg.view.DetachContainer(ctn_chirp):
+                    print '\nRemoveu ctn_chirp'
+                else:
+                    print '\nNAO Removeu ctn_chirp'  
+                dlg.view.AddContainer(ctn_sin_cos, ctn_parms, **flags)
+        if new_value in [2, 3, 4, 5]:
+            if old_value in [0, 1]:
+                if dlg.view.DetachContainer(ctn_sin_cos):
+                    print '\nRemoveu ctn_sin_cos'
+                else:
+                    print '\nNAO Removeu ctn_sin_cos'
+                dlg.view.AddContainer(ctn_chirp, ctn_parms, **flags)    
+        dlg.view.Layout()    
+    #    
+    #
+    dlg.view.AddChoice(ctn_synth_type, proportion=0, flag=wx.EXPAND|wx.TOP, 
+                       border=5, widget_name='synth_type', options=synth_type, 
+                       listening=(None, changed_synth_type)
+    )
+    
+    choice = dlg.view.get_object('synth_type')    
+    print '\n\n\nSETTING VALUE', choice.name
+    choice.set_value(0, True)
+    print 'ctn_parms:', ctn_parms
+    print '\n\n'
     
     #
- 
+    def changed_synth_name(name, old_value, new_value, **kwargs):
+        if new_value == '':
+            dlg.view.enable_button(wx.ID_OK, False)
+        else:
+            dlg.view.enable_button(wx.ID_OK, True)
+    #
+    ctn_name = dlg.view.AddCreateContainer('StaticBox', label='Synthetic name:', orient=wx.VERTICAL, proportion=0, flag=wx.EXPAND|wx.TOP, border=5)
+    dlg.view.AddTextCtrl(ctn_name, proportion=0, flag=wx.EXPAND|wx.TOP, 
+                         border=5, widget_name='synth_name', initial='new_synth', 
+                         listening=(None, changed_synth_name)
+    )
 
+    #
+    dlg.view.SetSize((350, 530))
+    result = dlg.view.ShowModal()
+    try:
+        disableAll = wx.WindowDisabler()
+        wait = wx.BusyInfo("Creating synthetic. Wait...")
+        if result == wx.ID_OK:
+            results = dlg.get_results()  
+            print results
+            synth_type = results['synth_type']
+            welluid = results['welluid']
+            indexuid = results['indexuid'] 
+            synth_name = results['synth_name']
+            index = OM.get(indexuid)
+            #
+            if synth_type in [0, 1]:
+                sin_cos_freq = float(results['sin_cos_freq'])
+                sin_cos_amp = float(results['sin_cos_amp'])
+                if synth_type == 0:
+                    data = sin_cos_amp * np.sin(index.data/1000 * 2 * np.pi * sin_cos_freq) 
+                elif synth_type == 1:
+                    data = sin_cos_amp * np.cos(index.data/1000 * 2 * np.pi * sin_cos_freq)  
+            else:        
+                chirp_f0 = float(results['chirp_f0'])
+                chirp_f1 = float(results['chirp_f1'])
+                chirp_start = float(results['chirp_start'])
+                chirp_end = float(results['chirp_end'])
+                if synth_type == 2:
+                    #x = chirp(time, f0=0, f1=100, t1=time[-1], method='linear')
+                    data = chirp(index.data, chirp_f0, chirp_end, chirp_f1, method='linear')#, phi=0, vertex_zero=True)
+                elif synth_type == 3:
+                    data = chirp(index.data, chirp_f0, chirp_end, chirp_f1, method='quadratic')#, phi=0, vertex_zero=True)    
+                elif synth_type == 4:
+                    data = chirp(index.data, chirp_f0, chirp_end, chirp_f1, method='logarithmic')#, phi=0, vertex_zero=True)
+                elif synth_type == 5:
+                    data = chirp(index.data, chirp_f0, chirp_end, chirp_f1, method='hyperbolic')#, phi=0, vertex_zero=True)                   
+            #                   
+            log = OM.new('log', data, indexes=[index.uid], name=synth_name, 
+                         unit='amplitude', curvetype=''
+            )
+            OM.add(log, welluid)  
+    except Exception as e:
+        print 'ERROR:', e
+    finally:
+        del wait
+        del disableAll
+        UIM.remove(dlg.uid)
+    
 
-
+    
 def on_load_wilson(event):
     
     def in1d_with_tolerance(A, B, tol=1e-05):
@@ -1962,7 +2370,7 @@ def on_test_partition(self, event):
             ], 'Wavelet Analysis - Select Source:'
         )
 
-        if dlg.ShowModal() == wx.ID_OK:
+        if dlg.view.ShowModal() == wx.ID_OK:
             results = dlg.get_results()
         else:
             return
@@ -2003,7 +2411,7 @@ def on_test_partition(self, event):
             return
         gc = GripyController(event.GetEventObject())    
         dlg = PartitionEditor.Dialog(gc.get_main_window().view)
-        dlg.ShowModal()
+        dlg.view.ShowModal()
         dlg.Destroy()
         self.om_tree.refresh()
 
@@ -2041,7 +2449,7 @@ def on_test_partition(self, event):
             ], 
             'Plot Selector'
         )
-        if dlg.ShowModal() == wx.ID_OK:
+        if dlg.view.ShowModal() == wx.ID_OK:
             results = dlg.get_results()
             plt = ParametersManager.get().getPLT(results['plt_file_name'])
             if plt is None:

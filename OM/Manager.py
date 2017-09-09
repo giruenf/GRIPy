@@ -145,10 +145,13 @@ class ObjectManager(PublisherMixin):
         >>> newobj = om.new('typeid', name='nameofthenewobject')
         >>> # name will be passed to the constructor
         """
+        #try:
         obj = self._types[typeid](*args, **kwargs)
         objectid = self._getnewobjectid(typeid)
         obj.oid = objectid
         return obj
+        #except Exception as e:
+        #    raise Exception('Error on creating object! [tid={}, args={}, kwargs={}, error={}]'.format(typeid, args, kwargs, e))
 
     def add(self, obj, parentuid=None):
         """
@@ -185,8 +188,8 @@ class ObjectManager(PublisherMixin):
         self._childrenuidmap[obj.uid] = []
         self._data[obj.uid] = obj
         if parentuid:
-            self._data[parentuid]._children[obj.uid] = obj
             self._childrenuidmap[parentuid].append(obj.uid)
+        # Sending message  
         self.send_message('add', objuid=obj.uid)
         ObjectManager._changed  = True       
         return True
@@ -256,7 +259,7 @@ class ObjectManager(PublisherMixin):
         
         parentuid = self._parentuidmap[uid]
         if parentuid:
-            del self._data[parentuid]._children[uid]
+            #del self._data[parentuid]._children[uid]
             del self._parentuidmap[uid]
             self._childrenuidmap[parentuid].remove(uid)
             
@@ -315,7 +318,15 @@ class ObjectManager(PublisherMixin):
             else:
                 return objs
         else:
-            return self.get(parentuidfilter).list(tidfilter)
+            return [self.get(child_uid) for child_uid in \
+                    self._childrenuidmap[parentuidfilter] \
+                    if child_uid[0] == tidfilter
+            ]
+            #    if child_uid[0] == tidfilter:
+            #        self.get(child_uid)
+            #]
+            #    return [child for child in children if child.tid == tidfilter]
+            #return self.get(parentuidfilter).list(tidfilter)
 
 
     @classmethod
@@ -400,54 +411,6 @@ class ObjectManager(PublisherMixin):
             log.info('ObjectManager registered class {} successfully.'.format(class_full_name))
         return True        
 
-    '''
-    @classmethod
-    def registertype(cls, type_, parenttype=None):
-        """
-        Register a type which instances are now able to be managed.
-        
-        Parameters
-        ----------
-        type_ : type
-            The new type that will be registered within `ObjectManager`.
-        parenttype : type, optional
-            The parent type of `type_`
-        
-        Returns
-        -------
-        bool
-            Whether the remove operation was successful.
-        
-        Examples
-        --------
-        >>> om = ObjectManager(owner)
-        >>> obj = om.new('unregisteredtypeid', name='nameofobj')
-        KeyError: 'unregisteredtypeid'
-        >>> ObjectManager.registertype(UnregeristeredType)
-        True
-        >>> obj = om.new('unregisteredtypeid', name='nameofobj')
-        >>> om.add(obj)
-        True
-        """
-        typeid = type_.tid
-        if typeid in cls._types.keys():
-            msg = "Type {} is already registered".format(typeid)
-            log.exception(msg)
-            raise TypeError(msg)
-        if parenttype:
-            cls._parenttidmap[typeid] = parenttype.tid
-        else:
-            cls._parenttidmap[typeid] = None
-        cls._currentobjectids[typeid] = 0
-        cls._types[typeid] = type_
-        class_full_name = str(type_.__module__) + '.' + str(type_.__name__)
-        if parenttype:
-            parent_full_name = str(parenttype.__module__) + '.' + str(parenttype.__name__)
-            log.info('ObjectManager registered class {} for parent class {} successfully.'.format(class_full_name, parent_full_name))
-        else:    
-            log.info('ObjectManager registered class {} successfully.'.format(class_full_name))
-        return True
-    '''
 
     def _isvalidparent(self, objuid, parentuid):
         """
@@ -510,6 +473,8 @@ class ObjectManager(PublisherMixin):
         """
         return self._types[tid]
     
+    
+    
     def save(self, archivepath):
         """
         Save the current `ObjectManager` state to a file.
@@ -534,6 +499,17 @@ class ObjectManager(PublisherMixin):
         npzdata = {}
         for uid, obj in self._data.iteritems():
             objdict = OrderedDict()
+            #
+            # TODO: Melhorar isso
+            try:
+                #print '\n', obj.tid
+                if obj._NO_SAVE_CLASS:
+                    #print '_NO_SAVE_CLASS'
+                    continue
+            except:
+                pass
+            #
+            #print 'SAVE_CLASS'
             for key, value in obj._getstate().iteritems():
                 if isinstance(value, np.ndarray):
                     npzname = "{}_{}_{}".format(uid[0], uid[1], key)
@@ -563,6 +539,7 @@ class ObjectManager(PublisherMixin):
         os.remove(os.path.join(dirname, npzfilename))
         ObjectManager._changed  = False
         return True
+
 
     def load(self, archivepath):
         """
@@ -603,7 +580,13 @@ class ObjectManager(PublisherMixin):
             for key, value in objdict.iteritems():
                 if isinstance(value, basestring) and value.startswith(self._NPZIDENTIFIER):
                     objdict[key] = npzdata[value.lstrip(self._NPZIDENTIFIER)]
-            obj = self.new(tid, **objdict)
+            #        
+            # TODO: melhorar isso abaixo
+            # A ideia e que a segunda opcao (except) venha a substituir a primeira
+            try:
+                obj = self.new(tid, **objdict)
+            except:
+                obj = self.create_object_from_state(tid, **objdict)
             newuidsmap[olduid] = obj.uid
             self.add(obj, newuidsmap.get(parentuidmap[olduid]))
         
@@ -613,6 +596,15 @@ class ObjectManager(PublisherMixin):
         os.remove(os.path.join(dirname, npzfilename))
         ObjectManager._changed  = False
         return True
+
+    
+    
+    def create_object_from_state(self, tid, **objdict):
+        class_ = self._types.get(tid)
+        if not class_:
+            raise Exception('Error.')
+        return class_._loadstate(**objdict)
+            
 
 
     @classmethod

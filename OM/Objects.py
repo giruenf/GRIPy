@@ -7,7 +7,6 @@ This file defines the base classes for objects that can be managed by
 `ObjectManager`.
 """
 
-from collections import OrderedDict
 from App.pubsub import PublisherMixin
 
 
@@ -64,6 +63,7 @@ class GenericObject(PublisherMixin):
     def uid(self):
         return self.tid, self.oid
     
+    # TODO: Rever docs
     def _getstate(self):
         """
         Return the state of the object.
@@ -94,83 +94,3 @@ class GenericObject(PublisherMixin):
 
 
 
-class ParentObject(GenericObject):
-    """
-    An object that can have children.
-    
-    The 'children' of an object are the objects that belong to it in an
-    hierarchy. For example, a Log object can be thought of as a child of a
-    Well object, since a Well object can 'have' Log objects.
-    
-    The possible children of an object are determined by the type registration
-    whithin `ObjectManager`. For example, ``ObjectManager.registertype(TypeA,
-    TypeB)`` determines that instances of TypeB can have children with type
-    TypeA.
-    
-    Children are not added directly to an object. To do it the ObjectManager
-    must be used::
-    
-        om = ObjectManager(owner)
-        parentobj = om.new('parenttid')
-        om.add(parentobj)
-        childobj = om.new('childtid')
-        om.add(childobj, parentobj.uid)
-        # Now 'parentobj' has 'childobj' as a child
-    
-    Attributes
-    ----------
-    _children : OrderedDict
-        Object's children. Keys are children `uid`s and values are the children
-        themselves.
-    """
-    tid = None
-
-    def get(self, uid):
-        """
-        Return the child that has the given `uid`.
-        
-        Parameters
-        ----------
-        uid : uid
-            The unique identificator of the required child.
-        
-        Returns
-        -------
-        GenericObject
-            The child which unique identificator matches `uid`.
-            
-        See Also
-        --------
-        Manager.ObjectManager.get
-        """
-        return self._children[uid]
-
-    def list(self, tidfilter=None):
-        """
-        Return a list of children.
-        
-        Parameters
-        ----------
-        tidfilter : str, optional
-            Filter the children so that only those with `tid` equal to
-            `tidfilter` will be returned.
-        
-        Returns
-        -------
-        children : list
-            A list of all the object's children or a list of object's children
-            of a specific type, depending on the value of `tidfilter`.
-        
-        See Also
-        --------
-        Manager.ObjectManager.list
-        """
-        children = self._children.values()
-        if tidfilter:
-            return [child for child in children if child.tid == tidfilter]
-        else:
-            return children
-
-    def __init__(self):
-        super(ParentObject, self).__init__()
-        self._children = OrderedDict()

@@ -292,10 +292,9 @@ class LogPlotController(WorkPageController):
 #        self.view.refresh_overview()
 
 
-
+    """
     def track_object_included(self, y_min, y_max):
-        pass
-        """
+
         if self.model.y_min_shown == self.model.logplot_y_min \
                                             or y_min < self.model.y_min_shown:
         #    print 'Setting y_min_shown:', y_min
@@ -304,7 +303,7 @@ class LogPlotController(WorkPageController):
                                             or y_max > self.model.y_min_shown:
          #   print 'Setting y_min_shown:', y_min
             self.model.y_max_shown = y_max
-        """    
+    """    
 
     """
     def update_adaptative(self):
