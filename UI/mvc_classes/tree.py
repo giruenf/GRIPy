@@ -65,7 +65,6 @@ class TreeController(UIControllerBase):
         treeitem = self._mapobjects.get(objuid)
         if treeitem:
             return treeitem
-        
         #
         OM = ObjectManager(self)
         obj = OM.get(objuid)
@@ -76,7 +75,6 @@ class TreeController(UIControllerBase):
         if not show:
             return None
         #
-        
         # Else, we will check for object parent treeitemid
         parent_treeitem = self.get_parent_treeitem(objuid)
         # Dealing with object treeitemid creation
@@ -99,56 +97,27 @@ class TreeController(UIControllerBase):
             raise Exception('Creating object attributes for an object not exists.')
         # Create item obj parameters
         try:
-            #props = obj.get_tree_properties()
-            #self._aaa(obj_treeitem, props)
-            #'''
             for attr, attr_label in obj._SHOWN_ATTRIBUTES:
-                
                 try:
                     value = getattr(obj, attr)
                 except:
-                    print 'erro:', attr
-                    value = obj.attributes.get(attr)
-                     
+                    value = obj.attributes.get(attr)   
                 if isinstance(value, float):
                     value = "{0:.2f}".format(value)
                 elif value is None:
                     value = 'None'
-
                 attr_str = attr_label + ': ' + str(value)
-                print attr_str
                 attrtreeid = self.view.AppendItem(obj_treeitem, attr_str)
                 self.view.SetItemData(attrtreeid, (None, None))
             #'''    
-        except Exception as e:
-            print e
+        except Exception:
             pass        
-    
-    """
-    def _aaa(self, parent_treeitem, props):
-        try:
-            if isinstance(props, OrderedDict):
-                for key, value in props.items():
-                    treeitem = self.view.AppendItem(parent_treeitem, key)
-                    self.view.SetItemData(treeitem, (None, None))
-                    if value:
-                        self._aaa(treeitem, value)
-            elif isinstance(props, list):
-                for prop in props:
-                    self._aaa(parent_treeitem, prop)
-            else:    
-                # Is leaf and props is a string like
-                print '\nleaf:', props
-                treeitem = self.view.AppendItem(parent_treeitem, str(props))
-                self.view.SetItemData(treeitem, (None, None))
-        except:
-            raise
-    """        
+ 
     
     def _create_tid_data(self, obj, parentuid):
         parent_treeid = self.get_treeitem(parentuid)
         try:
-            treeparentid = self.view.AppendItem(parent_treeid, obj._TID_FRIENDLY_NAME)
+            treeparentid = self.view.AppendItem(parent_treeid, obj._FRIENDLY_NAME)
         except AttributeError:  
             treeparentid = self.view.AppendItem(parent_treeid, obj.tid)
         self.view.SetItemData(treeparentid, (parentuid, obj.tid))
@@ -194,21 +163,17 @@ class TreeController(UIControllerBase):
         if not treeitem:
             raise Exception('Trying to reload an object not exists.')
         self.view.DeleteChildren(treeitem)
-        print 'aaa'
         self.view.SetItemText(treeitem, self._get_object_label(objuid))
         self._create_object_attributes(objuid)
 
         
     def remove_treeitem(self, objuid):
-        #print 'remove_treeitem:', objuid
         treeitem = self._mapobjects.get(objuid)
         if not treeitem:
             raise Exception('Removing treeitem for an object not exists.')
         #        
         treeitem_parent = self.view.GetItemParent(treeitem)
         parentuid, tid = self.view.GetItemData(treeitem_parent)
-        #if self.view.GetChildrenCount(treeitem):
-        #    return False
         del self._maptypes[objuid]
         del self._mapobjects[objuid]
         #
@@ -231,7 +196,7 @@ class TreeController(UIControllerBase):
         if not treeparentid:
             try:
                 treeparentid = self.view.AppendItem(self._mapobjects[parentuid], 
-                                                    obj._TID_FRIENDLY_NAME
+                                                    obj._FRIENDLY_NAME
                 )
             except AttributeError:  
                 treeparentid = self.view.AppendItem(self._mapobjects[parentuid], obj.tid)
@@ -413,18 +378,13 @@ class TreeView(UIViewBase, wx.TreeCtrl):
         uid, tree_tid = self.popup_obj
         OM = ObjectManager(self)       
         obj = OM.get(uid)
-        #
-        #print '\nOnUnitConvert:', obj.unit
         try:
             unit = UOM.get_unit(obj.unit)
-            #print 'unit.dimension:', unit.dimension
             dim = UOM.get_unit_dimension(unit.dimension)
             qc = UOM.get_quantity_class(dim.name)
-            print qc
             UNITS_OPTIONS = OrderedDict()
             for mu in qc.memberUnit:
                 UNITS_OPTIONS[mu] = mu 
-            #
         except:    
             msg = 'Unit ' + obj.unit + ' cannot be converted.'
             wx.MessageBox(msg, 'Warning', wx.OK | wx.ICON_WARNING)
@@ -450,18 +410,14 @@ class TreeView(UIViewBase, wx.TreeCtrl):
             if answer == wx.ID_OK:
                 results = dlg.get_results()  
                 new_unit_name = results.get('new_unit')
-                print 'old:', obj.data[0], obj.data[-1]
                 new_data = UOM.convert(obj.data, obj.unit, new_unit_name)
-                print 'new_data:', new_data[0], new_data[-1]
                 obj._data = new_data
-                print 'obj.data:', obj.data[0], obj.data[-1]
                 obj.unit = new_unit_name            
                 UIM = UIManager()
                 controller = UIM.get(self._controller_uid)
                 controller.reload_object(obj.uid)                 
-        except Exception as e:
-            print e
-            #pass
+        except Exception:
+            pass
         finally:
             UIM.remove(dlg.uid)        
             

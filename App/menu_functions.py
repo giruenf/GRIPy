@@ -849,7 +849,7 @@ def teste6(event):
             inv_index = OM.new('index_curve', seis.get_index().data,
                                name='DEPTH', 
                                unit=seis.get_index().name, 
-                               curvetype=seis.get_index().attributes['curvetype'])
+                               datatype=seis.get_index().attributes['curvetype'])
             OM.add(inv_index, inversion.uid)
     
             intercept = OM.new('inversion_parameter',
@@ -1125,72 +1125,6 @@ def teste5(event):
         UIM.remove(dlg.uid)   
 
 
-    
-
-def teste(event):
-    
-    OM = ObjectManager(event.GetEventObject())
-    well = OM.new('well', name='ACME_XPTO_2')
-    OM.add(well)
-    
-    fs = 250.0
-    ts = 1/fs
-    start = 2000.0
-    end = 3000.0
-    depth = np.arange(start, end+ts, ts)
-    index = OM.new('index_curve', depth, name='DEPTH', unit='m', curvetype='MD')
-    well.index.append(index)
-    OM.add(index, well.uid)
-
-
-    """
-    Fs = 250.0 # Hz    
-    Ts = 1/Fs  
-    t0 = 0.0
-    t1 = 5000.0
-    time = np.arange(t0, t1+Ts, Ts)
-    f1 = 30
-    #print 'Curva cosseno com frequencia:', f1, 'Hz'
-    x = 20 * np.cos(time * 2 * np.pi * f1)
-    """
-
-    freq = 20.0
-    amp = 50
-    #freq = freq/1000
-    data = amp * np.sin(depth * 2 * np.pi * freq)
-    log = OM.new('log', data, name='COS_20_A50', unit='amplitude', curvetype='', index_uid=index.uid)
-    OM.add(log, well.uid)
-
-
-    freq = 30.0
-    amp = 20
-    #freq = freq/1000
-    data = amp * np.sin(depth * 2 * np.pi * freq)
-    log = OM.new('log', data, name='SEN_30_A20', unit='amplitude', curvetype='', index_uid=index.uid)
-    OM.add(log, well.uid)
-
-    freq = 2.0
-    amp = 100
-    #freq = freq/1000
-    data = amp * np.sin(depth * 2 * np.pi * freq)
-    log = OM.new('log', data, name='SEN_2_A100', unit='amplitude', curvetype='', index_uid=index.uid)
-    OM.add(log, well.uid)    
-
-
-    freq = 2.0
-    amp = 100
-    #freq = freq/1000
-    data = amp * np.cos(depth * 2 * np.pi * freq)
-    log = OM.new('log', data, name='COS_2_A100', unit='amplitude', curvetype='', index_uid=index.uid)
-    OM.add(log, well.uid)    
-
-    freq = 2.0
-    amp = 50
-    #freq = freq/1000
-    data = amp * np.cos(depth * 2 * np.pi * freq)
-    log = OM.new('log', data, name='COS_2_A50', unit='amplitude', curvetype='', index_uid=index.uid)
-    OM.add(log, well.uid)    
-
 
 def on_open(*args, **kwargs):
     wildcard = "Arquivo de projeto do GRIPy (*.pgg)|*.pgg"
@@ -1397,23 +1331,12 @@ def on_import_las(event):
                                    sel_curvetypes[i].upper(), units[i].lower(), 
                                    data=data[i]
                     )
-                    print 'data_index', names[i]
+                    #print 'data_index', names[i]
                     OM.add(index, well.uid)
-                    '''
-                    index = OM.new('data_index', names[i], sel_curvetypes[i],#'TIME', 
-                                   units[i].lower(), 
-                                   data=data[i]#, datatype=sel_curvetypes[i]
-                    )
-                    OM.add(index, well.uid)
-                    '''
-                    #index = OM.new('index_curve', data[i], name=names[i], 
-                    #                   unit=units[i].lower(), curvetype=sel_curvetypes[i])
-                    #well.index.append(index)
-                    #OM.add(index, well.uid)
                 
                 elif sel_datatypes[i] == 'Log':
                     log = OM.new('log', data[i], name=names[i], 
-                                unit=units[i], curvetype=sel_curvetypes[i],
+                                unit=units[i], datatype=sel_curvetypes[i],
                                 index_uid=index.uid
                     )
                     OM.add(log, well.uid)
@@ -1425,19 +1348,21 @@ def on_import_las(event):
                         print 'data[{}]: {}'.format(i, data[i])
                         raise
                     partition = OM.new('partition', name=names[i], 
-                                           curvetype=sel_curvetypes[i],
+                                           datatype=sel_curvetypes[i],
                                            index_uid=index.uid
                     )
                     OM.add(partition, well.uid)
                     for j in range(len(codes)):
                         part = OM.new('part', booldata[j], 
-                            code=int(codes[j]), curvetype=sel_curvetypes[i])
+                            code=int(codes[j]), datatype=sel_curvetypes[i])
                         OM.add(part, partition.uid)
                 else:
                     print "Not importing {} as no datatype matches '{}'".format(names[i], sel_datatypes[i])
                  
         PM.register_votes()
+        
         isdlg.Destroy()
+        
     hedlg.Destroy()
 
 
@@ -1537,24 +1462,24 @@ def on_import_odt(self, event):
             
                 if sel_datatypes[i] == 'Depth':
                     # print "Importing {} as '{}' with curvetype '{}'".format(names[i], sel_datatypes[i], sel_curvetypes[i])
-                    depth = self.OM.new('depth', data[i], name=names[i], unit=units[i], curvetype=sel_curvetypes[i])
+                    depth = self.OM.new('depth', data[i], name=names[i], unit=units[i], datatype=sel_curvetypes[i])
                     self.OM.add(depth, well.uid)
                 
                 elif sel_datatypes[i] == 'Log':
                     # print "Importing {} as '{}' with curvetype '{}'".format(names[i], sel_datatypes[i], sel_curvetypes[i])
-                    log = self.OM.new('log', data[i], name=names[i], unit=units[i], curvetype=sel_curvetypes[i])
+                    log = self.OM.new('log', data[i], name=names[i], unit=units[i], datatype=sel_curvetypes[i])
                     self.OM.add(log, well.uid)
 
                 elif sel_datatypes[i] == 'Partition':
                     # print "Importing {} as '{}' with curvetype '{}'".format(names[i], sel_datatypes[i], sel_curvetypes[i])
                     booldata, codes = DT.DataTypes.Partition.getfromlog(data[i])
                     
-                    partition = self.OM.new('partition', name=names[i], curvetype=sel_curvetypes[i])
+                    partition = self.OM.new('partition', name=names[i], datatype=sel_curvetypes[i])
                     self.OM.add(partition, well.uid)
                     
             
                     for j in range(len(codes)):
-                        part = self.OM.new('part', booldata[j], code=int(codes[j]), curvetype=sel_curvetypes[i])
+                        part = self.OM.new('part', booldata[j], code=int(codes[j]), datatype=sel_curvetypes[i])
                         self.OM.add(part, partition.uid)
                 
                 else:
@@ -2121,7 +2046,7 @@ def on_create_synthetic(event):
                     data = chirp(index.data, chirp_f0, chirp_end, chirp_f1, method='hyperbolic')#, phi=0, vertex_zero=True)                   
             #                   
             log = OM.new('log', data, indexes=[index.uid], name=synth_name, 
-                         unit='amplitude', curvetype=''
+                         unit='amplitude', datatype=''
             )
             OM.add(log, welluid)  
     except Exception as e:
@@ -2218,24 +2143,24 @@ def on_test_partition(self, event):
     well = self.OM.new('well', name='teste_particao') 
     self.OM.add(well)
     data = np.arange(0, 550, 50)
-    depth = self.OM.new('depth', data, name='depth', unit='m', curvetype='Depth')
+    depth = self.OM.new('depth', data, name='depth', unit='m', datatype='Depth')
     self.OM.add(depth, well.uid)
     
     #data = np.array([12, 12, 12, 12, 13, 13, 13, 13, 14, 14, 14])
     #booldata, codes = DT.DataTypes.Partition.getfromlog(data)
-    partition = self.OM.new('partition', name='particao', curvetype='partition')
+    partition = self.OM.new('partition', name='particao', datatype='partition')
     self.OM.add(partition, well.uid)
     
     b1 = np.array([True, True, True, True, False, False, False, False, False, False, False])
-    p1 = self.OM.new('part', b1, code=12, color=(255, 0, 0), curvetype='part')
+    p1 = self.OM.new('part', b1, code=12, color=(255, 0, 0), datatype='part')
     self.OM.add(p1, partition.uid)
 
     b2 = np.array([False, False, False, False, True, True, True, True, False, False, False])
-    p2 = self.OM.new('part', b2, code=13, color=(0, 255, 0),curvetype='part')
+    p2 = self.OM.new('part', b2, code=13, color=(0, 255, 0),datatype='part')
     self.OM.add(p2, partition.uid)
 
     b3 = np.array([True, True, False, False, False, False, False, False, True, True, True])
-    p3 = self.OM.new('part', b3, code=14, color=(0, 0, 255), curvetype='part')
+    p3 = self.OM.new('part', b3, code=14, color=(0, 0, 255), datatype='part')
     self.OM.add(p3, partition.uid)
     
    
@@ -2339,21 +2264,21 @@ def on_test_partition(self, event):
         well = self.OM.new('well', name='poco_0210')
         self.OM.add(well)
         d = np.arange(2514, 2946, 4)
-        depth = self.OM.new('index_curve', d, name='DEPTH', unit='m', curvetype='Depth')
+        depth = self.OM.new('index_curve', d, name='DEPTH', unit='m', datatype='Depth')
         self.OM.add(depth, well.uid)        
 
         log_rho = self.OM.new('log', p_rho, name='Rho', index_uid=depth.uid,
-                               unit='g/cm3', curvetype='Density'
+                               unit='g/cm3', datatype='Density'
         )
         self.OM.add(log_rho, well.uid)
         
         log_vp = self.OM.new('log', p_vp, name='Vp', index_uid=depth.uid,
-                              unit='ft/sec', curvetype='Velocity'
+                              unit='ft/sec', datatype='Velocity'
         )
         self.OM.add(log_vp, well.uid)    
         
         log_vs = self.OM.new('log', p_vs, name='Vs', index_uid=depth.uid,
-                              unit='ft/sec', curvetype='Velocity'
+                              unit='ft/sec', datatype='Velocity'
         )
         self.OM.add(log_vs, well.uid)         
 

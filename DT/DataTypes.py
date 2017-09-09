@@ -213,10 +213,10 @@ class Log(GenericDataType):
     """
     
     tid = "log"
-    _TID_FRIENDLY_NAME = 'Log'
+    _FRIENDLY_NAME = 'Log'
     _SHOWN_ATTRIBUTES = [
                             ('_oid', 'Object Id'),
-                            ('curvetype', 'Curve Type'),
+                            ('datatype', 'Curve Type'),
                             ('unit', 'Units'),
                             ('min', 'Min Value'),
                             ('max', 'Max Value'),
@@ -399,7 +399,7 @@ class Part(GenericDataType):
     tid = "part"
     _NOCODESTART = 1000
     _DEFAULTCOLORS = COLOR_CYCLE_RGB
-    _TID_FRIENDLY_NAME = 'Part'
+    _FRIENDLY_NAME = 'Part'
     
     @GenericDataType.name.getter
     def name(self):
@@ -472,10 +472,10 @@ class Partition(GenericDataType):
     DataTypes.DataTypes.Well
     """
     tid = "partition"
-    _TID_FRIENDLY_NAME = 'Partition'
+    _FRIENDLY_NAME = 'Partition'
     _SHOWN_ATTRIBUTES = [
                             ('_oid', 'Object Id'),
-                            ('curvetype', 'Curve Type')#,
+                            ('datatype', 'Curve Type')#,
                             #('index_uid', 'Index Uid')
     ] 
     
@@ -678,7 +678,7 @@ class Well(GenericDataType):
     DataTypes.DataTypes.Partition
     """
     tid = "well"
-    _TID_FRIENDLY_NAME = 'Well'
+    _FRIENDLY_NAME = 'Well'
     _ACCEPT_MULTIPLE_INDEXES = True
     
     
@@ -708,83 +708,9 @@ class Density(GenericDataType):
         super(Density, self).__init__(data, **attributes)
 
 
-    """
-    def get_index(self):
-        OM = ObjectManager(self)
-        ret_list = []
-        #for data_axis in OM.list('data_axis', self.uid):
-        for data_index in OM.list('data_index', self.uid):
-            ret_list.append(data_index)
-        return ret_list  
-    """
-
-    
-    """
-    def get_index(self):
-        return self.dimensions[-1]
-    """
-    '''
-    start = self.attributes.get('datum')
-    step = self.attributes.get('sample_rate')
-    stop = start + step * self.attributes.get('samples')
-    index_data = np.arange(start, stop, step)
-    if self.attributes.get('domain') == 'time':
-        ct = 'Time'
-    elif self.attributes.get('domain') == 'depth': 
-        ct = 'TVD'
-    else:
-        raise Exception('Density domain not recognized.')
-    OM = ObjectManager(self)
-    index = OM.new('index_curve', index_data, name='', 
-                   unit=self.attributes.get('unit'), curvetype=ct
-    )        
-    return index      
-    '''
-
-        
-    """    
-    # TODO: Objeto nao esta adicionado no ObjectManager
-    # Verificar se essa eh a melhor forma    
-    def get_index(self):
-        start = self.attributes.get('datum')
-        step = self.attributes.get('sample_rate')
-        stop = start + step * self.attributes.get('samples')
-        index_data = np.arange(start, stop, step)
-        if self.attributes.get('domain') == 'time':
-            ct = 'Time'
-        elif self.attributes.get('domain') == 'depth': 
-            ct = 'TVD'
-        else:
-            raise Exception('Density domain not recognized.')
-        OM = ObjectManager(self)
-        index = OM.new('index_curve', index_data, name='', 
-                       unit=self.attributes.get('unit'), curvetype=ct
-        )        
-        return index            
-        
-    @property
-    def start(self):
-        return self.attributes.get('datum')
-
-    @property
-    def step(self):
-        return self.attributes.get('sample_rate')
-    
-    @property
-    def end(self):
-        return self.start + self.step * self.attributes.get('samples')
-
-    def _getstate(self):
-        state = super(Density, self)._getstate()
-        state.update(dimensions=self.dimensions)
-        return state
-
-    """
-
-
 class Seismic(Density):
     tid = 'seismic'
-    _TID_FRIENDLY_NAME = 'Seismic'
+    _FRIENDLY_NAME = 'Seismic'
     _SHOWN_ATTRIBUTES = [
                             ('_oid', 'Object Id'),    
                             #('stacked', 'Stacked'),
@@ -798,14 +724,12 @@ class Seismic(Density):
     def __init__(self, data, **attributes):
         super(Seismic, self).__init__(data, **attributes)
                 
-    #@property
-    #def stacked(self):
-    #    return len(self.dimensions) == 2
+
 
 
 class WellGather(Density):
     tid = 'gather'
-    _TID_FRIENDLY_NAME = 'Gather'
+    _FRIENDLY_NAME = 'Gather'
     _SHOWN_ATTRIBUTES = [
                             ('_oid', 'Object Id'),    
                             #('stacked', 'Stacked'),
@@ -819,14 +743,11 @@ class WellGather(Density):
     def __init__(self, data, **attributes):
         super(WellGather, self).__init__(data,  **attributes)
         
-    #@property
-    #def stacked(self):
-    #    return len(self.dimensions) == 2
 
 
 class Scalogram(Density):
     tid = 'scalogram'
-    _TID_FRIENDLY_NAME = 'Scalogram'
+    _FRIENDLY_NAME = 'Scalogram'
     _SHOWN_ATTRIBUTES = [
                             ('_oid', 'Object Id'),
                             ('datatype', 'Type')                       
@@ -839,7 +760,7 @@ class Scalogram(Density):
 
 class GatherScalogram(Density):
     tid = 'scalogram'
-    _TID_FRIENDLY_NAME = 'Scalogram'
+    _FRIENDLY_NAME = 'Scalogram'
     _SHOWN_ATTRIBUTES = [
                             ('_oid', 'Object Id'),
                             ('datatype', 'Type')                       
@@ -853,7 +774,7 @@ class GatherScalogram(Density):
 
 class Angle(Density):
     tid = 'angle'
-    _TID_FRIENDLY_NAME = 'Angle'
+    _FRIENDLY_NAME = 'Angle'
     _SHOWN_ATTRIBUTES = [
                             ('_oid', 'Object Id'),
                             ('type', 'Type'),                             
@@ -873,7 +794,7 @@ class Angle(Density):
 
 class Velocity(Density):
     tid = 'velocity'
-    _TID_FRIENDLY_NAME = 'Velocity'
+    _FRIENDLY_NAME = 'Velocity'
     _SHOWN_ATTRIBUTES = [
                             ('_oid', 'Object Id'),
                             ('domain', 'Domain'),    
@@ -889,9 +810,10 @@ class Velocity(Density):
         super(Velocity, self).__init__(data, **attributes)
 
 
+
 class Spectogram(Density):
     tid = 'spectogram'
-    _TID_FRIENDLY_NAME = 'Spectogram'
+    _FRIENDLY_NAME = 'Spectogram'
     _SHOWN_ATTRIBUTES = [
                             ('_oid', 'Object Id'),
                             ('type', 'Type'),                             
@@ -913,32 +835,25 @@ class Spectogram(Density):
 ###############################################################################
 
 
-class Inversion(GenericDataType): #, DataTypeIndexMixin):
+class Inversion(GenericDataType):
     tid = "inversion"
-    _TID_FRIENDLY_NAME = 'Inversion'
+    _FRIENDLY_NAME = 'Inversion'
     _ACCEPT_MULTIPLE_INDEXES = True
     
     def __init__(self, **attributes):
         super(Inversion, self).__init__(**attributes)
 
 
-    # TODO: DEFINIR COMO FICARA INDEXES
-    """
-    def get_index(self):
-        indexes = self.list(tidfilter='inv_index_curve')
-        if indexes:
-            return indexes[0]
-    """
 
    
         
 class InversionParameter(GenericDataType):
                                  
     tid = "inversion_parameter"
-    _TID_FRIENDLY_NAME = 'Parameter'
+    _FRIENDLY_NAME = 'Parameter'
     _SHOWN_ATTRIBUTES = [
                             ('_oid', 'Object Id'),
-                            ('curvetype', 'Curve Type'),
+                            ('datatype', 'Curve Type'),
                             ('unit', 'Units'),
                             ('min', 'Min Value'),
                             ('max', 'Max Value'),
@@ -951,7 +866,6 @@ class InversionParameter(GenericDataType):
         super(InversionParameter, self).__init__(data, **attributes)
 
   
-    
     @property
     def start(self):
         if 'start' not in self.attributes:
@@ -982,11 +896,9 @@ class InversionParameter(GenericDataType):
         return self.name + '@' + parent.name
     
 
+###############################################################################
+###############################################################################
 
-
-###############################################################################
-###############################################################################
-###############################################################################
 
 VALID_INDEXES = {
     'I_LINE': {
@@ -1055,7 +967,7 @@ def check_data_index(index_type, axis_unit):
 # Class for discrete dimensions of Data Objects
 class DataIndex(GenericDataType):
     tid = 'data_index'
-    _TID_FRIENDLY_NAME = 'Index'
+    _FRIENDLY_NAME = 'Index'
     _SHOWN_ATTRIBUTES = [
                             ('_oid', 'Object Id'),
                             ('dimension', 'Dimension'),
@@ -1109,16 +1021,11 @@ class DataIndex(GenericDataType):
         dis = OM.list(self.tid, parent_uid)
         if self.dimension > len(dis):
             raise Exception('Dimension not valid [{}]'.format(self.dimension))
-        #elif self.dimension < len(dis)-1:
-        #    print '\n', self.dimension, len(dis)-1
-        #    raise Exception('Tratar 2 data_indexes por dimensao')
-        print 'NEW DATA_INDEX:', self.name, self.dimension
 
     @property
     def start(self):
         #if 'start' not in self.attributes:
         self.attributes['start'] = self.data[0]
-        print '   Start:', self.data[0]
         return self.attributes['start']
     
     @property

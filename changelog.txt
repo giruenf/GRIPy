@@ -1,4 +1,25 @@
 ﻿Gripy Change log
+Atualizado em 9/9/2017
+
+Versão 0.7b:
+============
+    - Fim do ParentObject. A tarefa de 'dizer' se um objeto tem filhos e 
+      quais são seus filhos fica (totalmente) a cargo do ObjectManager.
+    - Replicação da alteração acima para os Datatypes, com sensível 
+      diminuição de código;
+    - Criação (redefinição) da classe DataIndex. Agora um dado de multiplas
+      dimensões (exemplo sísmica: Iline/Xline/Tempo) pode possuir um DataIndex
+      para cada dimensão;
+    - Classe DataFilter (graças ao novo DataIndex). DataFilter permite a 
+      seleção de dados em uma das dimensões;
+    - A nova classe de interface NavigatorController é a responsável por
+      fazer a seleção de dados e atualizar DataFilter. Com o botão direito em
+      cima do rótulo de um objeto de uma classe que permita tal exibição
+      (ex: Seismic) a opção Show Navigator é exibida;
+    - Sistema de criacao de dialogos foi remodelado (de novo! [risos]);
+    - LogPlot passou a chamar-se WellPlot;
+    - Primeiros passo no GRIPy da classe Rock (enfim!).
+
 
 Versão 0.6:
 ===========

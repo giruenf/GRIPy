@@ -400,11 +400,7 @@ class GripyApp(wx.App):
                     label=u"Load Wilson Synthetics", 
                     callback='App.menu_functions.on_load_wilson'
             )  
-            
-            UIM.create('menu_item_controller', mc_debug.uid, 
-                    label=u"Load Sin/Cos", 
-                    callback='App.menu_functions.teste'
-            )            
+                  
 
 
             UIM.create('menu_item_controller', mc_debug.uid, 
@@ -548,14 +544,12 @@ class GripyApp(wx.App):
             )   
             
             
-            #'''
+            # """
             # Testes 
-            #"""
-            #fullfilename = 'C:\\Users\\Adriano\\Desktop\\AVO_INV_teste.pgg'
+            # """
             
-            #fullfilename = 'C:\\Users\\Adriano\\Desktop\\aaa_teste_2.pgg'
-            #self.load_project_data(fullfilename)      
-            
+            fullfilename = 'C:\\Users\\Adriano\\Desktop\\aaa_teste_2.pgg'
+            self.load_project_data(fullfilename)      
             
             #lpc = UIM.create('logplot_controller', mwc.uid)
             #tc1 = UIM.create('track_controller', lpc.uid)
@@ -567,64 +561,6 @@ class GripyApp(wx.App):
             #UIM.create('track_controller', lpc.uid, overview=True, plotgrid=False)
             
             
-            #tc1.model.x_scale = 1
-            #tc1.model.leftscale = 0.1
-            #tc1.model.decades = 7
-            #tc1.model.plotgrid = True
-            #tc1 = UIM.create('track_controller', lpc.uid)
-            #tc1.model.label = 'A'
-            #tc2 = UIM.create('track_controller', lpc.uid)
-            #tc3 = UIM.create('track_controller', lpc.uid)
-            #tc3.model.label = 'C'
-            #tc2.model.width = 800
-            #tc3 = UIM.create('track_controller', lpc.uid)
-            #tc4 = UIM.create('track_controller', lpc.uid, 
-            #                 overview=True, plotgrid=False
-            #)
-            #toc1 = tc4.append_object(('index_curve', 0))
-            #toc2 = tc4.append_object(('log', 2))
-            
-            #toc1 = tc1.append_object(('index_curve', 0))
-           # toc1.model.plottype = 'density'
-            #toc1 = tc2.append_object(('partition', 0))
-            #toc2 = tc2.append_object(('index_curve', 0))
-            #toc2.model.step = 50
-           # toc3 = tc3.append_object(('seismic', 3))
-            #toc1 = tc1.append_object(('log', 2))
-      #      toc4 = tc4.append_object(('seismic', 0))
-            #toc2 = tc1.append_object(('log', 3))
-            #toc3 = tc2.append_object(('log', 14))
-            #toc3 = tc3.append_object(('log', 15))
-            #toc4 = tc3.append_object(('log', 2))
-            #toc4 = tc4.append_object(('partition', 0))
-            #toc1.model.colormap = 'Greys'
-            #toc2.model.zmin = 0.5
-            #toc2.model.zmax =  1.0
-            
-           # toc1.model.plottype = 'wiggle'
-           # toc2.model.plottype = 'wiggle'
-           # toc3.model.plottype = 'wiggle'
-            
-           # toc1.model.fill = 'positive'
-           # toc2.model.fill = 'positive'
-           # toc3.model.fill = 'negative'
-            
-           # toc1.model.fill_color = 'red'
-           # toc2.model.fill_color = 'blue'
-           # toc3.model.fill_color = 'green'
-            
-            #toc2.model.colormap = 'gist_rainbow'
-            #toc2.model.zmin =  -100.0
-            #toc2.model.zmax =  3000.0
-           # toc3.model.color = 'red'
-           # toc4.model.color = 'blue'
-           # toc5.model.color = 'blue'
-            
-            #print lpc.uid
-            #controller.model.y_min, controller.model.y_max = depth
-            #lpc.model.y_min_shown = 2100
-            #lpc.model.y_max_shown = 3330
-            #lpc.model.fit = True
             #
             # CASA
             #mwc.model.pos = (-8, 0)
@@ -635,10 +571,9 @@ class GripyApp(wx.App):
             #mwc.model.pos = (-1925, -921) 
             #mwc.model.size = (1116, 1131) 
 
-                
+            # """    
             # Fim - Testes
             # """
-            #'''
             
             
         PM = GripyPluginManagerSingleton.get()

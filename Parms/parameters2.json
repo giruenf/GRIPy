@@ -193,7 +193,7 @@
             "Caliper": 31
         },
         "cali": {
-            "Caliper": 132
+            "Caliper": 133
         },
         "caliper": {
             "Caliper": 0
@@ -280,7 +280,7 @@
             "MD": 136
         },
         "depth": {
-            "MD": 46
+            "MD": 51
         },
         "dev": {
             "Deviation": 0
@@ -427,7 +427,7 @@
             "GammaRay": 0
         },
         "gr": {
-            "GammaRay": 198
+            "GammaRay": 199
         },
         "gr_": {
             "GammaRay": 10
@@ -742,7 +742,7 @@
             "RB_Offset": 0
         },
         "owt": {
-            "Time": 2
+            "Time": 6
         },
         "p1az": {
             "Tool_Azimuth": 8
@@ -871,10 +871,10 @@
             "GammaRay": 12
         },
         "rho": {
-            "Density": 3
+            "Density": 7
         },
         "rhob": {
-            "Density": 115
+            "Density": 116
         },
         "rhoc": {
             "Density": 0
@@ -1189,7 +1189,7 @@
             "TwcPredicted": 0
         },
         "twt": {
-            "TWT": 1
+            "TWT": 5
         },
         "u": {
             "Spectral": 1
@@ -1243,10 +1243,10 @@
             "Velocity": 0
         },
         "vp": {
-            "Velocity": 65
+            "Velocity": 70
         },
         "vs": {
-            "ShearVel": 65
+            "ShearVel": 70
         },
         "vsalt": {
             "Vsalt": 0
@@ -1335,7 +1335,7 @@
             "Log": 31
         },
         "cali": {
-            "Log": 132
+            "Log": 133
         },
         "coordew": {
             "Log": 12
@@ -1369,7 +1369,7 @@
             "Index": 136
         },
         "depth": {
-            "Index": 42
+            "Index": 47
         },
         "devi": {
             "Log": 4
@@ -1432,7 +1432,7 @@
             "Log": 20
         },
         "gr": {
-            "Log": 198
+            "Log": 199
         },
         "gr_": {
             "Log": 11
@@ -1525,7 +1525,7 @@
             "Log": 1
         },
         "owt": {
-            "Index": 2
+            "Index": 6
         },
         "p1az": {
             "Log": 8
@@ -1558,7 +1558,7 @@
             "Log": 4
         },
         "pr": {
-            "Log": 27
+            "Log": 28
         },
         "psr": {
             "Log": 31
@@ -1597,10 +1597,10 @@
             "Log": 4
         },
         "rho": {
-            "Log": 3
+            "Log": 7
         },
         "rhob": {
-            "Log": 115
+            "Log": 116
         },
         "rhoma": {
             "Log": 11
@@ -1700,6 +1700,7 @@
             "Log": 1
         },
         "twt": {
+            "Index": 4,
             "Log": 1
         },
         "u": {
@@ -1712,13 +1713,13 @@
             "Log": 2
         },
         "vp": {
-            "Log": 65
+            "Log": 70
         },
         "vpvs": {
             "Log": 86
         },
         "vs": {
-            "Log": 65
+            "Log": 70
         },
         "vsh": {
             "Log": 12
