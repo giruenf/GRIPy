@@ -10,7 +10,7 @@ from UI.uimanager import UIViewBase
 from mpl_base import TrackFigureCanvas
 from mpl_base import VisDataLabel
 
-from App.utils import LogPlotState  
+from App.app_utils import LogPlotState  
 from App import log
 
 

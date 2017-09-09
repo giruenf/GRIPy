@@ -124,7 +124,7 @@ def get_class_full_name(obj):
     try:
         full_name = obj.__class__.__module__ + "." + obj.__class__.__name__
     except Exception, e:
-        msg = 'ERROR in function app.utils.get_class_full_name().'
+        msg = 'ERROR in function app.app_utils.get_class_full_name().'
         log.exception(msg)
         raise e
     return full_name    
@@ -146,7 +146,7 @@ def get_function_from_string(fullpath_function):
         function_ = getattr(module_, function_str)
         return function_    
     except Exception, e:
-        msg = 'ERROR in function app.utils.get_function_from_string({}).'.format(fullpath_function)
+        msg = 'ERROR in function app.app_utils.get_function_from_string({}).'.format(fullpath_function)
         log.exception(msg)
         raise e        
              
@@ -282,7 +282,7 @@ def write_json_file(py_object, fullfilename):
     directory = os.path.dirname(fullfilename)
     if not os.path.exists(directory):
         os.makedirs(directory)
-        msg = 'App.utils.write_json_file has created directory: {}'.format(directory)
+        msg = 'App.app_utils.write_json_file has created directory: {}'.format(directory)
         #log.debug(msg)
         print msg
     f = open(fullfilename, 'w')

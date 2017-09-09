@@ -23,8 +23,8 @@ class MainWindowController(FrameController):
     but not finish the wx.App.
     This job must be done by Wx. (don't try to change it!)
     """
-    def _pre_exit_application(self):
-        wx.App.Get().PreExit()
+    #def _pre_exit_application(self):
+    #    wx.App.Get().PreExit()
 
     def insert_notebook_page(self, *args, **kwargs):
         return self.view.insert_notebook_page(*args, **kwargs)
@@ -57,11 +57,15 @@ class MainWindow(Frame):
         self.Bind(aui.EVT_AUINOTEBOOK_PAGE_CLOSE, self.on_page_close, self.note)
 
     def on_close(self, event):
+        wx.App.Get().PreExit()
+        event.Skip()
+        '''
         UIM = UIManager()
         controller = UIM.get(self._controller_uid)
         controller._pre_exit_application()
         event.Skip()
-
+        '''
+        
     def on_page_close(self, event):
         panel = self.note.GetPage(event.GetSelection())
         UIM = UIManager()

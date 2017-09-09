@@ -69,6 +69,11 @@ class WorkPage(UIViewBase, wx.Panel):
             log.error('Page could not be inserted in MainWindow notebook.')
 
 
-
-        
+    def PreDelete(self):
+        try:
+            self.sizer.Remove(0)
+            del self.tool_bar
+        except Exception, e:
+            msg = 'PreDelete ' + self.__class__.name + ' ended with error: ' + e.args 
+            print msg       
         

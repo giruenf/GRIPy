@@ -37,9 +37,8 @@ class GenericObject(PublisherMixin):
         return str(self.uid)        
 
     ###
-    def _being_deleted(self):
-        topic = 'remove'
-        self.send_message(topic)
+    #def _being_deleted(self):
+    #    self.send_message('remove')
     ###
 
     @property

@@ -8,7 +8,7 @@ import weakref
 import types
 from collections import OrderedDict
 #import FileIO.utils
-import App.utils
+import App.app_utils
 from App import log
 
 from App.pubsub import PublisherMixin
@@ -18,7 +18,7 @@ from OM.Manager import ObjectManager
 ###############################################################################
 ###############################################################################
 
-class UI_MODEL_ATTR_CLASS(App.utils.GripyEnum):     
+class UI_MODEL_ATTR_CLASS(App.app_utils.GripyEnum):     
     APPLICATION = 1
     USER = 2
 
@@ -60,7 +60,10 @@ class UIBase(object):
     
     def check_creator(self):
         # Only UIManager can create objects. Checking it!
-        caller_info = App.utils.get_caller_info()
+        #print 'ZZZ'
+        caller_info = App.app_utils.get_caller_info()
+        #print 'ZZZ2:', caller_info
+        #print
         ok = False
         for idx, ci in enumerate(caller_info):
             module_name = None
@@ -87,16 +90,15 @@ class UIControllerBase(UIBase, PublisherMixin):
     _singleton = False
     _singleton_per_parent = False
        
-    
     def __init__(self):
         super(UIControllerBase, self).__init__()  
-        _UIM = UIManager()
-        self.oid = _UIM._getnewobjectid(self.tid)
+        UIM = UIManager()
+        self.oid = UIM._getnewobjectid(self.tid)
           
 
     def _create_model_view(self, **base_state): 
-        _UIM = UIManager()           
-        model_class, view_class = _UIM.get_model_view_classes(self.tid)
+        UIM = UIManager()           
+        model_class, view_class = UIM.get_model_view_classes(self.tid)
         if model_class is not None:
             try:
                 self.model = model_class(self.uid, **base_state)
@@ -159,8 +161,7 @@ class UIControllerBase(UIBase, PublisherMixin):
             obj.subscribe(self._call_self_remove, 'remove')
         except:
             pass
-        
-        
+           
     def detach(self, OM_objuid):
         #print 'detach:', OM_objuid
         OM = ObjectManager(self)
@@ -219,37 +220,46 @@ class UIModelBase(UIBase):
 
     def __init__(self, controller_uid, **state):
         # TODO: REVER NECESSIDADE DE 'attr_class' e DE 'base_attr'
-        super(UIModelBase, self).__init__()
-        self.__initialised = False        
-        self._controller_uid = controller_uid
-        self._processing_value_from_event = False
-        UIM = UIManager()
-        self.oid = UIM._getnewobjectid(self.tid)   
-        # We are considering that only Controller class objects 
-        # can create Model class objects. Then, we must verify it
-        model_class = UIM.get_model_view_classes(controller_uid[0])[0]
-        if self.__class__ != model_class:
-            msg = 'Error! Only the controller can create the model.'
-            raise Exception(msg)    
-        for attr_name, attr_props in self._ATTRIBUTES.items():
-            #if attr_props.get('attr_class') not in UI_MODEL_ATTR_CLASS.__members__.values():
-            #    msg = '{}.{} has not a valid ''attr_class'' value: {}. Valid values are UI.uimanager.UI_MODEL_ATTR_CLASS members.'.format( \
-            #        self.__class__.__name__, attr_name, 
-            #        attr_props.get('attr_class')
-            #    )
-            #    print '\n', msg
-            #if attr_props.get('attr_class') == UI_MODEL_ATTR_CLASS.APPLICATION \
-            if state.has_key(attr_name):
-                self[attr_name] = state.get(attr_name)
-            else:    
-                self[attr_name] = attr_props.get('default_value')                       
-        self.__initialised = True
+        try:
+            super(UIModelBase, self).__init__()
+            self._controller_uid = controller_uid
+            self.__initialised = False       
+            self._processing_value_from_event = False
+            UIM = UIManager()
+            self.oid = UIM._getnewobjectid(self.tid) 
+            # We are considering that only Controller class objects 
+            # can create Model class objects. Then, we must verify it
+            model_class = UIM.get_model_view_classes(controller_uid[0])[0]
+            if self.__class__ != model_class:
+                msg = 'Error! Only the controller can create the model.'
+                raise Exception(msg)    
+            for attr_name, attr_props in self._ATTRIBUTES.items():
+                #if attr_props.get('attr_class') not in UI_MODEL_ATTR_CLASS.__members__.values():
+                #    msg = '{}.{} has not a valid ''attr_class'' value: {}. Valid values are UI.uimanager.UI_MODEL_ATTR_CLASS members.'.format( \
+                #        self.__class__.__name__, attr_name, 
+                #        attr_props.get('attr_class')
+                #    )
+                #    print '\n', msg
+                #if attr_props.get('attr_class') == UI_MODEL_ATTR_CLASS.APPLICATION \
+                if state.has_key(attr_name):
+                    self[attr_name] = state.get(attr_name)
+                else:    
+                    self[attr_name] = attr_props.get('default_value')                       
+            self.__initialised = True
+        except Exception as e:
+            try:
+                UIM = UIManager()
+                UIM.remove(self._controller_uid)
+            except:
+                pass
+            raise e
+        
         
     def PostInit(self):
         pass
 
     def initialised(self):
-        return self.__dict__.get('_UIModelBase__initialised')
+        return self.__dict__.get('UIModelBase__initialised')
 
     def set_value_from_event(self, key, value):
         self._processing_value_from_event = True
@@ -306,7 +316,7 @@ class UIModelBase(UIBase):
         # Special treatment for functions
         if type_ == types.FunctionType:
             if isinstance(value, basestring):
-                value = App.utils.get_function_from_string(value)
+                value = App.app_utils.get_function_from_string(value)
             if value is not None and not callable(value):
                 msg = 'ERROR: Attributes signed as \"types.FunctionType\" can recieve only \"str\" or \"types.FunctionType\" values. '
                 msg += 'Received: {} - Type: {}'.format(value, type(value))
@@ -400,11 +410,11 @@ class UIViewBase(UIBase):
     def __init__(self, controller_uid):
         UIBase.__init__(self)
         self._controller_uid = controller_uid
-        _UIM = UIManager()  
-        self.oid = _UIM._getnewobjectid(self.tid)
+        UIM = UIManager()  
+        self.oid = UIM._getnewobjectid(self.tid)
         # We are considering that only Controller class objects 
         # can create View class objects. Then, we must verify it       
-        view_class = _UIM.get_model_view_classes(controller_uid[0])[1]
+        view_class = UIM.get_model_view_classes(controller_uid[0])[1]
         if self.__class__ != view_class:
             msg = 'Error! Only the controller can create the view.'
             log.exception(msg)
@@ -433,7 +443,7 @@ class UIManager(PublisherMixin):
     #_VALID_PUBSUB_TOPICS = ['uim', 'uim.object_removed']
 
     def __init__(self):
-        caller_info = App.utils.get_caller_info()
+        caller_info = App.app_utils.get_caller_info()
         owner = caller_info[0][1]
         #print '\n', owner
         # TODO:
@@ -560,7 +570,7 @@ class UIManager(PublisherMixin):
 
     def get(self, uid):
         if isinstance(uid, basestring):
-            uid = App.utils.parse_string_to_uid(uid)
+            uid = App.app_utils.parse_string_to_uid(uid)
         return self._data.get(uid)
 
 
@@ -999,7 +1009,7 @@ class UIManager(PublisherMixin):
         msg = 'Loading Gripy application UI from file {}'.format(fullfilename)
         print msg
         log.debug(msg)
-        _state = App.utils.read_json_file(fullfilename)
+        _state = App.app_utils.read_json_file(fullfilename)
         self._load_application_state(_state)        
         msg = 'Gripy application UI loaded.'
         print msg
@@ -1010,7 +1020,7 @@ class UIManager(PublisherMixin):
         msg = 'Loading Gripy user UI session from file {}'.format(fullfilename)
         print msg
         log.debug(msg)
-        _state = App.utils.read_json_file(fullfilename)
+        _state = App.app_utils.read_json_file(fullfilename)
         self._load_user_state(_state)        
         msg = 'Gripy user UI session loaded.'
         print msg
@@ -1028,7 +1038,7 @@ class UIManager(PublisherMixin):
             log.exception(msg)
         if state is not None: 
             try:
-                App.utils.write_json_file(state, fullfilename)
+                App.app_utils.write_json_file(state, fullfilename)
                 msg = 'Gripy interface state was saved to file ' + fullfilename 
                 print msg
                 log.info(msg)
@@ -1045,7 +1055,7 @@ class UIManager(PublisherMixin):
             log.exception(msg)
         if state is not None: 
             try:
-                App.utils.write_json_file(state, fullfilename)
+                App.app_utils.write_json_file(state, fullfilename)
                 msg = 'Gripy interface state was saved to file ' + fullfilename 
                 print msg
                 log.info(msg)

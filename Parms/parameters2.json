@@ -280,7 +280,7 @@
             "MD": 136
         },
         "depth": {
-            "MD": 51
+            "MD": 64
         },
         "dev": {
             "Deviation": 0
@@ -742,7 +742,7 @@
             "RB_Offset": 0
         },
         "owt": {
-            "Time": 6
+            "Time": 13
         },
         "p1az": {
             "Tool_Azimuth": 8
@@ -871,7 +871,7 @@
             "GammaRay": 12
         },
         "rho": {
-            "Density": 7
+            "Density": 20
         },
         "rhob": {
             "Density": 116
@@ -1156,7 +1156,7 @@
             "Spectral": 0
         },
         "time": {
-            "Time": 8
+            "Time": 14
         },
         "tnph": {
             "Neutron": 0
@@ -1189,7 +1189,7 @@
             "TwcPredicted": 0
         },
         "twt": {
-            "TWT": 5
+            "TWT": 12
         },
         "u": {
             "Spectral": 1
@@ -1243,10 +1243,10 @@
             "Velocity": 0
         },
         "vp": {
-            "Velocity": 70
+            "Velocity": 83
         },
         "vs": {
-            "ShearVel": 70
+            "ShearVel": 83
         },
         "vsalt": {
             "Vsalt": 0
@@ -1369,7 +1369,7 @@
             "Index": 136
         },
         "depth": {
-            "Index": 47
+            "Index": 60
         },
         "devi": {
             "Log": 4
@@ -1525,7 +1525,7 @@
             "Log": 1
         },
         "owt": {
-            "Index": 6
+            "Index": 13
         },
         "p1az": {
             "Log": 8
@@ -1597,7 +1597,7 @@
             "Log": 4
         },
         "rho": {
-            "Log": 7
+            "Log": 20
         },
         "rhob": {
             "Log": 116
@@ -1675,7 +1675,7 @@
             "Log": 1
         },
         "time": {
-            "Index": 8
+            "Index": 14
         },
         "tot": {
             "Log": 59
@@ -1700,7 +1700,7 @@
             "Log": 1
         },
         "twt": {
-            "Index": 4,
+            "Index": 11,
             "Log": 1
         },
         "u": {
@@ -1713,13 +1713,13 @@
             "Log": 2
         },
         "vp": {
-            "Log": 70
+            "Log": 83
         },
         "vpvs": {
             "Log": 86
         },
         "vs": {
-            "Log": 70
+            "Log": 83
         },
         "vsh": {
             "Log": 12

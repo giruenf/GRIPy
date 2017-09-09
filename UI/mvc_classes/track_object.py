@@ -9,7 +9,7 @@ from UI.uimanager import UIViewBase
 from DT.DataTypes import Density
 
 
-from matplotlib.transforms import (Bbox, BboxTransform)
+#from matplotlib.transforms import (Bbox, BboxTransform)
                                    
 
 #from matplotlib.transforms import (Affine2D, BboxBase, Bbox, BboxTransform,
@@ -35,7 +35,7 @@ from matplotlib.patches import FancyBboxPatch
 import collections                                      
                                           
   
-from App.utils import MPL_COLORS, MPL_COLORMAPS
+from App.app_utils import MPL_COLORS, MPL_COLORMAPS
 #import wx
 
 
@@ -162,7 +162,6 @@ class DataFilter(GenericObject):
                     self.data.append((index.uid, True, True, 0, len(index.data)))
                 else:
                     self.data.append((index.uid, False, False, 0, len(index.data)))
-            self.tracks_objuids.append(track_objuid)    
         except:
             raise     
 

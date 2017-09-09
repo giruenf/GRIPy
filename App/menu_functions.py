@@ -18,7 +18,7 @@ from App.gripy_debug_console import DebugConsoleFrame
 
 from DT.UOM import uom as UOM
 
-import utils
+import app_utils
 
 from Algo.Spectral.Spectral import STFT, WaveletTransform, Morlet, Paul, DOG, Ricker
 #from UI.dialog_new import Dialog
@@ -64,7 +64,7 @@ def teste10(event):
     """
     filename = 'D:\\Sergio_Adriano\\NothViking\\Mobil_AVO_Viking_pstm_16_CIP_prec_stk.sgy'
     name = 'Mobil_AVO_Viking_pstm_16_CIP_prec_stk'
-    utils.load_segy(event, filename, 
+    app_utils.load_segy(event, filename, 
         new_obj_name=name, 
         comparators_list=None,
         iline_byte=9, xline_byte=21, offset_byte=37
@@ -73,7 +73,7 @@ def teste10(event):
     #"""
     filename = 'D:\\Sergio_Adriano\\NothViking\\Mobil_AVO_Viking_pstm_16_stk.sgy'
     name = 'Mobil_AVO_Viking_pstm_16_stk'
-    utils.load_segy(event, filename, 
+    app_utils.load_segy(event, filename, 
         new_obj_name=name, 
         comparators_list=None,
         iline_byte=9, xline_byte=21, offset_byte=37
@@ -119,21 +119,56 @@ def on_modelling_pp(event):
     dlg = UIM.create('dialog_controller', title='P-Wave Modeling')
     #
     try:
+        wells = OrderedDict()
+        for well in OM.list('well'):
+            wells[well.name] = well.uid
+        #
+        ctn_well = dlg.view.AddCreateContainer('StaticBox', label='Well', orient=wx.VERTICAL, proportion=0, flag=wx.EXPAND|wx.TOP, border=5)
+        dlg.view.AddChoice(ctn_well, proportion=0, flag=wx.EXPAND|wx.TOP, border=5, widget_name='welluid', options=wells)
+
+        #            
         ctn_vp = dlg.view.AddCreateContainer('StaticBox', label='Compressional wave', orient=wx.VERTICAL, proportion=0, flag=wx.EXPAND|wx.TOP, border=5)     
         #
-        logs = OrderedDict()
-        for log in OM.list('log'):
-            logs[log.get_friendly_name()] = log.uid
-        dlg.view.AddChoice(ctn_vp, proportion=0, flag=wx.EXPAND|wx.TOP, border=5, widget_name='vp', options=logs)    
+        #logs = OrderedDict()
+        #for log in OM.list('log'):
+        #    logs[log.get_friendly_name()] = log.uid
+        dlg.view.AddChoice(ctn_vp, proportion=0, flag=wx.EXPAND|wx.TOP, border=5, widget_name='vp')    
         #
         ctn_vs = dlg.view.AddCreateContainer('StaticBox', label='Shear wave', orient=wx.VERTICAL, proportion=0, flag=wx.EXPAND|wx.TOP, border=5) 
-        dlg.view.AddChoice(ctn_vs, proportion=0, flag=wx.EXPAND|wx.TOP, border=5, widget_name='vs', options=logs)
+        dlg.view.AddChoice(ctn_vs, proportion=0, flag=wx.EXPAND|wx.TOP, border=5, widget_name='vs')
         #
         ctn_rho = dlg.view.AddCreateContainer('StaticBox', label='Density', orient=wx.VERTICAL, proportion=0, flag=wx.EXPAND|wx.TOP, border=5) 
-        dlg.view.AddChoice(ctn_rho, proportion=0, flag=wx.EXPAND|wx.TOP, border=5, widget_name='rho', options=logs)
+        dlg.view.AddChoice(ctn_rho, proportion=0, flag=wx.EXPAND|wx.TOP, border=5, widget_name='rho')
         #
         ctn_rho = dlg.view.AddCreateContainer('StaticBox', label='New object name', orient=wx.VERTICAL, proportion=0, flag=wx.EXPAND|wx.TOP, border=5) 
         dlg.view.AddTextCtrl(ctn_rho, proportion=0, flag=wx.EXPAND|wx.TOP, border=5, widget_name='new_name', initial='') 
+        #
+        def on_change_well(name, old_value, new_value, **kwargs):
+            print '\non_change_well:', name, old_value, new_value, kwargs
+            vps = OrderedDict()
+            vss = OrderedDict()
+            rhos = OrderedDict()
+            OM = ObjectManager(on_change_well)
+            logs = OM.list('log', new_value)
+            for log in logs:
+                if log.datatype == 'Velocity':
+                    vps[log.name] = log.uid
+                elif log.datatype == 'ShearVel':
+                    vss[log.name] = log.uid
+                elif log.datatype == 'Density':
+                    rhos[log.name] = log.uid    
+            choice_vp = dlg.view.get_object('vp')
+            choice_vs = dlg.view.get_object('vs')
+            choice_rho = dlg.view.get_object('rho')
+            choice_vp.set_options(vps)
+            choice_vs.set_options(vss)
+            choice_rho.set_options(rhos)
+            choice_vp.set_value(0, True)
+            choice_vs.set_value(0, True)
+            choice_rho.set_value(0, True)
+        #    
+        choice_well = dlg.view.get_object('welluid')
+        choice_well.set_trigger(on_change_well)         
         #
         dlg.view.SetSize((270, 430))
         result = dlg.view.ShowModal()
@@ -144,23 +179,26 @@ def on_modelling_pp(event):
             
         disableAll = wx.WindowDisabler()
         wait = wx.BusyInfo("Wait...")        
-        
+        welluid = results['welluid']
         vp_data = OM.get(results.get('vp')).data
         vs_data = OM.get(results.get('vs')).data
         rho_data = OM.get(results.get('rho')).data
+        new_name = results.get('new_name')
         
         angles_rad = np.deg2rad(np.array(range(46)))
         
         reflectivity = avo_modeling_akirichards_pp(vp_data, vs_data, rho_data, angles_rad)
-        print reflectivity.shape, vp_data.shape
+        reflectivity = np.insert(reflectivity, 0, np.nan, axis=0)
+        #
+        well = OM.get(welluid)
+        #
+        model = OM.new('model1d', reflectivity, name=new_name)
+        #
         
-        #print '\n\n'
-        #for i in range(reflectivity.shape[0]):
-        #    print i, '-', reflectivity[i]
-         
-        #for i, val in enumerate(reflectivity[19685]):
-        #    print i, '-',  val
-        
+        #
+        OM.add(model, welluid)
+                
+   
     except Exception as e:
         print '\n', e.message, e.args
         pass
@@ -169,126 +207,6 @@ def on_modelling_pp(event):
         del disableAll 
         UIM.remove(dlg.uid) 
 
-
-def teste8(event):
-    
-    filename = 'D:\\Sergio_Adriano\\NothViking\\novo\\Mobil_AVO_Viking_pstm_16_prec_stk.sgy'
-    #filename = 'D:\\Sergio_Adriano\\NothViking\\novo\\Vrms_XT05_stp01_sm.sgy'
-    #filename = 'D:\\Sergio_Adriano\\NothViking\\novo\\Mobil_AVO_mb_den.sgy'
-    
-    #filename = 'D:\\Sergio_Adriano\\NothViking\\Mobil_AVO_Viking_pstm_16_CIP_prec_stk.sgy'
-    #filename = 'D:\\Sergio_Adriano\\NothViking\\seismic.sgy'
-    
-    segy_file = FileIO.SEGY.SEGYFile(filename) 
-    #segy_file.read([(17, 4, '==', 101),
-    #                (17, 4, '==', 102),
-    #                (17, 4, '==', 103)])
-
-
-    #segy_file.read([(21, 4, '==', 808)])
-    
-    
-    template_positions = [ 
-        (1, 4), # trace number absolute
-        (5, 4), # trace number absolute
-        (9, 4), 
-        (13, 4), # order in the shot (1-120)
-        (17, 4), # shot record
-        (21, 4),
-        (25, 4),
-        (27, 2),    
-        (29, 2),
-        (31, 2),
-        (33, 2),
-        (35, 2),
-        (37, 4),
-        (41, 4),
-        (45, 4),
-        (49, 4),
-        (53, 4),
-        (57, 4),
-        (61, 4),
-        (65, 4),
-        (69, 2),
-        (71, 2),   
-            
-        (73, 4),
-        (77, 4),
-    
-        (81, 4),
-        (85, 4),
-        (89, 4),
-        
-        (93, 4),
-        (181, 4),
-        (185, 4),
-        (189, 4),
-        (193, 4),
-        (197, 4)
-                
-    ]
-    
-
-    '''
-    template_positions = [
-        (1, 4), # trace number absolute
-        (5, 4), # trace number absolute
-        (9, 4), 
-        (13, 4), # order in the shot (1-120)
-        (17, 4), # shot record
-        (21, 4),
-        (25, 4),
-        (27, 2),
-        (73, 4),
-        (81, 4),
-        (89, 4)
-    ]    
-    '''
-    
-    '''
-    template_positions = [
-        (1, 4), # trace number absolute
-        (5, 4), # trace number absolute
-        (9, 4), 
-        (21, 4),
-        (37, 4)
-    ]
-    '''
-
-    for header in segy_file.get_dump_data():
-
-    #for header in segy_file.headers:
-        
-        print
-        '''
-        print 'SEQ: {}'.format(FileIO.SEGY.get_value(header, 1, 4))
-        print 'SPT: {}'.format(FileIO.SEGY.get_value(header, 17, 4))
-        print 'CDP: {}'.format(FileIO.SEGY.get_value(header, 21, 4))
-        '''
-        
-        for pos, nbytes in template_positions:
-            print 'byte {}: {}'.format(pos, FileIO.SEGY.get_value(header, pos, nbytes))
-
-
-
-
-def teste4(event):
-    #
-    filename = 'D:\\Sergio_Adriano\\NothViking\\Mobil_AVO_Viking_pstm_16_CIP_stk.sgy'
-    name = 'Mobil_AVO_Viking_pstm_16_CIP_stk'
-    utils.load_segy(event, filename, 
-        new_obj_name=name, 
-        comparators_list=[(21, 4, '==', 808), (21, 4, '==', 1572)], 
-        iline_byte=9, xline_byte=21, offset_byte=37
-    )
-    #
-    filename = 'D:\\Sergio_Adriano\\NothViking\\Mobil_AVO_Viking_pstm_16_CIP_prec_stk.sgy'
-    name =  'Mobil_AVO_Viking_pstm_16_CIP_prec_stk'   
-    utils.load_segy(event, filename, 
-        new_obj_name=name, 
-        comparators_list=[(21, 4, '==', 808), (21, 4, '==', 1572)], 
-        iline_byte=9, xline_byte=21, offset_byte=37
-    )    
 
 
 def teste7(event):
@@ -1126,6 +1044,22 @@ def teste5(event):
 
 
 
+def on_exit(*args, **kwargs):
+    gripy_app = wx.App.Get() 
+    event = args[0]
+    event.Skip()
+    gripy_app.PreExit()
+    main_window = gripy_app.GetTopWindow()
+    main_window.Destroy()
+
+    
+
+def on_new(*args, **kwargs):
+    gripy_app = wx.App.Get() 
+    gripy_app.reset_ObjectManager()
+
+
+
 def on_open(*args, **kwargs):
     wildcard = "Arquivo de projeto do GRIPy (*.pgg)|*.pgg"
     try:
@@ -1336,8 +1270,8 @@ def on_import_las(event):
                 
                 elif sel_datatypes[i] == 'Log':
                     log = OM.new('log', data[i], name=names[i], 
-                                unit=units[i], datatype=sel_curvetypes[i],
-                                index_uid=index.uid
+                                unit=units[i], datatype=sel_curvetypes[i]
+                                #index_uid=index.uid
                     )
                     OM.add(log, well.uid)
 
@@ -1348,8 +1282,8 @@ def on_import_las(event):
                         print 'data[{}]: {}'.format(i, data[i])
                         raise
                     partition = OM.new('partition', name=names[i], 
-                                           datatype=sel_curvetypes[i],
-                                           index_uid=index.uid
+                                           datatype=sel_curvetypes[i]#,
+                                           #index_uid=index.uid
                     )
                     OM.add(partition, well.uid)
                     for j in range(len(codes)):
@@ -1516,7 +1450,7 @@ def on_import_segy_seis(event):
     if result == wx.ID_CANCEL:
         return
     name = file_name.split('.')[0]
-    utils.load_segy(event, os.path.join(dir_name, file_name), 
+    app_utils.load_segy(event, os.path.join(dir_name, file_name), 
                     new_obj_name=name, comparators_list=None, 
               iline_byte=9, xline_byte=21, offset_byte=37
     )
@@ -1607,7 +1541,7 @@ def on_import_segy_well_gather(event):
             if xline_number: 
                 comparators.append((xline_byte, 4, '==', xline_number))                
             #
-            utils.load_segy(event, filename, 
+            app_utils.load_segy(event, filename, 
                 new_obj_name=wellgather_name, 
                 comparators_list=comparators, 
                 iline_byte=iline_byte, xline_byte=xline_byte, 
@@ -1617,7 +1551,7 @@ def on_import_segy_well_gather(event):
             """
             filename = 'D:\\Sergio_Adriano\\NothViking\\Mobil_AVO_Viking_pstm_16_CIP_stk.sgy'
             name = 'Mobil_AVO_Viking_pstm_16_CIP_stk'
-            utils.load_segy(event, filename, 
+            app_utils.load_segy(event, filename, 
                 new_obj_name=name, 
                 comparators_list=[(21, 4, '==', 808), (21, 4, '==', 1572)], 
                 iline_byte=9, xline_byte=21, offset_byte=37
@@ -1754,12 +1688,11 @@ def on_createrock(event):
 
     #    
     c1 = dlg.view.AddCreateContainer('StaticBox', label='Well', orient=wx.VERTICAL, proportion=0, flag=wx.EXPAND|wx.TOP, border=5)
-    dlg.view.AddChoice(c1, proportion=0, flag=wx.EXPAND|wx.TOP, border=5,  widget_name='welluid', options=wells)#, listening=(None, func))
+    dlg.view.AddChoice(c1, proportion=0, flag=wx.EXPAND|wx.TOP, border=5,  widget_name='welluid', options=wells)
     #
     ctn_name = dlg.view.AddCreateContainer('StaticBox', label='Rock name:', orient=wx.VERTICAL, proportion=0, flag=wx.EXPAND|wx.TOP, border=5)
     dlg.view.AddTextCtrl(ctn_name, proportion=0, flag=wx.EXPAND|wx.TOP, 
                          border=5, widget_name='rock_name', initial='new_rock'#, 
-                         #listening=(None, changed_synth_name)
     )
 
     #
@@ -1787,16 +1720,17 @@ def on_createwell(event):
             orient=wx.VERTICAL, proportion=0, flag=wx.EXPAND|wx.TOP, border=5
     )
     #
-    def changed_well_name(name, old_value, new_value, **kwargs):
+    def on_change_well_name(name, old_value, new_value, **kwargs):
         if new_value == '':
             dlg.view.enable_button(wx.ID_OK, False)
         else:
             dlg.view.enable_button(wx.ID_OK, True)
     #
     dlg.view.AddTextCtrl(ctn_name, proportion=0, flag=wx.EXPAND|wx.TOP, 
-                         border=5, widget_name='well_name', initial='', 
-                         listening=(None, changed_well_name)
+                         border=5, widget_name='well_name', initial=''
     )
+    textctrl_well_name = dlg.view.get_object('well_name')
+    textctrl_well_name.set_trigger(on_change_well_name)
     #
     #container = dlg.view.AddStaticBoxContainer(label='Synthetic type', orient=wx.VERTICAL, proportion=0, flag=wx.EXPAND|wx.TOP, border=5)
     #dlg.view.AddChoice(container, proportion=0, flag=wx.EXPAND|wx.TOP, border=5, widget_name='synth_type', initial=synth_type)  
@@ -1807,7 +1741,7 @@ def on_createwell(event):
     datatypes['Time'] = 'TIME'
     datatypes['MD'] = 'MD'
     #
-    def func(name, old_value, new_value, **kwargs):
+    def on_change_datatype(name, old_value, new_value, **kwargs):
         textctrl_name = dlg.view.get_object('index_name')
         statictext_start = dlg.view.get_object('static_start')
         statictext_end = dlg.view.get_object('static_end')
@@ -1826,7 +1760,9 @@ def on_createwell(event):
     #    
     c1 = dlg.view.AddCreateContainer('BoxSizer', ctn_index_base, orient=wx.HORIZONTAL, proportion=1, flag=wx.EXPAND|wx.ALL, border=5)
     dlg.view.AddStaticText(c1, label='Type:', proportion=1, flag=wx.ALIGN_RIGHT)
-    dlg.view.AddChoice(c1, proportion=1, flag=wx.ALIGN_LEFT, widget_name='datatype', options=datatypes, listening=(None, func))
+    dlg.view.AddChoice(c1, proportion=1, flag=wx.ALIGN_LEFT, widget_name='datatype', options=datatypes)
+    choice_datatype = dlg.view.get_object('datatype')
+    choice_datatype.set_trigger(on_change_datatype)
     #
     c2 = dlg.view.AddCreateContainer('BoxSizer', ctn_index_base, orient=wx.HORIZONTAL, proportion=1, flag=wx.EXPAND|wx.ALL, border=5)
     dlg.view.AddStaticText(c2, label='Name:', proportion=1, flag=wx.ALIGN_RIGHT)
@@ -1848,7 +1784,6 @@ def on_createwell(event):
     #dlg.view.DetachContainer(ctn_index)
     #dlg.view.AddContainer(ctn_index, proportion=0, flag=wx.EXPAND|wx.TOP, border=5)
     #
-    choice_datatype = dlg.view.get_object('datatype')
     choice_datatype.set_value(0, True)
     dlg.view.enable_button(wx.ID_OK, False)
     #
@@ -1893,24 +1828,23 @@ def on_create_synthetic(event):
     for well in OM.list('well'):
         wells[well.name] = well.uid
     #
-    def func(name, old_value, new_value, **kwargs):
+    def on_change_well(name, old_value, new_value, **kwargs):
         choice = dlg.view.get_object('indexuid')
         opt = OrderedDict()
-        print '\nnew_value', new_value, type(new_value)
         for obj in OM.list('data_index', new_value):
             opt[obj.name] = obj.uid
         choice.set_options(opt)
         choice.set_value(0, True)
-    
     #    
     c1 = dlg.view.AddCreateContainer('StaticBox', label='Well', orient=wx.VERTICAL, proportion=0, flag=wx.EXPAND|wx.TOP, border=5)
-    dlg.view.AddChoice(c1, proportion=0, flag=wx.EXPAND|wx.TOP, border=5,  widget_name='welluid', options=wells, listening=(None, func))
+    dlg.view.AddChoice(c1, proportion=0, flag=wx.EXPAND|wx.TOP, border=5, widget_name='welluid', options=wells)
+    choice_well = dlg.view.get_object('welluid')
+    choice_well.set_trigger(on_change_well) 
     #
     c2 = dlg.view.AddCreateContainer('StaticBox', label='Index', orient=wx.VERTICAL, proportion=0, flag=wx.EXPAND|wx.TOP, border=5)
     dlg.view.AddChoice(c2, proportion=0, flag=wx.EXPAND|wx.TOP, border=5, widget_name='indexuid')  
     #
-    choice = dlg.view.get_object('welluid')
-    choice.set_value(0, True)
+    choice_well.set_value(0, True)
     #
     synth_type = OrderedDict()
     synth_type['Sine wave'] = 0
@@ -1939,7 +1873,6 @@ def on_create_synthetic(event):
     dlg.view.AddStaticText(c5, label='Amplitude:', proportion=1, flag=wx.ALIGN_RIGHT)   
     dlg.view.AddTextCtrl(c5, proportion=1, flag=wx.ALIGN_LEFT, widget_name='sin_cos_amp', initial='1.0')   
     #
-    #
     ctn_chirp = dlg.view.CreateContainer('BoxSizer', ctn_parms, orient=wx.VERTICAL)
     #
     ctn_chirp_0 = dlg.view.AddCreateContainer('BoxSizer', ctn_chirp, orient=wx.HORIZONTAL, proportion=1, flag=wx.EXPAND|wx.ALL, border=5)
@@ -1960,54 +1893,50 @@ def on_create_synthetic(event):
     #
     ctn_chirp.Show(False)    
     #
-    def changed_synth_type(name, old_value, new_value, **kwargs):
-        print '\nchanged_synth_type:', name, old_value, new_value, kwargs
+    def on_change_synth_type(name, old_value, new_value, **kwargs):
+        #print '\nchanged_synth_type:', name, old_value, new_value, kwargs
         if old_value is None:
             if new_value in [0, 1]:
                 dlg.view.AddContainer(ctn_sin_cos, ctn_parms, **flags)
             else:
                 dlg.view.AddContainer(ctn_chirp, ctn_parms, **flags)  
-        elif new_value in [0, 1]:
-            if old_value in [2, 3, 4, 5]:
-                if dlg.view.DetachContainer(ctn_chirp):
-                    print '\nRemoveu ctn_chirp'
-                else:
-                    print '\nNAO Removeu ctn_chirp'  
-                dlg.view.AddContainer(ctn_sin_cos, ctn_parms, **flags)
-        if new_value in [2, 3, 4, 5]:
-            if old_value in [0, 1]:
-                if dlg.view.DetachContainer(ctn_sin_cos):
-                    print '\nRemoveu ctn_sin_cos'
-                else:
-                    print '\nNAO Removeu ctn_sin_cos'
-                dlg.view.AddContainer(ctn_chirp, ctn_parms, **flags)    
+        elif new_value in [0, 1] and old_value in [2, 3, 4, 5]:
+            dlg.view.DetachContainer(ctn_chirp)
+            dlg.view.AddContainer(ctn_sin_cos, ctn_parms, **flags)
+        if new_value in [2, 3, 4, 5] and old_value in [0, 1]:
+            dlg.view.DetachContainer(ctn_sin_cos)
+            dlg.view.AddContainer(ctn_chirp, ctn_parms, **flags)    
         dlg.view.Layout()    
-    #    
     #
     dlg.view.AddChoice(ctn_synth_type, proportion=0, flag=wx.EXPAND|wx.TOP, 
-                       border=5, widget_name='synth_type', options=synth_type, 
-                       listening=(None, changed_synth_type)
+                       border=5, widget_name='synth_type', options=synth_type
     )
     
-    choice = dlg.view.get_object('synth_type')    
-    print '\n\n\nSETTING VALUE', choice.name
-    choice.set_value(0, True)
-    print 'ctn_parms:', ctn_parms
-    print '\n\n'
+    choice_synth_type = dlg.view.get_object('synth_type')    
+    choice_synth_type.set_trigger(on_change_synth_type)
+    choice_synth_type.set_value(0, True)
+    #print 'ctn_parms:', ctn_parms
+    #print '\n\n'
+    
+
+    ctn_name = dlg.view.AddCreateContainer('StaticBox', label='Synthetic name:', orient=wx.VERTICAL, proportion=0, flag=wx.EXPAND|wx.TOP, border=5)
+    dlg.view.AddTextCtrl(ctn_name, proportion=0, flag=wx.EXPAND|wx.TOP, 
+                         border=5, widget_name='synth_name', initial='new_synth'
+    )
     
     #
-    def changed_synth_name(name, old_value, new_value, **kwargs):
+    def on_change_synth_name(name, old_value, new_value, **kwargs):
+        #print 'on_change_synth_name:', name, old_value, new_value, kwargs
         if new_value == '':
             dlg.view.enable_button(wx.ID_OK, False)
         else:
             dlg.view.enable_button(wx.ID_OK, True)
     #
-    ctn_name = dlg.view.AddCreateContainer('StaticBox', label='Synthetic name:', orient=wx.VERTICAL, proportion=0, flag=wx.EXPAND|wx.TOP, border=5)
-    dlg.view.AddTextCtrl(ctn_name, proportion=0, flag=wx.EXPAND|wx.TOP, 
-                         border=5, widget_name='synth_name', initial='new_synth', 
-                         listening=(None, changed_synth_name)
-    )
-
+    #
+    choice_synth_name = dlg.view.get_object('synth_name')  
+    choice_synth_name.set_trigger(on_change_synth_name)
+    #
+    
     #
     dlg.view.SetSize((350, 530))
     result = dlg.view.ShowModal()

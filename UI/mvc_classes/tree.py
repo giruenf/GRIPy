@@ -38,9 +38,9 @@ class TreeController(UIControllerBase):
         #OM.addcallback('post-remove', self.om_remove_cb)
 
 
-    def PreDelete(self):
-        del self._maptypes
-        del self._mapobjects
+    #def PreDelete(self):
+    #    del self._maptypes
+    #    del self._mapobjects
     
      
     def refresh(self):

@@ -8,16 +8,17 @@ from DT.DataTypes import Partition
 from DT.DataTypes import Part
 from DT.DataTypes import Property
 from DT.DataTypes import Seismic
-from DT.DataTypes import Velocity
+#from DT.DataTypes import Velocity
 from DT.DataTypes import Scalogram
 from DT.DataTypes import GatherScalogram
-from DT.DataTypes import Angle
-from DT.DataTypes import Inversion
-from DT.DataTypes import InversionParameter
+#from DT.DataTypes import Angle
+#from DT.DataTypes import Inversion
+#from DT.DataTypes import InversionParameter
 from DT.DataTypes import WellGather
 from DT.DataTypes import DataIndex
 from UI.mvc_classes.track_object import DataFilter
 from DT.RockInference import Rock
+from DT.DataTypes import Model1D
 
 from UI.uimanager import UIManager
 from UI.mvc_classes.wxgripy import FrameController, FrameModel, Frame
@@ -72,13 +73,15 @@ def register_OM_classes():
     ObjectManager.register_class(Seismic)
     ObjectManager.register_class(DataIndex, Seismic)
 
-    ObjectManager.register_class(Velocity)
     ObjectManager.register_class(Scalogram)
     ObjectManager.register_class(DataIndex, Scalogram)
-    
+    #
+    '''
+    ObjectManager.register_class(Velocity)    
     ObjectManager.register_class(Angle)   
     ObjectManager.register_class(Inversion)
     ObjectManager.register_class(InversionParameter, Inversion)
+    '''
     #
     ObjectManager.register_class(WellGather, Well)
     ObjectManager.register_class(DataIndex, WellGather)
@@ -90,7 +93,7 @@ def register_OM_classes():
     #
     ObjectManager.register_class(Rock, Well)
     #
- 
+    ObjectManager.register_class(Model1D, Well)
     
 def register_UIManager_classes():
     UIManager.register_class(FrameController, FrameModel, Frame)

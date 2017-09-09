@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 import wx
-import weakref
+
 from UI.uimanager import UIManager
 from UI.uimanager import UIControllerBase 
 from UI.uimanager import UIModelBase 
@@ -48,7 +48,7 @@ class TopLevelModel(UIModelBase):
         }
     }    
     
-    def __init__(self, controller_uid, **base_state):      
+    def __init__(self, controller_uid, **base_state):     
         super(TopLevelModel, self).__init__(controller_uid, **base_state)
 
 
@@ -208,7 +208,7 @@ registered_widgets = {
 }
 
 
-widget_special_keys = ['initial', 'listening', 'widget_name', 'options', 'controller_uid']
+widget_special_keys = ['initial', 'widget_name', 'options', 'controller_uid']
 
 #
 def get_control_keys(control_class):
@@ -247,6 +247,8 @@ def pop_widget_registers(keys, kwargs):
 class EncapsulatedControl(object):
     
     def __init__(self, *args, **kwargs):
+        self._trigger_func = None
+        self._trigger_kwargs_keys = None
         parent = args[0]
         if not self._control_class in registered_widgets.keys():   
             raise Exception('Unregistered class')  
@@ -255,7 +257,7 @@ class EncapsulatedControl(object):
         initial = special_kw.get('initial')
         options = special_kw.get('options', {})
         self._controller_uid = special_kw.get('controller_uid')
-        self.listening = special_kw.get('listening')
+        
         self.control = self._control_class(parent, **kwargs)  
         try:
             self.set_options(options)
@@ -263,8 +265,6 @@ class EncapsulatedControl(object):
             pass
         if initial is not None:
             self.set_value(initial)
-        if self.listening:
-            pub.subscribe(self.check_change, self.get_topic())    
         self.old_value = None
 
 
@@ -272,22 +272,41 @@ class EncapsulatedControl(object):
         UIM = UIManager()
         dialog = UIM.get(self._controller_uid)
         return self.name + '_widget_changed@' + dialog.view.get_topic()
+
+   
+    def set_trigger(self, func, *args):
+        if not callable(func):
+            raise Exception('A callable must be supplied.')
+        self._trigger_func = func
+        self._trigger_kwargs_keys = list(args)
+        pub.subscribe(self.check_change, self.get_topic())  
+
+
+    def unset_trigger(self):
+        if not callable(self._trigger_func):
+            return None
+        pub.unsubscribe(self.check_change, self.get_topic())
+        func = self._trigger_func
+        self._trigger_func = None
+        keys = self._trigger_kwargs_keys
+        self._trigger_kwargs_keys = None
+        return func, keys
             
+         
     def check_change(self, name, old_value, new_value):
-        if not self.listening: 
+        if not callable(self._trigger_func):
             return
-        names, _function = self.listening            
         kwargs = {}
-        if names and isinstance(names, list):
+        if self._trigger_kwargs_keys:
             UIM = UIManager()
             dialog = UIM.get(self._controller_uid)
-            for name in names:
-                enc_control = dialog.view.get_object(name)
+            for enc_ctrl_name in self._trigger_kwargs_keys:
+                enc_control = dialog.view.get_object(enc_ctrl_name)
                 try:
                     kwargs[enc_control.name] = enc_control.get_value()
                 except:
                     raise
-        _function(name, old_value, new_value, **kwargs)
+        self._trigger_func(name, old_value, new_value, **kwargs)
 
 
     def on_change(self, event):
@@ -320,9 +339,7 @@ class EncapsulatedChoice(EncapsulatedControl):
         if self._map is not None:
             if not isinstance(self._map, OrderedDict):
                 self._map = OrderedDict(self._map)
-
-            self.control.AppendItems(self._map.keys())                 
-            #self.on_change(None)           
+            self.control.AppendItems(self._map.keys())                       
 
     def set_value(self, value, event=False):
         if value is None:
@@ -330,8 +347,7 @@ class EncapsulatedChoice(EncapsulatedControl):
         if not isinstance(value, int):
             if not value in self._map.keys():
                 raise Exception('')
-            value = self._map.keys().index(value)
-        #self.old_value = self.get_value()    
+            value = self._map.keys().index(value)   
         self.control.SetSelection(value)  
         if event:             
             self.on_change(None)    
@@ -636,7 +652,6 @@ class Dialog(TopLevel, wx.Dialog):
         except:
             raise
             
-
     def AddChoice(self, *args, **kwargs):
         self.CreateControl(EncapsulatedChoice, args[0], **kwargs)
 

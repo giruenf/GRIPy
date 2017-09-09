@@ -185,8 +185,53 @@ class GenericDataType(GenericObject):
             return None
         return OM.get(parent_uid)     
 
-     
-class Log(GenericDataType):
+
+
+class WellData1D(GenericDataType):                             
+    tid = "data1d"
+    
+    def __init__(self, data, **attributes):
+        super(WellData1D, self).__init__(data, **attributes)
+    
+    def get_index(self):
+        OM = ObjectManager(self)
+        parent_uid = OM._getparentuid(self.uid)
+        parent = OM.get(parent_uid)
+        return parent.get_index()   
+    
+    """          
+    @property
+    def start(self):
+        if 'start' not in self.attributes:
+            index_data = self.get_index()[0][0].data
+            self.attributes['start'] = float(index_data[np.isfinite(self.data)][0])
+        return self.attributes['start']
+    
+    @property
+    def end(self):
+        if 'end' not in self.attributes:
+            index_data = self.get_index()[0][0].data
+            self.attributes['end'] = float(index_data[np.isfinite(self.data)][-1])
+        return self.attributes['end']
+
+    @property
+    def step(self):
+        if 'step' not in self.attributes:
+            index_data = self.get_index()[0][0].data
+            self.attributes['step'] = float(index_data[np.isfinite(self.data)][1] - 
+                           index_data[np.isfinite(self.data)][0]
+            )
+        return self.attributes['step']
+    """
+    
+    def get_friendly_name(self):
+        OM = ObjectManager(self)
+        parent_uid = OM._getparentuid(self.uid)
+        parent = OM.get(parent_uid)         
+        return self.name + '@' + parent.name
+
+    
+class Log(WellData1D):
                                   
     """
     The values of a particular measurement along a well.
@@ -215,11 +260,11 @@ class Log(GenericDataType):
     tid = "log"
     _FRIENDLY_NAME = 'Log'
     _SHOWN_ATTRIBUTES = [
-                            ('_oid', 'Object Id'),
                             ('datatype', 'Curve Type'),
                             ('unit', 'Units'),
                             ('min', 'Min Value'),
                             ('max', 'Max Value'),
+                            ('index_name', 'Index'),
                             ('start', 'Start'),
                             ('end', 'End'),
                             ('step', 'Step'),
@@ -228,41 +273,7 @@ class Log(GenericDataType):
     def __init__(self, data, **attributes):
         super(Log, self).__init__(data, **attributes)
 
-    def get_index(self):
-        OM = ObjectManager(self)
-        parent_uid = OM._getparentuid(self.uid)
-        parent = OM.get(parent_uid)
-        return parent.get_index()
-    
-    @property
-    def start(self):
-        if 'start' not in self.attributes:
-            index_data = self.get_index()[0][0].data
-            self.attributes['start'] = float(index_data[np.isfinite(self.data)][0])
-        return self.attributes['start']
-    
-    @property
-    def end(self):
-        if 'end' not in self.attributes:
-            index_data = self.get_index()[0][0].data
-            self.attributes['end'] = float(index_data[np.isfinite(self.data)][-1])
-        return self.attributes['end']
 
-    @property
-    def step(self):
-        if 'step' not in self.attributes:
-            index_data = self.get_index()[0][0].data
-            self.attributes['step'] = float(index_data[np.isfinite(self.data)][1] - 
-                           index_data[np.isfinite(self.data)][0]
-            )
-        return self.attributes['step']
-
-    def get_friendly_name(self):
-        OM = ObjectManager(self)
-        parent_uid = OM._getparentuid(self.uid)
-        parent = OM.get(parent_uid)         
-        return self.name + '@' + parent.name
-    
         
     
 class Property(GenericDataType):
@@ -370,7 +381,7 @@ class Property(GenericDataType):
         del self._data[uid]
 
 
-class Part(GenericDataType):
+class Part(WellData1D):
     """
     A set of samples belonging to a well log.
     
@@ -434,6 +445,7 @@ class Part(GenericDataType):
     @color.deleter
     def color(self):
         del self.attributes['color']
+
 
 
 class Partition(GenericDataType):
@@ -712,13 +724,7 @@ class Seismic(Density):
     tid = 'seismic'
     _FRIENDLY_NAME = 'Seismic'
     _SHOWN_ATTRIBUTES = [
-                            ('_oid', 'Object Id'),    
-                            #('stacked', 'Stacked'),
-                            ('domain', 'Domain'),    
-                            ('unit', 'Units'),
-                            ('datum', 'Datum'),
-                            ('sample_rate', 'Sample Rate'),
-                            ('samples', 'Samples per trace')
+                            ('_oid', 'Object Id')  
     ]
 
     def __init__(self, data, **attributes):
@@ -731,13 +737,7 @@ class WellGather(Density):
     tid = 'gather'
     _FRIENDLY_NAME = 'Gather'
     _SHOWN_ATTRIBUTES = [
-                            ('_oid', 'Object Id'),    
-                            #('stacked', 'Stacked'),
-                            ('domain', 'Domain'),    
-                            ('unit', 'Units'),
-                            ('datum', 'Datum'),
-                            ('sample_rate', 'Sample Rate'),
-                            ('samples', 'Samples per trace')
+                            ('_oid', 'Object Id')  
     ]
 
     def __init__(self, data, **attributes):
@@ -844,9 +844,7 @@ class Inversion(GenericDataType):
         super(Inversion, self).__init__(**attributes)
 
 
-
-   
-        
+    
 class InversionParameter(GenericDataType):
                                  
     tid = "inversion_parameter"
@@ -865,7 +863,7 @@ class InversionParameter(GenericDataType):
     def __init__(self, data, **attributes):
         super(InversionParameter, self).__init__(data, **attributes)
 
-  
+    """
     @property
     def start(self):
         if 'start' not in self.attributes:
@@ -894,7 +892,7 @@ class InversionParameter(GenericDataType):
         parent_uid = OM._getparentuid(self.uid)
         parent = OM.get(parent_uid)         
         return self.name + '@' + parent.name
-    
+    """
 
 ###############################################################################
 ###############################################################################
@@ -1015,6 +1013,7 @@ class DataIndex(GenericDataType):
     def _on_OM_add(self, objuid):
         if objuid != self.uid:
             return
+        #print '_on_OM_add:', self.uid
         OM = ObjectManager(self)        
         OM.unsubscribe(self._on_OM_add, 'add')
         parent_uid = OM._getparentuid(self.uid)
@@ -1065,7 +1064,15 @@ class DataIndex(GenericDataType):
         
 
 
+class Model1D(Density):
+    tid = 'model1d'
+    _FRIENDLY_NAME = 'Model'
+    _SHOWN_ATTRIBUTES = [
+                            ('_oid', 'Object Id')  
+    ]
 
+    def __init__(self, data, **attributes):
+        super(Model1D, self).__init__(data, **attributes)
 
 
     

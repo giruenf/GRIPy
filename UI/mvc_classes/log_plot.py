@@ -6,10 +6,10 @@ from workpage import WorkPageModel
 from workpage import WorkPage
 from UI.uimanager import UIManager
 from UI.logplot_internal import LogPlotInternal
-from App.utils import LogPlotState  
+from App.app_utils import LogPlotState  
 from App import log   
 from mpl_base import TrackFigureCanvas, PlotLabel
-from App.utils import DropTarget
+from App.app_utils import DropTarget
 
 
 LP_NORMAL_TOOL = wx.NewId()        
@@ -327,7 +327,10 @@ class LogPlotModel(WorkPageModel):
         },
         'multicursor': {'default_value': 'None', 
                 'type': str
-        }                 
+        },
+        'index_type': {'default_value': 'MD', 
+                'type': str
+        }   
     }
     _ATTRIBUTES.update(WorkPageModel._ATTRIBUTES)    
     
@@ -394,19 +397,14 @@ class LogPlot(WorkPage):
         )         
         controller.subscribe(self.set_fit, 'change.fit')
         controller.subscribe(self.set_multicursor, 'change.multicursor')
+        controller.subscribe(self.set_index_type, 'change.index_type')
         
         if controller.model.y_min_shown is None:
             controller.model.y_min_shown = controller.model.logplot_y_min
         if controller.model.y_max_shown is None:
             controller.model.y_max_shown = controller.model.logplot_y_max  
             
-            
-    def PreDelete(self):
-        try:
-            self.vbox.Remove(0)
-            del self.tb
-        except Exception, e:
-            print 'PreDelete LogPlot ended with error:', e.args
+        
         
         
     def _get_overview_track(self):
@@ -789,6 +787,11 @@ class LogPlot(WorkPage):
         UIM = UIManager()
         controller = UIM.get(self._controller_uid) 
         controller.model.multicursor = event.GetString()
+
+    def _on_index_type(self, event):
+        UIM = UIManager()
+        controller = UIM.get(self._controller_uid) 
+        controller.model.index_type = event.GetString()
         
 
     def set_multicursor(self, new_value, old_value):        
@@ -799,6 +802,16 @@ class LogPlot(WorkPage):
         for track in tracks:
             track.view.track.update_multicursor(new_value)
 
+    def set_index_type(self, new_value, old_value):        
+        print 'set_index_type:', new_value, old_value
+        '''
+        UIM = UIManager() 
+        tracks = UIM.list('track_controller', self._controller_uid)
+        if not tracks:
+            return               
+        for track in tracks:
+            track.view.track.update_multicursor(new_value)
+        '''    
             
     def show_cursor(self, xdata, ydata):
         UIM = UIManager() 
@@ -870,6 +883,18 @@ class LogPlot(WorkPage):
         self.tool_bar.choice_MC.SetSelection(idx_mc)
         self.tool_bar.choice_MC.Bind(wx.EVT_CHOICE , self._on_multicursor) 
         self.tool_bar.AddControl(self.tool_bar.choice_MC, '')    
+        #
+        self.tool_bar.AddSeparator() 
+        #
+        self.tool_bar.label_IT = wx.StaticText(self.tool_bar, label='Z Axis:  ')
+        #self.tool_bar.label_MC.SetLabel('Multi cursor:')
+        self.tool_bar.AddControl(self.tool_bar.label_IT, '')
+        self.tool_bar.choice_IT = wx.Choice(self.tool_bar, choices=['MD', 'TVD', 'TVDSS', 'TWT', 'OWT'])  
+        controller = UIM.get(self._controller_uid)
+        idx_index_type = ['MD', 'TVD', 'TVDSS', 'TWT', 'OWT'].index(controller.model.index_type)
+        self.tool_bar.choice_IT.SetSelection(idx_index_type)
+        self.tool_bar.choice_IT.Bind(wx.EVT_CHOICE , self._on_index_type) 
+        self.tool_bar.AddControl(self.tool_bar.choice_IT, '')    
         #
         self.tool_bar.AddSeparator() 
         self.tool_bar.Realize()  

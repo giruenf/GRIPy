@@ -2,7 +2,7 @@
 import os
 import wx
 from collections import OrderedDict
-import utils
+import app_utils
 import gripy_classes
 import gripy_functions
 from OM.Manager import ObjectManager
@@ -25,7 +25,7 @@ class GripyApp(wx.App):
         self.OM_file = None
         #self.UIM_file = None
         self._wx_app_state = OrderedDict(DEFS.get('wx.App'))
-        class_full_name = utils.get_class_full_name(self)
+        class_full_name = app_utils.get_class_full_name(self)
         self._gripy_app_state = OrderedDict(DEFS.get(class_full_name))
         self._plugins_state = OrderedDict(DEFS.get('plugins', dict()))
         plugins_places = self._plugins_state.get('plugins_places')
@@ -104,7 +104,7 @@ class GripyApp(wx.App):
         self.OM_file = None
         #self.UIM_file = None
         self._wx_app_state = OrderedDict(DEFS.get('wx.App'))
-        class_full_name = utils.get_class_full_name(self)
+        class_full_name = app_utils.get_class_full_name(self)
         self._gripy_app_state = OrderedDict(DEFS.get(class_full_name))
         self._plugins_state = OrderedDict(DEFS.get('plugins', dict()))
         plugins_places = self._plugins_state.get('plugins_places')
@@ -143,7 +143,11 @@ class GripyApp(wx.App):
         OM = ObjectManager(self)
         UIM = UIManager()
         self.OM_file = fullfilename
-        OM.load(self.OM_file)
+        ret = OM.load(self.OM_file)
+        if not ret:
+            msg = 'GRIPy project cannot be opened.'
+            wx.MessageBox(msg, 'Error', wx.OK | wx.ICON_ERROR)
+            return
         mwc = UIM.list('main_window_controller')[0]
         tree_ctrl = UIM.list('tree_controller', mwc.uid)[0]
         if tree_ctrl:        
@@ -255,10 +259,11 @@ class GripyApp(wx.App):
                 #icon='./icons/logo-transp.ico'#, pos=wx.Point(399, 322) 
             )
             
+           # """
             # Menubar
             menubar_ctrl = UIM.create('menubar_controller', mwc.uid)
             # First level Menus
-            mc_file = UIM.create('menu_controller', menubar_ctrl.uid, label=u"&File")      
+            mc_project = UIM.create('menu_controller', menubar_ctrl.uid, label=u"&Project")      
             mc_edit = UIM.create('menu_controller', menubar_ctrl.uid, label=u"&Edit")
             mc_well = UIM.create('menu_controller', menubar_ctrl.uid, label=u"&Well")
             mc_precond = UIM.create('menu_controller', menubar_ctrl.uid, label=u"&Preconditioning")
@@ -271,21 +276,29 @@ class GripyApp(wx.App):
             
 
             
-            # File Menu
-            mic_open = UIM.create('menu_item_controller', mc_file.uid, 
+            # Project Menu
+            UIM.create('menu_item_controller', mc_project.uid, 
+                    label=u'&New project', 
+                    help=u'Create a new empty GriPy Project.',
+                    id=wx.ID_NEW,
+                    callback='App.menu_functions.on_new'
+            )
+            UIM.create('menu_item_controller', mc_project.uid, 
+                           kind=wx.ITEM_SEPARATOR
+            )
+            UIM.create('menu_item_controller', mc_project.uid, 
                     label=u'&Open', 
                     help=u'Open GriPy Project (*.pgg)',
                     id=wx.ID_OPEN,
                     callback='App.menu_functions.on_open'
             )
-            mic_save = UIM.create('menu_item_controller', mc_file.uid, 
+            UIM.create('menu_item_controller', mc_project.uid, 
                     label=u'&Save', 
                     help=u'Save GriPy Project',
                     id=wx.ID_SAVE,
                     callback='App.menu_functions.on_save'
             )   
-            
-            mic_saveas = UIM.create('menu_item_controller', mc_file.uid, 
+            UIM.create('menu_item_controller', mc_project.uid, 
                     label=u'&Save as', 
                     help=u'Save GriPy Project with a new name',
                     id=wx.ID_SAVEAS, 
@@ -293,44 +306,43 @@ class GripyApp(wx.App):
             ) 
             
             # Inserting a separator...
-            UIM.create('menu_item_controller', mc_file.uid, 
+            UIM.create('menu_item_controller', mc_project.uid, 
                            kind=wx.ITEM_SEPARATOR
             )
             
-            mc_import = UIM.create('menu_controller', mc_file.uid, 
+            mc_import = UIM.create('menu_controller', mc_project.uid, 
                                           label=u"&Import",
                                           help=u"Import file"
             )
            
-            mic_import_las = UIM.create('menu_item_controller', mc_import.uid, 
+            UIM.create('menu_item_controller', mc_import.uid, 
                     label=u"LAS File", 
                     help=u'Import a LAS file to current GriPy Project',
                     callback='App.menu_functions.on_import_las'
             )
 
-            mic_import_odt = UIM.create('menu_item_controller', mc_import.uid, 
+            UIM.create('menu_item_controller', mc_import.uid, 
                     label=u"ODT File", 
                     help=u'Import a ODT file to current GriPy Project',
                     callback='App.menu_functions.on_import_odt'
             )
 
-            mic_import_lis = UIM.create('menu_item_controller', mc_import.uid, 
+            UIM.create('menu_item_controller', mc_import.uid, 
                     label=u"LIS File", 
                     help=u'Import a LIS file to current GriPy Project',
                     callback='App.menu_functions.on_import_lis'
-            )      
-            
+            )            
             
             # TODO: Falta DLis !!!!
-            """
+            '''
             mic_import_dlis = UIM.create('menu_item_controller', mc_import.uid, 
                     label=u"DLIS File", 
                     help=u'Import a DLIS file to current GriPy Project',
                     callback='App.menu_functions.on_import_dlis'
             )  
-            """
+            '''
 
-            mic_import_well_gather = UIM.create('menu_item_controller', mc_import.uid, 
+            UIM.create('menu_item_controller', mc_import.uid, 
                     label=u"SEG-Y Well Gather", 
                     help=u'Import a SEG-Y Seismic file as Well Gather',
                     callback='App.menu_functions.on_import_segy_well_gather'
@@ -338,32 +350,41 @@ class GripyApp(wx.App):
             
 
             
-            mic_import_seis_segy = UIM.create('menu_item_controller', mc_import.uid, 
+            UIM.create('menu_item_controller', mc_import.uid, 
                     label=u"SEG-Y Seismic", 
                     help=u'Import a SEG-Y Seismic file to current GriPy Project',
                     callback='App.menu_functions.on_import_segy_seis'
             )  
             
-            mic_import_vel_segy = UIM.create('menu_item_controller', mc_import.uid, 
+            UIM.create('menu_item_controller', mc_import.uid, 
                     label=u"SEG-Y Velocity", 
                     help=u'Import a SEG-Y Velocity file to current GriPy Project',
                     callback='App.menu_functions.on_import_segy_vel'
             )  
                    
-            mc_export = UIM.create('menu_controller', mc_file.uid, 
+            mc_export = UIM.create('menu_controller', mc_project.uid, 
                                           label=u"Export",
                                           help=u"Export file"
             )      
             
-            mic_export_las = UIM.create('menu_item_controller', mc_export.uid, 
+            UIM.create('menu_item_controller', mc_export.uid, 
                     label=u"LAS File", 
                     help=u'Export a LAS file from a well in current GriPy Project',
                     callback='App.menu_functions.on_export_las'
             )
-            
+            # Exit Application
+            UIM.create('menu_item_controller', mc_project.uid, 
+                           kind=wx.ITEM_SEPARATOR
+            )
+            UIM.create('menu_item_controller', mc_project.uid, 
+                    label=u'Exit', 
+                    help=u'Exits GRIPy application.',
+                    id=wx.ID_EXIT,
+                    callback='App.menu_functions.on_exit'
+            )                  
             
             # Edit
-            mic_edit_partitions = UIM.create('menu_item_controller', mc_edit.uid, 
+            UIM.create('menu_item_controller', mc_edit.uid, 
                     label=u"Partitions", 
                     callback='App.menu_functions.on_partitionedit'
             )    
@@ -380,33 +401,25 @@ class GripyApp(wx.App):
                                           help=u"Create new well",
                                           callback='App.menu_functions.on_createwell'
             ) 
-            UIM.create('menu_item_controller', mc_file.uid, 
-                           kind=wx.ITEM_SEPARATOR
-            )
+
             UIM.create('menu_item_controller', mc_well.uid, 
                     label=u"Create Synthetic Log",
                     callback='App.menu_functions.on_create_synthetic'
             )
             #
             
-            mic_debug = UIM.create('menu_item_controller', mc_debug.uid, 
+            UIM.create('menu_item_controller', mc_debug.uid, 
                     label=u"Debug Console", help=u"Gripy Debug Console", 
                     callback='App.menu_functions.on_debugconsole'
             )    
             UIM.create('menu_item_controller', mc_debug.uid, 
                            kind=wx.ITEM_SEPARATOR
             )
-            mic_wilson = UIM.create('menu_item_controller', mc_debug.uid, 
+            UIM.create('menu_item_controller', mc_debug.uid, 
                     label=u"Load Wilson Synthetics", 
                     callback='App.menu_functions.on_load_wilson'
             )  
                   
-
-
-            UIM.create('menu_item_controller', mc_debug.uid, 
-                    label=u"Load Pre-Stack Viking CIPs 808/1572", 
-                    callback='App.menu_functions.teste4'
-            )  
 
 
             UIM.create('menu_item_controller', mc_infer.uid, 
@@ -420,10 +433,6 @@ class GripyApp(wx.App):
                     callback='App.menu_functions.teste7'
             )  
 
-            UIM.create('menu_item_controller', mc_infer.uid, 
-                    label=u"Load Original", 
-                    callback='App.menu_functions.teste8'
-            )  
 
             UIM.create('menu_item_controller', mc_debug.uid, 
                     label=u"Modeling PP", 
@@ -450,7 +459,7 @@ class GripyApp(wx.App):
             
             
 
-            """                           
+            '''                        
             menubar_ctrl.create_menu_separator('file')
             menubar_ctrl.create_submenu('file', 'import_menu', text=u"Importar",
                                         help=u"Importar arquivo")
@@ -487,7 +496,8 @@ class GripyApp(wx.App):
                                         text=u"&LAS", help=u"Exportar arquivo LAS",
                                         callback=self.on_export_las)                                      
             menubar_ctrl.create_menu_separator('file')
-            """
+            '''
+            
             # TODO: VERIFICAR self.OnDoClose
             #menubar_ctrl.create_menu_item('file', key='close', text=u"&Fechar", 
             #                              help=u"Fechar o programa", id=wx.ID_CLOSE,
@@ -543,6 +553,7 @@ class GripyApp(wx.App):
                 label='Bem vindo ao ' + self._gripy_app_state.get('app_display_name')
             )   
             
+            #"""
             
             # """
             # Testes 
@@ -588,6 +599,12 @@ class GripyApp(wx.App):
         return True
 
 
+
+    """
+    When the MainWindow calls the function below, GripyApp will close UIManager 
+    but not finish the wx.App.
+    This job must be done by Wx. (don't try to change it!)
+    """
     def PreExit(self):
         msg = 'GriPy Application is preparing to terminate....'
         log.info(msg)
@@ -601,7 +618,9 @@ class GripyApp(wx.App):
             )
             if dial.ShowModal() == wx.ID_YES:
                 self.on_save()   
-        
+        #
+        self.reset_ObjectManager()
+        #
         app_UI_filename = self._gripy_app_state.get('app_UI_file')
         self.save_UI_application_data(app_UI_filename)
 
@@ -621,7 +640,6 @@ class GripyApp(wx.App):
         aui_manager.UnInit()        
         
         
-
     def OnExit(self):
         msg = 'GriPy Application has finished.'
         log.info(msg)
@@ -663,7 +681,7 @@ class GripyApp(wx.App):
         
 
     def _get_state_dict(self):
-        class_full_name = utils.get_class_full_name(self)
+        class_full_name = app_utils.get_class_full_name(self)
         _state = OrderedDict()
         _state['wx.App'] = self._wx_app_state
         _state[class_full_name] = self._gripy_app_state
@@ -704,3 +722,7 @@ class GripyApp(wx.App):
             del disableAll
         fdlg.Destroy()   
 
+
+    def reset_ObjectManager(self):
+        OM = ObjectManager(self)
+        OM._reset()

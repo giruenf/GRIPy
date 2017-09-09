@@ -6,6 +6,7 @@ Manager
 This file defines `ObjectManager`.
 """
 
+import wx # Just for MessageBox
 
 import weakref
 from collections import OrderedDict
@@ -13,7 +14,7 @@ import numpy as np
 import zipfile
 import os
 
-import App.utils
+import App.app_utils
 from App.pubsub import PublisherMixin
 
 from App import log
@@ -66,8 +67,9 @@ class ObjectManager(PublisherMixin):
     # Other
     _NPZIDENTIFIER = "__NPZ;;"
     _changed = False
+    _on_load = False
     _PUB_NAME = 'ObjectManager'
-        
+  
     
     def __init__(self, owner):
         self._ownerref = weakref.ref(owner)
@@ -78,6 +80,21 @@ class ObjectManager(PublisherMixin):
         self._parentuidmap = ObjectManager._parentuidmap
         self._childrenuidmap = ObjectManager._childrenuidmap
         log.debug('ObjectManager new instance was solicitated by {}'.format(str(owner)))
+        
+        
+    def _reset(self):
+        # TODO: Resolver DataFilter  tid 'data_filter'
+        for uid, parentuid in self._parentuidmap.items():
+            if parentuid is None and uid[0] != 'data_filter':
+                self.remove(uid)
+        #            
+        for tid in self._currentobjectids.keys():
+            self._currentobjectids[tid] = 0
+        self._data = OrderedDict()
+        self._parentuidmap = {}
+        self._childrenuidmap = {} 
+        ObjectManager._changed = False         
+    
     
     def get_changed_flag(self):
         """
@@ -153,6 +170,7 @@ class ObjectManager(PublisherMixin):
         #except Exception as e:
         #    raise Exception('Error on creating object! [tid={}, args={}, kwargs={}, error={}]'.format(typeid, args, kwargs, e))
 
+
     def add(self, obj, parentuid=None):
         """
         Add a new instance that from now on will be managed by ObjectManager.
@@ -191,7 +209,13 @@ class ObjectManager(PublisherMixin):
             self._childrenuidmap[parentuid].append(obj.uid)
         # Sending message  
         self.send_message('add', objuid=obj.uid)
-        ObjectManager._changed  = True       
+        # TODO: Rever isso: UI.mvc_classes.track_object@DataFilter 
+        try:
+            nsc = obj._NO_SAVE_CLASS
+        except:
+            nsc = False
+        if not ObjectManager._on_load and not nsc:
+            ObjectManager._changed  = True       
         return True
 
 
@@ -252,26 +276,22 @@ class ObjectManager(PublisherMixin):
         >>> om.get(obj.uid)
         KeyError: obj.uid
         """
-        #print 'remove.pre_remove'
         self.send_message('pre_remove', objuid=uid)
         for childuid in self._childrenuidmap[uid][::-1]:
-            self.remove(childuid)
-        
+            self.remove(childuid) 
         parentuid = self._parentuidmap[uid]
         if parentuid:
-            #del self._data[parentuid]._children[uid]
             del self._parentuidmap[uid]
-            self._childrenuidmap[parentuid].remove(uid)
-            
+            self._childrenuidmap[parentuid].remove(uid)    
         del self._childrenuidmap[uid]
-        obj = self._data.pop(uid)
         #
-        obj._being_deleted()
+        obj = self._data.pop(uid)
+        obj.send_message('remove')
         #
         del obj
-        #print 'remove.post_remove'
         self.send_message('post_remove', objuid=uid)
-        ObjectManager._changed  = True    
+        ObjectManager._changed  = True   
+        #
         return True
 
 
@@ -555,49 +575,64 @@ class ObjectManager(PublisherMixin):
         bool
             Whether the operation was successful.
         """
-        dirname, filename = os.path.split(archivepath)
-        picklefilename = filename.rsplit('.', 1)[0] + ".pkl"
-        npzfilename = filename.rsplit('.', 1)[0] + ".npz"
-        
-        archivefile = zipfile.ZipFile(archivepath, mode='r')
-        archivefile.extract(picklefilename, path=dirname)
-        archivefile.extract(npzfilename, path=dirname)
-        archivefile.close()
-        
-        picklefile = open(os.path.join(dirname, picklefilename), 'rb')
-        pickledict = pickle.load(picklefile)
-        picklefile.close()
-        
-        npzfile = open(os.path.join(dirname, npzfilename), 'rb')
-        npzdata = np.load(npzfile)
-        
-        pickledata = pickledict['data']
-        parentuidmap = pickledict['parentmap']
-        
-        newuidsmap = {}
-        for olduid, objdict in pickledata.iteritems():
-            tid = olduid[0]
-            for key, value in objdict.iteritems():
-                if isinstance(value, basestring) and value.startswith(self._NPZIDENTIFIER):
-                    objdict[key] = npzdata[value.lstrip(self._NPZIDENTIFIER)]
-            #        
-            # TODO: melhorar isso abaixo
-            # A ideia e que a segunda opcao (except) venha a substituir a primeira
+        try:
+            ObjectManager._on_load = True
+            dirname, filename = os.path.split(archivepath)
+            picklefilename = filename.rsplit('.', 1)[0] + ".pkl"
+            npzfilename = filename.rsplit('.', 1)[0] + ".npz"
+            
+            archivefile = zipfile.ZipFile(archivepath, mode='r')
+            archivefile.extract(picklefilename, path=dirname)
+            archivefile.extract(npzfilename, path=dirname)
+            archivefile.close()
+            
+            picklefile = open(os.path.join(dirname, picklefilename), 'rb')
+            pickledict = pickle.load(picklefile)
+            picklefile.close()
+            
+            npzfile = open(os.path.join(dirname, npzfilename), 'rb')
+            npzdata = np.load(npzfile)
+ 
+            pickledata = pickledict['data']
+            parentuidmap = pickledict['parentmap']
+            
+            newuidsmap = {}
+            for olduid, objdict in pickledata.iteritems():
+                tid = olduid[0]
+                for key, value in objdict.iteritems():
+                    if isinstance(value, basestring) and value.startswith(self._NPZIDENTIFIER):
+                        objdict[key] = npzdata[value.lstrip(self._NPZIDENTIFIER)]
+                #        
+                # TODO: melhorar isso abaixo
+                # A ideia e que a segunda opcao (except) venha a substituir a primeira
+                try:
+                    obj = self.new(tid, **objdict)
+                except:
+                    obj = self.create_object_from_state(tid, **objdict)
+                newuidsmap[olduid] = obj.uid
+                self.add(obj, newuidsmap.get(parentuidmap[olduid]))
+            
+            npzfile.close()
+            
+            os.remove(os.path.join(dirname, picklefilename))
+            os.remove(os.path.join(dirname, npzfilename))
+            ObjectManager._on_load = False
+            return True
+        except:
             try:
-                obj = self.new(tid, **objdict)
+                archivefile.close()
+                picklefile.close()
+                npzfile.close()
+            
+                os.remove(os.path.join(dirname, picklefilename))
+                os.remove(os.path.join(dirname, npzfilename))
+                ObjectManager._on_load = False 
+                ObjectManager._set_empty()
+                
             except:
-                obj = self.create_object_from_state(tid, **objdict)
-            newuidsmap[olduid] = obj.uid
-            self.add(obj, newuidsmap.get(parentuidmap[olduid]))
+                pass
+            return False
         
-        npzfile.close()
-        
-        os.remove(os.path.join(dirname, picklefilename))
-        os.remove(os.path.join(dirname, npzfilename))
-        ObjectManager._changed  = False
-        return True
-
-    
     
     def create_object_from_state(self, tid, **objdict):
         class_ = self._types.get(tid)

@@ -18,7 +18,7 @@ from OM.Manager import ObjectManager
 ###
 from track import TrackController    
 from track_object import TrackObjectController     
-from App.utils import parse_string_to_uid
+from App.app_utils import parse_string_to_uid
 
 from wx.adv import OwnerDrawnComboBox  
 
