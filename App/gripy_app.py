@@ -559,8 +559,8 @@ class GripyApp(wx.App):
             # Testes 
             # """
             
-            fullfilename = 'C:\\Users\\Adriano\\Desktop\\aaa_teste_2.pgg'
-            self.load_project_data(fullfilename)      
+            #fullfilename = 'C:\\Users\\Adriano\\Desktop\\aaa_teste_2.pgg'
+            #self.load_project_data(fullfilename)      
             
             #lpc = UIM.create('logplot_controller', mwc.uid)
             #tc1 = UIM.create('track_controller', lpc.uid)
