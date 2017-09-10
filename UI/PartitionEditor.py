@@ -7,7 +7,7 @@ import numpy as np
 
 from OM.Manager import ObjectManager
 
-from App import utils
+from App import app_utils
 
 from Basic.Colors import COLOR_CYCLE_RGB
 

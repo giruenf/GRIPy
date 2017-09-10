@@ -4,13 +4,9 @@ from UI.uimanager import UIManager
 from UI.uimanager import UIControllerBase 
 from UI.uimanager import UIModelBase 
 from UI.uimanager import UIViewBase 
-
 from App import log
-
 import wx.aui as aui
-
 from UI.plotstatusbar import PlotStatusBar
-
 
 
 class WorkPageController(UIControllerBase):
@@ -64,8 +60,8 @@ class WorkPage(UIViewBase, wx.Panel):
             controller.model.pos = parent_controller.view.note.GetPageCount()  
             
         self.__class__.__name__    
-        controller.model.title = self.__class__.__name__ + \
-                                    ' [id:'+str(self._controller_uid[1]) + ']'    
+        controller.model.title = self._FRIENDLY_NAME + \
+                                    ' ['+ str(self._controller_uid[1]+1) + ']'    
         result = parent_controller.insert_notebook_page(controller.model.pos, 
                                         self, controller.model.title, True
         )
@@ -73,66 +69,11 @@ class WorkPage(UIViewBase, wx.Panel):
             log.error('Page could not be inserted in MainWindow notebook.')
 
 
-        
-'''        
-class LogPlotToolBar(aui.AuiToolBar):
-    
-    def __init__(self, parent):
-        super(LogPlotToolBar, self).__init__(parent)
-        self.SetToolBitmapSize(wx.Size(48, 48))  
-        #
-        self.AddTool(LP_NORMAL_TOOL, 
-                      wx.EmptyString,
-                      wx.Bitmap('./icons/cursor_24.png'), 
-                      wx.NullBitmap,
-                      wx.ITEM_RADIO,
-                      'Normal Tool', 
-                      'Normal Tool',
-                      None
-        )
-        self.ToggleTool(LP_NORMAL_TOOL, True) 
-        #
-        self.AddTool(LP_SELECTION_TOOL, 
-                      wx.EmptyString,
-                      wx.Bitmap('./icons/cursor_filled_24.png'), 
-                      wx.NullBitmap,
-                      wx.ITEM_RADIO,
-                      'Selection Tool', 
-                      'Selection Tool',
-                      None
-        )  
-        self.Bind(wx.EVT_TOOL, self.GetParent()._on_change_tool, None,
-                  LP_NORMAL_TOOL, LP_SELECTION_TOOL
-        )
-        #
-        self.AddSeparator()
-        #
-        tb_item = self.AddTool(-1, u"Insert Track", 
-                                  wx.Bitmap('./icons/table_add_24.png'),
-                                  'Insert a new track'
-        )
-        self.Bind(wx.EVT_TOOL, self.GetParent()._on_toolbar_insert_track, tb_item)
-        #
-        tb_item = self.AddTool(-1, u"Remove Track", 
-                                  wx.Bitmap('./icons/table_delete_24.png'),
-                                 'Remove selected tracks'
-        )
-        self.Bind(wx.EVT_TOOL, self.GetParent()._on_toolbar_remove_track, tb_item)
-        #
-        self.AddSeparator()  
-        #
-        button_edit_format = wx.Button(self, label='Edit LogPlot')
-        button_edit_format.Bind(wx.EVT_BUTTON , self.GetParent()._OnEditFormat)
-        self.AddControl(button_edit_format, '')
-        self.AddSeparator()    
-        #    
-        self.cbFit = wx.CheckBox(self, -1, 'Fit')        
-        self.cbFit.Bind(wx.EVT_CHECKBOX , self.GetParent()._on_fit) 
-        self.AddControl(self.cbFit, '')    
-        #
-        self.Realize()          
-        
-'''        
-        
-        
+    def PreDelete(self):
+        try:
+            self.sizer.Remove(0)
+            del self.tool_bar
+        except Exception, e:
+            msg = 'PreDelete ' + self.__class__.name + ' ended with error: ' + e.args 
+            print msg       
         

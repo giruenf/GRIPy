@@ -1,12 +1,15 @@
 # -*- coding: utf-8 -*-
 import wx
+
 from UI.uimanager import UIManager
 from UI.uimanager import UIControllerBase 
 from UI.uimanager import UIModelBase 
 from UI.uimanager import UIViewBase 
 
-from App import log
+from wx.lib.pubsub import pub
+from collections import OrderedDict
 
+from App import log
 
 
 ###############################################################################
@@ -45,7 +48,7 @@ class TopLevelModel(UIModelBase):
         }
     }    
     
-    def __init__(self, controller_uid, **base_state):      
+    def __init__(self, controller_uid, **base_state):     
         super(TopLevelModel, self).__init__(controller_uid, **base_state)
 
 
@@ -147,10 +150,11 @@ class Frame(TopLevel, wx.Frame):
         self.Bind(wx.EVT_MOVE, self.on_move)    
 
 
+###############################################################################
+###############################################################################
 
-###############################################################################
-###############################################################################
-'''
+GRIPY_ICON_PATH = 'icons/logo-transp.ico'
+
 
 """
 Add(self, item, int proportion=0, int flag=0, int border=0,
@@ -189,18 +193,22 @@ wx_choice_keys = ['id', 'value', 'pos', 'size', 'choices', 'style',
 wx_listbox_keys = ['id', 'value', 'pos', 'size', 'choices', 'style', 
                    'validator', 'name']
 
+wx_filepickerctrl_keys = ['id', 'path', 'message', 'wildcard', 'pos', 'size', 
+                          'style', 'validator', 'name']
+
+
 
 registered_widgets = {
     wx.StaticText: wx_statictext_keys,
     wx.SpinCtrl: wx_spinctrl_keys,
     wx.TextCtrl: wx_textctrl_keys,
     wx.Choice: wx_choice_keys,
-    wx.ListBox: wx_listbox_keys
+    wx.ListBox: wx_listbox_keys,
+    wx.FilePickerCtrl: wx_filepickerctrl_keys
 }
 
 
-
-widget_special_keys = ['initial', 'listening', 'widget_name']
+widget_special_keys = ['initial', 'widget_name', 'options', 'controller_uid']
 
 #
 def get_control_keys(control_class):
@@ -219,15 +227,19 @@ def pop_registers(keys, kwargs):
     return ret, kwargs
 
 
+
+
+
 def pop_widget_registers(keys, kwargs):
+    #print 'pop_widget_registers:', keys, kwargs
     ctrl_dict = {}
     special_dict = {}
-    for key in keys:
-        if kwargs.get(key) is not None:
+    for key in keys: 
+        if key in kwargs.keys():
             ctrl_dict[key] = kwargs.pop(key)
     for key in widget_special_keys:        
-        if kwargs.get(key) is not None:
-            special_dict[key] = kwargs.pop(key)             
+        if key in kwargs.keys():
+            special_dict[key] = kwargs.pop(key)   
     return ctrl_dict, special_dict, kwargs
 
 
@@ -235,54 +247,78 @@ def pop_widget_registers(keys, kwargs):
 class EncapsulatedControl(object):
     
     def __init__(self, *args, **kwargs):
+        self._trigger_func = None
+        self._trigger_kwargs_keys = None
         parent = args[0]
         if not self._control_class in registered_widgets.keys():   
             raise Exception('Unregistered class')  
-            
-        #print '\n\nargs:', args    
         special_kw = args[1]    
-        #print '\nkwargs:', kwargs    
+        self.name = special_kw.get('widget_name')
+        initial = special_kw.get('initial')
+        options = special_kw.get('options', {})
+        self._controller_uid = special_kw.get('controller_uid')
         
-        if special_kw.get('widget_name') is not None:
-            self.name = special_kw['widget_name']
-        else:
-            self.name = None #DialogPool.generate_name(self)
-            
-        if special_kw.get('initial'):
-            initial = special_kw['initial']
-        else:
-            initial = None      
-            
-        print initial, self._control_class    
-            
-        if special_kw.get('listening') is not None:
-            self.listening = special_kw['listening']
-        else:
-            self.listening = None        
-        self.control = self._control_class(parent, **kwargs)   
-        pub.subscribe(self.check_change, 'widget_changed')    
-        
+        self.control = self._control_class(parent, **kwargs)  
+        try:
+            self.set_options(options)
+        except:
+            pass
         if initial is not None:
             self.set_value(initial)
-                      
-        
-    def check_change(self, name):
-        if not self.listening: return
-        names, _function = self.listening    
-        if name not in names: return           
+        self.old_value = None
+
+
+    def get_topic(self):
+        UIM = UIManager()
+        dialog = UIM.get(self._controller_uid)
+        return self.name + '_widget_changed@' + dialog.view.get_topic()
+
+   
+    def set_trigger(self, func, *args):
+        if not callable(func):
+            raise Exception('A callable must be supplied.')
+        self._trigger_func = func
+        self._trigger_kwargs_keys = list(args)
+        pub.subscribe(self.check_change, self.get_topic())  
+
+
+    def unset_trigger(self):
+        if not callable(self._trigger_func):
+            return None
+        pub.unsubscribe(self.check_change, self.get_topic())
+        func = self._trigger_func
+        self._trigger_func = None
+        keys = self._trigger_kwargs_keys
+        self._trigger_kwargs_keys = None
+        return func, keys
+            
+         
+    def check_change(self, name, old_value, new_value):
+        if not callable(self._trigger_func):
+            return
         kwargs = {}
-        for name in names:
-            enc_control = DialogPool.get_object(name)
-            try:
-                kwargs[enc_control.name] = enc_control.get_value()
-            except:
-                raise
-        _function(**kwargs)
-      
-        
+        if self._trigger_kwargs_keys:
+            UIM = UIManager()
+            dialog = UIM.get(self._controller_uid)
+            for enc_ctrl_name in self._trigger_kwargs_keys:
+                enc_control = dialog.view.get_object(enc_ctrl_name)
+                try:
+                    kwargs[enc_control.name] = enc_control.get_value()
+                except:
+                    raise
+        self._trigger_func(name, old_value, new_value, **kwargs)
+
+
     def on_change(self, event):
-        pub.sendMessage('widget_changed', name=self.name)      
-      
+        new_value = self.get_value()
+        pub.sendMessage(self.get_topic(), name=self.name,
+                        old_value=self.old_value, new_value=new_value
+        )     
+        self.old_value = new_value
+        
+    def set_options(self, options_dict=None):
+        raise NotImplementedError()     
+    
     def set_value(self, value):
         raise NotImplementedError()         
   
@@ -297,15 +333,24 @@ class EncapsulatedChoice(EncapsulatedControl):
         super(EncapsulatedChoice, self).__init__(*args, **kwargs)            
         self.control.Bind(wx.EVT_CHOICE, self.on_change)
 
-    def set_value(self, value):
+    def set_options(self, options_dict=None):
         self.control.Clear()
-        if not value:
-            self._map = None
-        else:
-            self._map = value
-            self.control.AppendItems(self._map.keys())       
-        # To force on_change                  
-        self.on_change(None)           
+        self._map = options_dict
+        if self._map is not None:
+            if not isinstance(self._map, OrderedDict):
+                self._map = OrderedDict(self._map)
+            self.control.AppendItems(self._map.keys())                       
+
+    def set_value(self, value, event=False):
+        if value is None:
+            return
+        if not isinstance(value, int):
+            if not value in self._map.keys():
+                raise Exception('')
+            value = self._map.keys().index(value)   
+        self.control.SetSelection(value)  
+        if event:             
+            self.on_change(None)    
 
     def get_value(self):
         if not self._map:
@@ -319,27 +364,43 @@ class EncapsulatedTextCtrl(EncapsulatedControl):
     _control_class = wx.TextCtrl
     
     def __init__(self, *args, **kwargs):
-        super(EncapsulatedTextCtrl, self).__init__(*args, **kwargs)           
+        super(EncapsulatedTextCtrl, self).__init__(*args, **kwargs)    
+        self.control.Bind(wx.EVT_TEXT, self.on_change)
 
     def set_value(self, value):
         if value is None:
             self.control.SetValue(wx.EmptyString)
         else:
             self.control.SetValue(str(value))
-   
+          
     def get_value(self):
-        return self.control.GetValue()
+        return self.control.GetValue().strip()
         
+
+
+class EncapsulatedFilePickerCtrl(EncapsulatedControl):
+    _control_class = wx.FilePickerCtrl
+    
+    def __init__(self, *args, **kwargs):
+        try:
+            super(EncapsulatedFilePickerCtrl, self).__init__(*args, **kwargs)    
+        except Exception as e:
+            print e
+        
+        
+    def set_value(self, value):
+        self.control.SetPath(value)
+
+    def get_value(self):
+        return self.control.GetPath()
+
+
 
 class EncapsulatedSpinCtrl(EncapsulatedControl):
     _control_class = wx.SpinCtrl
     
     def __init__(self, *args, **kwargs):
-        #if kwargs.get('initial'):
-        #    if kwargs.get('initial') > 100:
-        #        kwargs['max'] = kwargs.get('initial')
         super(EncapsulatedSpinCtrl, self).__init__(*args, **kwargs)      
-        print self.control.GetValue()
         self.control.Bind(wx.EVT_SPINCTRL, self.on_change)
 
     def set_value(self, value):
@@ -373,17 +434,16 @@ class EncapsulatedListBox(EncapsulatedControl):
         super(EncapsulatedListBox, self).__init__(*args, **kwargs)             
         self.control.Bind(wx.EVT_LISTBOX, self.on_change)
 
-    def set_value(self, value):
+    def set_value(self, value, event=True):
         self.control.Clear()
         if not value:
             self._map = None
         else:
             self._map = value
-            print '\nself.control.AppendItems:', self._map.keys(), type(self._map.keys()), self.control, '\n'
-            self.control.AppendItems(self._map.keys())       
-            #self.control.Set(self._map.keys())       
-        # To force on_change                  
-        self.on_change(None)           
+            self.control.AppendItems(self._map.keys())        
+        # To force on_change    
+        if event:              
+            self.on_change(None)           
 
     def get_value(self):
         if not self._map:
@@ -391,7 +451,6 @@ class EncapsulatedListBox(EncapsulatedControl):
         if not self.control.GetSelections():
             return None
         return [self._map.get(self.control.GetString(sel)) for sel in self.control.GetSelections()]   
-
 
 ###############################################################################
 ###############################################################################
@@ -401,7 +460,22 @@ class DialogController(TopLevelController):
     tid = 'dialog_controller'
          
     def __init__(self):
-        super(DialogController, self).__init__() 
+        super(DialogController, self).__init__()
+
+    def PreDelete(self):
+        pub.unsubAll(topicFilter=self._topic_filter)
+        self.view._objects = {}
+        try:
+            self.view.Destroy()
+        except:
+            pass
+    
+    def _topic_filter(self, topic_name):
+        return topic_name == '_widget_changed@' + self.view.get_topic()   
+        #'_widget_changed@' + dialog.get_topic()
+        
+    def get_results(self):
+        return self.view.get_results()
         
 
 class DialogModel(TopLevelModel):
@@ -414,12 +488,15 @@ class DialogModel(TopLevelModel):
         }
     }    
     _ATTRIBUTES.update(TopLevelModel._ATTRIBUTES) 
+    _ATTRIBUTES['style'] = {
+        'default_value': wx.DEFAULT_DIALOG_STYLE, 
+        'type': int        
+    }
     
     def __init__(self, controller_uid, **base_state):      
         super(DialogModel, self).__init__(controller_uid, **base_state) 
     
-    
-      
+          
 class Dialog(TopLevel, wx.Dialog):   
     tid = 'dialog'
     
@@ -427,21 +504,11 @@ class Dialog(TopLevel, wx.Dialog):
         TopLevel.__init__(self, controller_uid)
         UIM = UIManager()
         controller = UIM.get(self._controller_uid)
-        #
-        parent_uid = UIM._getparentuid(self._controller_uid)
-        parent_obj = UIM.get(parent_uid)
-        if not parent_obj:
-            parent_view = None
-        else:
-            parent_view = parent_obj.view
-        #        
-        #__init__ (self, parent, id=ID_ANY, title=””, pos=DefaultPosition, 
-        #          size=DefaultSize, style=DEFAULT_DIALOG_STYLE, name=DialogNameStr)
-        wx.Dialog(self, parent_view, wx.ID_ANY, controller.model.title,
+        wx.Dialog.__init__(self, None, wx.ID_ANY, controller.model.title,
             pos=controller.model.pos, size=controller.model.size, 
             style=controller.model.style              
         ) 
-        #
+        self._objects = {}
         if controller.model.icon:   
             self.icon = wx.Icon(controller.model.icon, wx.BITMAP_TYPE_ICO)        
             self.SetIcon(self.icon)     
@@ -450,69 +517,149 @@ class Dialog(TopLevel, wx.Dialog):
         self.Bind(wx.EVT_MAXIMIZE, self.on_maximize)       
         self.Bind(wx.EVT_SIZE, self.on_size)    
         self.Bind(wx.EVT_MOVE, self.on_move)  
-        #
         dialog_box = wx.BoxSizer(wx.VERTICAL) 
         self.SetSizer(dialog_box) 
-        self.mainpanel = self.AddBoxSizerContainer(self, proportion=1, 
+        self.mainpanel = self.AddCreateContainer('BoxSizer', self, proportion=1, 
                             flag=wx.TOP|wx.LEFT|wx.RIGHT|wx.EXPAND, border=10
         )
-        
         button_sizer = self.CreateButtonSizer(controller.model.flags)
         dialog_box.Add(button_sizer, flag=wx.ALIGN_CENTER|wx.TOP|wx.BOTTOM, border=10)    
         dialog_box.Layout()  
- 
 
-    def _AddContainer(self, container_class, *args, **kwargs):
+    def get_topic(self):
+        return 'dialog_' + str(self._controller_uid[1])
+
+
+    def _get_button(self, button_id):
+        UIM = UIManager()
+        controller = UIM.get(self._controller_uid)
+        if button_id & controller.model.flags:
+            return self.FindWindow(button_id)
+        return None
+
+    def enable_button(self, button_id, enable=True):
+        btn = self._get_button(button_id)
+        btn.Enable(enable)
+
+    def register(self, enc_control):
+        if enc_control.name:
+            self._objects[enc_control.name] = enc_control
+
+
+    def AddContainer(self, container, *args, **kwargs):
+        #print 'AddContainer:', args, kwargs
+        for key in kwargs.keys():
+            if key not in item_sizer_keys:
+                raise Exception('Invalid container key. [key=\"{}\"]'.format(key))
         if not args:
             parent = self.mainpanel
+            #print 'self.mainpanel:', self.mainpanel
         else:
             parent = args[0]
-        item_sizer_kw, kwargs = pop_registers(item_sizer_keys, kwargs)
-        container = container_class(parent, **kwargs)
-        if container_class == StaticBoxContainer:
-            parent.GetSizer().Add(container.GetSizer(), **item_sizer_kw)
+        container.Show()            
+        if container.__class__ == StaticBoxContainer:
+            parent.GetSizer().Add(container.GetSizer(), **kwargs)
         else:    
-            parent.GetSizer().Add(container, **item_sizer_kw)
+            parent.GetSizer().Add(container, **kwargs)
         parent.GetSizer().Layout()
-        return container
 
+
+    def DetachContainer(self, container):
+        ctn_sizer = container.GetSizer()
+        parent = container.GetParent()
+        if container.__class__ == StaticBoxContainer:
+            result = parent.GetSizer().Detach(ctn_sizer)
+        else:
+            result =  parent.GetSizer().Detach(container)
+        #print '\nDetachContainer:', container, parent, result    
+        container.Show(False)    
+        #self.Refresh()
+        return result
+        #print 777
+        
+
+    def CreateContainer(self, container_type_name, *args, **kwargs):
+        try:
+            if container_type_name == 'BoxSizer':
+                container_class = BoxSizerContainer
+            elif container_type_name == 'GridSizer':
+                container_class = GridSizerContainer
+            elif container_type_name == 'FlexGridSizer':
+                container_class = FlexGridSizerContainer            
+            elif container_type_name == 'GridBagSizer':
+                container_class = GridBagSizerContainer             
+            elif container_type_name == 'StaticBox':
+                container_class = StaticBoxContainer   
+            elif container_type_name == 'WarpSizer':
+                container_class = WarpSizerContainer  
+            else:
+                raise Exception('Unregistered container.')          
+            #print 'CreateContainer:', container_class, args, kwargs
+            if not args:
+                #print 'self.mainpanel:', self.mainpanel
+                parent = self.mainpanel
+            else:
+                parent = args[0]
+            container = container_class(parent, **kwargs)
+            #print 'CreateContainer fim'
+            return container
+        except:
+            raise
+            
+
+    def AddCreateContainer(self, container_type_name, *args, **kwargs):
+        #print '\n\nAddCreateContainer:', container_type_name, args, kwargs
+        try:
+            item_sizer_kw, kwargs = pop_registers(item_sizer_keys, kwargs)
+            container = self.CreateContainer(container_type_name, *args, **kwargs)
+            self.AddContainer(container, *args, **item_sizer_kw)    
+            return container
+        except:
+            raise
+            
+    
+    '''
     def AddBoxSizerContainer(self, *args, **kwargs):
-        return self._AddContainer(BoxSizerContainer, *args, **kwargs)
+        #print 'AddBoxSizerContainer'
+        return self._AddCreateContainer(BoxSizerContainer, *args, **kwargs)
         
     def AddGridSizerContainer(self, *args, **kwargs):
-        return self._AddContainer(GridSizerContainer, *args, **kwargs)     
+        return self._AddCreateContainer(GridSizerContainer, *args, **kwargs)     
 
     def AddFlexGridSizerContainer(self, *args, **kwargs):
-        return self._AddContainer(FlexGridSizerContainer, *args, **kwargs)
+        return self._AddCreateContainer(FlexGridSizerContainer, *args, **kwargs)
         
     def AddGridBagSizerContainer(self, *args, **kwargs):
-        return self._AddContainer(GridBagSizerContainer, *args, **kwargs)    
+        return self._AddCreateContainer(GridBagSizerContainer, *args, **kwargs)    
 
     def AddStaticBoxContainer(self, *args, **kwargs):
-        return self._AddContainer(StaticBoxContainer, *args, **kwargs)
+        return self._AddCreateContainer(StaticBoxContainer, *args, **kwargs)
                  
     def AddWarpSizerContainer(self, *args, **kwargs):
-        return self._AddContainer(WarpSizerContainer, *args, **kwargs)                 
+        return self._AddCreateContainer(WarpSizerContainer, *args, **kwargs)                 
+    '''
                  
     def CreateControl(self, enc_class, container, **kwargs):
         # Create and Add a new control.
-        keys = get_control_keys(enc_class._control_class)
-        controlkw, specialkw, kwargs = pop_widget_registers(keys, kwargs)
-        #print '\ncontrolkw:', controlkw
-        #print 'specialkw:', specialkw
-        #print 'kwargs:', kwargs
-        print enc_class
-        enc_control = enc_class(container, specialkw, **controlkw)
-        if enc_control.name:
-            DialogPool.register(self, enc_control)
-        container.GetSizer().Add(enc_control.control, **kwargs)
-        container.GetSizer().Layout()
-
+        try:
+            keys = get_control_keys(enc_class._control_class)
+            controlkw, specialkw, kwargs = pop_widget_registers(keys, kwargs)
+            specialkw['controller_uid'] = self._controller_uid
+            enc_control = enc_class(container, specialkw, **controlkw)
+            self.register(enc_control)
+            container.GetSizer().Add(enc_control.control, **kwargs)
+            container.GetSizer().Layout()
+        except:
+            raise
+            
     def AddChoice(self, *args, **kwargs):
         self.CreateControl(EncapsulatedChoice, args[0], **kwargs)
 
     def AddTextCtrl(self, *args, **kwargs):
         self.CreateControl(EncapsulatedTextCtrl, args[0], **kwargs)
+
+    def AddFilePickerCtrl(self, *args, **kwargs):
+        self.CreateControl(EncapsulatedFilePickerCtrl, args[0], **kwargs)
 
     def AddSpinCtrl(self, *args, **kwargs):
         self.CreateControl(EncapsulatedSpinCtrl, args[0], **kwargs)
@@ -523,33 +670,34 @@ class Dialog(TopLevel, wx.Dialog):
     def AddListBox(self, *args, **kwargs):
         self.CreateControl(EncapsulatedListBox, args[0], **kwargs)        
 
-    def Destroy(self):
-        DialogPool.reset()
-        super(Dialog, self).Destroy()
-
     def get_results(self):
         ret = {}
-        if not DialogPool.get_dialog_objects(self): 
-            return ret
-        for widget in DialogPool.get_dialog_objects(self):
-            ret[widget.name] = widget.get_value()
+        for name, widget in self._objects.items():
+            ret[name] = widget.get_value()
         return ret    
+    
+    def get_object(self, name):
+        return self._objects.get(name)
+
 
 
 
 class PanelContainer(wx.Panel):
     
     def __init__(self, *args, **kwargs): 
+        #print '\nPanelContainer:', args, kwargs
         if not kwargs.get('sizer_class'):
             raise Exception()    
         sizer_class = kwargs.pop('sizer_class')
         panel_kw, sizer_kw = pop_registers(panel_keys, kwargs)
+        #print 'wx.Panel.__init__:', args[0], panel_kw
         wx.Panel.__init__(self, args[0], **panel_kw)
         try:
             sizer = sizer_class(**sizer_kw)
             self.SetSizer(sizer)    
         except:
             raise        
+    
     
 class BoxSizerContainer(PanelContainer):
     
@@ -627,83 +775,9 @@ class StaticBoxContainer(wx.StaticBox):
  
     def GetSizer(self):        
         return self._sizer
-    
-    
-'''
-
-
-
-
-
-
-###############################################################################
-###############################################################################
-
-
-class ToolBarController(UIControllerBase):
-    tid = 'toolbar_controller'
-    _singleton_per_parent = True
-    
-    def __init__(self):
-        super(ToolBarController, self).__init__()
       
   
-class ToolBarModel(UIModelBase):
-    tid = 'toolbar_model'
-    _ATTRIBUTES = {
-        'id': {
-                'default_value': wx.ID_ANY, 
-                'type': int#,
-               #'attr_class': UI_MODEL_ATTR_CLASS.APPLICATION
-        },
-        'pos': {
-                'default_value': wx.DefaultPosition, 
-                'type': wx.Point#,
-                #'attr_class': UI_MODEL_ATTR_CLASS.APPLICATION
-        },
-        'size': {
-                 'default_value': wx.DefaultSize, 
-                 'type': wx.Size#,
-                 #'attr_class': UI_MODEL_ATTR_CLASS.APPLICATION
-        },
-        'style': {
-                'default_value': wx.TB_FLAT|wx.TB_NODIVIDER, 
-                'type': long#,
-                #  'attr_class': UI_MODEL_ATTR_CLASS.APPLICATION
-        }
-    }    
-    
-    def __init__(self, controller_uid, **base_state):     
-        super(ToolBarModel, self).__init__(controller_uid, **base_state)    
-               
-            
-class ToolBar(UIViewBase, wx.ToolBar):
-    tid = 'toolbar'
-    
-    def __init__(self, controller_uid):
-        UIViewBase.__init__(self, controller_uid)
-        _UIM = UIManager()
-        controller = _UIM.get(self._controller_uid)
-        parent_controller_uid = _UIM._getparentuid(self._controller_uid)
-        parent_controller =  _UIM.get(parent_controller_uid)
-        
-        #wx.SystemOptions.SetOption("msw.remap", '0')
-        wx.ToolBar.__init__(self, parent_controller.view, controller.model.id, 
-                            controller.model.pos,
-                            controller.model.size, controller.model.style
-        )
-        self.Realize()  
-        mgr = wx.aui.AuiManager.GetManager(parent_controller.view)
-        if mgr:
-            # TODO: Vale trocar Name(self.tid) por Name(str(self.uid)) abaixo?
-            self.paneinfo = wx.aui.AuiPaneInfo().Name(self.tid).ToolbarPane().Top()
-            mgr.AddPane(self, self.paneinfo)
-            mgr.Update()
-        else:
-            print 'Toolbar else'
-            #parent_controller.view
             
 ###############################################################################
 ###############################################################################
-
 

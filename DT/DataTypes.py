@@ -22,61 +22,16 @@ See Also
 OM.Objects : the base classes for the classes defined in this module.
 """
 
-
+from collections import OrderedDict
 from OM.Manager import ObjectManager
-from OM.Objects import GenericObject, ParentObject
+from OM.Objects import GenericObject 
 from Basic.Colors import COLOR_CYCLE_RGB
 import numpy as np
 
 
-class DTBaseMixin(object):
-    
-    @property
-    def name(self):
-        if 'name' not in self.attributes:
-            self.attributes['name'] = '{}.{}'.format(*self.uid)
-        return self.attributes['name']
-    
-    @name.setter
-    def name(self, value):
-        self.attributes['name'] = value
-    
-    @name.deleter
-    def name(self):
-        del self.attributes['name']
-    
-    def get_friendly_name(self):
-        return self.name
-    
-
-
-class DTGenericObject(GenericObject, DTBaseMixin):
-
-    def __init__(self, **attributes):
-        super(DTGenericObject, self).__init__()
-        self.attributes = attributes
-
-    def _getstate(self):
-        state = super(DTGenericObject, self)._getstate()
-        state.update(self.attributes)
-        return state
-
-
-
-class DTParentObject(ParentObject, DTBaseMixin):
-
-    def __init__(self, **attributes):
-        super(DTParentObject, self).__init__()
-        self.attributes = attributes
-
-    def _getstate(self):
-        state = super(DTParentObject, self)._getstate()
-        state.update(self.attributes)
-        return state
-
-    
-
-class GenericDataType(DTGenericObject):
+# TODO: Rever docs
+# TODO: Criar GenericObject._loadstate para nao necessitar de colocar tudo no __init__ dos objetos
+class GenericDataType(GenericObject):
     """
     The most basic data type, only has name and data.
     
@@ -118,18 +73,41 @@ class GenericDataType(DTGenericObject):
     {'foo': 'bar', 'name': 'ObjName'}
     >>> x.attributes['foo']
     'bar'
-    """
-    
-    def __init__(self, data, **attributes):
-        super(GenericDataType, self).__init__(**attributes)
-        self._data = data
+    """        
+    def __init__(self, *args, **attributes):
+        super(GenericDataType, self).__init__()
+        if not args:
+            self._data = None
+        else:
+            self._data = args[0]
+        self.attributes = attributes
         if isinstance(self._data, np.ndarray):
-            self._data.flags.writeable = False
-
+            self._data.flags.writeable = False    
+    
+    @property
+    def name(self):
+        if 'name' not in self.attributes:
+            self.attributes['name'] = '{}.{}'.format(*self.uid)
+        return self.attributes['name']
+    
+    @name.setter
+    def name(self, value):
+        self.attributes['name'] = value
+    
+    @name.deleter
+    def name(self):
+        del self.attributes['name']
+    
+    def get_friendly_name(self):
+        return self.name
+    
     @property
     def data(self):
         return self._data
 
+    """
+    TODO: Decidir isso
+    
     @data.setter
     def data(self, value):
         msg = "Cannot set object data."
@@ -140,34 +118,20 @@ class GenericDataType(DTGenericObject):
         msg = "Cannot delete object data."
         raise TypeError(msg)
 
-    def _getstate(self):
-        state = super(GenericDataType, self)._getstate()
-        state.update(data=self._data)
-        return state
-
-
-
-class DataTypeUnitMixin(object):
     """
-    A "mix-in" for data types that need an exposed unit attribute.
-    
-    Attributes
-    ----------
-    unit : str
-        The unit of the object. Obtained from `attributes`. If `attributes`
-        doesn't have a key ``'unit'``, an empty string will be assigned to it.
-    
-    Examples
-    --------
-    >>> class NameUnitDataType(GenericDataType, DataTypeUnitMixin):
-    >>>     pass
-    >>> x = NameUnitDataType([1, 2, 3], name="Foo", unit="Bar")
-    >>> x.name
-    "Foo"
-    >>> x.unit
-    "Bar"
-    """
-    
+
+    @property
+    def min(self):
+        if self.data is None:
+            return None
+        return np.nanmin(self._data)
+        
+    @property
+    def max(self):
+        if self.data is None:
+            return None
+        return np.nanmax(self._data)
+
     @property
     def unit(self):
         if 'unit' not in self.attributes:
@@ -181,118 +145,94 @@ class DataTypeUnitMixin(object):
     @unit.deleter
     def unit(self):
         del self.attributes['unit']
-
-
-class DataTypeCurveMixin(object):
-    """
-    A "mix-in" for data types that need an exposed curvetype attribute.
-    
-    Attributes
-    ----------
-    curvetype : str
-        The curve type of the object. Obtained from `attributes`. If `attributes`
-        doesn't have a key ``'curvetype'``, an empty string will be assigned to it.
-    
-    Examples
-    --------
-    >>> class NameCurveDataType(GenericDataType, DataTypeCurveMixin):
-    >>>     pass
-    >>> x = NameCurveDataType([1, 2, 3], name="Foo", curvetype="Bar")
-    >>> x.name
-    "Foo"
-    >>> x.curvetype
-    "Bar"
-    """
     
     @property
-    def curvetype(self):
-        if 'curvetype' not in self.attributes:
-            self.attributes['curvetype'] = ''
-        return self.attributes['curvetype']
+    def datatype(self):
+        if 'datatype' not in self.attributes:
+            self.attributes['datatype'] = ''
+        return self.attributes['datatype']
     
-    @curvetype.setter
-    def curvetype(self, value):
-        self.attributes['curvetype'] = value
+    @datatype.setter
+    def datatype(self, value):
+        self.attributes['datatype'] = value
     
-    @curvetype.deleter
-    def curvetype(self):
-        del self.attributes['curvetype']
+    @datatype.deleter
+    def datatype(self):
+        del self.attributes['datatype']
+         
+    def get_index(self):
+        OM = ObjectManager(self)
+        dis = OM.list('data_index', self.uid)
+        if not dis:
+            return None    
+        ret = OrderedDict()
+        for di in dis:
+            if di.dimension not in ret.items():
+                ret[di.dimension] = []
+            ret.get(di.dimension).append(di)     
+        return ret
+  
+    def _getstate(self):
+        state = super(GenericDataType, self)._getstate()
+        state.update(data=self._data)
+        state.update(self.attributes)
+        return state
+
+    def _getparent(self):
+        OM = ObjectManager(self)
+        parent_uid = OM._getparentuid(self.uid)
+        if not parent_uid:
+            return None
+        return OM.get(parent_uid)     
 
 
 
-class DataTypeMinMaxMixin(object):
-    """    
-    TODO: COMPLETAR ISSO!!!    
-    """
+class WellData1D(GenericDataType):                             
+    tid = "data1d"
+    
+    def __init__(self, data, **attributes):
+        super(WellData1D, self).__init__(data, **attributes)
+    
+    def get_index(self):
+        OM = ObjectManager(self)
+        parent_uid = OM._getparentuid(self.uid)
+        parent = OM.get(parent_uid)
+        return parent.get_index()   
+    
+    """          
     @property
-    def min(self):
-        return np.nanmin(self._data)
-        
+    def start(self):
+        if 'start' not in self.attributes:
+            index_data = self.get_index()[0][0].data
+            self.attributes['start'] = float(index_data[np.isfinite(self.data)][0])
+        return self.attributes['start']
+    
     @property
-    def max(self):
-        return np.nanmax(self._data)
-    
-      
-        
-class DataTypeIndexMixin(object):
-    """
-    A "mix-in" for data types that need an exposed index attribute (in general 
-    time or depth).
-    
-    Attributes
-    ----------
-    index : IndexCurve
-
-    TODO: COMPLETAR ISSO!!! 
-    """
-    _ACCEPT_MULTIPLE_INDEXES = False
+    def end(self):
+        if 'end' not in self.attributes:
+            index_data = self.get_index()[0][0].data
+            self.attributes['end'] = float(index_data[np.isfinite(self.data)][-1])
+        return self.attributes['end']
 
     @property
-    def index(self):
-        if 'index' not in self.attributes:
-            self.attributes['index'] = []           
-        return self.attributes['index']
-
-    @index.setter
-    def index(self, value):
-        if isinstance(value, IndexCurve) and not self._ACCEPT_MULTIPLE_INDEXES: 
-            self.attributes['index'] = value
-        if isinstance(value, list) and self._ACCEPT_MULTIPLE_INDEXES: 
-            self.attributes['index'] = value     
-            
-    @index.deleter
-    def index(self):
-        del self.attributes['index']        
-        
-
-        
-class DataTypeIndexUidMixin(object):   
+    def step(self):
+        if 'step' not in self.attributes:
+            index_data = self.get_index()[0][0].data
+            self.attributes['step'] = float(index_data[np.isfinite(self.data)][1] - 
+                           index_data[np.isfinite(self.data)][0]
+            )
+        return self.attributes['step']
     """
     
-    TODO: COMPLETAR ISSO!!!
-    
-    """      
-    @property
-    def index_uid(self):
-        return self.attributes.get('index_uid')
-    
-        
-    @index_uid.setter
-    def index_uid(self, value):
-        msg = "Cannot set object index_uid."
-        raise TypeError(msg)
+    def get_friendly_name(self):
+        OM = ObjectManager(self)
+        parent_uid = OM._getparentuid(self.uid)
+        parent = OM.get(parent_uid)         
+        return self.name + '@' + parent.name
 
-    @index_uid.deleter
-    def index_uid(self):
-        msg = "Cannot delete object index_uid."
-        raise TypeError(msg)
-        
-        
-        
-   
-        
-class Log(GenericDataType, DataTypeUnitMixin, DataTypeCurveMixin, 
-                                  DataTypeMinMaxMixin, DataTypeIndexUidMixin):
+    
+class Log(WellData1D):
+                                  
     """
     The values of a particular measurement along a well.
     
@@ -318,13 +258,13 @@ class Log(GenericDataType, DataTypeUnitMixin, DataTypeCurveMixin,
     """
     
     tid = "log"
-    _TID_FRIENDLY_NAME = 'Log'
+    _FRIENDLY_NAME = 'Log'
     _SHOWN_ATTRIBUTES = [
-                            ('_oid', 'Object Id'),
-                            ('curvetype', 'Curve Type'),
+                            ('datatype', 'Curve Type'),
                             ('unit', 'Units'),
                             ('min', 'Min Value'),
                             ('max', 'Max Value'),
+                            ('index_name', 'Index'),
                             ('start', 'Start'),
                             ('end', 'End'),
                             ('step', 'Step'),
@@ -332,57 +272,11 @@ class Log(GenericDataType, DataTypeUnitMixin, DataTypeCurveMixin,
     
     def __init__(self, data, **attributes):
         super(Log, self).__init__(data, **attributes)
-        #self._data.flags.writeable = False
-        #self.min = np.nanmin(self._data)
-        #self.max = np.nanmax(self._data)
-
-    def get_index(self):
-        OM = ObjectManager(self)
-        parent_uid = OM._getparentuid(self.uid)
-        parent = OM.get(parent_uid)
-        return parent.get_index()    
-    
-    @property
-    def start(self):
-        if 'start' not in self.attributes:
-            index_data = self.get_index()._data
-            self.attributes['start'] = float(index_data[np.isfinite(self._data)][0])
-        return self.attributes['start']
-    
-    @property
-    def end(self):
-        if 'end' not in self.attributes:
-            index_data = self.get_index()._data
-            self.attributes['end'] = float(index_data[np.isfinite(self._data)][-1])
-        return self.attributes['end']
-
-    @property
-    def step(self):
-        if 'step' not in self.attributes:
-            index_data = self.get_index()._data
-            self.attributes['step'] = float(index_data[np.isfinite(self._data)][1] - 
-                           index_data[np.isfinite(self._data)][0]
-            )
-        return self.attributes['step']
 
 
-    def get_friendly_name(self):
-        OM = ObjectManager(self)
-        parent_uid = OM._getparentuid(self.uid)
-        parent = OM.get(parent_uid)         
-        #return parent.name + ':' + self.name
-        return self.name + '@' + parent.name
-    
-    """
-    def get_index_data(self):
-        _OM = ObjectManager(self)
-        parent_uid = _OM._getparentuid(self.uid)
-        parent = _OM.get(parent_uid)
-        return parent.get_index_data()
-    """
         
     
-class Property(GenericDataType, DataTypeUnitMixin, DataTypeCurveMixin):
+class Property(GenericDataType):
     """
     A property that can be associated with geological layers.
     
@@ -487,7 +381,7 @@ class Property(GenericDataType, DataTypeUnitMixin, DataTypeCurveMixin):
         del self._data[uid]
 
 
-class Part(GenericDataType, DataTypeCurveMixin):
+class Part(WellData1D):
     """
     A set of samples belonging to a well log.
     
@@ -516,7 +410,7 @@ class Part(GenericDataType, DataTypeCurveMixin):
     tid = "part"
     _NOCODESTART = 1000
     _DEFAULTCOLORS = COLOR_CYCLE_RGB
-    _TID_FRIENDLY_NAME = 'Part'
+    _FRIENDLY_NAME = 'Part'
     
     @GenericDataType.name.getter
     def name(self):
@@ -553,7 +447,8 @@ class Part(GenericDataType, DataTypeCurveMixin):
         del self.attributes['color']
 
 
-class Partition(DTParentObject, DataTypeCurveMixin, DataTypeIndexUidMixin):
+
+class Partition(GenericDataType):
     """
     A partitioning of well log samples.
     
@@ -589,12 +484,13 @@ class Partition(DTParentObject, DataTypeCurveMixin, DataTypeIndexUidMixin):
     DataTypes.DataTypes.Well
     """
     tid = "partition"
-    _TID_FRIENDLY_NAME = 'Partition'
+    _FRIENDLY_NAME = 'Partition'
     _SHOWN_ATTRIBUTES = [
                             ('_oid', 'Object Id'),
-                            ('curvetype', 'Curve Type')#,
+                            ('datatype', 'Curve Type')#,
                             #('index_uid', 'Index Uid')
     ] 
+    
     def __init__(self, **attributes):
         super(Partition, self).__init__(**attributes)
     
@@ -744,11 +640,13 @@ class Partition(DTParentObject, DataTypeCurveMixin, DataTypeIndexUidMixin):
         
         return booldata, codes
 
+    """
     def get_index(self):
         _OM = ObjectManager(self)
         parent_uid = _OM._getparentuid(self.uid)
         parent = _OM.get(parent_uid)
         return parent.get_index()
+    """
     
     @property
     def start(self):
@@ -768,7 +666,7 @@ class Partition(DTParentObject, DataTypeCurveMixin, DataTypeIndexUidMixin):
    
     
 
-class Well(DTParentObject, DataTypeIndexMixin):
+class Well(GenericDataType):
     """
     A set of data related to a well.
     
@@ -792,22 +690,17 @@ class Well(DTParentObject, DataTypeIndexMixin):
     DataTypes.DataTypes.Partition
     """
     tid = "well"
-    _TID_FRIENDLY_NAME = 'Well'
+    _FRIENDLY_NAME = 'Well'
     _ACCEPT_MULTIPLE_INDEXES = True
     
     
     def __init__(self, **attributes):
-        super(Well, self).__init__(**attributes)
+        # Well does not have data
+        super(Well, self).__init__(None, **attributes)
 
-    # TODO: DEFINIR COMO FICARA INDEXES
-    def get_index(self):
-        indexes = self.list(tidfilter='index_curve')
-        if indexes:
-            return indexes[0]
 
-                
-        
-class Core(GenericDataType, DataTypeUnitMixin, DataTypeCurveMixin):
+                       
+class Core(GenericDataType):
     tid = "core"
     
     def __init__(self, data, **attributes):
@@ -818,181 +711,70 @@ class Core(GenericDataType, DataTypeUnitMixin, DataTypeCurveMixin):
         
 ###############################################################################
 ###############################################################################
-        
+                
 
-        
-class IndexCurve(Property, DataTypeMinMaxMixin):   
-    tid = "index_curve"
-    _DATATYPE_VALID_TYPES = ['MD', 'TVD', 'TVDSS', 'Time']
-    _DEFAULTDATATYPE = 'MD'
-    # TODO: Mudar isso com a criacao de class para units
-    _DEFAULTDEPTHUNIT = 'm'
-    _DEFAULTTIMEUNIT = 'ms'
-    
-    _TID_FRIENDLY_NAME = 'Index'
-    _SHOWN_ATTRIBUTES = [
-                            ('_oid', 'Object Id'),
-                            ('curvetype', 'Curve Type'),
-                            ('unit', 'Units'),
-                            ('start', 'Start'),
-                            ('end', 'End')
-    ]
-    
-    
-    def __init__(self, data, **attributes):
-        super(IndexCurve, self).__init__(data, **attributes)
-        #self._data.flags.writeable = False
-        if attributes.get('curvetype') is None:
-            self.curvetype = self._DEFAULTDATATYPE
-        elif attributes.get('curvetype') not in self._DATATYPE_VALID_TYPES:
-            raise Exception('Invalid curve type. Valid types: {}'.format(str(self._DATATYPE_VALID_TYPES)))
-        else:
-            self.curvetype = attributes.get('curvetype')
-            
-        if attributes.get('unit') is None:
-            if self.curvetype == 'Time':
-                self.unit = self._DEFAULTTIMEUNIT
-            else:
-                self.unit = self._DEFAULTDEPTHUNIT
-                        
-    @property
-    def start(self):
-        if 'start' not in self.attributes:
-            index_data = self._data
-            self.attributes['start'] = float(index_data[np.isfinite(self._data)][0])
-        return self.attributes['start']
-    
-    @property
-    def end(self):
-        if 'end' not in self.attributes:
-            index_data = self._data
-            self.attributes['end'] = float(index_data[np.isfinite(self._data)][-1])
-        return self.attributes['end']           
-
-        
-    def get_friendly_name(self):
-        OM = ObjectManager(self)
-        parent_uid = OM._getparentuid(self.uid)
-        parent = OM.get(parent_uid)         
-        #return parent.name + ':' + self.name
-        return self.name + '@' + parent.name
-        
-###############################################################################
-###############################################################################
-
-
-class Density(GenericDataType, DataTypeIndexUidMixin):
+class Density(GenericDataType):
     tid = 'density'
 
-    def __init__(self, data, dimensions, **attributes):
+    def __init__(self, data, **attributes):
         super(Density, self).__init__(data, **attributes)
-        self.dimensions = dimensions
-        
-    # TODO: Objeto nao esta adicionado no ObjectManager
-    # Verificar se essa eh a melhor forma    
-    def get_index(self):
-        start = self.attributes.get('datum')
-        step = self.attributes.get('sample_rate')
-        stop = start + step * self.attributes.get('samples')
-        index_data = np.arange(start, stop, step)
-        if self.attributes.get('domain') == 'time':
-            ct = 'Time'
-        elif self.attributes.get('domain') == 'depth': 
-            ct = 'TVD'
-        else:
-            raise Exception('Density domain not recognized.')
-        OM = ObjectManager(self)
-        index = OM.new('index_curve', index_data, name='', 
-                       unit=self.attributes.get('unit'), curvetype=ct
-        )        
-        return index            
-        
-    @property
-    def start(self):
-        return self.attributes.get('datum')
-
-    @property
-    def step(self):
-        return self.attributes.get('sample_rate')
-    
-    @property
-    def end(self):
-        return self.start + self.step * self.attributes.get('samples')
-
-    def _getstate(self):
-        state = super(Density, self)._getstate()
-        state.update(dimensions=self.dimensions)
-        return state
 
 
 class Seismic(Density):
     tid = 'seismic'
-    _TID_FRIENDLY_NAME = 'Seismic'
+    _FRIENDLY_NAME = 'Seismic'
     _SHOWN_ATTRIBUTES = [
-                            ('_oid', 'Object Id'),    
-                            ('stacked', 'Stacked'),
-                            ('domain', 'Domain'),    
-                            ('unit', 'Units'),
-                            ('datum', 'Datum'),
-                            ('sample_rate', 'Sample Rate'),
-                            ('samples', 'Samples per trace')
+                            ('_oid', 'Object Id')  
     ]
 
-    def __init__(self, data, dimensions, **attributes):
-        super(Seismic, self).__init__(data, dimensions, **attributes)
-        
-    @property
-    def stacked(self):
-        return len(self.dimensions) == 2
+    def __init__(self, data, **attributes):
+        super(Seismic, self).__init__(data, **attributes)
+                
 
 
 
 class WellGather(Density):
     tid = 'gather'
-    _TID_FRIENDLY_NAME = 'Gather'
+    _FRIENDLY_NAME = 'Gather'
     _SHOWN_ATTRIBUTES = [
-                            ('_oid', 'Object Id'),    
-                            ('stacked', 'Stacked'),
-                            ('domain', 'Domain'),    
-                            ('unit', 'Units'),
-                            ('datum', 'Datum'),
-                            ('sample_rate', 'Sample Rate'),
-                            ('samples', 'Samples per trace')
+                            ('_oid', 'Object Id')  
     ]
 
-    def __init__(self, data, dimensions, **attributes):
-        super(WellGather, self).__init__(data, dimensions, **attributes)
+    def __init__(self, data, **attributes):
+        super(WellGather, self).__init__(data,  **attributes)
         
-    @property
-    def stacked(self):
-        return len(self.dimensions) == 2
-
 
 
 class Scalogram(Density):
     tid = 'scalogram'
-    _TID_FRIENDLY_NAME = 'Scalogram'
+    _FRIENDLY_NAME = 'Scalogram'
     _SHOWN_ATTRIBUTES = [
                             ('_oid', 'Object Id'),
-                            ('type', 'Type'),                             
-                            ('domain', 'Domain'),    
-                            ('unit', 'Units'),
-                            ('datum', 'Datum'),
-                            ('sample_rate', 'Sample Rate'),
-                            ('samples', 'Samples per scale')
-                            #('scales', 'Scales per trace'),
-                            #('traces', 'Traces')
+                            ('datatype', 'Type')                       
     ] 
 
+    def __init__(self, data, **attributes):
+        super(Scalogram, self).__init__(data, **attributes)
 
-    def __init__(self, data, dimensions, **attributes):
-        super(Scalogram, self).__init__(data, dimensions, **attributes)
+
+
+class GatherScalogram(Density):
+    tid = 'scalogram'
+    _FRIENDLY_NAME = 'Scalogram'
+    _SHOWN_ATTRIBUTES = [
+                            ('_oid', 'Object Id'),
+                            ('datatype', 'Type')                       
+    ] 
+
+    def __init__(self, data, **attributes):
+        super(Scalogram, self).__init__(data, **attributes)
+
 
 
 
 class Angle(Density):
     tid = 'angle'
-    _TID_FRIENDLY_NAME = 'Angle'
+    _FRIENDLY_NAME = 'Angle'
     _SHOWN_ATTRIBUTES = [
                             ('_oid', 'Object Id'),
                             ('type', 'Type'),                             
@@ -1012,7 +794,7 @@ class Angle(Density):
 
 class Velocity(Density):
     tid = 'velocity'
-    _TID_FRIENDLY_NAME = 'Velocity'
+    _FRIENDLY_NAME = 'Velocity'
     _SHOWN_ATTRIBUTES = [
                             ('_oid', 'Object Id'),
                             ('domain', 'Domain'),    
@@ -1028,9 +810,10 @@ class Velocity(Density):
         super(Velocity, self).__init__(data, **attributes)
 
 
+
 class Spectogram(Density):
     tid = 'spectogram'
-    _TID_FRIENDLY_NAME = 'Spectogram'
+    _FRIENDLY_NAME = 'Spectogram'
     _SHOWN_ATTRIBUTES = [
                             ('_oid', 'Object Id'),
                             ('type', 'Type'),                             
@@ -1052,30 +835,23 @@ class Spectogram(Density):
 ###############################################################################
 
 
-class Inversion(DTParentObject, DataTypeIndexMixin):
+class Inversion(GenericDataType):
     tid = "inversion"
-    _TID_FRIENDLY_NAME = 'Inversion'
+    _FRIENDLY_NAME = 'Inversion'
     _ACCEPT_MULTIPLE_INDEXES = True
     
     def __init__(self, **attributes):
         super(Inversion, self).__init__(**attributes)
 
-    # TODO: DEFINIR COMO FICARA INDEXES
-    def get_index(self):
-        indexes = self.list(tidfilter='inv_index_curve')
-        if indexes:
-            return indexes[0]
 
-
-   
-        
-class InversionParameter(GenericDataType, DataTypeUnitMixin, DataTypeCurveMixin, 
-                                  DataTypeMinMaxMixin, DataTypeIndexUidMixin):
+    
+class InversionParameter(GenericDataType):
+                                 
     tid = "inversion_parameter"
-    _TID_FRIENDLY_NAME = 'Parameter'
+    _FRIENDLY_NAME = 'Parameter'
     _SHOWN_ATTRIBUTES = [
                             ('_oid', 'Object Id'),
-                            ('curvetype', 'Curve Type'),
+                            ('datatype', 'Curve Type'),
                             ('unit', 'Units'),
                             ('min', 'Min Value'),
                             ('max', 'Max Value'),
@@ -1087,12 +863,7 @@ class InversionParameter(GenericDataType, DataTypeUnitMixin, DataTypeCurveMixin,
     def __init__(self, data, **attributes):
         super(InversionParameter, self).__init__(data, **attributes)
 
-    def get_index(self):
-        OM = ObjectManager(self)
-        parent_uid = OM._getparentuid(self.uid)
-        parent = OM.get(parent_uid)
-        return parent.get_index()    
-    
+    """
     @property
     def start(self):
         if 'start' not in self.attributes:
@@ -1121,58 +892,190 @@ class InversionParameter(GenericDataType, DataTypeUnitMixin, DataTypeCurveMixin,
         parent_uid = OM._getparentuid(self.uid)
         parent = OM.get(parent_uid)         
         return self.name + '@' + parent.name
-    
+    """
 
-'''        
-class InvIndexCurve(Property, DataTypeMinMaxMixin):   
-    tid = "inv_index_curve"
-    _DATATYPE_VALID_TYPES = ['MD', 'TVD', 'TVDSS', 'Time']
-    _DEFAULTDATATYPE = 'MD'
-    # TODO: Mudar isso com a criacao de class para units
-    _DEFAULTDEPTHUNIT = 'm'
-    _DEFAULTTIMEUNIT = 'ms'
-    
-    _TID_FRIENDLY_NAME = 'Index'
+###############################################################################
+###############################################################################
+
+
+VALID_INDEXES = {
+    'I_LINE': {
+            'units': [None],
+            'name': 'Iline',
+            'desc': ''
+    },        
+    'X_LINE': {
+            'units': [None],
+            'name': 'Xline',
+            'desc': ''
+    },        
+    'FREQUENCY': {
+            'units': ['Hz'],
+            'name': 'Frequency',
+            'desc': ''
+    },        
+    'SCALE': {
+            'units': [None],
+            'name': 'Scale',
+            'desc': ''
+    },    
+    'OFFSET': {
+            'units': ['m', 'ft'],
+            'name': 'Offset',
+            'desc': ''
+    },     
+    'MD': {
+            'units': ['m', 'ft'],
+            'name': 'MD',
+            'desc': 'Measured depth'
+    },        
+    'TVD': {
+            'units': ['m', 'ft'],
+            'name': 'TVD',
+            'desc': 'True vertical depth'
+    },        
+    'TVDSS': {
+            'units': ['m', 'ft'],
+            'name': 'TVDSS',
+            'desc': 'True vertical depth sub sea'
+    },  
+    'TWT': {
+            'units': ['ms', 's'],
+            'name': 'TWT', 
+            'desc': 'Two-way time'
+    },        
+    'TIME': {
+            'units': ['ms', 's'],
+            'name': 'Time', 
+            'desc': 'One-way time'
+    }        
+}    
+
+
+
+def check_data_index(index_type, axis_unit):  
+    index_props = VALID_INDEXES.get(index_type)    
+    if not index_props:
+        raise Exception('Invalid index code. [index_trype={}]'.format(index_type))
+    if axis_unit not in index_props.get('units'):
+        raise Exception('Invalid index unit.')
+
+
+
+# Class for discrete dimensions of Data Objects
+class DataIndex(GenericDataType):
+    tid = 'data_index'
+    _FRIENDLY_NAME = 'Index'
     _SHOWN_ATTRIBUTES = [
                             ('_oid', 'Object Id'),
-                            ('curvetype', 'Curve Type'),
-                            ('unit', 'Units'),
+                            ('dimension', 'Dimension'),
+                            ('datatype', 'Type'),
+                            ('unit', 'Unit'),
                             ('start', 'Start'),
-                            ('end', 'End')
-    ]
+                            ('end', 'End'),
+                            ('step', 'Step'),
+                            ('samples', 'Samples')
+    ]   
     
-    
-    def __init__(self, data, **attributes):
-        super(InvIndexCurve, self).__init__(data, **attributes)
-        #self._data.flags.writeable = False
-        if attributes.get('curvetype') is None:
-            self.curvetype = self._DEFAULTDATATYPE
-        elif attributes.get('curvetype') not in self._DATATYPE_VALID_TYPES:
-            raise Exception('Invalid curve type. Valid types: {}'.format(str(self._DATATYPE_VALID_TYPES)))
-        else:
-            self.curvetype = attributes.get('curvetype')
-            
-        if attributes.get('unit') is None:
-            if self.curvetype == 'Time':
-                self.unit = self._DEFAULTTIMEUNIT
-            else:
-                self.unit = self._DEFAULTDEPTHUNIT
-                        
+    def __init__(self, dimension_idx, name, datatype=None, unit=None, **kwargs):   
+        if dimension_idx is None or dimension_idx < 0 or not isinstance(dimension_idx, int):
+            raise Exception('Wrong value for dimension_idx [{}]'.format(dimension_idx))
+        try:    
+            check_data_index(datatype, unit)
+        except:
+            raise        
+        data = kwargs.get('data') 
+        start = kwargs.get('start') 
+        end = kwargs.get('end') 
+        step = kwargs.get('step')
+        samples = kwargs.get('samples')
+        if data is None or not isinstance(data, np.ndarray):
+            try:
+                end = start + step * samples
+                data = np.arange(start, end, step)
+            except:
+                raise Exception('Data values were provided wrongly.')
+        if start is None:        
+            start = data[0]
+        if end is None:
+            end = data[-1]
+        samples = len(data)
+        super(DataIndex, self).__init__(data, name=name, 
+                         datatype=datatype, unit=unit,
+                         start=start, end=end, step=step, samples=samples
+        )
+        self.attributes['dimension'] = dimension_idx   
+        #
+        OM = ObjectManager(self)        
+        OM.subscribe(self._on_OM_add, 'add')
+
+
+    def _on_OM_add(self, objuid):
+        if objuid != self.uid:
+            return
+        #print '_on_OM_add:', self.uid
+        OM = ObjectManager(self)        
+        OM.unsubscribe(self._on_OM_add, 'add')
+        parent_uid = OM._getparentuid(self.uid)
+        dis = OM.list(self.tid, parent_uid)
+        if self.dimension > len(dis):
+            raise Exception('Dimension not valid [{}]'.format(self.dimension))
+
     @property
     def start(self):
-        if 'start' not in self.attributes:
-            index_data = self._data
-            self.attributes['start'] = float(index_data[np.isfinite(self._data)][0])
+        #if 'start' not in self.attributes:
+        self.attributes['start'] = self.data[0]
         return self.attributes['start']
     
     @property
     def end(self):
-        if 'end' not in self.attributes:
-            index_data = self._data
-            self.attributes['end'] = float(index_data[np.isfinite(self._data)][-1])
-        return self.attributes['end']           
+        #if 'end' not in self.attributes:
+        self.attributes['end'] = self.data[-1]
+        return self.attributes['end']
 
+    @property
+    def step(self):
+        #if 'step' not in self.attributes:
+        self.attributes['step'] = None             
+        return self.attributes['step']        
+
+    @property
+    def samples(self):
+        #if 'samples' not in self.attributes:
+        self.attributes['samples'] = None             
+        return self.attributes['samples']      
+    
+    @property
+    def dimension(self):
+        return self.attributes['dimension']
+    
+    @classmethod
+    def _loadstate(cls, **state):
+        OM = ObjectManager(cls)
+        try:
+            dimension = state.pop('dimension')
+            name = state.pop('name')
+            datatype = state.pop('datatype')
+            unit = state.pop('unit')
+            index = OM.new(cls.tid, dimension, name, datatype, unit, **state)
+        except Exception as e:
+            print '\nERROR:', e, '\n', state
+        return index
         
+
+
+class Model1D(Density):
+    tid = 'model1d'
+    _FRIENDLY_NAME = 'Model'
+    _SHOWN_ATTRIBUTES = [
+                            ('_oid', 'Object Id')  
+    ]
+
+    def __init__(self, data, **attributes):
+        super(Model1D, self).__init__(data, **attributes)
+
+
+    
     def get_friendly_name(self):
         OM = ObjectManager(self)
         parent_uid = OM._getparentuid(self.uid)

@@ -3,19 +3,17 @@
 import numpy as np
 
 from OM.Manager import ObjectManager
+from UI.uimanager import UIManager
 from Algo.Spectral.Spectral import STFT, WaveletTransform, Morlet, Paul, DOG, Ricker
-
 from collections import OrderedDict
 import wx
-from UI.dialog_new import Dialog
-
+#from UI.dialog_new import Dialog
 
 SPECGRAM_TYPES = OrderedDict()
 SPECGRAM_TYPES['Power Spectral Density'] = 'psd'
 SPECGRAM_TYPES['Magnitude'] = 'magnitude'
 SPECGRAM_TYPES['Phase (no unwrapping)'] = 'angle'
 SPECGRAM_TYPES['Phase (unwrapping)'] = 'phase' 
-
 
 WAVELET_TYPES = OrderedDict()
 WAVELET_TYPES['Morlet complex'] = 'morlet'
@@ -35,170 +33,120 @@ WAVELET_TYPES['Paul (order=6)'] = 'paul6'
 
 def do_STFT(*args, **kwargs):
     obj = args[0]
-    dlg = Dialog(None, title='Short Time Fourier Transform', 
-                 flags=wx.OK|wx.CANCEL
-    )
-    container = dlg.AddStaticBoxContainer(label='Spectrogram type', 
-                                          orient=wx.VERTICAL, proportion=0, 
-                                          flag=wx.EXPAND|wx.TOP, border=5
-    )   
-    dlg.AddChoice(container, proportion=0, flag=wx.EXPAND|wx.TOP, border=5, 
-                  widget_name='spectrogram_type', initial=SPECGRAM_TYPES
-    ) 
-    container2 = dlg.AddStaticBoxContainer(label='Window size', 
-                                          orient=wx.VERTICAL, proportion=0, 
-                                          flag=wx.EXPAND|wx.TOP, border=5
-    )   
-    dlg.AddSpinCtrl(container2, proportion=0, flag=wx.EXPAND, 
-                    widget_name='window_size', max=1024, initial=256
-    )
-    container3 = dlg.AddStaticBoxContainer(label='Overlap size', 
-                                          orient=wx.VERTICAL, proportion=0, 
-                                          flag=wx.EXPAND|wx.TOP, border=5
-    )   
-    dlg.AddSpinCtrl(container3, proportion=0, flag=wx.EXPAND, 
-                    widget_name='noverlap', max=512, initial=128
-    )
+    UIM = UIManager()
+    dlg = UIM.create('dialog_controller', title='Short Time Fourier Transform') 
+    #
+    try:
+        ctn_spec_type = dlg.view.AddCreateContainer('StaticBox', label='Spectrogram type', orient=wx.VERTICAL, proportion=0, flag=wx.EXPAND|wx.TOP, border=5)
+        dlg.view.AddChoice(ctn_spec_type, proportion=0, flag=wx.EXPAND|wx.TOP, border=5,  widget_name='spectrogram_type', options=SPECGRAM_TYPES)     
+        #
+        ctn_win_size = dlg.view.AddCreateContainer('StaticBox', label='Window size', orient=wx.VERTICAL, proportion=0, flag=wx.EXPAND|wx.TOP, border=5)        
+        dlg.view.AddSpinCtrl(ctn_win_size, proportion=0, flag=wx.EXPAND, widget_name='window_size', max=1024, initial=256)
+        #
+        ctn_overlap_size = dlg.view.AddCreateContainer('StaticBox', label='Overlap size', orient=wx.VERTICAL, proportion=0, flag=wx.EXPAND|wx.TOP, border=5)
+        dlg.view.AddSpinCtrl(ctn_overlap_size, proportion=0, flag=wx.EXPAND, widget_name='noverlap', max=512, initial=128)
+        #
+        dlg.SetSize((230, 260))
+        result = dlg.ShowModal()
+        if result == wx.ID_OK:
+            results = dlg.get_results()  
+            if results.get('spectrogram_type'):
+                stft_data, freq_values, index_values = STFT(obj.data, 
+                        results.get('window_size'), results.get('noverlap'),
+                        obj.start, obj.step, mode=results.get('spectrogram_type')
+                )
+                print 'FrIvSh:', len(freq_values), len(index_values), stft_data.shape  
+                OM = ObjectManager(obj)    
+                index_start = index_values[0]-(index_values[1]-index_values[0])/2
+                seismic = OM.new('seismic', stft_data, name=obj.name+'_STFT', 
+                                       unit='m', domain='depth', 
+                                       sample_rate=index_values[1] - index_values[0],
+                                       datum=index_start,
+                                       samples= len(index_values),
+                )       
+                OM.add(seismic)       
+    except Exception:
+        pass
+    finally:
+        UIM.remove(dlg.uid)        
     
-    dlg.SetSize((230, 260))
-    
-    result = dlg.ShowModal()
-    
-    if result == wx.ID_OK:
-        results = dlg.get_results()  
-
-        if results.get('spectrogram_type'):
-            
-
-    
-            #print '\nSTFT:', obj.get_friendly_name()
-    
-            stft_data, freq_values, index_values = STFT(obj.data, 
-                    results.get('window_size'), results.get('noverlap'),
-                    obj.start, obj.step, mode=results.get('spectrogram_type')
-            )
-    
-            #print '\ntime_values:', len(index_values), index_values
-            #print '\nfreq_values:', len(freq_values), freq_values
-            print 'FrIvSh:', len(freq_values), len(index_values), stft_data.shape  
-                
-            
-            OM = ObjectManager(obj)    
-            
-            index_start = index_values[0]-(index_values[1]-index_values[0])/2
-            seismic = OM.new('seismic', stft_data, name=obj.name+'_STFT', 
-                                   unit='m', domain='depth', 
-                                   sample_rate=index_values[1] - index_values[0],
-                                   datum=index_start,
-                                   samples= len(index_values),
-                                   #stacked=stacked,
-                                   #trace_headers=trace_headers,
-                                   #offsets=offsets
-            )       
-            OM.add(seismic)       
-
-
-    dlg.Destroy()
-    
-
-
 
 
 def do_CWT(*args, **kwargs):
     obj = args[0]
-    dlg = Dialog(None, title='Continuous Wavelet Transform', 
-                 flags=wx.OK|wx.CANCEL
-    )
-    
-    
-    
-    
-    container = dlg.AddStaticBoxContainer(label='Wavelet', 
-                                          orient=wx.VERTICAL, proportion=0, 
-                                          flag=wx.EXPAND|wx.TOP, border=5
-    )   
-    dlg.AddChoice(container, proportion=0, flag=wx.EXPAND|wx.TOP, border=5, 
-                  widget_name='wavelet', initial=WAVELET_TYPES
-    ) 
-
-    
-    
-    container = dlg.AddStaticBoxContainer(label='Scale resolution', 
-                                          orient=wx.VERTICAL, proportion=0, 
-                                          flag=wx.EXPAND|wx.TOP, border=5
-    )   
-    dlg.AddTextCtrl(container, proportion=0, flag=wx.EXPAND|wx.TOP, border=5, 
-                  widget_name='dj', initial='0.125'
-    ) 
-    
-    
-
-    dlg.SetSize((230, 260))
-    
-    result = dlg.ShowModal()
-    
-    if result == wx.ID_OK:
-        results = dlg.get_results()  
-        print results
-        dj = None
-        try:
-            dj = float(results.get('dj'))
-        except:
-            pass
-        if dj is None:
-            return
-        
-        wavelet = results.get('wavelet')        
-        if wavelet == 'morlet':
-            func = Morlet()
-        elif wavelet == 'ricker':
-            func = Ricker()
-        elif wavelet == 'dog3':
-            func = DOG(m=3) 
-        elif wavelet == 'dog4':
-            func = DOG(m=4)             
-        elif wavelet == 'dog5':
-            func = DOG(m=5) 
-        elif wavelet == 'dog6':
-            func = DOG(m=6) 
-        elif wavelet == 'paul2':
-            func = Paul(m=2) 
-        elif wavelet == 'paul3':
-            func = Paul(m=3) 
-        elif wavelet == 'paul4':
-            func = Paul(m=4) 
-        elif wavelet == 'paul5':
-            func = Paul(m=5)             
-        elif wavelet == 'paul6':
-            func = Paul(m=6) 
-        else:
-            raise Exception()   
-
-
-        valid_data = obj.data[np.isfinite(obj.data)]
-        valid_index_data = obj.get_index().data[np.isfinite(obj.data)]
+    UIM = UIManager()
+    dlg = UIM.create('dialog_controller', title='Continuous Wavelet Transform') 
+    #
+    try:
+        ctn_wavelet = dlg.view.AddCreateContainer('StaticBox', label='Wavelet', orient=wx.VERTICAL, proportion=0, flag=wx.EXPAND|wx.TOP, border=5)
+        dlg.view.AddChoice(ctn_wavelet, proportion=0, flag=wx.EXPAND|wx.TOP, border=5,  widget_name='wavelet', options=WAVELET_TYPES)     
+        #
+        ctn_scale_res = dlg.view.AddCreateContainer('StaticBox', label='Scale resolution', orient=wx.VERTICAL, proportion=0, flag=wx.EXPAND|wx.TOP, border=5)
+        dlg.view.AddTextCtrl(ctn_scale_res, proportion=0, flag=wx.EXPAND|wx.TOP, border=5, widget_name='dj', initial='0.125') 
+        #
+        dlg.SetSize((230, 260))
+        result = dlg.ShowModal()
+        if result == wx.ID_OK:
+            results = dlg.get_results()  
+            print results
+            dj = None
+            try:
+                dj = float(results.get('dj'))
+            except:
+                pass
+            if dj is None:
+                return
+            wavelet = results.get('wavelet')        
+            if wavelet == 'morlet':
+                func = Morlet()
+            elif wavelet == 'ricker':
+                func = Ricker()
+            elif wavelet == 'dog3':
+                func = DOG(m=3) 
+            elif wavelet == 'dog4':
+                func = DOG(m=4)             
+            elif wavelet == 'dog5':
+                func = DOG(m=5) 
+            elif wavelet == 'dog6':
+                func = DOG(m=6) 
+            elif wavelet == 'paul2':
+                func = Paul(m=2) 
+            elif wavelet == 'paul3':
+                func = Paul(m=3) 
+            elif wavelet == 'paul4':
+                func = Paul(m=4) 
+            elif wavelet == 'paul5':
+                func = Paul(m=5)             
+            elif wavelet == 'paul6':
+                func = Paul(m=6) 
+            else:
+                raise Exception()   
+            valid_data = obj.data[np.isfinite(obj.data)]
+            valid_index_data = obj.get_index().data[np.isfinite(obj.data)]
+            wt = WaveletTransform(valid_data, dj=dj, wavelet=func, dt=obj.step,
+                                  time=valid_index_data
+            )
+            OM = ObjectManager(obj) 
+            seismic = OM.new('scalogram', wt.wavelet_power, name=obj.name+'_CWT', 
+                                   unit='m', domain='depth', 
+                                   sample_rate=wt.time[1] - wt.time[0],
+                                   datum=wt.time[0],
+                                   samples= len(wt.time),
+                                   frequencies=wt.fourier_frequencies,
+                                   periods=wt.fourier_periods,
+                                   scales=wt.scales
+            )                       
+            OM.add(seismic)  
+            print wt.wavelet_transform.shape        
+    except Exception:
+        pass
+    finally:
+        UIM.remove(dlg.uid)   
         
         
-        wt = WaveletTransform(valid_data, dj=dj, wavelet=func, dt=obj.step,
-                              time=valid_index_data
-        )
         
-        OM = ObjectManager(obj) 
-        seismic = OM.new('scalogram', wt.wavelet_power, name=obj.name+'_CWT', 
-                               unit='m', domain='depth', 
-                               sample_rate=wt.time[1] - wt.time[0],
-                               datum=wt.time[0],
-                               samples= len(wt.time),
-                               frequencies=wt.fourier_frequencies,
-                               periods=wt.fourier_periods,
-                               scales=wt.scales
-        )                       
-        OM.add(seismic)  
         
-        print wt.wavelet_transform.shape      
         
-    dlg.Destroy()     
-
 
 '''
 def teste():

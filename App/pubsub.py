@@ -174,15 +174,15 @@ class PublisherMixin(object):
         --------
             Messaging new object creation.
             >>> OM = ObjectManager(self)
-            >>> OM.send_message(('object_added'), arg1=obj.uid)        
+            >>> OM.send_message('add', objuid=obj.uid)  
             
             Messaging object attribute change.
             >>> b = B()
             >>> b.send_message(('attr_changed', 'width'), arg1=value, arg2=old_value)
         """
         # TODO: Refazer docs
+        # print 'publisher: {} - topic: {} - data: {}'.format(self.get_publisher_name(), topic, data)
         topic = self.get_publisher_name() + '.' + topic
-        #print 'pub.sendMessage:', topic, data
         pub.sendMessage(topic, **data)
 
 

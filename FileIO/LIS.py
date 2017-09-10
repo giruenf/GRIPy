@@ -216,7 +216,7 @@ class LISFile(object):
         fullpath_json = wx.App.Get().get_app_dir() + os.sep + \
                             self.__module__.split('.')[0] + os.sep + json_file
         #print 'fullpath_json:', fullpath_json
-        self._json = App.utils.read_json_file(fullpath_json)
+        self._json = App.app_utils.read_json_file(fullpath_json)
         
         
     def read_file(self, file_name):

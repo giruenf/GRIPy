@@ -7,22 +7,23 @@ from DT.DataTypes import Log
 from DT.DataTypes import Partition
 from DT.DataTypes import Part
 from DT.DataTypes import Property
-from DT.DataTypes import IndexCurve
-
 from DT.DataTypes import Seismic
-from DT.DataTypes import Velocity
+#from DT.DataTypes import Velocity
 from DT.DataTypes import Scalogram
-from DT.DataTypes import Angle
-
-from DT.DataTypes import Inversion
-#from DT.DataTypes import InvIndexCurve
-from DT.DataTypes import InversionParameter
+from DT.DataTypes import GatherScalogram
+#from DT.DataTypes import Angle
+#from DT.DataTypes import Inversion
+#from DT.DataTypes import InversionParameter
 from DT.DataTypes import WellGather
 from DT.DataTypes import Rock
 from DT.DataTypes import Fluid
-
+from UI.mvc_classes.track_object import DataFilter
+from DT.DataTypes import DataIndex
+from DT.DataTypes import Model1D
 
 from UI.uimanager import UIManager
+from UI.mvc_classes.wxgripy import FrameController, FrameModel, Frame
+from UI.mvc_classes.wxgripy import DialogController, DialogModel, Dialog
 from UI.mvc_classes.main_window import MainWindowController, MainWindowModel, MainWindow
 from UI.mvc_classes.menu_bar import MenuBarController, MenuBarModel, MenuBarView
 from UI.mvc_classes.menu import MenuController, MenuModel, MenuView
@@ -34,27 +35,22 @@ from UI.mvc_classes.status_bar import StatusBarController, StatusBarModel, Statu
 from UI.mvc_classes.log_plot import LogPlotController, LogPlotModel, LogPlot
 from UI.mvc_classes.track import TrackController, TrackModel, TrackView
 from UI.mvc_classes.track_object import TrackObjectController, \
-    TrackObjectModel#, TrackObjectView
+    TrackObjectModel
     
+from UI.mvc_classes.frame_nav import NavigatorController, \
+    NavigatorModel, Navigator
 from UI.mvc_classes.cross_plotter import CrossPlotController, CrossPlotModel, CrossPlot
-
 from UI.mvc_classes.workpage import WorkPageController, WorkPageModel, WorkPage
-
-
 from UI.mvc_classes.track_object import \
     LineRepresentationController, LineRepresentationModel, LineRepresentationView, \
     IndexRepresentationController, IndexRepresentationModel, IndexRepresentationView, \
     DensityRepresentationController, DensityRepresentationModel, DensityRepresentationView, \
     PatchesRepresentationController, PatchesRepresentationModel, PatchesRepresentationView, \
     ContourfRepresentationController, ContourfRepresentationModel, ContourfRepresentationView
-    
-
-                        
+                          
 from UI.mvc_classes.lpf import LogPlotEditorController, LogPlotEditor        
-
 from UI.mvc_classes.lpf import LPETrackPanelController, LPETrackPanel
 from UI.mvc_classes.lpf import LPEObjectsPanelController, LPEObjectsPanel
-
 from UI.mvc_classes.propgrid import PropertyGridController, \
                                             PropertyGridView
 
@@ -65,35 +61,46 @@ def register_app_classes():
     
     
 def register_OM_classes():
-    
     ObjectManager.register_class(Well)
-    ObjectManager.register_class(IndexCurve, Well)
+    ObjectManager.register_class(DataIndex, Well)
     ObjectManager.register_class(Core, Well)
+    #
     ObjectManager.register_class(Log, Well)
     ObjectManager.register_class(Partition, Well)
-    
+    #
     ObjectManager.register_class(Part, Partition)
     ObjectManager.register_class(Property, Partition)
-    
+    #
     ObjectManager.register_class(Seismic)
-#    ObjectManager.register_class(Trace, Seismic)
-    
-    ObjectManager.register_class(Velocity)
+    ObjectManager.register_class(DataIndex, Seismic)
+
     ObjectManager.register_class(Scalogram)
-  
+    ObjectManager.register_class(DataIndex, Scalogram)
+    #
+    '''
+    ObjectManager.register_class(Velocity)    
     ObjectManager.register_class(Angle)   
-    
     ObjectManager.register_class(Inversion)
-    ObjectManager.register_class(IndexCurve, Inversion)
     ObjectManager.register_class(InversionParameter, Inversion)
+    '''
     #
     ObjectManager.register_class(WellGather, Well)
+    ObjectManager.register_class(DataIndex, WellGather)
     ObjectManager.register_class(Rock, Well)
     ObjectManager.register_class(Fluid, Well)
     #
-    
+    ObjectManager.register_class(DataFilter)
+    #
+    ObjectManager.register_class(GatherScalogram, Well)
+    ObjectManager.register_class(DataIndex, GatherScalogram)
+    #
+    ObjectManager.register_class(Rock, Well)
+    #
+    ObjectManager.register_class(Model1D, Well)
     
 def register_UIManager_classes():
+    UIManager.register_class(FrameController, FrameModel, Frame)
+    UIManager.register_class(DialogController, DialogModel, Dialog)
     UIManager.register_class(MainWindowController, MainWindowModel, MainWindow)    
     UIManager.register_class(MenuBarController, MenuBarModel, MenuBarView, MainWindowController) 
     UIManager.register_class(MenuController, MenuModel, MenuView, MenuBarController)
@@ -110,6 +117,7 @@ def register_UIManager_classes():
                               TrackController
     )
     UIManager.register_class(LogPlotEditorController, None, LogPlotEditor, LogPlotController)
+    UIManager.register_class(NavigatorController, NavigatorModel, Navigator)
     UIManager.register_class(LineRepresentationController, LineRepresentationModel, 
                              LineRepresentationView, TrackObjectController
     )

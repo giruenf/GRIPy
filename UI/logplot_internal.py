@@ -3,8 +3,6 @@ import wx
 from wx.lib.scrolledpanel import ScrolledPanel     
 from trackssplitter import MultiSplitterWindow
 
-
-
 class LogPlotInternal(wx.SplitterWindow):  
     SASH_POSITION = 100    
     
@@ -16,10 +14,8 @@ class LogPlotInternal(wx.SplitterWindow):
         self.SetSashPosition(self._top_panel._splitter.GetSize().GetHeight()) # + 2)
         self.SetMinimumPaneSize(self.SASH_POSITION) 
         self.Bind(wx.EVT_SIZE, self._on_size)
-        
-        
+         
     def _on_size(self, event):
-        #print 'LogPlotInternal:', self.GetSize()
         event.Skip()        
         
     def _on_sash_changing(self, event):
@@ -49,8 +45,6 @@ class LogPlotInternal(wx.SplitterWindow):
     def bottom_splitter(self):
         return self._bottom_panel._splitter
   
-
-
 class BaseScrolled(ScrolledPanel):
     
     def __init__(self, parent, **kwargs):
@@ -67,14 +61,6 @@ class BaseScrolled(ScrolledPanel):
         self._splitter._SetFit(fit)
         self.Layout()
       
-          
-      
-    #def _update_sizer(self):
-    #    print '\nUpdated sizer'
-    #    self.GetSizer().Layout()
-        
-
-    
 
 
 

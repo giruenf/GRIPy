@@ -1,17 +1,32 @@
 # -*- coding: utf-8 -*-
 
+from DataTypes import GenericDataType
+        
+    
+class Rock(GenericDataType):
+
+    tid = 'rock'
+    _TID_FRIENDLY_NAME = 'Rock'
+    
+    
+    def __init__(self, **attributes):
+        super(Rock, self).__init__(None, **attributes)
+
+
+
+
 class RockInference(object):
 
     def __init__(self):
         self.rock = None
         self.measures = []
 
-
+'''
 class Rock(object):
  
     def __init__(self):
         self.frame = None    
-    
+'''    
     
 class RockFramework(object):
 
@@ -68,19 +83,7 @@ class EnvironmentProperties(object):
         self.pressure = None
         self.temperature = None
         
-        
-class Unit(object):
-    
-    def __init__(self):    
-        self.name = None
-        self.type = None
-        
-        
-class UnitType(object):
-    
-    def __init__(self):    
-        self.name = None
-        self.type = None        
+              
             
  
     

@@ -261,9 +261,10 @@ class PropertyGridController(UIControllerBase):
         
         repr_ctrl = toc.get_representation()
         if repr_ctrl.tid != 'patches_representation_controller':
+            #print
             for key, key_props in repr_ctrl.model._ATTRIBUTES.items():
                 property_ = _get_pg_property(repr_ctrl.uid, key, key_props)
-                
+                #print '\n', repr_ctrl.uid, key, key_props, property_
                 self._properties[key] = property_
                 self.view.Append(property_)
                 repr_ctrl.subscribe(self.refresh_property, 'change.' + key)

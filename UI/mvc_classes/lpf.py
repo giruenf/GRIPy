@@ -18,7 +18,7 @@ from OM.Manager import ObjectManager
 ###
 from track import TrackController    
 from track_object import TrackObjectController     
-from App.utils import parse_string_to_uid
+from App.app_utils import parse_string_to_uid
 
 from wx.adv import OwnerDrawnComboBox  
 
@@ -996,8 +996,8 @@ class LPEObjectsPanel(UIViewBase, wx.Panel):
             if toc_obj.is_valid():
                 pgcs = UIM.list('property_grid_controller', self._controller_uid)
                 if not pgcs:
-                    print '\nself._controller_uid:', self._controller_uid
-                    print
+                    #print '\nself._controller_uid:', self._controller_uid
+                    #print
                     pgc = UIM.create('property_grid_controller', 
                                            self._controller_uid
                     )

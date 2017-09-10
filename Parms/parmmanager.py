@@ -44,11 +44,11 @@ class ParametersManager(object):
         self.PLTs['No Tracks Plot'] = None
         self.PLTs = FileIO.PLT.getPLTFiles(self.PLTs, os.path.dirname(os.path.abspath(__file__)))
         """
-        self._curvetypes = App.utils.read_json_file(
+        self._curvetypes = App.app_utils.read_json_file(
              os.path.join(os.path.dirname(os.path.abspath(__file__)),
                           CURVETYPES_FILE)
         )
-        self._parametersdict = App.utils.read_json_file(
+        self._parametersdict = App.app_utils.read_json_file(
              os.path.join(os.path.dirname(os.path.abspath(__file__)),
                           PARAMETERS2_FILE)
         )   

@@ -1,34 +1,22 @@
 # -*- coding: utf-8 -*-
 import wx
-#import wx.aui as aui
-
 from UI.uimanager import UIControllerBase 
-
 from workpage import WorkPageController
 from workpage import WorkPageModel
 from workpage import WorkPage
-
 from UI.uimanager import UIManager
-#from UI.logplot_base import OverviewFigureCanvas
 from UI.logplot_internal import LogPlotInternal
-#from UI.plotstatusbar import PlotStatusBar
-from App.utils import LogPlotState  
-
+from App.app_utils import LogPlotState  
 from App import log   
-     
 from mpl_base import TrackFigureCanvas, PlotLabel
+from App.app_utils import DropTarget
 
-from App.utils import DropTarget
 
-
- 
 LP_NORMAL_TOOL = wx.NewId()        
 LP_SELECTION_TOOL = wx.NewId()     
 LP_ADD_TRACK = wx.NewId()     
 LP_REMOVE_TRACK = wx.NewId()     
     
-  
-
   
 class LogPlotController(WorkPageController):
     
@@ -71,7 +59,6 @@ class LogPlotController(WorkPageController):
                                        orderby='pos',
                                        reverse=True
         )
-        #print 'insert_track', self.size
         if not selected_tracks:
             new_track = UIM.create('track_controller', self.uid, 
                                    pos=self.size
@@ -79,8 +66,7 @@ class LogPlotController(WorkPageController):
             return [new_track.uid]         
         ret_list = []    
         
-        for track in selected_tracks:
-            #print '\ncreating in pos:', track.model.pos 													 
+        for track in selected_tracks:											 
             new_track = UIM.create('track_controller', self.uid, 
                                    pos=track.model.pos
             )
@@ -110,28 +96,13 @@ class LogPlotController(WorkPageController):
 
 
     def change_track_position(self, track_uid, old_pos, new_pos):
-        #print 'change_track_position:', track_uid, old_pos, new_pos
         UIM = UIManager()
         track_pos = UIM.get(track_uid)
-        #print 'track new pos:', track_pos.model.pos
         pos = old_pos
-        
-        
-        #for t in UIM.list('track_controller',  self.uid):
-        #    print t.uid, t.model.pos
-            
-        #raise Exception()    
-        
         if new_pos == self.view.get_adjusted_absolute_track_position(track_pos.uid):
-            #print 'JAH ESTOU CERTINHO:', track_pos.uid, new_pos
             return
-        #else:
-            #print 'NAO ESTOU CERTINHO:', track_pos.uid, \
-            #    self.view.get_adjusted_absolute_track_position(track_pos.uid), new_pos
-            
         if new_pos < old_pos:
-            while pos > new_pos:
-                #print '\nOPCAO 1:', pos, new_pos       
+            while pos > new_pos:     
                 tracks_next_pos = UIM.do_query('track_controller',  self.uid, 
                                       'pos='+str(pos-1))
                 if track_pos in tracks_next_pos:
@@ -139,19 +110,14 @@ class LogPlotController(WorkPageController):
                 if len(tracks_next_pos) == 0:
                     return    
                 track_next_pos = tracks_next_pos[0]
-                
-                #print 'track_next_pos:', track_next_pos.uid, track_next_pos.model.pos
                 if not track_pos.model.overview and not track_next_pos.model.overview:  
                     if new_pos != self.view.get_track_position(track_pos.uid, False):
                         self.view.change_absolute_track_position_on_splitter(track_pos.uid, new_pos)
-                
-                #print 'Setting', track_next_pos.uid, 'to position: ',  track_next_pos.model.pos+1
                 track_next_pos.model.pos += 1
                 pos -= 1
         
         else:
-            while pos < new_pos:
-                #print '\nOPCAO 2:', pos, new_pos           
+            while pos < new_pos: 
                 tracks_next_pos = UIM.do_query('track_controller',  self.uid, 
                                       'pos='+str(pos+1))
                 if track_pos in tracks_next_pos:
@@ -160,13 +126,9 @@ class LogPlotController(WorkPageController):
                 if len(tracks_next_pos) == 0:
                     return
                 track_next_pos = tracks_next_pos[0]
-                                
-                #print 'track_next_pos:', track_next_pos.uid, track_next_pos.model.pos
                 if not track_pos.model.overview and not track_next_pos.model.overview:      
                     if new_pos != self.view.get_track_position(track_pos.uid, False):
                         self.view.change_absolute_track_position_on_splitter(track_pos.uid, new_pos)
-
-                #print 'Setting', track_next_pos.uid, 'to position: ',  track_next_pos.model.pos-11
                 track_next_pos.model.pos -= 1
                 pos += 1
 
@@ -292,10 +254,9 @@ class LogPlotController(WorkPageController):
 #        self.view.refresh_overview()
 
 
-
+    """
     def track_object_included(self, y_min, y_max):
-        pass
-        """
+
         if self.model.y_min_shown == self.model.logplot_y_min \
                                             or y_min < self.model.y_min_shown:
         #    print 'Setting y_min_shown:', y_min
@@ -304,7 +265,7 @@ class LogPlotController(WorkPageController):
                                             or y_max > self.model.y_min_shown:
          #   print 'Setting y_min_shown:', y_min
             self.model.y_max_shown = y_max
-        """    
+    """    
 
     """
     def update_adaptative(self):
@@ -366,7 +327,10 @@ class LogPlotModel(WorkPageModel):
         },
         'multicursor': {'default_value': 'None', 
                 'type': str
-        }                 
+        },
+        'index_type': {'default_value': 'MD', 
+                'type': str
+        }   
     }
     _ATTRIBUTES.update(WorkPageModel._ATTRIBUTES)    
     
@@ -377,7 +341,8 @@ class LogPlotModel(WorkPageModel):
      
 class LogPlot(WorkPage):
     tid = 'logplot'
-
+    _FRIENDLY_NAME = 'Well Plot'
+    
     def __init__(self, controller_uid):
         super(LogPlot, self).__init__(controller_uid) 
         UIM = UIManager()        
@@ -432,19 +397,14 @@ class LogPlot(WorkPage):
         )         
         controller.subscribe(self.set_fit, 'change.fit')
         controller.subscribe(self.set_multicursor, 'change.multicursor')
+        controller.subscribe(self.set_index_type, 'change.index_type')
         
         if controller.model.y_min_shown is None:
             controller.model.y_min_shown = controller.model.logplot_y_min
         if controller.model.y_max_shown is None:
             controller.model.y_max_shown = controller.model.logplot_y_max  
             
-            
-    def PreDelete(self):
-        try:
-            self.vbox.Remove(0)
-            del self.tb
-        except Exception, e:
-            print 'PreDelete LogPlot ended with error:', e.args
+        
         
         
     def _get_overview_track(self):
@@ -827,6 +787,11 @@ class LogPlot(WorkPage):
         UIM = UIManager()
         controller = UIM.get(self._controller_uid) 
         controller.model.multicursor = event.GetString()
+
+    def _on_index_type(self, event):
+        UIM = UIManager()
+        controller = UIM.get(self._controller_uid) 
+        controller.model.index_type = event.GetString()
         
 
     def set_multicursor(self, new_value, old_value):        
@@ -837,6 +802,16 @@ class LogPlot(WorkPage):
         for track in tracks:
             track.view.track.update_multicursor(new_value)
 
+    def set_index_type(self, new_value, old_value):        
+        print 'set_index_type:', new_value, old_value
+        '''
+        UIM = UIManager() 
+        tracks = UIM.list('track_controller', self._controller_uid)
+        if not tracks:
+            return               
+        for track in tracks:
+            track.view.track.update_multicursor(new_value)
+        '''    
             
     def show_cursor(self, xdata, ydata):
         UIM = UIManager() 
@@ -908,6 +883,18 @@ class LogPlot(WorkPage):
         self.tool_bar.choice_MC.SetSelection(idx_mc)
         self.tool_bar.choice_MC.Bind(wx.EVT_CHOICE , self._on_multicursor) 
         self.tool_bar.AddControl(self.tool_bar.choice_MC, '')    
+        #
+        self.tool_bar.AddSeparator() 
+        #
+        self.tool_bar.label_IT = wx.StaticText(self.tool_bar, label='Z Axis:  ')
+        #self.tool_bar.label_MC.SetLabel('Multi cursor:')
+        self.tool_bar.AddControl(self.tool_bar.label_IT, '')
+        self.tool_bar.choice_IT = wx.Choice(self.tool_bar, choices=['MD', 'TVD', 'TVDSS', 'TWT', 'OWT'])  
+        controller = UIM.get(self._controller_uid)
+        idx_index_type = ['MD', 'TVD', 'TVDSS', 'TWT', 'OWT'].index(controller.model.index_type)
+        self.tool_bar.choice_IT.SetSelection(idx_index_type)
+        self.tool_bar.choice_IT.Bind(wx.EVT_CHOICE , self._on_index_type) 
+        self.tool_bar.AddControl(self.tool_bar.choice_IT, '')    
         #
         self.tool_bar.AddSeparator() 
         self.tool_bar.Realize()  
