@@ -21,7 +21,7 @@ from DT.UOM import uom as UOM
 import app_utils
 
 from Algo.Spectral.Spectral import STFT, WaveletTransform, Morlet, Paul, DOG, Ricker
-#from UI.dialog_new import Dialog
+from UI.dialog_new import Dialog
 
 from scipy.signal import chirp
 
@@ -1102,6 +1102,10 @@ def on_rock(event):
     OM = ObjectManager(event.GetEventObject()) 
     dlg = Dialog(None, title='Rock selector', flags=wx.OK|wx.CANCEL)
     dlg.SetSize((800, 600))
+    cont_well = dlg.AddStaticBoxContainer(label='Well', 
+                                          orient=wx.HORIZONTAL, proportion=0, 
+                                          flag=wx.EXPAND|wx.TOP, border=5
+    )
     cont_sup = dlg.AddStaticBoxContainer(label='Support', 
                                           orient=wx.HORIZONTAL, proportion=0, 
                                           flag=wx.EXPAND|wx.TOP, border=5
@@ -1124,6 +1128,9 @@ def on_rock(event):
     for well in OM.list('well'):
         for partition in OM.list('partition', well.uid):
             partitions[partition.get_friendly_name()] = partition.uid
+    wells = OrderedDict()
+    for well in OM.list('well'):
+        wells[well.name] = well.uid
             
     #reference
     dlg.AddStaticText(cont_sup, initial='Type of Support   ')
@@ -1132,6 +1139,14 @@ def on_rock(event):
     dlg.AddTextCtrl(cont_sup, widget_name='top', initial='1000')
     dlg.AddTextCtrl(cont_sup, widget_name='base', initial='2000')
     dlg.AddChoice(cont_sup, widget_name='fac', initial=partitions)
+    dlg.AddChoice(cont_well, widget_name='welluid', initial=wells)
+#    c1 = dlg.view.AddCreateContainer('StaticBox', label='Well', orient=wx.VERTICAL, proportion=0, flag=wx.EXPAND|wx.TOP, border=5)
+#    dlg.view.AddChoice(c1, proportion=0, flag=wx.EXPAND|wx.TOP, border=5,  widget_name='welluid', options=wells)
+#    #
+#    ctn_name = dlg.view.AddCreateContainer('StaticBox', label='Rock name:', orient=wx.VERTICAL, proportion=0, flag=wx.EXPAND|wx.TOP, border=5)
+    dlg.AddTextCtrl(cont_well, proportion=0, flag=wx.EXPAND|wx.TOP, 
+                         border=5, widget_name='rock_name', initial='new_rock'#, 
+    )
 #    def text_return(self, event):
 #        lst = ['3','4']
 #        print '1\n'
@@ -1199,15 +1214,35 @@ def on_rock(event):
 #        print '\nresults:', results
         #
 #    print '\n\nresults\n',results.get('suporte')
+#    wells = OrderedDict()
+#    for well in OM.list('well'):
+#        wells[well.name] = well.uid
+#
+#    #    
+#    cont_well = dlg.AddCreateContainer('StaticBox', label='Well', orient=wx.VERTICAL, proportion=0, flag=wx.EXPAND|wx.TOP, border=5)
+#    dlg.AddChoice(c1, proportion=0, flag=wx.EXPAND|wx.TOP, border=5,  widget_name='welluid', options=wells)
+#    dlg.AddChoice(cont_well, widget_name='fac', initial=partitions)
     result = dlg.ShowModal()
     print 'result0'
-    if result == wx.ID_OK:
-        print 'result1'
-        results = dlg.get_results()  
-        print '\nresults2'
-        #
-        print '\nresult.get', results.get('suporte')
-    dlg.Destroy()
+    try:
+        if result == wx.ID_OK:
+            results = dlg.get_results()     
+            well_uid = results.get('welluid')   
+            rock_name = results.get('rock_name')
+            #                   
+            rock = OM.new('rock', name=rock_name)
+            OM.add(rock, well_uid)  
+    except Exception as e:
+        print 'ERROR:', e
+    finally:
+        dlg.Destroy()
+#    if result == wx.ID_OK:
+#        print 'result1'
+#        results = dlg.get_results()  
+#        print '\nresults2'
+#        #
+#        print '\nresult.get', results.get('suporte')
+#    dlg.Destroy()
 #    if result != wx.ID_OK:
 #        dlg.destroy()
 #    #

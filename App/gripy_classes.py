@@ -94,7 +94,7 @@ def register_OM_classes():
     ObjectManager.register_class(GatherScalogram, Well)
     ObjectManager.register_class(DataIndex, GatherScalogram)
     #
-    ObjectManager.register_class(Rock, Well)
+    
     #
     ObjectManager.register_class(Model1D, Well)
     

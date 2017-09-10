@@ -290,7 +290,7 @@ class GripyApp(wx.App):
             UIM.create('menu_item_controller', mc_project.uid, 
                            kind=wx.ITEM_SEPARATOR
             )
-            UIM.create('menu_item_controller', mc_project.uid, 
+#            UIM.create('menu_item_controller', mc_project.uid, 
             mic_loglot = UIM.create('menu_item_controller', mc_edit.uid, 
                     label=u'&LogPlot', 
                     help=u'LogPlot',
@@ -315,7 +315,7 @@ class GripyApp(wx.App):
                     callback='App.menu_functions.on_rock'
             )
             # File Menu
-            mic_open = UIM.create('menu_item_controller', mc_file.uid, 
+            mic_open = UIM.create('menu_item_controller', mc_project.uid, 
                     label=u'&Open', 
                     help=u'Open GriPy Project (*.pgg)',
                     id=wx.ID_OPEN,
@@ -412,16 +412,16 @@ class GripyApp(wx.App):
                     callback='App.menu_functions.on_exit'
             )                  
             
-            # Edit
-            UIM.create('menu_item_controller', mc_edit.uid, 
-                    label=u"Partitions", 
-                    callback='App.menu_functions.on_partitionedit'
-            )    
-            UIM.create('menu_item_controller', mc_edit.uid, 
-                    label=u"New Rock", 
-                    callback='App.menu_functions.on_createrock'
-            )    
-            #
+#            # Edit
+#            UIM.create('menu_item_controller', mc_edit.uid, 
+#                    label=u"Partitions", 
+#                    callback='App.menu_functions.on_partitionedit'
+#            )    
+#            UIM.create('menu_item_controller', mc_edit.uid, 
+#                    label=u"New Rock", 
+#                    callback='App.menu_functions.on_createrock'
+#            )    
+#            #
             
             
             # Well

@@ -1082,8 +1082,8 @@ class Model1D(Density):
         parent = OM.get(parent_uid)         
         #return parent.name + ':' + self.name
         return self.name + '@' + parent.name
-'''
-class Rock (GenericDataType, DataTypeIndexUidMixin):
+
+class Rock (GenericDataType):
     tid = 'rock'
     _TID_FRIENDLY_NAME = 'Rock'
     _SHOWN_ATTRIBUTES = [
@@ -1095,8 +1095,8 @@ class Rock (GenericDataType, DataTypeIndexUidMixin):
                             ('poi', 'Poisson')
     ] 
 
-    def __init__(self, data, **attributes):
-        super(Rock, self).__init__(data, **attributes)
+    def __init__(self, **attributes):
+        super(Rock, self).__init__(None, **attributes)
 
 class Fluid (GenericDataType):
     tid = 'fluid'
