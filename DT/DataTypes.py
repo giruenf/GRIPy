@@ -167,7 +167,8 @@ class GenericDataType(GenericObject):
             return None    
         ret = OrderedDict()
         for di in dis:
-            if di.dimension not in ret.items():
+            #print di.name, di.dimension
+            if di.dimension not in ret.keys():
                 ret[di.dimension] = []
             ret.get(di.dimension).append(di)     
         return ret
@@ -948,6 +949,11 @@ VALID_INDEXES = {
             'units': ['ms', 's'],
             'name': 'Time', 
             'desc': 'One-way time'
+    },
+    'ANGLE': {
+            'units': ['deg', 'rad'],
+            'name': 'Angle', 
+            'desc': 'Angle'            
     }        
 }    
 
@@ -1016,10 +1022,16 @@ class DataIndex(GenericDataType):
         #print '_on_OM_add:', self.uid
         OM = ObjectManager(self)        
         OM.unsubscribe(self._on_OM_add, 'add')
-        parent_uid = OM._getparentuid(self.uid)
-        dis = OM.list(self.tid, parent_uid)
-        if self.dimension > len(dis):
-            raise Exception('Dimension not valid [{}]'.format(self.dimension))
+        #
+        #parent_uid = OM._getparentuid(self.uid)
+        #parent = OM.get(parent_uid)
+        #print 
+        #indexes = parent.get_index()
+        #print indexes.keys()
+        #dis = OM.list(self.tid, parent_uid)
+        
+        #if self.dimension > len(dis):
+        #    raise Exception('Dimension not valid [{}]'.format(self.dimension))
 
     @property
     def start(self):
@@ -1068,47 +1080,24 @@ class Model1D(Density):
     tid = 'model1d'
     _FRIENDLY_NAME = 'Model'
     _SHOWN_ATTRIBUTES = [
-                            ('_oid', 'Object Id')  
+                            ('_oid', 'Object Id'),
+                            ('datatype', 'Type')
     ]
 
     def __init__(self, data, **attributes):
         super(Model1D, self).__init__(data, **attributes)
 
-
-    
-    def get_friendly_name(self):
-        OM = ObjectManager(self)
+    def get_index(self):
+        #print '\nModel1d.get_index'
+        OM = ObjectManager(self)  
         parent_uid = OM._getparentuid(self.uid)
-        parent = OM.get(parent_uid)         
-        #return parent.name + ':' + self.name
-        return self.name + '@' + parent.name
-
-class Rock (GenericDataType):
-    tid = 'rock'
-    _TID_FRIENDLY_NAME = 'Rock'
-    _SHOWN_ATTRIBUTES = [
-                            ('vp', 'Vp'),
-                            ('vs', 'Vs'),                             
-                            ('rho', 'Density'),
-                            ('k', 'Kmodulus'),
-                            ('mu', 'Gmodulus'),
-                            ('poi', 'Poisson')
-    ] 
-
-    def __init__(self, **attributes):
-        super(Rock, self).__init__(None, **attributes)
-
-class Fluid (GenericDataType):
-    tid = 'fluid'
-    _TID_FRIENDLY_NAME = 'Fluid'
-    _SHOWN_ATTRIBUTES = [
-                            ('vp', 'Vp'),
-                            ('vs', 'Vs'),                             
-                            ('rho', 'Density'),
-                            ('k', 'Kmodulus'),
-                            ('mu', 'Gmodulus'),
-                            ('poi', 'Poisson')
-    ] 
-
-    def __init__(self, data, **attributes):
-        super(Fluid, self).__init__(data, **attributes)
+        parent = OM.get(parent_uid)
+        indexes = parent.get_index()
+        #
+        dis = OM.list('data_index', self.uid)
+        if dis:
+            for di in dis:
+                if di.dimension not in indexes.keys():
+                    indexes[di.dimension] = []
+                indexes.get(di.dimension).append(di)     
+        return indexes     

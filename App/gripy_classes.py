@@ -15,10 +15,10 @@ from DT.DataTypes import GatherScalogram
 #from DT.DataTypes import Inversion
 #from DT.DataTypes import InversionParameter
 from DT.DataTypes import WellGather
-from DT.DataTypes import Rock
-from DT.DataTypes import Fluid
-from UI.mvc_classes.track_object import DataFilter
 from DT.DataTypes import DataIndex
+from UI.mvc_classes.track_object import DataFilter
+from DT.RockInference import Rock
+from DT.RockInference import Fluid
 from DT.DataTypes import Model1D
 
 from UI.uimanager import UIManager
@@ -86,17 +86,17 @@ def register_OM_classes():
     #
     ObjectManager.register_class(WellGather, Well)
     ObjectManager.register_class(DataIndex, WellGather)
-    ObjectManager.register_class(Rock, Well)
-    ObjectManager.register_class(Fluid, Well)
     #
     ObjectManager.register_class(DataFilter)
     #
     ObjectManager.register_class(GatherScalogram, Well)
     ObjectManager.register_class(DataIndex, GatherScalogram)
     #
-    
+    ObjectManager.register_class(Rock, Well)
     #
     ObjectManager.register_class(Model1D, Well)
+    ObjectManager.register_class(DataIndex, Model1D)
+    
     
 def register_UIManager_classes():
     UIManager.register_class(FrameController, FrameModel, Frame)

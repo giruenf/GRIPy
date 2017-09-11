@@ -16,12 +16,40 @@ import timeit
 
 WaveletTransform = wavelets.WaveletAnalysis
 #
-Morlet = wavelets.Morlet
-Paul = wavelets.Paul
-DOG = wavelets.DOG
-Ricker =  wavelets.Ricker
+MorletWavelet = wavelets.Morlet
+PaulWavelet = wavelets.Paul
+DOGWavelet = wavelets.DOG
+RickerWavelet =  wavelets.Ricker
+#
 
 
+
+"""
+
+# Define a wavelet.
+def ricker(f, length, dt):
+    t = np.linspace(-length / 2, (length-dt) / 2, length / dt)
+    y = (1. - 2.*(np.pi**2)*(f**2)*(t**2))*np.exp(-(np.pi**2)*(f**2)*(t**2))
+    return t, y
+
+
+# Time in milliseconds
+def ricker(freq, peak=0.0, x_values=None, y_values=None):
+    t = np.arange(-1000.0, 1001.0, 1)        
+    factor = (np.pi * freq * t)**2
+    y = (1 - 2. * factor) * np.exp(-factor)
+    t = t + peak
+    if x_values is None:        
+        return t, y
+    else:
+        vec = in1d_with_tolerance(t, x_values)
+        y = y[vec]
+        if y_values is None:
+            return x_values, y
+        else:
+            return x_values, y + y_values
+
+"""
 
 # Short Time Fourier Transform 1-D using SlidingWindow
 def STFT(x, window_size, noverlap, time_start, Ts, mode='psd'):

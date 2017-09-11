@@ -164,11 +164,11 @@ class Chronometer(object):
 # Phoenix DropTarget code
 class DropTarget(wx.DropTarget):
     
-    def __init__(self, accepted_tids=[], callback=None):
+    def __init__(self, _test_func, callback=None):
         wx.DropTarget.__init__(self)
         self.data = wx.CustomDataObject('obj_uid')
         self.SetDataObject(self.data)
-        self._accepted_tids = accepted_tids
+        self._test_func = _test_func
         self._callback = callback
         
     def OnDrop(self, x, y):
@@ -183,8 +183,7 @@ class DropTarget(wx.DropTarget):
     def OnDragOver(self, x, y, defResult):    
         obj_uid = self._get_object_uid()
         if obj_uid:
-            obj_tid = obj_uid[0]
-            if obj_tid in self._accepted_tids:
+            if self._test_func(obj_uid):
                 return defResult   
         return wx.DragNone
 

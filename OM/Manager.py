@@ -83,10 +83,15 @@ class ObjectManager(PublisherMixin):
         
         
     def _reset(self):
-        # TODO: Resolver DataFilter  tid 'data_filter'
+        # TODO: Resolver DataFilter tid 'data_filter'
         for uid, parentuid in self._parentuidmap.items():
             if parentuid is None and uid[0] != 'data_filter':
-                self.remove(uid)
+                try:
+                    # TODO: rever isso, pois alguns uid estao dando problema
+                    #       A ideia eh nao ter esse try
+                    self.remove(uid)
+                except:
+                    pass
         #            
         for tid in self._currentobjectids.keys():
             self._currentobjectids[tid] = 0

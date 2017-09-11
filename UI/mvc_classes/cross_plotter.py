@@ -48,7 +48,7 @@ class CrossPlotModel(WorkPageModel):
     
 class CrossPlot(WorkPage):
     tid = 'crossplot'
-
+    _FRIENDLY_NAME = 'Cross Plot'
 
     ### Codigo do Vizeu
     HORIZONTALMARGIN = 0#.01

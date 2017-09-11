@@ -62,15 +62,17 @@ _PLOTTYPES_REPRESENTATIONS = {
     'contourf': 'contourf_representation_controller'
 }
 
+
 _PREFERRED_PLOTTYPES = {
     'log': 'line',
-    'index_curve': 'index',
+    'data_index': 'index',
     'seismic': 'density',
     'partition': 'patches',
     'scalogram': 'density',
     'velocity': 'density',
     'gather': 'density',
-    'angle': 'contourf'
+    'angle': 'contourf',
+    'model1d': 'density'
 }
 
 
@@ -148,22 +150,31 @@ class DataFilter(GenericObject):
             
         
     def append_objuid(self, track_objuid):
+        print '\nDataFilter.append_objuid:', track_objuid
         if track_objuid in self.tracks_objuids:
             raise Exception('Object was added before.')
         try:
             UIM = UIManager()
             track_obj_ctrl = UIM.get(track_objuid)
             obj = track_obj_ctrl.get_object()
-            data_indexes = obj.get_index()
-            for dim_idx in range(len(data_indexes)):
-                indexes = data_indexes[dim_idx]
-                index = indexes[0]
-                if dim_idx < 2:    
-                    self.data.append((index.uid, True, True, 0, len(index.data)))
-                else:
-                    self.data.append((index.uid, False, False, 0, len(index.data)))
+            print obj.uid
+            if obj.tid == 'data_index':
+                self.data.append((obj.uid, True, True, 0, len(obj.data)))
+            else:
+                data_indexes = obj.get_index()
+                print '\nlen(data_indexes):', len(data_indexes)
+                for dim_idx in range(len(data_indexes)):
+                    print 'dim_idx:', dim_idx
+                    indexes = data_indexes[dim_idx]
+                    index = indexes[0]
+                    if dim_idx < 2:    
+                        self.data.append((index.uid, True, True, 0, len(index.data)))
+                    else:
+                        self.data.append((index.uid, False, False, 0, len(index.data)))
+                        
         except:
             raise     
+        print 'DataFilter.append_objuid:\n'
 
 
     def reload_data(self):
@@ -176,7 +187,6 @@ class DataFilter(GenericObject):
 
 ###############################################################################
 ###############################################################################
-
 
 
 
@@ -228,7 +238,11 @@ class TrackObjectController(UIControllerBase):
         if old_value is not None:
             self.detach((self.model.obj_tid, old_value))
         self.model.plottype = None
+        
+        print 'on_change_objoid'
+        
         obj = self.get_object()
+        
         if obj:
             #
             self.set_filter()
@@ -434,6 +448,7 @@ class RepresentationController(UIControllerBase):
 
 
     def _prepare_data(self):
+        #print '\n\n_prepare_data'
         UIM = UIManager()
         toc_uid = UIM._getparentuid(self.uid)
         toc = UIM.get(toc_uid) 
@@ -443,17 +458,25 @@ class RepresentationController(UIControllerBase):
         filter_ = OM.get(('data_filter', toc.model.data_filter_oid))
         data_indexes = filter_.data[::-1]
         slicer = collections.OrderedDict()
+        
         for (di_uid, display, is_range, first, last) in data_indexes:
+            #print di_uid, display, is_range, first, last
             if not is_range:
                 slicer[di_uid] = first
             else:
                 slicer[di_uid] = slice(first,last)
+        
         slicer = tuple(slicer.values())
+        #print 'data.shape:', data.shape
+        #print slicer
         data = data[slicer]
+        #print 'data.shape:', data.shape
         new_dim = 1
         if len(data.shape) == 1 and isinstance(self.get_object(), Density):
+            #print 'OPT 1'
             data = data[np.newaxis, :]
         elif len(data.shape) > 2:
+            #print 'OPT 2'
             for dim_value in data.shape[::-1][1::]:
                 new_dim *= dim_value
             data = data.reshape(new_dim, data.shape[-1])
@@ -471,6 +494,7 @@ class RepresentationController(UIControllerBase):
         except:
             pass
         #
+        #print '_prepare_data:', data.shape
         self._data = data
 
 
@@ -850,7 +874,7 @@ class IndexRepresentationModel(UIModelBase):
     tid = 'index_representation_model' 
     _ATTRIBUTES = collections.OrderedDict()
     _ATTRIBUTES['step'] = {
-            'default_value': 500.0,
+            'default_value': 50.0,
             'type': float,
             'pg_property': 'FloatProperty',
             'label': 'Step'        
@@ -978,9 +1002,10 @@ class IndexRepresentationView(RepresentationView):
         track_controller_uid = UIM._getparentuid(toc_uid)
         track_controller =  UIM.get(track_controller_uid)
         #
-        obj = controller.get_object()
-        y_min = obj.min
-        y_max = obj.max
+   #     obj = controller.get_object()
+   
+        y_min = controller._data[0] # obj.min
+        y_max = controller._data[-1]  # obj.max
         #
         if y_min%controller.model.step: 
             y_min = (y_min//controller.model.step + 1) * controller.model.step
@@ -1010,8 +1035,8 @@ class IndexRepresentationView(RepresentationView):
             #text.zorder = controller.model.zorder
             self._mplot_objects['text'].append(text)
         
-        self.set_title(obj.name)
-        self.set_subtitle(obj.unit)    
+#        self.set_title(obj.name)
+#        self.set_subtitle(obj.unit)    
         self.draw_canvas()   
 
 
@@ -1298,7 +1323,7 @@ class DensityRepresentationView(RepresentationView):
             if msg:
                 msg = obj_str + ', ' + msg
             else:    
-                msg = obj_str
+                msg = obj_str      
         msg += ', Value: ' + str(controller._data[(x_index, z_index)])
         return '[' + msg +  ']'
 

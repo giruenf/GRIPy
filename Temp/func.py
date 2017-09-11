@@ -4,7 +4,7 @@ import numpy as np
 
 from OM.Manager import ObjectManager
 from UI.uimanager import UIManager
-from Algo.Spectral.Spectral import STFT, WaveletTransform, Morlet, Paul, DOG, Ricker
+from Algo.Spectral.Spectral import STFT, WaveletTransform, MorletWavelet, PaulWavelet, DOGWavelet, RickerWavelet
 from collections import OrderedDict
 import wx
 #from UI.dialog_new import Dialog
@@ -98,27 +98,27 @@ def do_CWT(*args, **kwargs):
                 return
             wavelet = results.get('wavelet')        
             if wavelet == 'morlet':
-                func = Morlet()
+                func = MorletWavelet()
             elif wavelet == 'ricker':
-                func = Ricker()
+                func = RickerWavelet()
             elif wavelet == 'dog3':
-                func = DOG(m=3) 
+                func = DOGWavelet(m=3) 
             elif wavelet == 'dog4':
-                func = DOG(m=4)             
+                func = DOGWavelet(m=4)             
             elif wavelet == 'dog5':
-                func = DOG(m=5) 
+                func = DOGWavelet(m=5) 
             elif wavelet == 'dog6':
-                func = DOG(m=6) 
+                func = DOGWavelet(m=6) 
             elif wavelet == 'paul2':
                 func = Paul(m=2) 
             elif wavelet == 'paul3':
-                func = Paul(m=3) 
+                func = PaulWavelet(m=3) 
             elif wavelet == 'paul4':
-                func = Paul(m=4) 
+                func = PaulWavelet(m=4) 
             elif wavelet == 'paul5':
-                func = Paul(m=5)             
+                func = PaulWavelet(m=5)             
             elif wavelet == 'paul6':
-                func = Paul(m=6) 
+                func = PaulWavelet(m=6) 
             else:
                 raise Exception()   
             valid_data = obj.data[np.isfinite(obj.data)]

@@ -13,7 +13,6 @@ from mpl_base import VisDataLabel
 from App.app_utils import LogPlotState  
 from App import log
 
-
 from App.gripy_function_manager import FunctionManager
 
 
@@ -40,9 +39,12 @@ class TrackController(UIControllerBase):
     # Method for Drag and Drop....
     def append_object(self, obj_uid):
         UIM = UIManager()
+        #print 111
         toc = UIM.create('track_object_controller', self.uid)  
         tid, oid = obj_uid
+        #print 222
         toc.model.obj_tid = tid
+        #print 333
         toc.model.obj_oid = oid
         return toc
 
@@ -188,12 +190,13 @@ class TrackView(UIViewBase):
         parent_controller_uid = UIM._getparentuid(self._controller_uid)
         parent_controller =  UIM.get(parent_controller_uid)
         parent_controller._create_windows(self._controller_uid)
+        #
         if controller.model.overview:
-            #parent_controller
             self.create_depth_canvas()
             self.reposition_depth_canvas()
             self.track.Bind(wx.EVT_SIZE, self.on_track_size)
             self.track.Bind(wx.EVT_MOUSE_EVENTS, self.on_mouse)            
+        #
         self.track.mpl_connect('motion_notify_event', self.on_track_move)
         controller.subscribe(self._invert_selection, 'change.selected')
         controller.subscribe(self.change_visibility, 'change.visible')
@@ -263,10 +266,6 @@ class TrackView(UIViewBase):
                 
 
     def create_depth_canvas(self):
-        #UIM = UIManager()
-        #controller = UIM.get(self._controller_uid)
-        #parent_controller_uid = UIM._getparentuid(self._controller_uid)
-        #parent_controller =  UIM.get(parent_controller_uid)
         self._in_canvas = -1
         self._drag_mode = SASH_DRAG_NONE
         self.canvas_color = 'blue'
@@ -295,12 +294,10 @@ class TrackView(UIViewBase):
         ##print '\nMIN-MAX:', min_depth, max_depth, min_pos, max_pos, self.d1, self.d2     
         y1 = self.depth_to_wx_position(parent_controller.model.y_min_shown)
         self.d1_canvas.SetPosition((0, y1)) 
-        
-        
+           
         #self.d1_canvas.Refresh()
         y2 = self.depth_to_wx_position(parent_controller.model.y_max_shown)          
-        self.d2_canvas.SetPosition((0, y2 - self.canvas_width)) 
-        
+        self.d2_canvas.SetPosition((0, y2 - self.canvas_width))    
         #self.d2_canvas.Refresh()
 
 
@@ -347,7 +344,7 @@ class TrackView(UIViewBase):
 
     def end_dragging(self):
         #print 'Release button of canvas', self._in_canvas
-        print 'START of end_dragging'
+        print '\nSTART of end_dragging'
         if self._in_canvas == -1:
             return 
         if self._drag_mode != SASH_DRAG_DRAGGING:
@@ -377,27 +374,27 @@ class TrackView(UIViewBase):
         #    print 'considerando y12:', y2, y1 + self.canvas_width
             
         #print 'd12:', d1, d2    
-            
+        #    
         UIM = UIManager()
         parent_controller_uid = UIM._getparentuid(self._controller_uid)
         parent_controller =  UIM.get(parent_controller_uid)
-        
-        print 'AAA init', d1, d2    
+        #
+        parent_controller.model.logplot_y_min = d1
+        parent_controller.model.logplot_y_max = d2
+        #
         parent_controller.model.y_min_shown = d1
-        print 'AAA middle'
         parent_controller.model.y_max_shown = d2
-        print 'AAA end'
-        
+        #
+        #
         #self._reload_depths_from_canvas_positions()    
         #if self._callback:
         #    self._callback(self.get_depth())
         #print 'Send ' + str(self.get_depth()) + ' to callback...'    
         canvas.SetBackgroundColour(self.canvas_color)
         canvas.Refresh()  
-                   
+        #           
         #d1, d2 = self.get_depth()           
         self.track.SetToolTip(wx.ToolTip('{0:.2f} - {1:.2f}'.format(d1, d2)))
-
         print 'END of end_dragging'
 
 

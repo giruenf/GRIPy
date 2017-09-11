@@ -292,9 +292,9 @@ class GripyApp(wx.App):
             )
 #            UIM.create('menu_item_controller', mc_project.uid, 
             mic_loglot = UIM.create('menu_item_controller', mc_edit.uid, 
-                    label=u'&LogPlot', 
-                    help=u'LogPlot',
-                    callback='App.menu_functions.on_new_logplot'
+                    label=u'&Well Plot', 
+                    help=u'Well Plot',
+                    callback='App.menu_functions.on_new_wellplot'
             ) 
             
             mic_crossplot = UIM.create('menu_item_controller', mc_edit.uid, 
@@ -564,15 +564,14 @@ class GripyApp(wx.App):
             UIM.create('toolbartool_controller', tbc.uid,
                            label=u"Visualizar LogPlot", 
                            bitmap='./icons/log_plot_24.png',
-                           help='Log Plot', long_help='Log Plot',
-                           callback='App.menu_functions.on_new_logplot' #GripyController.on_plo
+                           help='Well Plot', long_help='Well Plot',
+                           callback='App.menu_functions.on_new_wellplot'
             )
 
             UIM.create('toolbartool_controller', tbc.uid,
                            label=u"Visualizar Crossplot", 
                            bitmap='./icons/crossplot_24.png',
                            help='Crossplot', long_help='Crossplot',
-                           #callback='App.menu_functions.on_open' # GripyController.on_crossplot
                            callback='App.menu_functions.on_new_crossplot'
             )         
 
@@ -588,8 +587,8 @@ class GripyApp(wx.App):
             # Testes 
             # """
             
-            #fullfilename = 'C:\\Users\\Adriano\\Desktop\\aaa_teste_2.pgg'
-            #self.load_project_data(fullfilename)      
+            fullfilename = 'C:\\Users\\Adriano\\Desktop\\aaa_teste_2.pgg'
+            self.load_project_data(fullfilename)      
             
             #lpc = UIM.create('logplot_controller', mwc.uid)
             #tc1 = UIM.create('track_controller', lpc.uid)
