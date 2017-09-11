@@ -379,11 +379,12 @@ class TrackView(UIViewBase):
         parent_controller_uid = UIM._getparentuid(self._controller_uid)
         parent_controller =  UIM.get(parent_controller_uid)
         #
-        parent_controller.model.logplot_y_min = d1
-        parent_controller.model.logplot_y_max = d2
+        #parent_controller.model.logplot_y_min = d1
+        #parent_controller.model.logplot_y_max = d2
         #
-        parent_controller.model.y_min_shown = d1
-        parent_controller.model.y_max_shown = d2
+        parent_controller.model.set_value_from_event('y_min_shown', d1)
+        parent_controller.model.set_value_from_event('y_max_shown', d2)
+        parent_controller._reload_ylim()
         #
         #
         #self._reload_depths_from_canvas_positions()    
@@ -519,10 +520,13 @@ class TrackView(UIViewBase):
         #axes_coords = axes.data_to_axes_coordinates(data_coords)
         #fig_coords = axes.display_to_figure_coordinates(disp_coords)
         
-        info = 'Index: {:0.2f}'.format(event.ydata)    
+            
         OM = ObjectManager(self)
         UIM = UIManager()
-        
+        parent_controller_uid = UIM._getparentuid(self._controller_uid)
+        parent_controller =  UIM.get(parent_controller_uid)
+        info = parent_controller.model.index_type + ': {:0.2f}'.format(event.ydata)
+
         for toc in UIM.list('track_object_controller', self._controller_uid):
             data = toc.get_data_info(event)
             if data is None:
@@ -535,9 +539,6 @@ class TrackView(UIViewBase):
             obj = OM.get(uid)
             info += ', {}: {}'.format(obj.name, str_x)    
             
-        parent_controller_uid = UIM._getparentuid(self._controller_uid)
-        parent_controller =  UIM.get(parent_controller_uid)
-        
         parent_controller.show_status_message(info)
         parent_controller.show_cursor(event.xdata, event.ydata)
     

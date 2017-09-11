@@ -128,7 +128,7 @@ def on_new_wellplot(event):
         choice_well.set_trigger(on_change_well)
         choice_well.set_value(0, True)
         #
-        dlg.view.SetSize((270, 430))
+        dlg.view.SetSize((270, 250))
         result = dlg.view.ShowModal()
         #
         if result == wx.ID_OK:

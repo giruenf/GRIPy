@@ -178,7 +178,8 @@ class LogPlotController(WorkPageController):
     def get_ylim(self):
        if self.model.y_min_shown is None or \
                                            self.model.y_max_shown is None:
-           return (self.model.logplot_y_min, self.model.logplot_y_max)                                        
+           raise Exception()                                    
+           #return (self.model.logplot_y_min, self.model.logplot_y_max)                                        
        return (self.model.y_min_shown, self.model.y_max_shown)
  
     
@@ -196,17 +197,23 @@ class LogPlotController(WorkPageController):
 
     def on_change_ylim(self, new_value, old_value):
         print '\n\non_change_ylim:', new_value, old_value
+        self._reload_ylim()
+                
+
+    def _reload_ylim(self):
         UIM = UIManager()
         y_min, y_max = self.get_ylim()
-        
-      #  print 'self.get_ylim():', self.get_ylim()
+        #print self.get_ylim()
         for track in UIM.list('track_controller', self.uid):
-            if not track.model.overview:
-                track.set_ylim(y_min, y_max)
-            else:
+            track.set_ylim(y_min, y_max)
+            if track.model.overview:
                 track.reposition_depth_canvas()
+        self.view._reload_z_axis_textctrls()        
+         
         #self.update_adaptative()
 #        self.view.refresh_overview()
+
+
 
 
     """
@@ -285,26 +292,25 @@ class LogPlotModel(WorkPageModel):
    
                 
      
+        
+        
 class LogPlot(WorkPage):
+    
     tid = 'logplot'
     _FRIENDLY_NAME = 'Well Plot'
     
+    
+    
     def __init__(self, controller_uid):
         super(LogPlot, self).__init__(controller_uid) 
-        #UIM = UIManager()        
-        #controller = UIM.get(self._controller_uid)
-        #
         self.create_tool_bar()
-        #
         self.hbox = wx.BoxSizer(wx.HORIZONTAL)                    
         self.tracks_panel = LogPlotInternal(self.center_panel) 
         self.hbox.Add(self.tracks_panel, 1, wx.EXPAND) 
-        self.center_panel.SetSizer(self.hbox)
-        #        
+        self.center_panel.SetSizer(self.hbox)      
         self.overview = None
         self.overview_border = 1
         self.overview_width = 60
-        #
         self.overview_base_panel = wx.Panel(self.center_panel)
         self.overview_base_panel.SetBackgroundColour('black')
         self.overview_base_panel.SetInitialSize((0, 0))
@@ -312,9 +318,7 @@ class LogPlot(WorkPage):
         self.overview_base_panel.SetSizer(self.overview_sizer)
         self.hbox.Add(self.overview_base_panel, 0, wx.EXPAND)
         self.hbox.Layout()
-        #  
         self.Layout()
-        #
         self.tracks_panel.top_splitter.Bind(wx.EVT_SPLITTER_SASH_POS_CHANGED, 
                                           self._on_sash_pos_change
         )    
@@ -329,12 +333,7 @@ class LogPlot(WorkPage):
         controller.subscribe(self.set_fit, 'change.fit')
         controller.subscribe(self.set_multicursor, 'change.multicursor')
         controller.subscribe(self.set_index_type, 'change.index_type')
-        #
-
-        #
-        print 'postinit 0'
         self._prepare_index_data()
-        print 'postinit 1'
         self.overview_track = UIM.create('track_controller', 
                                          self._controller_uid,
                                          overview=True, plotgrid=False
@@ -344,18 +343,7 @@ class LogPlot(WorkPage):
         controller.subscribe(self.on_change_logplot_ylim, 'change.logplot_y_min')
         controller.subscribe(self.on_change_logplot_ylim, 'change.logplot_y_max')   
         
-        print 'fim postinit'
-
-
-
-    def on_change_logplot_ylim(self, new_value, old_value):
-        UIM = UIManager()        
-        controller = UIM.get(self._controller_uid)
-        self.overview_track.set_ylim(controller.model.logplot_y_min, controller.model.logplot_y_max)
-        z_start_str = "{0:.2f}".format(controller.model.logplot_y_min)
-        self.tool_bar.z_start.SetValue(z_start_str)
-        z_end_str = "{0:.2f}".format(controller.model.logplot_y_max)
-        self.tool_bar.z_end.SetValue(z_end_str)
+        self._reload_z_axis_textctrls()
         
 
     def _prepare_index_data(self):
@@ -384,8 +372,26 @@ class LogPlot(WorkPage):
         if len(zaxis) > 1 or len(zaxis) == 0:
             print 'ATENCAO COM Z-AXIS!'
         #    
-        print '_set_index_data 2:', min_, max_
+        #print '_set_index_data 2:', min_, max_
         self._zaxis_uid = zaxis[0].uid
+
+
+
+    def on_change_logplot_ylim(self, new_value, old_value):
+        raise Exception('Cannot do it!')
+        #self._reload_z_axis_textctrls()
+        
+        
+    def _reload_z_axis_textctrls(self):    
+        UIM = UIManager()        
+        controller = UIM.get(self._controller_uid)
+        #self.overview_track.set_ylim(controller.model.y_min_shown, controller.model.logplot_y_max)
+        z_start_str = "{0:.2f}".format(controller.model.y_min_shown)
+        self.tool_bar.z_start.SetValue(z_start_str)
+        z_end_str = "{0:.2f}".format(controller.model.y_max_shown)
+        self.tool_bar.z_end.SetValue(z_end_str)
+        print '\n_reload_z_axis_textctrls:', z_start_str, z_end_str
+        
 
     def on_change_z_start(self, event):
         print 'on_change_z_start:', event.GetString()
@@ -472,8 +478,7 @@ class LogPlot(WorkPage):
     
     
     def _remove_from_overview_panel(self):
-        ot = self._get_overview_track()
-        self.overview_sizer.Detach(ot.view.track)
+        self.overview_sizer.Detach(self.overview_track.view.track)
         self.overview_base_panel.SetInitialSize((0, 0))
         self.hbox.Layout()             
             
@@ -754,9 +759,32 @@ class LogPlot(WorkPage):
         #UIM = UIManager()
         self._prepare_index_data()
 
+
     def _OnSetZAxis(self, event): 
-        #UIM = UIManager()
-        self._prepare_index_data()
+        UIM = UIManager()
+        controller = UIM.get(self._controller_uid)
+        try:
+            zstart = float(self.tool_bar.z_start.GetValue())
+            zend = float(self.tool_bar.z_end.GetValue())
+            if not round(zstart, 2) >= round(controller.model.logplot_y_min, 2):
+                
+                raise Exception('AAA: ', str(zstart) + '   '+ str(controller.model.logplot_y_min))
+                
+            if not round(zend, 2) <= round(controller.model.logplot_y_max, 2):
+                raise Exception('BBB: ', str(zend) + '   '+ str(controller.model.logplot_y_max))              
+        except Exception as e:
+            print 'ERROR:', e
+            self._reload_z_axis_textctrls()
+            return
+        #controller.model.set_value_from_event('logplot_y_min', zstart)
+        #controller.model.logplot_y_max = zend
+
+        #
+        controller.model.set_value_from_event('y_min_shown', zstart)
+        controller.model.set_value_from_event('y_max_shown', zend)
+        controller._reload_ylim()
+            
+
 
     def _on_fit(self, event): 
         UIM = UIManager()
