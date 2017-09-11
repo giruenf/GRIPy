@@ -17,8 +17,8 @@ from DT.DataTypes import GatherScalogram
 from DT.DataTypes import WellGather
 from DT.DataTypes import DataIndex
 from UI.mvc_classes.track_object import DataFilter
-from DT.RockInference import Rock
-from DT.RockInference import Fluid
+from DT.DTRock import Rock
+from DT.DTRock import Fluid
 from DT.DataTypes import Model1D
 
 from UI.uimanager import UIManager

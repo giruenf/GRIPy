@@ -54,6 +54,7 @@ WAVELET_MODES['Phase (wrap)'] = 2
 WAVELET_MODES['Phase (unwrap)'] = 3
 
 
+
 def on_new_wellplot(event):
     '''
     dlg = Dialog(self.get_main_window_controller().view, 
@@ -78,17 +79,18 @@ def on_new_wellplot(event):
     wells = OrderedDict()
     for well in OM.list('well'):
         wells[well.name] = well.uid
-    '''    
-    zaxis = OrderedDict()
-    zaxis['Measured Depth'] = 'MD'
-    zaxis['True Vertical Depth'] = 'TVD'
-    zaxis['True Vertical Depth Subsea'] = 'TVDSS'
-    zaxis['Two-Way Time'] = 'TWT'
-    zaxis['One-way time'] = 'OWT'
-    '''
-    #plts = OrderedDict()
-    #for well in OM.list('well'):
-    #    wells[well.name] = well.uid    
+    #    
+    if not wells: 
+        msg = 'This project has not a well. Create one?'
+        ret_val = wx.MessageBox(msg, 'Warning', wx.ICON_EXCLAMATION | wx.YES_NO)    
+        if ret_val == wx.YES:
+            ret_val = on_createwell(event)
+            if not ret_val:
+                return
+            for well in OM.list('well'):
+                wells[well.name] = well.uid
+        else:
+            return
        
     UIM = UIManager()
     
@@ -2052,7 +2054,7 @@ def on_createwell(event):
     #
     dlg.view.SetSize((280, 360))
     result = dlg.view.ShowModal()
-    
+    ret_val = False
     try:
         disableAll = wx.WindowDisabler()
         wait = wx.BusyInfo("Creating new well. Wait...")
@@ -2075,14 +2077,17 @@ def on_createwell(event):
                    start=start, samples=(end-start)/ts, step=ts
             )
             OM.add(index, well.uid)
+            ret_val = True
     except:
+        
         pass
     finally:
         del wait
         del disableAll
         UIM.remove(dlg.uid)   
+    return ret_val
     
-    
+
 def on_create_synthetic(event):
     OM = ObjectManager(event.GetEventObject()) 
     UIM = UIManager()

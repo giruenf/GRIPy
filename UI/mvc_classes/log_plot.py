@@ -336,10 +336,13 @@ class LogPlot(WorkPage):
         self._prepare_index_data()
         self.overview_track = UIM.create('track_controller', 
                                          self._controller_uid,
-                                         overview=True, plotgrid=False
+                                         overview=True, plotgrid=False                            
         )
         self.overview_track.set_ylim(controller.model.y_min_shown, controller.model.y_max_shown)
-        self.overview_track.append_object(self._zaxis_uid)
+        ot_toc = self.overview_track.append_object(self._zaxis_uid)
+        ot_toc_repr_ctrl = ot_toc.get_representation()
+        # TODO: Update Adaptative
+        ot_toc_repr_ctrl.model.step = 200
         controller.subscribe(self.on_change_logplot_ylim, 'change.logplot_y_min')
         controller.subscribe(self.on_change_logplot_ylim, 'change.logplot_y_max')   
         

@@ -874,7 +874,7 @@ class IndexRepresentationModel(UIModelBase):
     tid = 'index_representation_model' 
     _ATTRIBUTES = collections.OrderedDict()
     _ATTRIBUTES['step'] = {
-            'default_value': 50.0,
+            'default_value': 500.0,
             'type': float,
             'pg_property': 'FloatProperty',
             'label': 'Step'        
