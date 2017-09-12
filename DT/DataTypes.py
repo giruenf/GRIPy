@@ -432,7 +432,7 @@ class Part(WellData1D):
     @code.deleter
     def code(self):
         del self.attributes['code']
-    
+
     @property
     def color(self):
         if 'color' not in self.attributes:
@@ -446,8 +446,8 @@ class Part(WellData1D):
     @color.deleter
     def color(self):
         del self.attributes['color']
-
-
+        
+        
 
 class Partition(GenericDataType):
     """

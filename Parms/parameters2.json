@@ -274,13 +274,13 @@
             "Density": 0
         },
         "density": {
-            "Density": 7
+            "Density": 8
         },
         "dept": {
             "MD": 136
         },
         "depth": {
-            "MD": 73
+            "MD": 74
         },
         "dev": {
             "Deviation": 0
@@ -319,7 +319,7 @@
             "ShearSonic": 0
         },
         "dt4p": {
-            "Sonic": 60
+            "Sonic": 61
         },
         "dt4s": {
             "ShearSonic": 0
@@ -328,7 +328,7 @@
             "Sonic": 0
         },
         "dtco": {
-            "Sonic": 123
+            "Sonic": 124
         },
         "dtco_": {
             "Sonic": 10
@@ -427,7 +427,7 @@
             "GammaRay": 0
         },
         "gr": {
-            "GammaRay": 199
+            "GammaRay": 200
         },
         "gr_": {
             "GammaRay": 10
@@ -493,7 +493,7 @@
             "Azimuth": 0
         },
         "hcal": {
-            "Caliper": 76
+            "Caliper": 77
         },
         "hden": {
             "Density": 0
@@ -610,7 +610,7 @@
             "LoadFactor": 0
         },
         "lito": {
-            "Partition": 19
+            "Partition": 20
         },
         "lld": {
             "DeepRes": 22
@@ -772,7 +772,7 @@
             "PEF": 46
         },
         "pefz": {
-            "PEF": 71
+            "PEF": 72
         },
         "perf": {
             "Perforations": 0
@@ -883,7 +883,7 @@
             "Matrix": 11
         },
         "rhoz": {
-            "Density": 75
+            "Density": 76
         },
         "rild": {
             "DeepRes": 0
@@ -1156,7 +1156,7 @@
             "Spectral": 0
         },
         "time": {
-            "Time": 14
+            "Time": 15
         },
         "tnph": {
             "Neutron": 0
@@ -1243,10 +1243,10 @@
             "Velocity": 0
         },
         "vp": {
-            "Velocity": 83
+            "Velocity": 84
         },
         "vs": {
-            "ShearVel": 83
+            "ShearVel": 84
         },
         "vsalt": {
             "Vsalt": 0
@@ -1363,13 +1363,13 @@
             "Log": 2
         },
         "density": {
-            "Log": 7
+            "Log": 8
         },
         "dept": {
             "Index": 136
         },
         "depth": {
-            "Index": 69
+            "Index": 70
         },
         "devi": {
             "Log": 4
@@ -1384,7 +1384,7 @@
             "Log": 53
         },
         "dt4p": {
-            "Log": 60
+            "Log": 61
         },
         "dt_xd_r": {
             "Log": 1
@@ -1393,7 +1393,7 @@
             "Log": 1
         },
         "dtco": {
-            "Log": 123
+            "Log": 124
         },
         "dtco_": {
             "Log": 11
@@ -1441,7 +1441,7 @@
             "Log": 20
         },
         "gr": {
-            "Log": 199
+            "Log": 200
         },
         "gr_": {
             "Log": 11
@@ -1456,7 +1456,7 @@
             "Log": 4
         },
         "hcal": {
-            "Log": 76
+            "Log": 77
         },
         "hd1_ppc": {
             "Log": 8
@@ -1513,7 +1513,7 @@
             "Log": 4
         },
         "lito": {
-            "Partition": 92
+            "Partition": 93
         },
         "lld": {
             "Log": 22
@@ -1555,7 +1555,7 @@
             "Log": 46
         },
         "pefz": {
-            "Log": 71
+            "Log": 72
         },
         "phie": {
             "Log": 21
@@ -1624,7 +1624,7 @@
             "Log": 11
         },
         "rhoz": {
-            "Log": 75
+            "Log": 76
         },
         "rt": {
             "Log": 48
@@ -1693,7 +1693,7 @@
             "Log": 1
         },
         "time": {
-            "Index": 14
+            "Index": 15
         },
         "tot": {
             "Log": 59
@@ -1737,13 +1737,13 @@
             "Log": 2
         },
         "vp": {
-            "Log": 83
+            "Log": 84
         },
         "vpvs": {
-            "Log": 86
+            "Log": 87
         },
         "vs": {
-            "Log": 83
+            "Log": 84
         },
         "vsh": {
             "Log": 12

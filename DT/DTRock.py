@@ -18,6 +18,7 @@ class Rock (GenericDataType):
     def __init__(self, **attributes):
         super(Rock, self).__init__(None, **attributes)
 
+
 class Fluid (GenericDataType):
     tid = 'fluid'
     _TID_FRIENDLY_NAME = 'Fluid'

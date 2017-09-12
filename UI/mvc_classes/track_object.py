@@ -281,9 +281,10 @@ class TrackObjectController(UIControllerBase):
 
 
     def _do_draw(self):
+        print '\n_do_draw'
         repr_ctrl = self.get_representation() 
         repr_ctrl._prepare_data()
-        repr_ctrl._data
+        #repr_ctrl._data
         repr_ctrl.view.draw()       
 
 
@@ -448,11 +449,24 @@ class RepresentationController(UIControllerBase):
 
 
     def _prepare_data(self):
-        #print '\n\n_prepare_data'
+        print '\nRepresentationController._prepare_data'
         UIM = UIManager()
         toc_uid = UIM._getparentuid(self.uid)
-        toc = UIM.get(toc_uid) 
-        data = toc.get_object().data
+        track_ctrl_uid = UIM._getparentuid(toc_uid)
+        logplot_ctrl_uid = UIM._getparentuid(track_ctrl_uid)
+        logplot_ctrl = UIM.get(logplot_ctrl_uid)
+        print 'logplot_ctrl.model.index_type:', logplot_ctrl.model.index_type
+        toc = UIM.get(toc_uid)
+        obj = toc.get_object()
+        
+        if obj.tid == 'data_index':
+            if logplot_ctrl.model.index_type != obj.datatype:
+                print 'DIFF:', obj.datatype, logplot_ctrl.model.index_type
+            else:
+                print 'IGUAIS:', obj.datatype, logplot_ctrl.model.index_type
+                
+        
+        data = obj.data
         #
         OM =  ObjectManager(self)
         filter_ = OM.get(('data_filter', toc.model.data_filter_oid))
@@ -460,7 +474,7 @@ class RepresentationController(UIControllerBase):
         slicer = collections.OrderedDict()
         
         for (di_uid, display, is_range, first, last) in data_indexes:
-            #print di_uid, display, is_range, first, last
+            print di_uid, display, is_range, first, last
             if not is_range:
                 slicer[di_uid] = first
             else:
@@ -473,10 +487,10 @@ class RepresentationController(UIControllerBase):
         #print 'data.shape:', data.shape
         new_dim = 1
         if len(data.shape) == 1 and isinstance(self.get_object(), Density):
-            #print 'OPT 1'
+            print 'OPT 1'
             data = data[np.newaxis, :]
         elif len(data.shape) > 2:
-            #print 'OPT 2'
+            print 'OPT 2'
             for dim_value in data.shape[::-1][1::]:
                 new_dim *= dim_value
             data = data.reshape(new_dim, data.shape[-1])
@@ -980,19 +994,16 @@ class IndexRepresentationView(RepresentationView):
         controller.subscribe(self._draw, 'change.bbox_color')
         controller.subscribe(self._draw, 'change.bbox_alpha')
         controller.subscribe(self._draw, 'change.zorder')
-        try:
-            self.draw()
-        except:
-            raise
             
     def _draw(self, new_value, old_value):
         # Bypass function
+        print '\nIndexRepresentationView._draw:', new_value, old_value
         self.draw()
-
+        
     def get_data_info(self, event):
         # TODO: Criar funcao considerando MD, TVD e TVDSS
         return None        
-        
+           
     def draw(self):
         self.clear()
         self._mplot_objects['text'] = []
@@ -1001,15 +1012,10 @@ class IndexRepresentationView(RepresentationView):
         toc_uid = UIM._getparentuid(self._controller_uid)
         track_controller_uid = UIM._getparentuid(toc_uid)
         track_controller =  UIM.get(track_controller_uid)
-        #
-   #     obj = controller.get_object()
-   
-        y_min = controller._data[0] # obj.min
-        y_max = controller._data[-1]  # obj.max
-        #
-        if y_min%controller.model.step: 
-            y_min = (y_min//controller.model.step + 1) * controller.model.step
-
+        y_min = controller._data[0] 
+        y_max = controller._data[-1]  
+        if y_min%controller.model.step:
+            y_min = (y_min//controller.model.step + 1) * controller.model.step  
         y_positions = np.arange(y_min, y_max, controller.model.step)
         for pos_y in y_positions:
             text = track_controller._append_artist('Text', 
@@ -1031,12 +1037,14 @@ class IndexRepresentationView(RepresentationView):
                                     color=controller.model.bbox_color,
                                     alpha=controller.model.bbox_alpha
                 )                    
-
             #text.zorder = controller.model.zorder
             self._mplot_objects['text'].append(text)
-        
-#        self.set_title(obj.name)
-#        self.set_subtitle(obj.unit)    
+        try:
+            obj = controller.get_object()
+            self.set_title(obj.name)
+            self.set_subtitle(obj.unit)
+        except:
+            pass
         self.draw_canvas()   
 
 

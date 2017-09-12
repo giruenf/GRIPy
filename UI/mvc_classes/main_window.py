@@ -56,16 +56,11 @@ class MainWindow(Frame):
         self.Bind(wx.EVT_CLOSE, self.on_close)          
         self.Bind(aui.EVT_AUINOTEBOOK_PAGE_CLOSE, self.on_page_close, self.note)
 
+
     def on_close(self, event):
         wx.App.Get().PreExit()
         event.Skip()
-        '''
-        UIM = UIManager()
-        controller = UIM.get(self._controller_uid)
-        controller._pre_exit_application()
-        event.Skip()
-        '''
-        
+
     def on_page_close(self, event):
         panel = self.note.GetPage(event.GetSelection())
         UIM = UIManager()

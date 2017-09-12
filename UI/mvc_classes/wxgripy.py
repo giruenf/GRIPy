@@ -59,6 +59,7 @@ class TopLevel(UIViewBase):
         UIViewBase.__init__(self, controller_uid)
         UIM = UIManager()
         controller = UIM.get(self._controller_uid)
+        
         # MainWindow subscribing MainWindowController PubSub messages
         controller.subscribe(self._set_maximized, 'change.maximized')
         controller.subscribe(self._set_size, 'change.size')
