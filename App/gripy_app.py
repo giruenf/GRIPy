@@ -268,6 +268,7 @@ class GripyApp(wx.App):
             mc_well = UIM.create('menu_controller', menubar_ctrl.uid, label=u"&Well")
             mc_precond = UIM.create('menu_controller', menubar_ctrl.uid, label=u"&Preconditioning")
             mc_interp = UIM.create('menu_controller', menubar_ctrl.uid, label=u"&Interpretation")
+            mc_model = UIM.create('menu_controller', menubar_ctrl.uid, label=u"&Modeling")
             mc_infer = UIM.create('menu_controller', menubar_ctrl.uid, label=u"&Inference")
             mc_specdecom = UIM.create('menu_controller', menubar_ctrl.uid, label=u"&SpecDecom")
             mc_tools = UIM.create('menu_controller', menubar_ctrl.uid, label=u"&Tools")
@@ -449,7 +450,10 @@ class GripyApp(wx.App):
                     callback='App.menu_functions.on_load_wilson'
             )  
                   
-
+            UIM.create('menu_item_controller', mc_model.uid, 
+                    label=u"Reflectivity", 
+                    callback='App.menu_functions.ReflectivityModel'
+            )
 
             UIM.create('menu_item_controller', mc_infer.uid, 
                     label=u"Avo PP", 
