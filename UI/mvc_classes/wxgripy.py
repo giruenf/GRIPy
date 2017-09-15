@@ -197,6 +197,9 @@ wx_listbox_keys = ['id', 'value', 'pos', 'size', 'choices', 'style',
 wx_filepickerctrl_keys = ['id', 'path', 'message', 'wildcard', 'pos', 'size', 
                           'style', 'validator', 'name']
 
+wx_checkbox_keys = ['id', 'label', 'value', 'pos', 'size', 'style', 'validator', 'name']
+
+wx_radiobutton_keys = ['id', 'label', 'pos', 'size', 'style', 'validator', 'name']
 
 
 registered_widgets = {
@@ -205,7 +208,9 @@ registered_widgets = {
     wx.TextCtrl: wx_textctrl_keys,
     wx.Choice: wx_choice_keys,
     wx.ListBox: wx_listbox_keys,
-    wx.FilePickerCtrl: wx_filepickerctrl_keys
+    wx.FilePickerCtrl: wx_filepickerctrl_keys,
+    wx.CheckBox: wx_checkbox_keys,
+    wx.RadioButton: wx_radiobutton_keys
 }
 
 
@@ -226,9 +231,6 @@ def pop_registers(keys, kwargs):
     #    if kwargs.get(key) is not None:
     #        ret[key] = kwargs.pop(key)             
     return ret, kwargs
-
-
-
 
 
 def pop_widget_registers(keys, kwargs):
@@ -360,6 +362,34 @@ class EncapsulatedChoice(EncapsulatedControl):
             return None
         return self._map[self.control.GetString(self.control.GetSelection())]    
             
+
+class EncapsulatedRadioButton(EncapsulatedControl):
+    _control_class = wx.RadioButton
+
+    def __init__(self, *args, **kwargs):
+        super(EncapsulatedRadioButton, self).__init__(*args, **kwargs)    
+        self.control.Bind(wx.EVT_RADIOBUTTON, self.on_change)
+
+    def set_value(self, value):
+        self.control.SetValue(value)
+   
+    def get_value(self):
+        return self.control.GetValue()
+
+
+class EncapsulatedCheckBox(EncapsulatedControl):
+    _control_class = wx.CheckBox
+
+    def __init__(self, *args, **kwargs):
+        super(EncapsulatedCheckBox, self).__init__(*args, **kwargs)    
+        self.control.Bind(wx.EVT_CHECKBOX, self.on_change)
+
+    def set_value(self, value):
+        self.control.SetValue(value)
+   
+    def get_value(self):
+        return self.control.GetValue()
+
 
 class EncapsulatedTextCtrl(EncapsulatedControl):
     _control_class = wx.TextCtrl
@@ -655,6 +685,12 @@ class Dialog(TopLevel, wx.Dialog):
             
     def AddChoice(self, *args, **kwargs):
         self.CreateControl(EncapsulatedChoice, args[0], **kwargs)
+
+    def AddRadioButton(self, *args, **kwargs):
+        self.CreateControl(EncapsulatedRadioButton, args[0], **kwargs)
+
+    def AddCheckBox(self, *args, **kwargs):
+        self.CreateControl(EncapsulatedCheckBox, args[0], **kwargs)
 
     def AddTextCtrl(self, *args, **kwargs):
         self.CreateControl(EncapsulatedTextCtrl, args[0], **kwargs)

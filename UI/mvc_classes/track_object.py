@@ -69,6 +69,7 @@ _PREFERRED_PLOTTYPES = {
     'seismic': 'density',
     'partition': 'patches',
     'scalogram': 'density',
+    'gather_scalogram': 'density',
     'velocity': 'density',
     'gather': 'density',
     'angle': 'contourf',
@@ -148,7 +149,28 @@ class DataFilter(GenericObject):
         self.tracks_objuids = []
         self.append_objuid(objuid)
             
-        
+
+    """
+    def append_objuid(self, track_objuid):
+        if track_objuid in self.tracks_objuids:
+            raise Exception('Object was added before.')
+        try:
+            UIM = UIManager()
+            track_obj_ctrl = UIM.get(track_objuid)
+            obj = track_obj_ctrl.get_object()
+            data_indexes = obj.get_index()
+            for dim_idx in range(len(data_indexes)):
+                indexes = data_indexes[dim_idx]
+                index = indexes[0]
+                if dim_idx < 2:    
+                    self.data.append((index.uid, True, True, 0, len(index.data)))
+                else:
+                    self.data.append((index.uid, False, False, 0, len(index.data)))
+            self.tracks_objuids.append(track_objuid)    
+        except:
+            raise   
+    """
+    
     def append_objuid(self, track_objuid):
         print '\nDataFilter.append_objuid:', track_objuid
         if track_objuid in self.tracks_objuids:
@@ -171,13 +193,15 @@ class DataFilter(GenericObject):
                         self.data.append((index.uid, True, True, 0, len(index.data)))
                     else:
                         self.data.append((index.uid, False, False, 0, len(index.data)))
-                        
-        except:
-            raise     
-        print 'DataFilter.append_objuid:\n'
+            self.tracks_objuids.append(track_objuid)              
+        except Exception as e:
+            print 'ERROR:', e
+            raise e     
+        print 'DataFilter.append_objuid ENDED\n'
 
 
     def reload_data(self):
+        print '\nreload_data:', self.tracks_objuids
         UIM = UIManager()
         for toc_uid in self.tracks_objuids:
             toc = UIM.get(toc_uid)
@@ -239,7 +263,7 @@ class TrackObjectController(UIControllerBase):
             self.detach((self.model.obj_tid, old_value))
         self.model.plottype = None
         
-        print 'on_change_objoid'
+        print '\n\n\non_change_objoid:', new_value, old_value
         
         obj = self.get_object()
         
@@ -248,11 +272,14 @@ class TrackObjectController(UIControllerBase):
             self.set_filter()
             #
             plottype = _PREFERRED_PLOTTYPES.get(obj.tid)
+            print obj.tid, plottype
             self.model.plottype = plottype       
             self.attach(obj.uid)
- 
+        print 'on_change_objoid ENDED'
+        
     
     def set_filter(self, filter_oid=None):
+        print 'set_filter'
         if filter_oid is None:
             OM = ObjectManager(self)
             filter_ = OM.new('data_filter', self.uid)
@@ -262,9 +289,11 @@ class TrackObjectController(UIControllerBase):
             if self.model.data_filter_oid:
                 raise Exception('TRATAR EXCLUSAO FILTER')
             self.model.data_filter_oid = filter_oid
+        print 'set_filter ENDED'    
     
     
     def on_change_plottype(self, new_value, old_value):
+        print 'on_change_plottype:', new_value, old_value
         UIM = UIManager()
         repr_ctrl = self.get_representation()
         if repr_ctrl:
@@ -275,8 +304,9 @@ class TrackObjectController(UIControllerBase):
                 state = self._get_log_state()
                 UIM.create(repr_tid, self.uid, **state)
                 self._do_draw()
-            except:    
-                raise
+            except Exception as e:    
+                print 'ERROR:', e
+                raise e
                 self.model.plottype = None                
 
 

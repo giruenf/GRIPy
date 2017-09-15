@@ -21,6 +21,7 @@ from DT.UOM import uom as UOM
 import app_utils
 
 from Algo.Spectral.Spectral import STFT, WaveletTransform, MorletWavelet, PaulWavelet, DOGWavelet, RickerWavelet
+from Algo.Spectral.Hilbert import HilbertTransform												  
 #from UI.dialog_new import Dialog
 
 from scipy.signal import chirp
@@ -1382,7 +1383,7 @@ def teste6(event):
     """
 
 
-def teste5(event):
+def on_cwt(event):
     #
     OM = ObjectManager(event.GetEventObject()) 
     
@@ -1390,7 +1391,10 @@ def teste5(event):
     dlg = UIM.create('dialog_controller', title='Continuous Wavelet Transform') 
     #
     try:
-        ctn_input_data = dlg.view.AddCreateContainer('StaticBox', label='Input data', orient=wx.VERTICAL, proportion=0, flag=wx.EXPAND|wx.TOP, border=5)
+        ctn_input_data = dlg.view.AddCreateContainer('StaticBox', 
+                            label='Input data', orient=wx.VERTICAL, 
+                            proportion=0, flag=wx.EXPAND|wx.TOP, border=5
+        )
         #
         accept_tids = ['seismic', 'gather']
         input_data = OrderedDict()
@@ -1398,8 +1402,24 @@ def teste5(event):
             for obj in OM.list(tid):
                 input_data[obj._FRIENDLY_NAME + ': ' + obj.name] = obj.uid
 
-        dlg.view.AddChoice(ctn_input_data, proportion=0, flag=wx.EXPAND|wx.TOP, border=5, widget_name='seismic', options=input_data)     
+        dlg.view.AddChoice(ctn_input_data, proportion=0, flag=wx.EXPAND|wx.TOP,
+                           border=5, widget_name='obj_uid', options=input_data
+        )     
         #    
+        ctn_real_complex = dlg.view.AddCreateContainer('StaticBox', 
+                    label='Input signal', orient=wx.HORIZONTAL, proportion=0, 
+                    flag=wx.EXPAND|wx.TOP, border=5
+        )
+        dlg.view.AddRadioButton(ctn_real_complex, 
+                    proportion=0, flag=wx.EXPAND|wx.TOP, border=5, 
+                    widget_name='real', label='Real'
+        )
+        dlg.view.AddRadioButton(ctn_real_complex, 
+                    proportion=0, flag=wx.EXPAND|wx.TOP, border=5, 
+                    widget_name='analytic', label='Analytic'
+        )
+        #        
+        #
         ctn_wavelet = dlg.view.AddCreateContainer('StaticBox', label='Wavelet', orient=wx.VERTICAL, proportion=0, flag=wx.EXPAND|wx.TOP, border=5)
         dlg.view.AddChoice(ctn_wavelet, proportion=0, flag=wx.EXPAND|wx.TOP, border=5, widget_name='wavelet', options=WAVELET_TYPES)
         #
@@ -1449,20 +1469,35 @@ def teste5(event):
             else:
                 raise Exception()   
             #    
-            obj_uid = results.get('seismic')
+            obj_uid = results.get('obj_uid')
             obj = OM.get(obj_uid) 
-            mode = results.get('mode')    
-            #
+            mode = results.get('mode')   
+            analytic = results.get('analytic')
             input_indexes = obj.get_index()
             z_axis = input_indexes[0][0]
-            #
-            #print '\n', z_axis.name, z_axis.uid, z_axis.step, z_axis.datatype
+			 
+																			  
             
-           # if z_axis.datatype != 'TIME':
-           #     raise Exception('Only TIME datatype is accepted.')
-                
+            '''
+            if z_axis.datatype != 'TIME':
+                raise Exception('Only TIME datatype is accepted.')
+				
             time = UOM.convert(z_axis.data, z_axis.unit, 's')      
             step = UOM.convert(z_axis.step, z_axis.unit, 's') 
+            '''
+            ###
+            # TODO: rever TIME/DEPTH
+            time = z_axis.data
+            step = z_axis.step
+            if not step:
+                print 'Data has not a step. Trying to calculating it from data.'
+                try:
+                    step = z_axis.data[1] - z_axis.data[0]
+                except:
+                    print 'ERROR: STEP!'
+                    raise
+            ###
+            
             
             print 'Input obj.data.shape:', obj.data.shape
             
@@ -1473,60 +1508,104 @@ def teste5(event):
                 for i in range(iaxis):
                     for j in range(jaxis):
                         for k in range(kaxis):
-                             wt = WaveletTransform(obj.data[i][j][k], dj=dj,
-                                                   wavelet=func, 
-                                                   dt=step,
-                                                   time=time
-                             )
-                             wt_axis = wt.wavelet_transform.shape[0]
-                             #print (i, j, k), wt.wavelet_transform.shape, np.flip(wt.fourier_frequencies, 0)#, wt.scales
+                            if analytic:
+                                ht = HilbertTransform(obj.data[i][j][k], step)
+                                input_data = ht.analytic_signal
+                            else:
+                                input_data = obj.data[i][j][k]
+							  
+																	
+																														 
                              
-                             if data_out is None:
-                                 data_out = np.zeros((iaxis, jaxis, kaxis, wt_axis, zaxis))    
-                                 freqs =  np.flip(wt.fourier_frequencies, 0)
-                                 scales = np.flip(wt.scales, 0)
-                             if mode == 0:
-                                 data_out[i][j][k] = np.abs(np.flip(wt.wavelet_transform, 0))      
-                             elif mode == 1:            
-                                 # np.abs(self.wavelet_transform) ** 2
-                                 data_out[i][j][k] = np.flip(wt.wavelet_power, 0)         
-                             elif mode == 2 or mode ==3:   
-                                 data_out[i][j][k] = np.angle(np.flip(wt.wavelet_transform, 0))
-                             if mode == 3:   
-                                 data_out[i][j][k] = np.unwrap(np.angle(np.flip(wt.wavelet_transform, 0)), axis=0)    
+                            wt = WaveletTransform(input_data, dj=dj, wavelet=func,  
+                                                  dt=step, time=time
+                            )   
+                            #print 'wt_shape:', wt.wavelet_transform.shape
+                            #print (i, j, k), wt.wavelet_transform.shape, np.flip(wt.fourier_frequencies, 0)#, wt.scales
+                            if data_out is None:
+                                wt_axis = wt.wavelet_transform.shape[0]
+                                new_shape = (iaxis, jaxis, kaxis, wt_axis, zaxis)
+                                print 'New data CWT shape:', new_shape 
+                                data_out = np.zeros(new_shape)    
+                                freqs =  np.flip(wt.fourier_frequencies, 0)
+                                scales = np.flip(wt.scales, 0)
+                            if mode == 0:
+                                data_out[i][j][k] = np.abs(np.flip(wt.wavelet_transform, 0))      
+                            elif mode == 1:            
+                                # np.abs(self.wavelet_transform) ** 2
+                                data_out[i][j][k] = np.flip(wt.wavelet_power, 0)         
+                            elif mode == 2 or mode ==3:   
+                                data_out[i][j][k] = np.angle(np.flip(wt.wavelet_transform, 0))
+                            if mode == 3:   
+                                data_out[i][j][k] = np.unwrap(np.angle(np.flip(wt.wavelet_transform, 0)), axis=0)    
 
             elif len(obj.data.shape) == 3:
                 print 'Input data shape lenght: 3'
                 iaxis, jaxis, zaxis = obj.data.shape
                 data_out = None
+                
                 for i in range(iaxis):
                     for j in range(jaxis):
-                         wt = WaveletTransform(obj.data[i][j], dj=dj,
-                                               wavelet=func, 
-                                               dt=step,
-                                               time=time
-                         )
-                         
-                         #print 'wt_shape:', wt.wavelet_transform.shape
-                         #print (i, j, k), wt.wavelet_transform.shape, np.flip(wt.fourier_frequencies, 0)#, wt.scales
-                         
-                         if data_out is None:
-                             wt_axis = wt.wavelet_transform.shape[0]
-                             new_shape = (iaxis, jaxis, wt_axis, zaxis)
-                             print 'New data CWT shape:', new_shape 
-                             data_out = np.zeros(new_shape)    
-                             freqs =  np.flip(wt.fourier_frequencies, 0)
-                             scales = np.flip(wt.scales, 0)
-                         if mode == 0:
-                             data_out[i][j] = np.abs(np.flip(wt.wavelet_transform, 0))      
-                         elif mode == 1:            
-                             # np.abs(self.wavelet_transform) ** 2
-                             data_out[i][j] = np.flip(wt.wavelet_power, 0)         
-                         elif mode == 2 or mode ==3:   
-                             data_out[i][j] = np.angle(np.flip(wt.wavelet_transform, 0))
-                         if mode == 3:   
-                             data_out[i][j] = np.unwrap(np.angle(np.flip(wt.wavelet_transform, 0)), axis=0)    
+                        if analytic:
+                            ht = HilbertTransform(obj.data[i][j], step)
+                            input_data = ht.analytic_signal
+                        else:
+                            input_data = obj.data[i][j]
+                        wt = WaveletTransform(input_data, dj=dj, wavelet=func,  
+                                              dt=step, time=time
+														
+                        )                    
+						 
+                        #print 'wt_shape:', wt.wavelet_transform.shape
+                        #print (i, j, k), wt.wavelet_transform.shape, np.flip(wt.fourier_frequencies, 0)#, wt.scales
+						 
+                        if data_out is None:
+                            wt_axis = wt.wavelet_transform.shape[0]
+                            new_shape = (iaxis, jaxis, wt_axis, zaxis)
+                            print 'New data CWT shape:', new_shape 
+                            data_out = np.zeros(new_shape)    
+                            freqs =  np.flip(wt.fourier_frequencies, 0)
+                            scales = np.flip(wt.scales, 0)
+                        if mode == 0:
+                            data_out[i][j] = np.abs(np.flip(wt.wavelet_transform, 0))      
+                        elif mode == 1:            
+                            # np.abs(self.wavelet_transform) ** 2
+                            data_out[i][j] = np.flip(wt.wavelet_power, 0)         
+                        elif mode == 2 or mode ==3:   
+                            data_out[i][j] = np.angle(np.flip(wt.wavelet_transform, 0))
+                        if mode == 3:   
+                            data_out[i][j] = np.unwrap(np.angle(np.flip(wt.wavelet_transform, 0)), axis=0)    
 
+            elif len(obj.data.shape) == 2:
+                print 'Input data shape lenght: 2'
+                jaxis, zaxis = obj.data.shape
+                data_out = None
+
+                for j in range(jaxis):
+                    if analytic:
+                        ht = HilbertTransform(obj.data[j], step)
+                        input_data = ht.analytic_signal
+                    else:
+                        input_data = obj.data[j]
+                    wt = WaveletTransform(input_data, dj=dj, wavelet=func,  
+                                          dt=step, time=time
+                    )
+                    if data_out is None:
+                        wt_axis = wt.wavelet_transform.shape[0]
+                        new_shape = (jaxis, wt_axis, zaxis)
+                        print 'New data CWT shape:', new_shape 
+                        data_out = np.zeros(new_shape)    
+                        freqs =  np.flip(wt.fourier_frequencies, 0)
+                        scales = np.flip(wt.scales, 0)
+                    if mode == 0:
+                        data_out[j] = np.abs(np.flip(wt.wavelet_transform, 0))      
+                    elif mode == 1:            
+                        # np.abs(self.wavelet_transform) ** 2
+                        data_out[j] = np.flip(wt.wavelet_power, 0)         
+                    elif mode == 2:   
+                        data_out[j] = np.angle(np.flip(wt.wavelet_transform, 0))
+                    elif mode == 3:   
+                        data_out[j] = np.unwrap(np.angle(np.flip(wt.wavelet_transform, 0)), axis=0)    
             else:
                 raise Exception()
             #
@@ -1536,9 +1615,16 @@ def teste5(event):
             
             #
             name = results.get('cwt_name')
-            scalogram = OM.new('scalogram', data_out, name=name)
-            if not OM.add(scalogram):
-                raise Exception('Object was not added. tid={\'scalogram\'}')
+            
+            if obj_uid[0] == 'gather':
+                scalogram = OM.new('gather_scalogram', data_out, name=name)
+                parent_uid = OM._getparentuid(obj_uid)
+                if not OM.add(scalogram, parent_uid):
+                    raise Exception('Object was not added. tid={\'gather_scalogram\'}')
+            else:
+                raise Exception('Not a gather_scalogram.')
+            #if not OM.add(scalogram):
+            #    raise Exception('Object was not added. tid={\'scalogram\'}')
             # 
             
             
@@ -1552,8 +1638,10 @@ def teste5(event):
             ) 
             OM.add(index, scalogram.uid)
             #
-            # TODO: Inserir scales na dimensao 1
-            # 
+            index = OM.new('data_index', 1, 'Scale', 'SCALE', 
+                           data=scales
+            ) 
+            OM.add(index, scalogram.uid)
             # Inserindo as outras dimensões do dado
             for idx in range(1, len(input_indexes)):
                 state = input_indexes[idx][0]._getstate()        
@@ -1564,8 +1652,8 @@ def teste5(event):
         del wait
         del disableAll
     except Exception as e:
-        print e
-        pass
+        print 'ERROR:', e
+			
     finally:
         UIM.remove(dlg.uid)   
 
@@ -1916,6 +2004,10 @@ def on_import_las(event):
             index = None
 
 
+            part_code = None
+            #part_color    
+
+
             for i in range(ncurves):
                 if sel_curvetypes[i]:
                     PM.voteforcurvetype(names[i], sel_curvetypes[i])
@@ -1940,20 +2032,31 @@ def on_import_las(event):
                     OM.add(log, well.uid)
 
                 elif sel_datatypes[i] == 'Partition':
+                    
+                    if part_code is None:
+                        part_code = OM.new('property', name='partition_code')
+                        OM.add(part_code)   
                     try:
                         booldata, codes = DT.DataTypes.Partition.getfromlog(data[i])
+                        
                     except TypeError:
                         print 'data[{}]: {}'.format(i, data[i])
                         raise
+                    #    
                     partition = OM.new('partition', name=names[i], 
-                                           datatype=sel_curvetypes[i]#,
-                                           #index_uid=index.uid
+                                           datatype=sel_curvetypes[i]
+															   
                     )
+                    #
                     OM.add(partition, well.uid)
                     for j in range(len(codes)):
-                        part = OM.new('part', booldata[j], 
-                            code=int(codes[j]), datatype=sel_curvetypes[i])
+                        
+                        print 'OM.new(\'part\', {}, code={}, datatype={})'.format(booldata[j], codes[j], sel_curvetypes[i])
+                        
+                        part = OM.new('part', booldata[j], code=int(codes[j]), datatype=sel_curvetypes[i])
+																		   
                         OM.add(part, partition.uid)
+                        
                 else:
                     print "Not importing {} as no datatype matches '{}'".format(names[i], sel_datatypes[i])
                  

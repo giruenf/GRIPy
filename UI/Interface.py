@@ -73,9 +73,10 @@ def load():
         mc_edit = UIM.create('menu_controller', menubar_ctrl.uid, label=u"&Edit")
         mc_well = UIM.create('menu_controller', menubar_ctrl.uid, label=u"&Well")
         mc_precond = UIM.create('menu_controller', menubar_ctrl.uid, label=u"&Preconditioning")
+        mc_model = UIM.create('menu_controller', menubar_ctrl.uid, label=u"&Modeling")
         mc_interp = UIM.create('menu_controller', menubar_ctrl.uid, label=u"&Interpretation")
         mc_infer = UIM.create('menu_controller', menubar_ctrl.uid, label=u"&Inference")
-        mc_specdecom = UIM.create('menu_controller', menubar_ctrl.uid, label=u"&SpecDecom")
+        #mc_specdecom = UIM.create('menu_controller', menubar_ctrl.uid, label=u"&SpecDecom")
         mc_tools = UIM.create('menu_controller', menubar_ctrl.uid, label=u"&Tools")
         mc_plugins = UIM.create('menu_controller', menubar_ctrl.uid, label=u"&Plugins")
         mc_debug = UIM.create('menu_controller', menubar_ctrl.uid, label=u"&Debug")  
@@ -224,11 +225,21 @@ def load():
                 callback='App.menu_functions.teste7'
         )  
         
-        # SpecDecom Menu
+        # Interpretation Menu
+        mc_specdecom = UIM.create('menu_controller', mc_interp.uid,  
+                                      label=u"Spectral Decomposition",
+                                      help=u"Spectral Decomposition",
+        )
         UIM.create('menu_item_controller', mc_specdecom.uid, 
-                label=u"Wavelet Transform", 
-                callback='App.menu_functions.teste5'
+                label=u"Continuous Wavelet Transform", 
+                callback='App.menu_functions.on_cwt'
         )          
+
+        # Modeling Menu          
+        UIM.create('menu_item_controller', mc_model.uid, 
+				label=u"Reflectivity", 
+				callback='App.menu_functions.ReflectivityModel'
+        )
         
         # Well Menu
         UIM.create('menu_item_controller', mc_debug.uid, 

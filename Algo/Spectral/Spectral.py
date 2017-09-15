@@ -8,7 +8,7 @@ from SlidingWindow import SlidingWindow
 import wavelets 
 #import WaveletAnalysis, Morlet, Paul, DOG, Ricker
 
-from scipy.signal import chirp 
+from scipy.signal import chirp
 
 
 import timeit
@@ -21,6 +21,7 @@ PaulWavelet = wavelets.Paul
 DOGWavelet = wavelets.DOG
 RickerWavelet =  wavelets.Ricker
 #
+
 
 
 

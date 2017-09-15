@@ -55,6 +55,8 @@ class PartitionTable(wx.grid.GridTableBase):
         
         self.propmap = [prop.uid for prop in self._OM.list('property', self.partitionuid)]
         self.partmap = [part.uid for part in self._OM.list('part', self.partitionuid)]
+
+        print self.propmap
         
         if False:  # TODO: rever isso para particoes topo-base -> isinstance(self.partition, TopBottomPartition):
             self.N_PROPS = 4

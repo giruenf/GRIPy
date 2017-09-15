@@ -249,13 +249,14 @@ class NavigatorController(FrameController):
         df = OM.get(('data_filter', self.model.data_filter_oid))
         data_indexes = df.data[::-1]
         for (di_uid, display, is_range, first, last) in data_indexes:
-            obj = OM.get(di_uid)
+            #obj = OM.get(di_uid)
             #print '\n', obj.name, display, is_range, first, last
             self.view.add_panel(di_uid, display, is_range, first, last)  
         self.view.add_bottom_panel()    
 
 
     def Set(self, results):
+        print 'NavigatorController.Set:', results
         OM = ObjectManager(self)
         df = OM.get(('data_filter', self.model.data_filter_oid))
         new_data = []
@@ -266,6 +267,7 @@ class NavigatorController(FrameController):
             #print result
         df.data = new_data
         df.reload_data()
+        print 'NavigatorController.Set ENDED'
         
             
 class NavigatorModel(FrameModel):
@@ -340,13 +342,14 @@ class Navigator(Frame):
         self._doCancel()
 
     def _doApply(self):
+        print '\n_doApply'
         results = []
         for panel in self.panels:
             results.append(panel.get_result())
         UIM = UIManager()
         controller = UIM.get(self._controller_uid)    
         controller.Set(results)
-        
+        print '_doApply'
     def _doCancel(self):
         self.Close()  
 

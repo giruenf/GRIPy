@@ -1,19 +1,15 @@
 # -*- coding: utf-8 -*-
-#import sys
+
 import gc
-#import pprint
-#import Queue
 import wx
-import weakref
 import types
 from collections import OrderedDict
-#import FileIO.utils
 import App.app_utils
 from App import log
-
 from App.pubsub import PublisherMixin
-
+from App.gripy_manager import Manager
 from OM.Manager import ObjectManager
+
 
 ###############################################################################
 ###############################################################################
@@ -103,7 +99,7 @@ class UIControllerBase(UIBase, PublisherMixin):
             try:
                 self.model = model_class(self.uid, **base_state)
             except Exception, e:
-                msg = 'ERROR on creating MVC model {} object: {}'.format(model_class.__name__, e.message)
+                msg = '' #ERROR on creating MVC model {} object: {}'.format(model_class.__name__, e.message)
                 log.exception(msg)
                 print '\n', msg
                 raise e
@@ -427,7 +423,7 @@ class UIViewBase(UIBase):
 ###############################################################################
 
 
-class UIManager(PublisherMixin):
+class UIManager(Manager):
     #tid = 'ui_manager'
     #__metaclass__ = Singleton
 
@@ -442,21 +438,8 @@ class UIManager(PublisherMixin):
     _PUB_NAME = 'UIManager'
     #_VALID_PUBSUB_TOPICS = ['uim', 'uim.object_removed']
 
-    def __init__(self):
-        caller_info = App.app_utils.get_caller_info()
-        owner = caller_info[0][1]
-        #print '\n', owner
-        # TODO:
-        # Armengue feito para as funcoes dos menus.. tentar corrigir isso
-        if not owner:
-            owner = wx.GetApp()
-        try:
-            owner_name = owner.uid
-        except AttributeError:
-            owner_name = owner.__class__.__name__
-        msg = 'A new instance of UIManager was solicited by {}'.format(owner_name)
-        log.debug(msg)        
-        self._ownerref = weakref.ref(owner)
+    def __init__(self):   
+        super(UIManager, self).__init__()
         self._data = UIManager._data
         self._types = UIManager._types
         self._currentobjectids = UIManager._currentobjectids

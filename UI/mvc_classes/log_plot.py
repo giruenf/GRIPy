@@ -47,9 +47,10 @@ class LogPlotController(WorkPageController):
     def is_valid_object(self, obj_uid):
         OM = ObjectManager(self)#wx.App.Get())
         parent_uid = OM._getparentuid(obj_uid)
-        if parent_uid[0] == 'well':
-            return True
-        return False
+        try:
+            return parent_uid[0] == 'well'
+        except:
+            return False
             
     
     def show_track(self, track_uid, show):

@@ -1,13 +1,15 @@
 # -*- coding: utf-8 -*-
 
 from OM.Manager import ObjectManager
+from UI.uimanager import UIManager
+#
 from DT.DataTypes import Well
 from DT.DataTypes import Core
 from DT.DataTypes import Log
 from DT.DataTypes import Partition
 from DT.DataTypes import Part
-#from DT.DataTypes import PartColor
 from DT.DataTypes import Property
+
 from DT.DataTypes import Seismic
 #from DT.DataTypes import Velocity
 from DT.DataTypes import Scalogram
@@ -17,12 +19,15 @@ from DT.DataTypes import GatherScalogram
 #from DT.DataTypes import InversionParameter
 from DT.DataTypes import WellGather
 from DT.DataTypes import DataIndex
+from DT.DataTypes import Model1D
+from DT.DataTypes import Zone
+from DT.DataTypes import ZoneSet
+#
 from UI.mvc_classes.track_object import DataFilter
+#
 from DT.DTRock import Rock
 from DT.DTRock import Fluid
-from DT.DataTypes import Model1D
-
-from UI.uimanager import UIManager
+#
 from UI.mvc_classes.wxgripy import FrameController, FrameModel, Frame
 from UI.mvc_classes.wxgripy import DialogController, DialogModel, Dialog
 from UI.mvc_classes.main_window import MainWindowController, MainWindowModel, MainWindow
@@ -36,8 +41,7 @@ from UI.mvc_classes.status_bar import StatusBarController, StatusBarModel, Statu
 from UI.mvc_classes.log_plot import LogPlotController, LogPlotModel, LogPlot
 from UI.mvc_classes.track import TrackController, TrackModel, TrackView
 from UI.mvc_classes.track_object import TrackObjectController, \
-    TrackObjectModel
-    
+    TrackObjectModel   
 from UI.mvc_classes.frame_nav import NavigatorController, \
     NavigatorModel, Navigator
 from UI.mvc_classes.cross_plotter import CrossPlotController, CrossPlotModel, CrossPlot
@@ -47,13 +51,13 @@ from UI.mvc_classes.track_object import \
     IndexRepresentationController, IndexRepresentationModel, IndexRepresentationView, \
     DensityRepresentationController, DensityRepresentationModel, DensityRepresentationView, \
     PatchesRepresentationController, PatchesRepresentationModel, PatchesRepresentationView, \
-    ContourfRepresentationController, ContourfRepresentationModel, ContourfRepresentationView
-                          
+    ContourfRepresentationController, ContourfRepresentationModel, ContourfRepresentationView                          
 from UI.mvc_classes.lpf import LogPlotEditorController, LogPlotEditor        
 from UI.mvc_classes.lpf import LPETrackPanelController, LPETrackPanel
 from UI.mvc_classes.lpf import LPEObjectsPanelController, LPEObjectsPanel
 from UI.mvc_classes.propgrid import PropertyGridController, \
                                             PropertyGridView
+#
 
 
 def register_app_classes():
@@ -67,24 +71,16 @@ def register_OM_classes():
     ObjectManager.register_class(Core, Well)
     #
     ObjectManager.register_class(Log, Well)
-    ObjectManager.register_class(Partition, Well)
     #
-    #ObjectManager.register_class(PartColor, Partition)
+    ObjectManager.register_class(Partition, Well)
     ObjectManager.register_class(Part, Partition)
     ObjectManager.register_class(Property, Partition)
     #
     ObjectManager.register_class(Seismic)
     ObjectManager.register_class(DataIndex, Seismic)
-
+    #
     ObjectManager.register_class(Scalogram)
     ObjectManager.register_class(DataIndex, Scalogram)
-    #
-    '''
-    ObjectManager.register_class(Velocity)    
-    ObjectManager.register_class(Angle)   
-    ObjectManager.register_class(Inversion)
-    ObjectManager.register_class(InversionParameter, Inversion)
-    '''
     #
     ObjectManager.register_class(WellGather, Well)
     ObjectManager.register_class(DataIndex, WellGather)
@@ -99,8 +95,11 @@ def register_OM_classes():
     #
     ObjectManager.register_class(Model1D, Well)
     ObjectManager.register_class(DataIndex, Model1D)
-    
-    
+    #
+    ObjectManager.register_class(ZoneSet, Well)
+    ObjectManager.register_class(Zone, ZoneSet)
+    ObjectManager.register_class(Property, Zone)
+    #
     
     
 def register_UIManager_classes():

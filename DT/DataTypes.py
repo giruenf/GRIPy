@@ -488,8 +488,8 @@ class Partition(GenericDataType):
     _FRIENDLY_NAME = 'Partition'
     _SHOWN_ATTRIBUTES = [
                             ('_oid', 'Object Id'),
-                            ('datatype', 'Curve Type')#,
-                            #('index_uid', 'Index Uid')
+                            ('datatype', 'Type')
+													   
     ] 
     
     def __init__(self, **attributes):
@@ -759,16 +759,11 @@ class Scalogram(Density):
 
 
 
-class GatherScalogram(Density):
-    tid = 'scalogram'
-    _FRIENDLY_NAME = 'Scalogram'
-    _SHOWN_ATTRIBUTES = [
-                            ('_oid', 'Object Id'),
-                            ('datatype', 'Type')                       
-    ] 
+class GatherScalogram(Scalogram):
+    tid = 'gather_scalogram'
 
     def __init__(self, data, **attributes):
-        super(Scalogram, self).__init__(data, **attributes)
+        super(GatherScalogram, self).__init__(data, **attributes)
 
 
 
@@ -1101,3 +1096,57 @@ class Model1D(Density):
                     indexes[di.dimension] = []
                 indexes.get(di.dimension).append(di)     
         return indexes     
+
+class ZoneSet(GenericDataType):
+    tid = 'zone_set'
+    _FRIENDLY_NAME = 'Zone Sets'
+    _SHOWN_ATTRIBUTES = [
+                            ('_oid', 'Object Id'),
+                            ('datatype', 'Type')
+    ]
+    
+    def __init__(self, **attributes):
+        super(ZoneSet, self).__init__(**attributes)
+
+
+class Zone(GenericDataType):
+    tid = 'zone'
+    _FRIENDLY_NAME = 'Zones'
+    _SHOWN_ATTRIBUTES = [
+                            ('_oid', 'Object Id'),
+                            ('datatype', 'Type')
+    ]
+    
+    def __init__(self, **attributes):
+        if attributes.get('start') is None or attributes.get('end') is None:
+            raise Exception('No start or no end.')
+        super(ZoneSet, self).__init__(**attributes)
+        
+    def get_index(self):
+        raise Exception()
+        
+    @property
+    def start(self):
+        return self.attributes['start']
+
+    @start.setter
+    def start(self, value):
+        self.attributes['start'] = value
+
+    @start.deleter
+    def start(self):
+        raise Exception()
+        
+    @property
+    def end(self):
+        return self.attributes['end']
+           
+    @end.setter
+    def end(self, value):
+        self.attributes['end'] = value        
+    
+    @end.deleter
+    def end(self):
+        raise Exception()    
+    
+    
