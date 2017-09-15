@@ -22,6 +22,7 @@ from UI.uimanager import UIManager
 # TODO: Review it!
 # Keeping MPL version 1 parameters
 if matplotlib.__version__.startswith('2.'):
+    #print matplotlib.rcParams['mathtext.rm']
     matplotlib.rcParams['mathtext.fontset'] = 'cm'
     matplotlib.rcParams['mathtext.rm'] = 'serif'
     #
@@ -29,7 +30,7 @@ if matplotlib.__version__.startswith('2.'):
     matplotlib.rcParams['figure.dpi'] = 80
     matplotlib.rcParams['savefig.dpi'] = 100
     #    
-    matplotlib.rcParams['font.size'] = 12
+    matplotlib.rcParams['font.size'] = 10
     matplotlib.rcParams['legend.fontsize'] = 'large'
     matplotlib.rcParams['figure.titlesize'] = 'medium'
 

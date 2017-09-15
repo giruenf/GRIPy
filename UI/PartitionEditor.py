@@ -313,23 +313,30 @@ class Dialog(wx.Dialog):
         self._OM = ObjectManager(self)
 
         self.currentwellindex = 0
-        self.wellmap = [well.uid for well in self._OM.list('well')]
-        
+        #
+        self.wellmap = []
+        for well in self._OM.list('well'):
+            if self._OM.list('partition', well.uid):
+                self.wellmap.append(well.uid)
+        #
         self.currentpartitionindex = 0
         self.partitionmap = [partition.uid for partition in self._OM.list('partition', self.wellmap[self.currentwellindex])]
         
-        #self._OM = ObjectManager(self)
 
         self.tables = []
         for welluid in self.wellmap:
-            self.tables.append([])
+            work_table = []
             for partition in self._OM.list('partition', welluid):
-                self.tables[-1].append(PartitionTable(partition.uid))
+                work_table.append(PartitionTable(partition.uid))
+            #if work_table:    
+            self.tables.append(work_table)
 
         self.grid = wx.grid.Grid(self)
         self.grid.DisableDragColSize()
         self.grid.DisableDragRowSize()
         self.grid.SetDefaultColSize(100)
+        
+        print self.currentwellindex, self.currentpartitionindex
         self.grid.SetTable(self.tables[self.currentwellindex][self.currentpartitionindex])
         self.grid.Bind(wx.grid.EVT_GRID_CELL_LEFT_DCLICK, self.on_cell_dlclick)
         self.grid.Bind(wx.grid.EVT_GRID_LABEL_LEFT_DCLICK, self.on_label_dlclick)
@@ -358,10 +365,7 @@ class Dialog(wx.Dialog):
         toolbar_sizer.Add(remove_property_button, 0, wx.ALIGN_LEFT)
 
         main_sizer = wx.BoxSizer(wx.VERTICAL)
-        #if _iswxphoenix:
         main_sizer.Add(toolbar_sizer, proportion=0, flag=wx.EXPAND)
-        #else:
-        #    main_sizer.AddSizer(toolbar_sizer, proportion=0, flag=wx.EXPAND)
         main_sizer.Add(self.grid, proportion=1, flag=wx.EXPAND)
 
         self.SetSizer(main_sizer)
@@ -376,8 +380,8 @@ class Dialog(wx.Dialog):
             self.partition_choice.Clear()
             self.partition_choice.AppendItems([self._OM.get(partitionuid).name for partitionuid in self.partitionmap])
             self.partition_choice.SetSelection(self.currentpartitionindex)
+            #print idx, self.currentpartitionindex
             self.grid.SetTable(self.tables[idx][self.currentpartitionindex])
-
             self.grid.ForceRefresh()
 
     @debugdecorator

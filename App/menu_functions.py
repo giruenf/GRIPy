@@ -1458,8 +1458,8 @@ def teste5(event):
             #
             #print '\n', z_axis.name, z_axis.uid, z_axis.step, z_axis.datatype
             
-            if z_axis.datatype != 'TIME':
-                raise Exception('Only TIME datatype is accepted.')
+           # if z_axis.datatype != 'TIME':
+           #     raise Exception('Only TIME datatype is accepted.')
                 
             time = UOM.convert(z_axis.data, z_axis.unit, 's')      
             step = UOM.convert(z_axis.step, z_axis.unit, 's') 
@@ -2335,7 +2335,7 @@ def on_partitionedit(event):
     if not OM.list('partition'):
         return
     dlg = PartitionEditor.Dialog(wx.App.Get().GetTopWindow())
-    dlg.view.ShowModal()
+    dlg.ShowModal()
     dlg.Destroy()
     
     _UIM = UIManager()

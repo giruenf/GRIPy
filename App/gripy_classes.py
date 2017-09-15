@@ -6,6 +6,7 @@ from DT.DataTypes import Core
 from DT.DataTypes import Log
 from DT.DataTypes import Partition
 from DT.DataTypes import Part
+#from DT.DataTypes import PartColor
 from DT.DataTypes import Property
 from DT.DataTypes import Seismic
 #from DT.DataTypes import Velocity
@@ -68,6 +69,7 @@ def register_OM_classes():
     ObjectManager.register_class(Log, Well)
     ObjectManager.register_class(Partition, Well)
     #
+    #ObjectManager.register_class(PartColor, Partition)
     ObjectManager.register_class(Part, Partition)
     ObjectManager.register_class(Property, Partition)
     #
@@ -93,9 +95,12 @@ def register_OM_classes():
     ObjectManager.register_class(DataIndex, GatherScalogram)
     #
     ObjectManager.register_class(Rock, Well)
+    ObjectManager.register_class(Fluid, Well)
     #
     ObjectManager.register_class(Model1D, Well)
     ObjectManager.register_class(DataIndex, Model1D)
+    
+    
     
     
 def register_UIManager_classes():

@@ -7,23 +7,19 @@ import gripy_classes
 import gripy_functions
 from OM.Manager import ObjectManager
 from UI.uimanager import UIManager
+from UI import Interface
 from App import DEFS 
 from App import log
 from gripy_plugin_manager import GripyPluginManagerSingleton
-#
 wx.SystemOptions.SetOption("msw.remap", '0')
-#
+
 
 class GripyApp(wx.App):
     __version__ = None
     _inited = False
       
-      
     def __init__(self):
-        #self._load_app_definitions()
-        #
         self.OM_file = None
-        #self.UIM_file = None
         self._wx_app_state = OrderedDict(DEFS.get('wx.App'))
         class_full_name = app_utils.get_class_full_name(self)
         self._gripy_app_state = OrderedDict(DEFS.get(class_full_name))
@@ -48,7 +44,7 @@ class GripyApp(wx.App):
         )
         # Then, wx.App has inited and it calls OnInit
 
-
+        
     # TODO: REVER ISSO E COLOCAR COMO wx.Config ou wx.StandardPaths
     #def set_app_dir():
     #    wx.App.Get()._app_dir = os.getcwd()
@@ -153,6 +149,7 @@ class GripyApp(wx.App):
         if tree_ctrl:        
             tree_ctrl.set_project_name(self.OM_file)
                   
+            
     """
     Save ObjectManager data.
     """                  
@@ -163,49 +160,10 @@ class GripyApp(wx.App):
             OM = ObjectManager(self)
             OM.save(self.OM_file)
 
-    """
-    Load interface data.
-    """
-    def load_application_UI_data(self, fullfilename):
-        #self.UIM_file = fullfilename
-        #if self.UIM_file:
-        UIM = UIManager()
-        UIM.load_application_state_from_file(fullfilename)
-
-    """
-    Load interface data.
-    """
-    def load_user_UI_data(self, fullfilename):
-        UIM = UIManager()
-        UIM.load_user_state_from_file(fullfilename)
-
-
-    """
-    Save application structure UI data.
-    """        
-    def save_UI_application_data(self, fullfilename):
-        UIM = UIManager()
-        #UIM.save_application_state_to_file(fullfilename)
-     
- 
-    """
-    Save user UI data.
-    """        
-    def save_UI_user_data(self, fullfilename):
-        #if fullfilename:
-        #    self.UIM_file = fullfilename
-        #if self.UIM_file:
-        UIM = UIManager()
-        #UIM.save_user_state_to_file(fullfilename)
-        #UIM._save_state_to_file(self.UIM_file)        
-       
-
-
 
     def OnInit(self):
         self._app_dir = os.getcwd()
         #self.set_app_dir()  # TODO: REVER ISSO CONFORME ACIMA NA FUNÇÃO
-
         if self._gripy_app_state.get('app_name') is not None:
             self.SetAppName(self._gripy_app_state.get('app_name')) 
         if self._gripy_app_state.get('app_display_name') is not None:
@@ -223,14 +181,15 @@ class GripyApp(wx.App):
         self._gripy_debug_file = self._gripy_app_state.get('gripy_debug_file')
         self._inited = True
         self._init_has_ended_message()
-        
+        #
         log.info('Starting to register Gripy internal classes...')
         gripy_classes.register_app_classes()
         log.info('Registering Gripy internal classes ended.')   
-        
+        #
         log.info('Starting to register Gripy internal functions...')
         gripy_functions.register_app_functions()
         log.info('Registering Gripy internal functions ended.')          
+<<<<<<< HEAD
         
         
         
@@ -619,17 +578,19 @@ class GripyApp(wx.App):
             # """
             
             
+=======
+        #
+        mwc = Interface.load()
+>>>>>>> master
         PM = GripyPluginManagerSingleton.get()
         plugins_places = self._plugins_state.get('plugins_places')
         PM.setPluginPlaces(plugins_places)
         #PM.setPluginPlaces(['Plugins'])
         PM.collectPlugins()   
-        
         mwc.view.Show()
         self.SetTopWindow(mwc.view)
         # Here, it is necessary to return True as requested by wx.App         
         return True
-
 
 
     """
@@ -654,11 +615,10 @@ class GripyApp(wx.App):
         self.reset_ObjectManager()
         #
         app_UI_filename = self._gripy_app_state.get('app_UI_file')
-        self.save_UI_application_data(app_UI_filename)
+        Interface.save_UI_application_data(app_UI_filename)
 
         user_UI_filename = self._gripy_app_state.get('user_UI_file')
-        self.save_UI_user_data(user_UI_filename)
-        
+        Interface.save_UI_user_data(user_UI_filename)
         
         # This time I choose not use the line below because there was a little
         # freeze on exiting (1-2 seconds). Then I opted delegate it do compiler.
