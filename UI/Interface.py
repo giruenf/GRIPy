@@ -68,6 +68,7 @@ def load():
         # Menubar
         menubar_ctrl = UIM.create('menubar_controller', mwc.uid)
         
+        
         # First level Menus
         mc_project = UIM.create('menu_controller', menubar_ctrl.uid, label=u"&Project")      
         mc_edit = UIM.create('menu_controller', menubar_ctrl.uid, label=u"&Edit")
@@ -234,12 +235,13 @@ def load():
                 label=u"Continuous Wavelet Transform", 
                 callback='App.menu_functions.on_cwt'
         )          
-
+        
         # Modeling Menu          
         UIM.create('menu_item_controller', mc_model.uid, 
 				label=u"Reflectivity", 
 				callback='App.menu_functions.ReflectivityModel'
         )
+   
         
         # Well Menu
         UIM.create('menu_item_controller', mc_debug.uid, 
@@ -312,13 +314,15 @@ def load():
         UIM.create('statusbar_controller', mwc.uid, 
             label='Bem vindo ao ' + app._gripy_app_state.get('app_display_name')
         )   
-
+        
+        #"""
 
         # """
         # Area reservada para alguns testes 
         # """
-        fullfilename = 'C:\\Users\\Adriano\\Desktop\\aaa_teste_2.pgg'
-        app.load_project_data(fullfilename)      
+        #fullfilename = 'C:\\Users\\Adriano\\Desktop\\aaa_teste_2.pgg'
+        #app.load_project_data(fullfilename)      
+        
         #
         #lpc = UIM.create('logplot_controller', mwc.uid)
         #tc1 = UIM.create('track_controller', lpc.uid)
