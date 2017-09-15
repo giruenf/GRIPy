@@ -545,7 +545,7 @@ class ReflectivityModel():
             del disableAll
             wx.MessageBox('The Q-values Logs have different sizes than Vp and VS!')
             raise Exception ('The Q-values Logs have different sizes than Vp and VS!')
-        if return_flag == 5:
+        if return_flag == 6:
             del wait
             del disableAll
             self.dlg.Destroy()
