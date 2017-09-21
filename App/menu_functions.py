@@ -27,7 +27,7 @@ from Algo.Spectral.Hilbert import HilbertTransform
 from scipy.signal import chirp
 
 from Algo import AVO
-#from Algo.Modeling.Reflectivity import Reflectivity
+from Algo.Modeling.Reflectivity import Reflectivity
 #import copy
 
 

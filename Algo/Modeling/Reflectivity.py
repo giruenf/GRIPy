@@ -19,7 +19,7 @@ def Reflectivity(OM,parDictionary):
      trc1Cor = parDictionary['trc1']
      dLat = parDictionary['dlat']
      vel1 = parDictionary['vel1']
-     z1 = parDictionary['z1']
+     zcam1 = parDictionary['z1']
      nSup = parDictionary['nsup']
      vpSup1 = parDictionary['vpSup']
      vsSup1 = parDictionary['vsSup']
@@ -35,8 +35,16 @@ def Reflectivity(OM,parDictionary):
      vp = OM.get(parDictionary['vpLogID']).data
      vs = OM.get(parDictionary['vsLogID']).data
      rho = OM.get(parDictionary['rhoLogID']).data
+     vp_nan = np.argwhere(np.isnan(vp))
+     vs_nan = np.argwhere(np.isnan(vs))
+     rho_nan = np.argwhere(np.isnan(rho))
+     vp = np.delete(vp, vp_nan)
+     vs = np.delete(vs, vs_nan)
+     rho = np.delete(rho, rho_nan)
+     
      
      z1 = indexes[0].data
+     z1 = np.delete(z1, rho_nan)
      z2 = z1[1:]
      last_z = z1[-1] + z1[-1] -z1[-2]
      z2 = np.append(z2, last_z) 
@@ -63,18 +71,20 @@ def Reflectivity(OM,parDictionary):
      
      nLayers = lastLayer - firstLayer + 1
      
-     if (nLayers) <= 0:
+     if (nLayers) <= 1:
          return 4
      
      if parDictionary['Qvalue'] == True:
          
          fqp = OM.get(parDictionary['Pwav_QvalueID']).data   
          fqs = OM.get(parDictionary['Swav_QvalueID']).data
+         fqp = np.delete(fqp, vp_nan)
+         fqs = np.delete(fqs, vp_nan)
          if np.size(vp) != np.size(fqp) or np.size(vs) != np.size(fqs):
             return 5
      else:
-         fqp = np.array([2000.0 for i in np.arange(0,np.size(vp))], dtype=np.float64)   #ATUALIZANDO O FATOR Q DE DENTRO DO CODIGO
-         fqs = np.array([2000.0 for i in np.arange(0,np.size(vp))], dtype=np.float64)   #LEMBRAR DE ADICIONAR PARA O MENU NO GRIPY
+         fqp = np.array([2000.0 for i in np.arange(0,np.size(vp))], dtype=np.float64)   
+         fqs = np.array([2000.0 for i in np.arange(0,np.size(vp))], dtype=np.float64)  
      
      x = np.arange(trc1Cor, (numTrcsOut)*dLat + trc1Cor, dLat, dtype=np.float64)
      
@@ -85,7 +95,7 @@ def Reflectivity(OM,parDictionary):
      
      if parDictionary['modFlag']==0:
         
-         seisMod = rfltvPP.rfltvsubv4.modrfltv(dt, nSamp, x, vel1, z1, vpSup, zSup, vp, vs, rho, dz, fqp, fqs, firstLayer, lastLayer, angMax, wavelet, fWav, wavFlag, eventRes, seisOut, pNum,nLayers,numTrcsOut,nSup)
+         seisMod = rfltvPP.rfltvsubv4.modrfltv(dt, nSamp, x, vel1, zcam1, vpSup, zSup, vp, vs, rho, dz, fqp, fqs, firstLayer, lastLayer, angMax, wavelet, fWav, wavFlag, eventRes, seisOut, pNum,nLayers,numTrcsOut,nSup)
      
      elif parDictionary['modFlag']==1:
          
