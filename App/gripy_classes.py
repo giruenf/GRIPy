@@ -12,8 +12,14 @@ from DT.DataTypes import Property
 
 from DT.DataTypes import Seismic
 #from DT.DataTypes import Velocity
+
+
 from DT.DataTypes import Scalogram
 from DT.DataTypes import GatherScalogram
+from DT.DataTypes import Spectogram
+from DT.DataTypes import GatherSpectogram
+
+
 #from DT.DataTypes import Angle
 #from DT.DataTypes import Inversion
 #from DT.DataTypes import InversionParameter
@@ -86,6 +92,9 @@ def register_OM_classes():
     ObjectManager.register_class(DataIndex, WellGather)
     #
     ObjectManager.register_class(DataFilter)
+    #
+    ObjectManager.register_class(GatherSpectogram, Well)
+    ObjectManager.register_class(DataIndex, GatherSpectogram)
     #
     ObjectManager.register_class(GatherScalogram, Well)
     ObjectManager.register_class(DataIndex, GatherScalogram)

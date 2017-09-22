@@ -167,7 +167,6 @@ class GenericDataType(GenericObject):
             return None    
         ret = OrderedDict()
         for di in dis:
-            #print di.name, di.dimension
             if di.dimension not in ret.keys():
                 ret[di.dimension] = []
             ret.get(di.dimension).append(di)     
@@ -449,7 +448,7 @@ class Part(WellData1D):
         
         
 
-class Partition(GenericDataType):
+class Partition(WellData1D):
     """
     A partitioning of well log samples.
     
@@ -807,24 +806,26 @@ class Velocity(Density):
 
 
 
+
 class Spectogram(Density):
     tid = 'spectogram'
     _FRIENDLY_NAME = 'Spectogram'
     _SHOWN_ATTRIBUTES = [
                             ('_oid', 'Object Id'),
-                            ('type', 'Type'),                             
-                            ('domain', 'Domain'),    
-                            ('unit', 'Units'),
-                            ('datum', 'Datum'),
-                            ('sample_rate', 'Sample Rate'),
-                            ('samples', 'Samples per scale'),
-                            ('scales', 'Scales per trace'),
-                            ('traces', 'Traces')
+                            ('datatype', 'Type')                       
     ] 
 
+    def __init__(self, data, **attributes):
+        super(Spectogram, self).__init__(data, **attributes)
 
-    def __init__(self, **attributes):
-        super(Scalogram, self).__init__(**attributes)
+
+
+class GatherSpectogram(Spectogram):
+    tid = 'gather_spectogram'
+    _FRIENDLY_NAME = 'Spectogram'
+    
+    def __init__(self, data, **attributes):
+        super(GatherSpectogram, self).__init__(data, **attributes)
         
         
 ###############################################################################
@@ -1043,14 +1044,14 @@ class DataIndex(GenericDataType):
     @property
     def step(self):
         #if 'step' not in self.attributes:
-        self.attributes['step'] = None             
-        return self.attributes['step']        
+        #self.attributes['step'] = None             
+        return self.attributes.get('step')        
 
     @property
     def samples(self):
         #if 'samples' not in self.attributes:
-        self.attributes['samples'] = None             
-        return self.attributes['samples']      
+        #self.attributes['samples'] = None             
+        return len(self.data) #self.attributes.get('samples')      
     
     @property
     def dimension(self):

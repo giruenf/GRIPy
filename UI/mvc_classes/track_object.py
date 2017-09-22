@@ -70,6 +70,8 @@ _PREFERRED_PLOTTYPES = {
     'partition': 'patches',
     'scalogram': 'density',
     'gather_scalogram': 'density',
+    'spectogram': 'density',
+    'gather_spectogram': 'density',
     'velocity': 'density',
     'gather': 'density',
     'angle': 'contourf',
@@ -269,7 +271,8 @@ class TrackObjectController(UIControllerBase):
         
         if obj:
             #
-            self.set_filter()
+            if obj.tid != 'partition':
+                self.set_filter()
             #
             plottype = _PREFERRED_PLOTTYPES.get(obj.tid)
             print obj.tid, plottype
@@ -313,8 +316,11 @@ class TrackObjectController(UIControllerBase):
     def _do_draw(self):
         print '\n_do_draw'
         repr_ctrl = self.get_representation() 
-        repr_ctrl._prepare_data()
-        #repr_ctrl._data
+        #
+        if self.get_object().tid != 'partition':
+            repr_ctrl._prepare_data()
+        #
+        #print '\n\n\n_do_draw'
         repr_ctrl.view.draw()       
 
 
@@ -1711,8 +1717,8 @@ class PatchesRepresentationView(RepresentationView):
         if self.label:
             self.label.set_plot_type('partition')   
 
-    def PostInit(self):
-        self.draw()
+    #def PostInit(self):
+    #    self.draw()
 
 
     def get_data_info(self, event):
@@ -1727,6 +1733,7 @@ class PatchesRepresentationView(RepresentationView):
     def draw(self):        
         self.clear()
         #
+        OM = ObjectManager(self)
         UIM = UIManager()
         controller = UIM.get(self._controller_uid)
         toc_uid = UIM._getparentuid(self._controller_uid)
@@ -1734,12 +1741,19 @@ class PatchesRepresentationView(RepresentationView):
         track_controller =  UIM.get(track_controller_uid)
         #
         obj = controller.get_object()
-        index = obj.get_index()
+        #
+        index = obj.get_index()[0][0]
         
-        for part in obj.list('part'):
+        
+        print '\n\nAQUI'
+        
+        for part in OM.list('part', obj.uid):
             vec = []        
             start = None
             end = None
+            
+            print part
+            
             for idx, d in enumerate(part.data):
                 if d and start is None:
                     start = index.data[idx]

@@ -32,7 +32,9 @@ WAVELET_TYPES['Paul (order=6)'] = 'paul6'
 
 
 def do_STFT(*args, **kwargs):
+    print '\n\n\ndo_STFT'
     obj = args[0]
+    OM = ObjectManager(obj)
     UIM = UIManager()
     dlg = UIM.create('dialog_controller', title='Short Time Fourier Transform') 
     #
@@ -46,26 +48,72 @@ def do_STFT(*args, **kwargs):
         ctn_overlap_size = dlg.view.AddCreateContainer('StaticBox', label='Overlap size', orient=wx.VERTICAL, proportion=0, flag=wx.EXPAND|wx.TOP, border=5)
         dlg.view.AddSpinCtrl(ctn_overlap_size, proportion=0, flag=wx.EXPAND, widget_name='noverlap', max=512, initial=128)
         #
-        dlg.SetSize((230, 260))
-        result = dlg.ShowModal()
+        dlg.view.SetSize((230, 260))
+        result = dlg.view.ShowModal()
         if result == wx.ID_OK:
             results = dlg.get_results()  
+            
             if results.get('spectrogram_type'):
+                
+                index = obj.get_index()[0][0]
+                
+                start = index.data[0]
+                start = start/1000
+                step = index.data[1] - index.data[0]
+                step  = step/1000
+                print obj.name, obj.data, step, obj.unit
+                
+                #STFT(x, window_size, noverlap, time_start, Ts, mode='psd'):
                 stft_data, freq_values, index_values = STFT(obj.data, 
                         results.get('window_size'), results.get('noverlap'),
-                        obj.start, obj.step, mode=results.get('spectrogram_type')
+                        start, step, mode=results.get('spectrogram_type')
                 )
-                print 'FrIvSh:', len(freq_values), len(index_values), stft_data.shape  
-                OM = ObjectManager(obj)    
-                index_start = index_values[0]-(index_values[1]-index_values[0])/2
-                seismic = OM.new('seismic', stft_data, name=obj.name+'_STFT', 
-                                       unit='m', domain='depth', 
-                                       sample_rate=index_values[1] - index_values[0],
-                                       datum=index_start,
-                                       samples= len(index_values),
-                )       
-                OM.add(seismic)       
-    except Exception:
+                    
+                data_out = np.zeros((len(index.data), len(freq_values)))
+                stft_index_step = index_values[1] - index_values[0]
+                stft_index_start = index_values[0] - (stft_index_step/2)
+                stft_index_end = index_values[-1] + (stft_index_step/2)
+                
+
+                stft_data = stft_data.T
+                
+                print '\n\nOrig shape:', obj.data.shape
+                print 'Freq Index Shape:', len(freq_values), len(index_values), stft_data.shape  
+                print 'data_out.shape:', data_out.shape
+                print 'Freqs:', freq_values
+                print 'Indexes:', index_values
+                
+                print '\n\n', stft_index_start, stft_index_end
+                for idx, time in enumerate(index.data/1000):
+                    if time >= stft_index_start and time < stft_index_end: 
+                        stft_index_idx = int((time - stft_index_start) // stft_index_step)
+                        print time, stft_index_idx
+                        data_out[idx] = stft_data[stft_index_idx]
+                print '\n\n'
+                
+                data_out = data_out.T               
+                
+                
+                spectogram = OM.new('gather_spectogram', data_out, name=obj.name+'_STFT')
+                parent_uid = OM._getparentuid(obj.uid)
+                if not OM.add(spectogram, parent_uid):
+                    raise Exception('Object was not added. tid={\'gather_spectogram\'}')
+
+                state = index._getstate()
+                index = OM.create_object_from_state('data_index', **state)
+                OM.add(index, spectogram.uid)
+                #
+                
+                index = OM.new('data_index', 1, 'Frequency', 'FREQUENCY', 'Hz', 
+                               data=freq_values
+                ) 
+                OM.add(index, spectogram.uid)
+
+
+                
+                
+    except Exception as e:
+        print 'ERROR:', e
         pass
     finally:
         UIM.remove(dlg.uid)        
@@ -84,8 +132,8 @@ def do_CWT(*args, **kwargs):
         ctn_scale_res = dlg.view.AddCreateContainer('StaticBox', label='Scale resolution', orient=wx.VERTICAL, proportion=0, flag=wx.EXPAND|wx.TOP, border=5)
         dlg.view.AddTextCtrl(ctn_scale_res, proportion=0, flag=wx.EXPAND|wx.TOP, border=5, widget_name='dj', initial='0.125') 
         #
-        dlg.SetSize((230, 260))
-        result = dlg.ShowModal()
+        dlg.view.SetSize((230, 260))
+        result = dlg.view.ShowModal()
         if result == wx.ID_OK:
             results = dlg.get_results()  
             print results

@@ -54,15 +54,23 @@ def ricker(freq, peak=0.0, x_values=None, y_values=None):
 
 # Short Time Fourier Transform 1-D using SlidingWindow
 def STFT(x, window_size, noverlap, time_start, Ts, mode='psd'):
-    #print 'Frquencia de Nyquist:', 1/Ts/2, 'Hz'
-    #print 'Resolução em frquencia:', 1/Ts/window_size, 'Hz'    
-    #print 'Resolução temporal:', Ts, 'seconds'   
+    print 'Ts:', Ts
+    f0 = 1.0/Ts
+    print 'F Zero:', f0
+    print 'Frquencia de Nyquist:', f0/2, 'Hz'
+    print 'Resolução em frquencia:', f0/window_size, 'Hz'    
+    print 'Resolução temporal:', Ts, 'seconds'   
+    
     #
     window = scipy.hanning(window_size)
-    stft_data = np.array([np.fft.fft(window * data) for data in 
-                          SlidingWindow(x, len(window), noverlap)]
-    )    
+    stft_data = np.array([np.fft.fft(window*data) 
+                for data in SlidingWindow(x, len(window), noverlap)]
+    )
     #
+    
+
+    
+    
     if len(window) % 2:
         numFreqs = stft_data.shape[1]/2+1
     else:
@@ -94,14 +102,24 @@ def STFT(x, window_size, noverlap, time_start, Ts, mode='psd'):
             stft_data /= np.abs(window).sum()**2
         stft_data = stft_data * np.conjugate(stft_data) 
         stft_data = stft_data.real 
+        
     elif mode == 'magnitude':
-        stft_data = np.absolute(stft_data)       
+        stft_data = np.absolute(stft_data)   
+        
     elif mode == 'angle' or mode == 'phase':
         stft_data = np.angle(stft_data)
         if mode == 'phase':
             stft_data = np.unwrap(stft_data, axis=0)
+            
     return stft_data.T, freqs, time_values
   
+
+
+"""
+n_fft = 2 ** int(np.ceil(np.log2(2 * (len(h) - 1) / 0.01)))
+"""
+
+
 
 
 

@@ -23,6 +23,7 @@ class HilbertTransform(object):
         self._instantaneous_phase = np.unwrap(np.angle(self._analytic_signal))
         self._instantaneous_frequency = (np.diff(self._instantaneous_phase) / 
                                         (2.0*np.pi) * self._fs)
+        self._instantaneous_frequency = np.insert(self._instantaneous_frequency, 0, np.nan)
 
     @property
     def analytic_signal(self):
@@ -72,4 +73,4 @@ class HilbertTransform(object):
     def instantaneous_frequency(self):
         raise Exception('')            
         
-        
+    

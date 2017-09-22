@@ -2,6 +2,8 @@
 import wx
 from uimanager import UIManager
 
+#from Algo.Modeling.Reflectivity import Reflectivity2
+
 
 """
 Load interface data.
@@ -266,7 +268,24 @@ def load():
         UIM.create('menu_item_controller', mc_debug.uid, 
                 label=u"Teste 11", 
                 callback='App.menu_functions.teste11'
-        )   
+        ) 
+        
+        UIM.create('menu_item_controller', mc_debug.uid, 
+                label=u"Phase Rotation", 
+                callback='App.menu_functions.on_phase_rotation'
+        )
+
+        UIM.create('menu_item_controller', mc_debug.uid, 
+                label=u"Obtain Hilbert Attributes", 
+                callback='App.menu_functions.on_hilbert_attributes'
+        )        
+
+        UIM.create('menu_item_controller', mc_debug.uid, 
+                label=u"Create model", 
+                callback='App.menu_functions.on_create_model'
+        )        
+
+        
         # Fim Main Menu Bar
 
         # Object Manager TreeController                                                          
@@ -320,8 +339,11 @@ def load():
         # """
         # Area reservada para alguns testes 
         # """
-        #fullfilename = 'C:\\Users\\Adriano\\Desktop\\aaa_teste_2.pgg'
-        #app.load_project_data(fullfilename)      
+        fullfilename = 'C:\\Users\\Adriano\\Desktop\\aaa_teste_4.pgg'
+        app.load_project_data(fullfilename)    
+        #
+        
+        #Reflectivity2()
         
         #
         #lpc = UIM.create('logplot_controller', mwc.uid)

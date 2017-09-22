@@ -22,13 +22,12 @@ import app_utils
 
 from Algo.Spectral.Spectral import STFT, WaveletTransform, MorletWavelet, PaulWavelet, DOGWavelet, RickerWavelet
 from Algo.Spectral.Hilbert import HilbertTransform												  
-#from UI.dialog_new import Dialog
+from Algo.Spectral import get_synthetic_ricker, phase_rotation, frequency_phase_rotation
 
 from scipy.signal import chirp
 
 from Algo import AVO
 from Algo.Modeling.Reflectivity import Reflectivity
-#import copy
 
 
 """
@@ -515,42 +514,35 @@ class ReflectivityModel():
             raise Exception("Please Choose an Output Name!")
         parDict['outName'] = self.objTxtCtrl.GetValue()       
         
+        return_flag = -1
         
-        disableAll = wx.WindowDisabler()
-        wait = wx.BusyInfo("Running the Modeling...")
-        return_flag = Reflectivity(self.OM, parDict)
-        
-        if return_flag == 1:
-            del wait
-            del disableAll
-            wx.MessageBox('Vp and Vs logs have different sizes!')
-            raise Exception ('Vp and Vs logs have different sizes!')
-        if return_flag == 2:
-            del wait
-            del disableAll
-            wx.MessageBox('Vp and Density logs have different sizes!')
-            raise Exception ('Vp and Density logs have different sizes!')
-        if return_flag == 3:
-            del wait
-            del disableAll
-            wx.MessageBox('Vp and Depth indexes have different sizes!')
-            raise Exception ('Vp and Depth indexes have different sizes!')
-        if return_flag == 4:
-            del wait
-            del disableAll
-            wx.MessageBox('Insuficient Number of Layer!')
-            raise Exception ('Insuficient Number of Layer!')
-        if return_flag == 5:
-            del wait
-            del disableAll
-            wx.MessageBox('The Q-values Logs have different sizes than Vp and VS!')
-            raise Exception ('The Q-values Logs have different sizes than Vp and VS!')
-        if return_flag == 6:
+        try:
+            disableAll = wx.WindowDisabler()
+            wait = wx.BusyInfo("Running the Modeling...")
+            return_flag = Reflectivity(self.OM, parDict)
+        except Exception as e:
+            print 'ERROR:', e
+            pass
+        finally:
             del wait
             del disableAll
             self.dlg.Destroy()
+
+        if return_flag == 1:
+            wx.MessageBox('Vp and Vs logs have different sizes!')
+        elif return_flag == 2:
+            wx.MessageBox('Vp and Density logs have different sizes!')
+        elif return_flag == 3:
+            wx.MessageBox('Vp and Depth indexes have different sizes!')
+        elif return_flag == 4:
+            wx.MessageBox('Insuficient Number of Layer!')
+        elif return_flag == 5:
+            wx.MessageBox('The Q-values Logs have different sizes than Vp and VS!')      
+        elif return_flag == 6:
             wx.MessageBox('Done!')
-        
+        else:
+            wx.MessageBox('Other problems has occurred.')
+            
 
 def teste11(event):
     print 'teste 11'
@@ -603,7 +595,7 @@ def on_modelling_pp(event):
         gamma = media_vs/media_vp
         for i, angle in enumerate(angles):
             ret_array[i][0] = 1 / (2 * np.cos(angle) ** 2)
-            ret_array[i][1] = -4 * (gamma * np.sin(angle)) ** 2
+            ret_array[i][1] = -4.0 * (gamma * np.sin(angle)) ** 2.0
             ret_array[i][2] = 0.5 * (1 + ret_array[i][1])
             # Old wrong value above found in Fortran code
             #ret_array[i][2] = (-0.5 * ((np.tan(angle))**2)) + (2 * ((gamma * np.sin(angle))**2))
@@ -1396,7 +1388,7 @@ def on_cwt(event):
                             proportion=0, flag=wx.EXPAND|wx.TOP, border=5
         )
         #
-        accept_tids = ['seismic', 'gather']
+        accept_tids = ['seismic', 'gather', 'log']
         input_data = OrderedDict()
         for tid in accept_tids:
             for obj in OM.list(tid):
@@ -1498,164 +1490,373 @@ def on_cwt(event):
                     raise
             ###
             
+            time = time/1000
+            step  = step/1000            
             
-            print 'Input obj.data.shape:', obj.data.shape
+            if obj_uid[0] == 'log':
+
+                if analytic:
+                    ht = HilbertTransform(obj.data, step)
+                    input_data = ht.analytic_signal
+                else:
+                    input_data = obj.data
+                wt = WaveletTransform(input_data, dj=dj, wavelet=func,  
+                                      dt=step, time=time
+                )
+                #wt_axis = wt.wavelet_transform.shape[0]
+                #new_shape = (wt_axis, len(obj.data))
+                #print 'New data CWT shape:', new_shape 
+                #data_out = np.zeros(new_shape)    
+                freqs =  np.flip(wt.fourier_frequencies, 0)
+                scales = np.flip(wt.scales, 0)
+                if mode == 0:
+                    data_out = np.abs(np.flip(wt.wavelet_transform, 0))      
+                elif mode == 1:            
+                    # np.abs(self.wavelet_transform) ** 2
+                    data_out = np.flip(wt.wavelet_power, 0)         
+                elif mode == 2:   
+                    data_out = np.angle(np.flip(wt.wavelet_transform, 0))
+                elif mode == 3:   
+                    data_out = np.unwrap(np.angle(np.flip(wt.wavelet_transform, 0)), axis=0)    
+
+ 
+                name = results.get('cwt_name')
+        
+        
+                print '\nLETS START'
+
+                scalogram = OM.new('gather_scalogram', data_out, name=name)
+                parent_uid = OM._getparentuid(obj_uid)
+                if not OM.add(scalogram, parent_uid):
+                    raise Exception('Object was not added. tid={\'gather_scalogram\'}')
+
+                state = z_axis._getstate()
+                index = OM.create_object_from_state('data_index', **state)
+                OM.add(index, scalogram.uid)
+                #
+                
+                index = OM.new('data_index', 1, 'Frequency', 'FREQUENCY', 'Hz', 
+                               data=freqs
+                ) 
+                OM.add(index, scalogram.uid)
+                #
+                index = OM.new('data_index', 1, 'Scale', 'SCALE', 
+                               data=scales
+                ) 
+                OM.add(index, scalogram.uid)                
+        
+                print '\nLETS START 222'
             
-            if len(obj.data.shape) == 4:
-                print 'Input data shape lenght: 4'
-                iaxis, jaxis, kaxis, zaxis = obj.data.shape
-                data_out = None
-                for i in range(iaxis):
-                    for j in range(jaxis):
-                        for k in range(kaxis):
+            else:
+            
+            
+                print 'Input obj.data.shape:', obj.data.shape
+                
+                if len(obj.data.shape) == 4:
+                    print 'Input data shape lenght: 4'
+                    iaxis, jaxis, kaxis, zaxis = obj.data.shape
+                    data_out = None
+                    for i in range(iaxis):
+                        for j in range(jaxis):
+                            for k in range(kaxis):
+                                if analytic:
+                                    ht = HilbertTransform(obj.data[i][j][k], step)
+                                    input_data = ht.analytic_signal
+                                else:
+                                    input_data = obj.data[i][j][k]
+    							  
+    																	
+    																														 
+                                 
+                                wt = WaveletTransform(input_data, dj=dj, wavelet=func,  
+                                                      dt=step, time=time
+                                )   
+                                #print 'wt_shape:', wt.wavelet_transform.shape
+                                #print (i, j, k), wt.wavelet_transform.shape, np.flip(wt.fourier_frequencies, 0)#, wt.scales
+                                if data_out is None:
+                                    wt_axis = wt.wavelet_transform.shape[0]
+                                    new_shape = (iaxis, jaxis, kaxis, wt_axis, zaxis)
+                                    print 'New data CWT shape:', new_shape 
+                                    data_out = np.zeros(new_shape)    
+                                    freqs =  np.flip(wt.fourier_frequencies, 0)
+                                    scales = np.flip(wt.scales, 0)
+                                if mode == 0:
+                                    data_out[i][j][k] = np.abs(np.flip(wt.wavelet_transform, 0))      
+                                elif mode == 1:            
+                                    # np.abs(self.wavelet_transform) ** 2
+                                    data_out[i][j][k] = np.flip(wt.wavelet_power, 0)         
+                                elif mode == 2 or mode ==3:   
+                                    data_out[i][j][k] = np.angle(np.flip(wt.wavelet_transform, 0))
+                                if mode == 3:   
+                                    data_out[i][j][k] = np.unwrap(np.angle(np.flip(wt.wavelet_transform, 0)), axis=0)    
+    
+                elif len(obj.data.shape) == 3:
+                    print 'Input data shape lenght: 3'
+                    iaxis, jaxis, zaxis = obj.data.shape
+                    data_out = None
+                    
+                    for i in range(iaxis):
+                        for j in range(jaxis):
                             if analytic:
-                                ht = HilbertTransform(obj.data[i][j][k], step)
+                                ht = HilbertTransform(obj.data[i][j], step)
                                 input_data = ht.analytic_signal
                             else:
-                                input_data = obj.data[i][j][k]
-							  
-																	
-																														 
-                             
+                                input_data = obj.data[i][j]
                             wt = WaveletTransform(input_data, dj=dj, wavelet=func,  
                                                   dt=step, time=time
-                            )   
+    														
+                            )                    
+    						 
                             #print 'wt_shape:', wt.wavelet_transform.shape
                             #print (i, j, k), wt.wavelet_transform.shape, np.flip(wt.fourier_frequencies, 0)#, wt.scales
+    						 
                             if data_out is None:
                                 wt_axis = wt.wavelet_transform.shape[0]
-                                new_shape = (iaxis, jaxis, kaxis, wt_axis, zaxis)
+                                new_shape = (iaxis, jaxis, wt_axis, zaxis)
                                 print 'New data CWT shape:', new_shape 
                                 data_out = np.zeros(new_shape)    
                                 freqs =  np.flip(wt.fourier_frequencies, 0)
                                 scales = np.flip(wt.scales, 0)
                             if mode == 0:
-                                data_out[i][j][k] = np.abs(np.flip(wt.wavelet_transform, 0))      
+                                data_out[i][j] = np.abs(np.flip(wt.wavelet_transform, 0))      
                             elif mode == 1:            
                                 # np.abs(self.wavelet_transform) ** 2
-                                data_out[i][j][k] = np.flip(wt.wavelet_power, 0)         
+                                data_out[i][j] = np.flip(wt.wavelet_power, 0)         
                             elif mode == 2 or mode ==3:   
-                                data_out[i][j][k] = np.angle(np.flip(wt.wavelet_transform, 0))
+                                data_out[i][j] = np.angle(np.flip(wt.wavelet_transform, 0))
                             if mode == 3:   
-                                data_out[i][j][k] = np.unwrap(np.angle(np.flip(wt.wavelet_transform, 0)), axis=0)    
-
-            elif len(obj.data.shape) == 3:
-                print 'Input data shape lenght: 3'
-                iaxis, jaxis, zaxis = obj.data.shape
-                data_out = None
-                
-                for i in range(iaxis):
+                                data_out[i][j] = np.unwrap(np.angle(np.flip(wt.wavelet_transform, 0)), axis=0)    
+    
+                elif len(obj.data.shape) == 2:
+                    print 'Input data shape lenght: 2'
+                    jaxis, zaxis = obj.data.shape
+                    data_out = None
+    
                     for j in range(jaxis):
                         if analytic:
-                            ht = HilbertTransform(obj.data[i][j], step)
+                            ht = HilbertTransform(obj.data[j], step)
                             input_data = ht.analytic_signal
                         else:
-                            input_data = obj.data[i][j]
+                            input_data = obj.data[j]
                         wt = WaveletTransform(input_data, dj=dj, wavelet=func,  
                                               dt=step, time=time
-														
-                        )                    
-						 
-                        #print 'wt_shape:', wt.wavelet_transform.shape
-                        #print (i, j, k), wt.wavelet_transform.shape, np.flip(wt.fourier_frequencies, 0)#, wt.scales
-						 
+                        )
                         if data_out is None:
                             wt_axis = wt.wavelet_transform.shape[0]
-                            new_shape = (iaxis, jaxis, wt_axis, zaxis)
+                            new_shape = (jaxis, wt_axis, zaxis)
                             print 'New data CWT shape:', new_shape 
                             data_out = np.zeros(new_shape)    
                             freqs =  np.flip(wt.fourier_frequencies, 0)
                             scales = np.flip(wt.scales, 0)
                         if mode == 0:
-                            data_out[i][j] = np.abs(np.flip(wt.wavelet_transform, 0))      
+                            data_out[j] = np.abs(np.flip(wt.wavelet_transform, 0))      
                         elif mode == 1:            
                             # np.abs(self.wavelet_transform) ** 2
-                            data_out[i][j] = np.flip(wt.wavelet_power, 0)         
-                        elif mode == 2 or mode ==3:   
-                            data_out[i][j] = np.angle(np.flip(wt.wavelet_transform, 0))
-                        if mode == 3:   
-                            data_out[i][j] = np.unwrap(np.angle(np.flip(wt.wavelet_transform, 0)), axis=0)    
-
-            elif len(obj.data.shape) == 2:
-                print 'Input data shape lenght: 2'
-                jaxis, zaxis = obj.data.shape
-                data_out = None
-
-                for j in range(jaxis):
-                    if analytic:
-                        ht = HilbertTransform(obj.data[j], step)
-                        input_data = ht.analytic_signal
-                    else:
-                        input_data = obj.data[j]
-                    wt = WaveletTransform(input_data, dj=dj, wavelet=func,  
-                                          dt=step, time=time
-                    )
-                    if data_out is None:
-                        wt_axis = wt.wavelet_transform.shape[0]
-                        new_shape = (jaxis, wt_axis, zaxis)
-                        print 'New data CWT shape:', new_shape 
-                        data_out = np.zeros(new_shape)    
-                        freqs =  np.flip(wt.fourier_frequencies, 0)
-                        scales = np.flip(wt.scales, 0)
-                    if mode == 0:
-                        data_out[j] = np.abs(np.flip(wt.wavelet_transform, 0))      
-                    elif mode == 1:            
-                        # np.abs(self.wavelet_transform) ** 2
-                        data_out[j] = np.flip(wt.wavelet_power, 0)         
-                    elif mode == 2:   
-                        data_out[j] = np.angle(np.flip(wt.wavelet_transform, 0))
-                    elif mode == 3:   
-                        data_out[j] = np.unwrap(np.angle(np.flip(wt.wavelet_transform, 0)), axis=0)    
-            else:
-                raise Exception()
-            #
-            
-            print '\ndata_out.shape:', data_out.shape
-            print np.nanmin(data_out), np.nanmax(data_out)
-            
-            #
-            name = results.get('cwt_name')
-            
-            if obj_uid[0] == 'gather':
-                scalogram = OM.new('gather_scalogram', data_out, name=name)
-                parent_uid = OM._getparentuid(obj_uid)
-                if not OM.add(scalogram, parent_uid):
-                    raise Exception('Object was not added. tid={\'gather_scalogram\'}')
-            else:
-                raise Exception('Not a gather_scalogram.')
-            #if not OM.add(scalogram):
-            #    raise Exception('Object was not added. tid={\'scalogram\'}')
-            # 
-            
-            
-            state = z_axis._getstate()
-            index = OM.create_object_from_state('data_index', **state)
-            OM.add(index, scalogram.uid)
-            #
-            
-            index = OM.new('data_index', 1, 'Frequency', 'FREQUENCY', 'Hz', 
-                           data=freqs
-            ) 
-            OM.add(index, scalogram.uid)
-            #
-            index = OM.new('data_index', 1, 'Scale', 'SCALE', 
-                           data=scales
-            ) 
-            OM.add(index, scalogram.uid)
-            # Inserindo as outras dimensões do dado
-            for idx in range(1, len(input_indexes)):
-                state = input_indexes[idx][0]._getstate()        
-                state['dimension'] = idx+1
-                index = OM.index = OM.create_object_from_state('data_index', **state)
+                            data_out[j] = np.flip(wt.wavelet_power, 0)         
+                        elif mode == 2:   
+                            data_out[j] = np.angle(np.flip(wt.wavelet_transform, 0))
+                        elif mode == 3:   
+                            data_out[j] = np.unwrap(np.angle(np.flip(wt.wavelet_transform, 0)), axis=0)    
+                else:
+                    raise Exception()
+                #
+                
+                print '\ndata_out.shape:', data_out.shape
+                print np.nanmin(data_out), np.nanmax(data_out)
+                
+                #
+                name = results.get('cwt_name')
+                
+                if obj_uid[0] == 'gather':
+                    scalogram = OM.new('gather_scalogram', data_out, name=name)
+                    parent_uid = OM._getparentuid(obj_uid)
+                    if not OM.add(scalogram, parent_uid):
+                        raise Exception('Object was not added. tid={\'gather_scalogram\'}')
+                else:
+                    raise Exception('Not a gather_scalogram.')
+    
+                
+                state = z_axis._getstate()
+                index = OM.create_object_from_state('data_index', **state)
                 OM.add(index, scalogram.uid)
+                #
+                
+                index = OM.new('data_index', 1, 'Frequency', 'FREQUENCY', 'Hz', 
+                               data=freqs
+                ) 
+                OM.add(index, scalogram.uid)
+                #
+                index = OM.new('data_index', 1, 'Scale', 'SCALE', 
+                               data=scales
+                ) 
+                OM.add(index, scalogram.uid)
+                # Inserindo as outras dimensões do dado
+                for idx in range(1, len(input_indexes)):
+                    state = input_indexes[idx][0]._getstate()        
+                    state['dimension'] = idx+1
+                    index = OM.index = OM.create_object_from_state('data_index', **state)
+                    OM.add(index, scalogram.uid)
+                
 
-        del wait
-        del disableAll
+
     except Exception as e:
         print 'ERROR:', e
 			
     finally:
+        del wait
+        del disableAll
         UIM.remove(dlg.uid)   
+
+
+
+def on_phase_rotation(event):
+    #
+    OM = ObjectManager(event.GetEventObject()) 
+    
+    UIM = UIManager()
+    dlg = UIM.create('dialog_controller', title='Phase Rotation') 
+    #
+    try:
+        ctn_input_data = dlg.view.AddCreateContainer('StaticBox', 
+                            label='Input data', orient=wx.VERTICAL, 
+                            proportion=0, flag=wx.EXPAND|wx.TOP, border=5
+        )
+        #
+        #accept_tids = ['seismic', 'gather', 'log']
+        accept_tids = ['log']
+        input_data = OrderedDict()
+        for tid in accept_tids:
+            for obj in OM.list(tid):
+                input_data[obj._FRIENDLY_NAME + ': ' + obj.name] = obj.uid
+
+        dlg.view.AddChoice(ctn_input_data, proportion=0, flag=wx.EXPAND|wx.TOP,
+                           border=5, widget_name='obj_uid', options=input_data
+        )     
+        #   
+        ctn_degrees = dlg.view.AddCreateContainer('StaticBox', label='Degrees', orient=wx.VERTICAL, proportion=0, flag=wx.EXPAND|wx.TOP, border=5)
+        dlg.view.AddTextCtrl(ctn_degrees, proportion=0, flag=wx.EXPAND|wx.TOP, border=5, widget_name='degrees', initial='0') 
+        #
+        ctn_name = dlg.view.AddCreateContainer('StaticBox', label='New object name', orient=wx.VERTICAL, proportion=0, flag=wx.EXPAND|wx.TOP, border=5)
+        dlg.view.AddTextCtrl(ctn_name, proportion=0, flag=wx.EXPAND|wx.TOP, border=5, widget_name='name')       
+        #
+        dlg.view.SetSize((330, 430))
+        result = dlg.view.ShowModal()
+        if result == wx.ID_OK:
+            results = dlg.get_results()  
+            print '\nresults:', results, '\n'
+            #
+            disableAll = wx.WindowDisabler()
+            wait = wx.BusyInfo("Applying Phase Rotation. Wait...")            
+            #    
+            obj_uid = results.get('obj_uid')
+            obj = OM.get(obj_uid) 
+            parentuid = OM._getparentuid(obj_uid)
+            degrees = float(results.get('degrees'))   
+            new_name = str(results.get('name'))              
+            
+            index = obj.get_index()[0][0]
+            
+            rot_data_index, rot_data = frequency_phase_rotation(obj.data, degrees, True)   
+            rot_data = rot_data.real
+            
+            rot_interp_data = np.interp(np.array(range(len(index.data))), rot_data_index, rot_data)
+            
+            #new_data = new_data.real
+            
+            print '\n\nrot_interp_data.shape:', rot_interp_data.shape, obj.data.shape
+            print rot_data_index[0], rot_data_index[-1]
+            print len(index.data), len(rot_data_index)
+            print 
+            for i in rot_data_index:
+                print 'rdi:', i
+            print
+            #print obj.data - new_data
+
+            log = OM.new('log', rot_interp_data, name=new_name, 
+                         unit=obj.unit, datatype=obj.datatype
+            )
+            print 'kkk 2'
+            OM.add(log, parentuid)  
+            print 'kkk 3'
+
+    except Exception as e:
+        print 'ERROR:', e
+			
+    finally:
+        del wait
+        del disableAll
+        UIM.remove(dlg.uid)  
+        
+
+
+
+def on_hilbert_attributes(event):
+    #
+    OM = ObjectManager(event.GetEventObject()) 
+    
+    UIM = UIManager()
+    dlg = UIM.create('dialog_controller', title='Hiltert Attibutes') 
+    #
+    try:
+        ctn_input_data = dlg.view.AddCreateContainer('StaticBox', 
+                            label='Input data', orient=wx.VERTICAL, 
+                            proportion=0, flag=wx.EXPAND|wx.TOP, border=5
+        )
+        #
+        #accept_tids = ['seismic', 'gather', 'log']
+        accept_tids = ['log']
+        input_data = OrderedDict()
+        for tid in accept_tids:
+            for obj in OM.list(tid):
+                input_data[obj._FRIENDLY_NAME + ': ' + obj.name] = obj.uid
+
+        dlg.view.AddChoice(ctn_input_data, proportion=0, flag=wx.EXPAND|wx.TOP,
+                           border=5, widget_name='obj_uid', options=input_data
+        )     
+        dlg.view.SetSize((330, 430))
+        result = dlg.view.ShowModal()
+        if result == wx.ID_OK:
+            results = dlg.get_results()  
+            print '\nresults:', results, '\n'
+            #
+            disableAll = wx.WindowDisabler()
+            wait = wx.BusyInfo("Applying Hilbert Attributes. Wait...")            
+            #    
+            obj_uid = results.get('obj_uid')
+            obj = OM.get(obj_uid) 
+            parentuid = OM._getparentuid(obj_uid)    
+            
+            index = obj.get_index()[0][0]
+            step = index.data[1] - index.data[0]
+            ht = HilbertTransform(obj.data, step)
+
+            ht.amplitude_envelope
+
+            log = OM.new('log', ht.amplitude_envelope, name=obj.name+'_AMP_ENV', 
+                         unit=obj.unit, datatype=obj.datatype
+            )
+            OM.add(log, parentuid)  
+            
+            log = OM.new('log', ht.instantaneous_frequency, name=obj.name+'_INST_FREQ', 
+                         unit=obj.unit, datatype=obj.datatype
+            )
+            OM.add(log, parentuid)  
+
+            log = OM.new('log', ht.instantaneous_phase, name=obj.name+'_INST_PHASE', 
+                         unit=obj.unit, datatype=obj.datatype
+            )
+            OM.add(log, parentuid)  
+
+
+
+    except Exception as e:
+        print 'ERROR:', e
+			
+    finally:
+        del wait
+        del disableAll
+        UIM.remove(dlg.uid)  
+
 
 
 
@@ -2237,34 +2438,25 @@ def on_import_segy_well_gather(event):
                 message='Choose SEG-Y file'
         )
         #
-        print 333
         ctn = dlg.view.AddCreateContainer('BoxSizer', orient=wx.HORIZONTAL)
         #
-        print 222
         ctn_iline_byte = dlg.view.AddCreateContainer('StaticBox', ctn, label='ILine', orient=wx.VERTICAL, proportion=0, flag=wx.EXPAND|wx.TOP, border=5)
-        print 999
         dlg.view.AddTextCtrl(ctn_iline_byte, proportion=0, flag=wx.EXPAND|wx.TOP, border=5, widget_name='iline_byte', initial='9')
         #
-        print 444
         ctn_xline_byte = dlg.view.AddCreateContainer('StaticBox', ctn, label='XLine', orient=wx.VERTICAL, proportion=0, flag=wx.EXPAND|wx.TOP, border=5)
-        print 999
         dlg.view.AddTextCtrl(ctn_xline_byte, proportion=0, flag=wx.EXPAND|wx.TOP, border=5, widget_name='xline_byte', initial='21')        
         #
-        print 555
         ctn_offset_byte = dlg.view.AddCreateContainer('StaticBox', ctn, label='Offset', orient=wx.VERTICAL, proportion=0, flag=wx.EXPAND|wx.TOP, border=5)
         dlg.view.AddTextCtrl(ctn_offset_byte, proportion=0, flag=wx.EXPAND|wx.TOP, border=5, widget_name='offset_byte', initial='37')            
         #
-        print 111
         ctn_where = dlg.view.AddCreateContainer('StaticBox', label='Where', orient=wx.VERTICAL, proportion=0, flag=wx.EXPAND|wx.TOP, border=5)
         #
         ctn_where_iline = dlg.view.AddCreateContainer('StaticBox', ctn_where, label='ILine', orient=wx.VERTICAL, proportion=0, flag=wx.EXPAND|wx.TOP, border=5)
         dlg.view.AddTextCtrl(ctn_where_iline, proportion=0, flag=wx.EXPAND|wx.TOP, border=5, widget_name='iline_number')
         #
-        print 222
         ctn_where_xline = dlg.view.AddCreateContainer('StaticBox', ctn_where, label='XLine', orient=wx.VERTICAL, proportion=0, flag=wx.EXPAND|wx.TOP, border=5)
         dlg.view.AddTextCtrl(ctn_where_xline, proportion=0, flag=wx.EXPAND|wx.TOP, border=5, widget_name='xline_number')
         #
-        print 333
         ctn_wells = dlg.view.AddCreateContainer('StaticBox', label='Well', orient=wx.VERTICAL, proportion=0, flag=wx.EXPAND|wx.TOP, border=5)
         wells = OrderedDict()
         OM = ObjectManager(event.GetEventObject())
@@ -2272,14 +2464,10 @@ def on_import_segy_well_gather(event):
             wells[well.name] = well.uid
         dlg.view.AddChoice(ctn_wells, proportion=0, flag=wx.EXPAND|wx.TOP, border=5,  widget_name='welluid', options=wells)     
         #
-        print 444
         ctn_gather = dlg.view.AddCreateContainer('StaticBox', label='Well gather name', orient=wx.VERTICAL, proportion=0, flag=wx.EXPAND|wx.TOP, border=5)
-        print 555
         dlg.view.AddTextCtrl(ctn_gather, proportion=0, flag=wx.EXPAND|wx.TOP, border=5, widget_name='wellgather_name')
         #
-        print 666
         dlg.view.SetSize((460, 500))
-        print 777
         result = dlg.view.ShowModal()
         if result == wx.ID_OK:
             results = dlg.get_results()  
@@ -2576,13 +2764,13 @@ def on_createwell(event):
             OM = ObjectManager(event.GetEventObject())
             well = OM.new('well', name=well_name) 
             OM.add(well)
+            samples = ((end-start)/ts)+1
             index = OM.new('data_index', 0, index_name, datatype, unit, 
-                   start=start, samples=(end-start)/ts, step=ts
+                   start=start, samples=samples, step=ts
             )
             OM.add(index, well.uid)
             ret_val = True
     except:
-        
         pass
     finally:
         del wait
@@ -2624,6 +2812,7 @@ def on_create_synthetic(event):
     synth_type['Quadratic chirp'] = 3
     synth_type['Logaritmic chirp'] = 4
     synth_type['Hiperbolic chirp'] = 5
+    synth_type['Ricker'] = 6
     #
     ctn_synth_type = dlg.view.AddCreateContainer('StaticBox', label='Synthetic type', orient=wx.VERTICAL, proportion=0, flag=wx.EXPAND|wx.TOP, border=5)
     #
@@ -2663,20 +2852,37 @@ def on_create_synthetic(event):
     dlg.view.AddTextCtrl(ctn_chirp_2, proportion=1, flag=wx.ALIGN_LEFT, widget_name='chirp_f1', initial='10.0')   
     #
     ctn_chirp.Show(False)    
+    
     #
+    ctn_ricker = dlg.view.CreateContainer('BoxSizer', ctn_parms, orient=wx.VERTICAL)
+    #
+    ctn_ricker_0 = dlg.view.AddCreateContainer('BoxSizer', ctn_ricker, orient=wx.HORIZONTAL, proportion=1, flag=wx.EXPAND|wx.ALL, border=5)
+    dlg.view.AddStaticText(ctn_ricker_0, label='Frequency (Hz):', proportion=1, flag=wx.ALIGN_RIGHT)
+    dlg.view.AddTextCtrl(ctn_ricker_0, proportion=1, flag=wx.ALIGN_LEFT, widget_name='ricker_freq', initial='1.0')  
+    #
+    ctn_ricker_1 = dlg.view.AddCreateContainer('BoxSizer', ctn_ricker, orient=wx.HORIZONTAL, proportion=1, flag=wx.EXPAND|wx.ALL, border=5)
+    dlg.view.AddStaticText(ctn_ricker_1, label='Peak at:', proportion=1, flag=wx.ALIGN_RIGHT)   
+    dlg.view.AddTextCtrl(ctn_ricker_1, proportion=1, flag=wx.ALIGN_LEFT, widget_name='ricker_peak')   
+    #    
+    ctn_ricker.Show(False)
+    
+    
     def on_change_synth_type(name, old_value, new_value, **kwargs):
         #print '\nchanged_synth_type:', name, old_value, new_value, kwargs
-        if old_value is None:
-            if new_value in [0, 1]:
-                dlg.view.AddContainer(ctn_sin_cos, ctn_parms, **flags)
-            else:
-                dlg.view.AddContainer(ctn_chirp, ctn_parms, **flags)  
-        elif new_value in [0, 1] and old_value in [2, 3, 4, 5]:
+        if old_value in [2, 3, 4, 5]:
             dlg.view.DetachContainer(ctn_chirp)
-            dlg.view.AddContainer(ctn_sin_cos, ctn_parms, **flags)
-        if new_value in [2, 3, 4, 5] and old_value in [0, 1]:
+        elif old_value in [0, 1]:
             dlg.view.DetachContainer(ctn_sin_cos)
+        elif old_value == 6:
+            dlg.view.DetachContainer(ctn_ricker)    
+        #     
+        if new_value in [0, 1]:
+            dlg.view.AddContainer(ctn_sin_cos, ctn_parms, **flags)
+        elif new_value in [2, 3, 4, 5]:    
             dlg.view.AddContainer(ctn_chirp, ctn_parms, **flags)    
+        elif new_value == 6:
+            dlg.view.AddContainer(ctn_ricker, ctn_parms, **flags)
+        #    
         dlg.view.Layout()    
     #
     dlg.view.AddChoice(ctn_synth_type, proportion=0, flag=wx.EXPAND|wx.TOP, 
@@ -2686,9 +2892,6 @@ def on_create_synthetic(event):
     choice_synth_type = dlg.view.get_object('synth_type')    
     choice_synth_type.set_trigger(on_change_synth_type)
     choice_synth_type.set_value(0, True)
-    #print 'ctn_parms:', ctn_parms
-    #print '\n\n'
-    
 
     ctn_name = dlg.view.AddCreateContainer('StaticBox', label='Synthetic name:', orient=wx.VERTICAL, proportion=0, flag=wx.EXPAND|wx.TOP, border=5)
     dlg.view.AddTextCtrl(ctn_name, proportion=0, flag=wx.EXPAND|wx.TOP, 
@@ -2697,12 +2900,10 @@ def on_create_synthetic(event):
     
     #
     def on_change_synth_name(name, old_value, new_value, **kwargs):
-        #print 'on_change_synth_name:', name, old_value, new_value, kwargs
         if new_value == '':
             dlg.view.enable_button(wx.ID_OK, False)
         else:
             dlg.view.enable_button(wx.ID_OK, True)
-    #
     #
     choice_synth_name = dlg.view.get_object('synth_name')  
     choice_synth_name.set_trigger(on_change_synth_name)
@@ -2723,27 +2924,43 @@ def on_create_synthetic(event):
             synth_name = results['synth_name']
             index = OM.get(indexuid)
             #
+            index_data = index.data/1000
+            
+            #
             if synth_type in [0, 1]:
                 sin_cos_freq = float(results['sin_cos_freq'])
                 sin_cos_amp = float(results['sin_cos_amp'])
                 if synth_type == 0:
-                    data = sin_cos_amp * np.sin(index.data/1000 * 2 * np.pi * sin_cos_freq) 
+                    data = sin_cos_amp * np.sin(index_data * 2 * np.pi * sin_cos_freq) 
                 elif synth_type == 1:
-                    data = sin_cos_amp * np.cos(index.data/1000 * 2 * np.pi * sin_cos_freq)  
-            else:        
+                    data = sin_cos_amp * np.cos(index_data * 2 * np.pi * sin_cos_freq)  
+                    
+            elif synth_type in [2, 3, 4, 5]:     
                 chirp_f0 = float(results['chirp_f0'])
                 chirp_f1 = float(results['chirp_f1'])
                 chirp_start = float(results['chirp_start'])
                 chirp_end = float(results['chirp_end'])
+                
                 if synth_type == 2:
                     #x = chirp(time, f0=0, f1=100, t1=time[-1], method='linear')
-                    data = chirp(index.data, chirp_f0, chirp_end, chirp_f1, method='linear')#, phi=0, vertex_zero=True)
+                    data = chirp(index_data, chirp_f0, chirp_end, chirp_f1, method='linear')#, phi=0, vertex_zero=True)
                 elif synth_type == 3:
-                    data = chirp(index.data, chirp_f0, chirp_end, chirp_f1, method='quadratic')#, phi=0, vertex_zero=True)    
+                    data = chirp(index_data, chirp_f0, chirp_end, chirp_f1, method='quadratic')#, phi=0, vertex_zero=True)    
                 elif synth_type == 4:
-                    data = chirp(index.data, chirp_f0, chirp_end, chirp_f1, method='logarithmic')#, phi=0, vertex_zero=True)
+                    data = chirp(index_data, chirp_f0, chirp_end, chirp_f1, method='logarithmic')#, phi=0, vertex_zero=True)
                 elif synth_type == 5:
-                    data = chirp(index.data, chirp_f0, chirp_end, chirp_f1, method='hyperbolic')#, phi=0, vertex_zero=True)                   
+                    data = chirp(index_data, chirp_f0, chirp_end, chirp_f1, method='hyperbolic')#, phi=0, vertex_zero=True)
+        
+            elif synth_type == 6:
+                ricker_freq = float(results['ricker_freq'])
+                ricker_peak = float(results['ricker_peak'])
+                ricker_peak = ricker_peak/1000.0
+                data = get_synthetic_ricker(ricker_freq, ricker_peak, index_data)[1]
+                print data.shape
+                print '\n\nDATA RICKER:', type(data), data.dtype
+                
+                print data.shape
+                print data
             #                   
             log = OM.new('log', data, indexes=[index.uid], name=synth_name, 
                          unit='amplitude', datatype=''
@@ -2756,6 +2973,280 @@ def on_create_synthetic(event):
         del disableAll
         UIM.remove(dlg.uid)
     
+
+
+def on_create_model(event):
+
+    OM = ObjectManager(event.GetEventObject()) 
+    UIM = UIManager()
+    dlg = UIM.create('dialog_controller', title='Create Model')
+    wells = OrderedDict()
+    for well in OM.list('well'):
+        wells[well.name] = well.uid
+    #
+    def on_change_well(name, old_value, new_value, **kwargs):
+        choice = dlg.view.get_object('indexuid')
+        opt = OrderedDict()
+        for obj in OM.list('data_index', new_value):
+            opt[obj.name] = obj.uid
+        choice.set_options(opt)
+        choice.set_value(0, True)
+    #    
+    c1 = dlg.view.AddCreateContainer('StaticBox', label='Well', orient=wx.VERTICAL, proportion=0, flag=wx.EXPAND|wx.TOP, border=5)
+    dlg.view.AddChoice(c1, proportion=0, flag=wx.EXPAND|wx.TOP, border=5, widget_name='welluid', options=wells)
+    choice_well = dlg.view.get_object('welluid')
+    choice_well.set_trigger(on_change_well) 
+    #
+    c2 = dlg.view.AddCreateContainer('StaticBox', label='Index', orient=wx.VERTICAL, proportion=0, flag=wx.EXPAND|wx.TOP, border=5)
+    dlg.view.AddChoice(c2, proportion=0, flag=wx.EXPAND|wx.TOP, border=5, widget_name='indexuid')  
+    #
+    choice_well.set_value(0, True)
+    #    
+    
+    ctn_layer_1 = dlg.view.AddCreateContainer('StaticBox', label='Layer 1', orient=wx.HORIZONTAL)
+    #
+    ctn_start1 = dlg.view.AddCreateContainer('StaticBox', ctn_layer_1, label='Start', orient=wx.VERTICAL, proportion=0, flag=wx.EXPAND|wx.TOP, border=5)
+    dlg.view.AddTextCtrl(ctn_start1, proportion=0, flag=wx.EXPAND|wx.TOP, border=5, widget_name='start1')
+    #
+    ctn_vp1 = dlg.view.AddCreateContainer('StaticBox', ctn_layer_1, label='Vp(m/s)', orient=wx.VERTICAL, proportion=0, flag=wx.EXPAND|wx.TOP, border=5)
+    dlg.view.AddTextCtrl(ctn_vp1, proportion=0, flag=wx.EXPAND|wx.TOP, border=5, widget_name='vp1')
+    #
+    ctn_vs1 = dlg.view.AddCreateContainer('StaticBox', ctn_layer_1, label='Vs(m/s)', orient=wx.VERTICAL, proportion=0, flag=wx.EXPAND|wx.TOP, border=5)
+    dlg.view.AddTextCtrl(ctn_vs1, proportion=0, flag=wx.EXPAND|wx.TOP, border=5, widget_name='vs1')        
+    #
+    ctn_rho1 = dlg.view.AddCreateContainer('StaticBox', ctn_layer_1, label='Rho(g/cm3)', orient=wx.VERTICAL, proportion=0, flag=wx.EXPAND|wx.TOP, border=5)
+    dlg.view.AddTextCtrl(ctn_rho1, proportion=0, flag=wx.EXPAND|wx.TOP, border=5, widget_name='rho1') 
+    #    
+    ctn_q1 = dlg.view.AddCreateContainer('StaticBox', ctn_layer_1, label='Q', orient=wx.VERTICAL, proportion=0, flag=wx.EXPAND|wx.TOP, border=5)
+    dlg.view.AddTextCtrl(ctn_q1, proportion=0, flag=wx.EXPAND|wx.TOP, border=5, widget_name='q1')             
+    #   
+    #
+    ctn_layer_2 = dlg.view.AddCreateContainer('StaticBox', label='Layer 2', orient=wx.HORIZONTAL)
+    #
+    ctn_start2 = dlg.view.AddCreateContainer('StaticBox', ctn_layer_2, label='Start', orient=wx.VERTICAL, proportion=0, flag=wx.EXPAND|wx.TOP, border=5)
+    dlg.view.AddTextCtrl(ctn_start2, proportion=0, flag=wx.EXPAND|wx.TOP, border=5, widget_name='start2')    
+    #
+    ctn_vp2 = dlg.view.AddCreateContainer('StaticBox', ctn_layer_2, label='Vp(m/s)', orient=wx.VERTICAL, proportion=0, flag=wx.EXPAND|wx.TOP, border=5)
+    dlg.view.AddTextCtrl(ctn_vp2, proportion=0, flag=wx.EXPAND|wx.TOP, border=5, widget_name='vp2')
+    #
+    ctn_vs2 = dlg.view.AddCreateContainer('StaticBox', ctn_layer_2, label='Vs(m/s)', orient=wx.VERTICAL, proportion=0, flag=wx.EXPAND|wx.TOP, border=5)
+    dlg.view.AddTextCtrl(ctn_vs2, proportion=0, flag=wx.EXPAND|wx.TOP, border=5, widget_name='vs2')        
+    #
+    ctn_rho2 = dlg.view.AddCreateContainer('StaticBox', ctn_layer_2, label='Rho(g/cm3)', orient=wx.VERTICAL, proportion=0, flag=wx.EXPAND|wx.TOP, border=5)
+    dlg.view.AddTextCtrl(ctn_rho2, proportion=0, flag=wx.EXPAND|wx.TOP, border=5, widget_name='rho2')            
+    #    
+    ctn_q2 = dlg.view.AddCreateContainer('StaticBox', ctn_layer_2, label='Q', orient=wx.VERTICAL, proportion=0, flag=wx.EXPAND|wx.TOP, border=5)
+    dlg.view.AddTextCtrl(ctn_q2, proportion=0, flag=wx.EXPAND|wx.TOP, border=5, widget_name='q2')  
+    #
+    ctn_layer_3 = dlg.view.AddCreateContainer('StaticBox', label='Layer 3', orient=wx.HORIZONTAL)
+    #
+    ctn_start3 = dlg.view.AddCreateContainer('StaticBox', ctn_layer_3, label='Start', orient=wx.VERTICAL, proportion=0, flag=wx.EXPAND|wx.TOP, border=5)
+    dlg.view.AddTextCtrl(ctn_start3, proportion=0, flag=wx.EXPAND|wx.TOP, border=5, widget_name='start3')      
+    #
+    ctn_vp3 = dlg.view.AddCreateContainer('StaticBox', ctn_layer_3, label='Vp(m/s)', orient=wx.VERTICAL, proportion=0, flag=wx.EXPAND|wx.TOP, border=5)
+    dlg.view.AddTextCtrl(ctn_vp3, proportion=0, flag=wx.EXPAND|wx.TOP, border=5, widget_name='vp3')
+    #
+    ctn_vs3 = dlg.view.AddCreateContainer('StaticBox', ctn_layer_3, label='Vs(m/s)', orient=wx.VERTICAL, proportion=0, flag=wx.EXPAND|wx.TOP, border=5)
+    dlg.view.AddTextCtrl(ctn_vs3, proportion=0, flag=wx.EXPAND|wx.TOP, border=5, widget_name='vs3')        
+    #
+    ctn_rho3 = dlg.view.AddCreateContainer('StaticBox', ctn_layer_3, label='Rho(g/cm3)', orient=wx.VERTICAL, proportion=0, flag=wx.EXPAND|wx.TOP, border=5)
+    dlg.view.AddTextCtrl(ctn_rho3, proportion=0, flag=wx.EXPAND|wx.TOP, border=5, widget_name='rho3')            
+    #    
+    ctn_q3 = dlg.view.AddCreateContainer('StaticBox', ctn_layer_3, label='Q', orient=wx.VERTICAL, proportion=0, flag=wx.EXPAND|wx.TOP, border=5)
+    dlg.view.AddTextCtrl(ctn_q3, proportion=0, flag=wx.EXPAND|wx.TOP, border=5, widget_name='q3')  
+    #
+    
+    dlg.view.SetSize((650, 600))
+    result = dlg.view.ShowModal()
+    try:
+        disableAll = wx.WindowDisabler()
+        wait = wx.BusyInfo("Creating model. Wait...")
+        if result == wx.ID_OK:
+            results = dlg.get_results()  
+            #print results 
+            
+            indexuid = results.get('indexuid')
+            welluid = results.get('welluid')
+            
+            start1 = results.get('start1')
+            vp1 = results.get('vp1')
+            vs1 = results.get('vs1')
+            rho1 = results.get('rho1')
+            q1 = results.get('q1')
+            
+            start2 = results.get('start2')
+            vp2 = results.get('vp2')
+            vs2 = results.get('vs2')
+            rho2 = results.get('rho2')            
+            q2 = results.get('q2')
+            
+            start3 = results.get('start3')
+            vp3 = results.get('vp3')
+            vs3 = results.get('vs3')
+            rho3 = results.get('rho3')
+            q3 = results.get('q3')
+            
+            index = OM.get(indexuid)
+
+            if not start1:
+                idx1 = 0
+            else:
+                start1 = float(start1)
+                idx1 = (np.abs(index.data - start1)).argmin()
+            
+            if not start2:
+                wx.MessageBox('Layer 2 start cannot be None.')
+                raise Exception('Layer 2 start cannot be None.')
+            else:
+                start2 = float(start2)
+                idx2 = (np.abs(index.data - start2)).argmin()
+            
+            if not start3:
+                idx3 = None
+            else:
+                start3 = float(start3)
+                idx3 = (np.abs(index.data - start3)).argmin()
+                
+                
+            layer1 = (idx1, idx2)    
+            if idx3 is not None:
+                layer2 = (idx2, idx3) 
+                layer3 = (idx3, len(index.data))
+            else:
+                layer2 = (idx2, len(index.data))
+                layer3 = None
+                
+                
+            try:    
+                vp1 = float(vp1)
+            except:
+                vp1 = np.nan
+            try:    
+                vs1 = float(vs1)
+            except:
+                vs1 = np.nan
+            try:    
+                rho1 = float(rho1)
+            except:
+                rho1 = np.nan          
+            try:    
+                q1 = float(q1)
+            except:
+                q1 = np.nan   
+            #
+            try:    
+                vp2 = float(vp2)
+            except:
+                vp2 = np.nan
+            try:    
+                vs2 = float(vs2)
+            except:
+                vs2 = np.nan
+            try:    
+                rho2 = float(rho2)
+            except:
+                rho2 = np.nan          
+            try:    
+                q2 = float(q2)
+            except:
+                q2 = np.nan   
+            #  
+            try:    
+                vp3 = float(vp3)
+            except:
+                vp3 = np.nan
+            try:    
+                vs3 = float(vs3)
+            except:
+                vs3 = np.nan
+            try:    
+                rho3 = float(rho3)
+            except:
+                rho3 = np.nan          
+            try:    
+                q3 = float(q3)
+            except:
+                q3 = np.nan   
+            #  
+
+            if layer3:
+                try:    
+                    vp3 = float(vp3)
+                except:
+                    vp3 = np.nan
+                try:    
+                    vs3 = float(vs3)
+                except:
+                    vs3 = np.nan
+                try:    
+                    rho3 = float(rho3)
+                except:
+                    rho3 = np.nan          
+                try:    
+                    q3 = float(q3)
+                except:
+                    q3 = np.nan   
+             
+            vp = [] #np.array([], dtype=np.float)
+            vs = [] #np.array([], dtype=np.float)
+            rho = [] #np.array([], dtype=np.float)
+            q = [] #np.array([], dtype=np.float)
+            
+            for idx in range(len(index.data)):
+                if idx >= layer1[0] and idx < layer1[1]:
+                    #print 'idx:', idx, 'layer 1'
+                    vp.append(vp1)
+                    vs.append(vs1)
+                    rho.append(rho1)
+                    q.append(q1)
+                elif idx >= layer2[0] and idx < layer2[1]:
+                    #print 'idx:', idx, 'layer 2'
+                    vp.append(vp2)
+                    vs.append(vs2)
+                    rho.append(rho2)
+                    q.append(q2)
+                elif layer3 and idx >= layer3[0] and idx < layer3[1]:
+                    #print 'idx:', idx, 'layer 3'
+                    vp.append(vp3)
+                    vs.append(vs3)
+                    rho.append(rho3)
+                    q.append(q3)
+                else:
+                    #print 'idx:', idx, 'layer NONE'
+                    vp.append(np.nan)
+                    vs.append(np.nan)
+                    rho.append(np.nan)
+                    q.append(np.nan)
+
+            if vp:
+                vp = np.array(vp)
+                if np.count_nonzero(~np.isnan(vp)):
+                    log = OM.new('log', vp, name='Vp_model', unit='m/s', datatype='Velocity')
+                    OM.add(log, welluid)     
+            if vs:
+                vs = np.array(vs)
+                if np.count_nonzero(~np.isnan(vs)):
+                    log = OM.new('log', vs, name='Vs_model', unit='m/s', datatype='ShearVel')
+                    OM.add(log, welluid)
+            if rho:
+                rho = np.array(rho)
+                if np.count_nonzero(~np.isnan(rho)):
+                    log = OM.new('log', rho, name='Rho_model', unit='g/cm3', datatype='Density')
+                    OM.add(log, welluid)                     
+            if q:
+                q = np.array(q)
+                if np.count_nonzero(~np.isnan(q)):
+                    log = OM.new('log', q, name='Q_model', unit=None)
+                    OM.add(log, welluid)  
+                               
+    except Exception as e:
+        print 'ERROR:', e
+    finally:
+        del wait
+        del disableAll
+        UIM.remove(dlg.uid)
+
+
 
     
 def on_load_wilson(event):
