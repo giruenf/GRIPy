@@ -180,6 +180,8 @@ def Reflectivity(OM,parDictionary):
              seisMod = rfltvPS.rfltvsubv4.modrfltv(dt, nSamp, x, vel1, z1, vpSup, vsSup, zSup, vp, vs, rho, dz, fqp, fqs, firstLayer, lastLayer, angMax, wavelet, fWav, wavFlag, eventRes, seisOut, pNum)
  
      seisModNorm = seisMod
+     
+     """
      factor = fn.NormalizationFactor(seisMod, numTrcsOut, 2)
      for i in range(0, numTrcsOut, 1):
         tr = seisMod.T[i]
@@ -197,6 +199,40 @@ def Reflectivity(OM,parDictionary):
      new_index = OM.new('data_index', 1, 'Offset', 'OFFSET', 'm', data=x)
      OM.add(new_index, synth.uid)
      
+     """
      
-     return 6
+     #return 6
      
+     print 
+     print 'SHAPE:', seisMod.T.shape
+     
+     """
+     seisModNorm = seisMod
+
+     factor = fn.NormalizationFactor(seisMod, numTrcsOut, 2)
+     for i in range(0, numTrcsOut, 1):
+        tr = seisMod.T[i]
+        tr = (tr / factor) 
+        seisModNorm.T[i] = tr
+ 
+     #fn.PlotGather(seisModNorm, numTrcsOut, nSamp, int(dt*1000), normalize=True, displaytext="Sismograma PP" )
+     """
+     
+     print '\nTIME:', len(timeVector), timeVector 
+     print 'OFFSET:', len(x), x
+     print np.nanmin(seisModNorm), np.nanmax(seisModNorm)
+     print 'SHAPE:', seisMod.T.shape
+     
+     
+     new_name = "NEW_NAME"
+     synth = OM.new('gather', seisMod.T, datatype='Synth', name=new_name)
+     OM.add(synth, ('well', 0))
+     
+     timeVector = timeVector * 1000.0
+     new_index = OM.new('data_index', 0, 'Time', 'TIME', 'ms', data=timeVector)
+     OM.add(new_index, synth.uid)
+     
+     new_index = OM.new('data_index', 1, 'Offset', 'OFFSET', 'm', data=x)
+     OM.add(new_index, synth.uid) 
+     
+     return 6    																		  
