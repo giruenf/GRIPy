@@ -124,7 +124,7 @@ def Reflectivity(OM,parDictionary):
          if (seisOut ==2):
              
              #Fortran Subroutine
-             seisMod = rfltvPS.rfltvsubv4.modrfltv(dt, nSamp, x, vel1, z1, vpSup, vsSup, zSup, vp, vs, rho, dz, fqp, fqs, firstLayer, lastLayer, angMax, wavelet, fWav, wavFlag, eventRes, seisOut, pNum)
+             seisMod = rfltvPS.rfltvsubv4.modrfltv(dt, nSamp, numTrcsOut, x, vel1, zcam1, vpSup, vsSup, zSup, nSup, vp, vs, rho, dz, fqp, fqs, nLayers, firstLayer, lastLayer, angMax, wavelet, fWav, wavFlag, eventRes, seisOut, pNum)
              tNMO = np.array(np.ones((nSamp, numTrcsOut)))
              seisModNMO = np.array (seisMod)
              vRMS = np.sqrt( (vp_rms*vs_rms) )
@@ -139,7 +139,7 @@ def Reflectivity(OM,parDictionary):
          elif (seisOut ==4):
     
              #Fortran Subroutine   
-             seisMod = rfltvPS.rfltvsubv4.modrfltv(dt, nSamp, x, vel1, z1, vpSup, vsSup, zSup, vp, vs, rho, dz, fqp, fqs, firstLayer, lastLayer, angMax, wavelet, fWav, wavFlag, eventRes, seisOut, pNum)      
+             seisMod = rfltvPS.rfltvsubv4.modrfltv(dt, nSamp, numTrcsOut, x, vel1, zcam1, vpSup, vsSup, zSup, nSup, vp, vs, rho, dz, fqp, fqs, nLayers, firstLayer, lastLayer, angMax, wavelet, fWav, wavFlag, eventRes, seisOut, pNum)     
              tNMO = np.array(np.ones((nSamp, numTrcsOut)))
              seisModNMO = np.array (seisMod)
     
@@ -157,7 +157,7 @@ def Reflectivity(OM,parDictionary):
              pmax = 1./vel2
              pvec = np.arange(0., pmax, pmax/np2)    
              #Fortran Subroutine   
-             seisMod = rfltvPS.rfltvsubv4.modrfltv(dt, nSamp, pvec, vel1, z1, vpSup, vsSup, zSup, vp, vs, rho, dz, fqp, fqs, firstLayer, lastLayer, angMax, wavelet, fWav, wavFlag, eventRes, seisOut, pNum) 
+             seisMod = rfltvPS.rfltvsubv4.modrfltv(dt, nSamp, numTrcsOut, x, vel1, zcam1, vpSup, vsSup, zSup, nSup, vp, vs, rho, dz, fqp, fqs, nLayers, firstLayer, lastLayer, angMax, wavelet, fWav, wavFlag, eventRes, seisOut, pNum)
              tNMO = np.array(np.ones((nSamp, np2)))
              seisModNMO = np.array (seisMod)
    
@@ -177,54 +177,9 @@ def Reflectivity(OM,parDictionary):
                  seisMod[i,:] = scipy.interp(rayp2, pvec, pval)    
              
          else:
-             seisMod = rfltvPS.rfltvsubv4.modrfltv(dt, nSamp, x, vel1, z1, vpSup, vsSup, zSup, vp, vs, rho, dz, fqp, fqs, firstLayer, lastLayer, angMax, wavelet, fWav, wavFlag, eventRes, seisOut, pNum)
+             seisMod = rfltvPS.rfltvsubv4.modrfltv(dt, nSamp, numTrcsOut, x, vel1, zcam1, vpSup, vsSup, zSup, nSup, vp, vs, rho, dz, fqp, fqs, nLayers, firstLayer, lastLayer, angMax, wavelet, fWav, wavFlag, eventRes, seisOut, pNum)
  
-     seisModNorm = seisMod
-     
-     """
-     factor = fn.NormalizationFactor(seisMod, numTrcsOut, 2)
-     for i in range(0, numTrcsOut, 1):
-        tr = seisMod.T[i]
-        tr = (tr / factor) 
-        seisModNorm.T[i] = tr
-     
-     fn.PlotGather(seisMod, numTrcsOut, nSamp, int(dt*1000), normalize=True, displaytext="Sismograma PP" )
-     
      new_name = parDictionary['outName']
-     synth = OM.new('gather', seisModNorm, datatype='Synth', name=new_name)
-     OM.add(synth, parDictionary['wellID'])
-     
-     new_index = OM.new('data_index', 0, 'Time', 'TIME', 's', data=timeVector)
-     OM.add(new_index, synth.uid)
-     new_index = OM.new('data_index', 1, 'Offset', 'OFFSET', 'm', data=x)
-     OM.add(new_index, synth.uid)
-     
-     """
-     
-     #return 6
-     
-     print 
-     print 'SHAPE:', seisMod.T.shape
-     
-     """
-     seisModNorm = seisMod
-
-     factor = fn.NormalizationFactor(seisMod, numTrcsOut, 2)
-     for i in range(0, numTrcsOut, 1):
-        tr = seisMod.T[i]
-        tr = (tr / factor) 
-        seisModNorm.T[i] = tr
- 
-     #fn.PlotGather(seisModNorm, numTrcsOut, nSamp, int(dt*1000), normalize=True, displaytext="Sismograma PP" )
-     """
-     
-     print '\nTIME:', len(timeVector), timeVector 
-     print 'OFFSET:', len(x), x
-     print np.nanmin(seisModNorm), np.nanmax(seisModNorm)
-     print 'SHAPE:', seisMod.T.shape
-     
-     
-     new_name = "NEW_NAME"
      synth = OM.new('gather', seisMod.T, datatype='Synth', name=new_name)
      OM.add(synth, ('well', 0))
      

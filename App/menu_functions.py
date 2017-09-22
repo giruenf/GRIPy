@@ -444,7 +444,7 @@ class ReflectivityModel():
         if self.nsampTxtCtrl.GetValue() == "":
             wx.MessageBox("Please choose the Number of Samples!")
             raise Exception("Please choose the Number of Samples!")
-        parDict['numsamps'] = int(self.nsampTxtCtrl.GetValue())
+        parDict['numsamps'] = int(float(self.nsampTxtCtrl.GetValue()))
         if self.dtTxtCtrl.GetValue() == "":
             wx.MessageBox("Please choose the Sample Rate Interval!")
             raise Exception("Please choose the Sample Rate Interval!")
@@ -456,7 +456,7 @@ class ReflectivityModel():
         if self.ntrcsTxtCtrl.GetValue() == "":
             wx.MessageBox("Please choose the Number of Traces of the Output!")
             raise Exception("Please choose the Number of Traces of the Output!")
-        parDict['ntraces'] = int(self.ntrcsTxtCtrl.GetValue())
+        parDict['ntraces'] = int(float(self.ntrcsTxtCtrl.GetValue()))
         if self.trc1TxtCtrl.GetValue() == "":
             wx.MessageBox("Please choose the 1st trace cordinate!")
             raise Exception("Please choose the 1st trace cordinate!")
@@ -476,7 +476,7 @@ class ReflectivityModel():
         if self.nsupTxtCtrl.GetValue() == "":
             wx.MessageBox("Please choose the Number of Superior Layers!")
             raise Exception("Please choose the Number of Superior Layers!")
-        parDict['nsup'] = int(self.nsupTxtCtrl.GetValue())
+        parDict['nsup'] = int(float(self.nsupTxtCtrl.GetValue()))
         if self.zsupTxtCtrl.GetValue() == "":
             wx.MessageBox("Please choose the Thickness of Each Superior Layers!")
             raise Exception("Please choose the Thickness of Each Superior Layers!")
@@ -492,7 +492,7 @@ class ReflectivityModel():
         if self.pnumTxtCtrl.GetValue() == "":
             wx.MessageBox("Please choose the Number Ray Parameters to Integration!")
             raise Exception("Please choose the Number Ray Parameters to Integration!")
-        parDict['pNum'] = int(self.pnumTxtCtrl.GetValue())
+        parDict['pNum'] = int(float(self.pnumTxtCtrl.GetValue()))
         if self.angmaxTxtCtrl.GetValue() == "":
             wx.MessageBox("Please choose the Maximum Angle of Incidence!")
             raise Exception("Please choose the Maximum Angle of Incidence!")
