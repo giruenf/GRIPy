@@ -339,8 +339,8 @@ def load():
         # """
         # Area reservada para alguns testes 
         # """
-        fullfilename = 'C:\\Users\\Adriano\\Desktop\\aaa_teste_4.pgg'
-        app.load_project_data(fullfilename)    
+        #fullfilename = 'C:\\Users\\Adriano\\Desktop\\aaa_teste_4.pgg'
+        #app.load_project_data(fullfilename)    
         #
         
         #Reflectivity2()
