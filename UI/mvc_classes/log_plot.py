@@ -984,7 +984,7 @@ class LogPlot(WorkPage):
         #
         self.tool_bar.AddSeparator()  
         #
-        button_edit_format = wx.Button(self.tool_bar, label='Edit LogPlot')
+        button_edit_format = wx.Button(self.tool_bar, label='Edit Plot')
         button_edit_format.Bind(wx.EVT_BUTTON , self._OnEditFormat)
         self.tool_bar.AddControl(button_edit_format, '')
         self.tool_bar.AddSeparator()    

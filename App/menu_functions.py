@@ -1472,7 +1472,15 @@ def on_cwt(event):
             obj = OM.get(obj_uid) 
             mode = results.get('mode')   
             analytic = results.get('analytic')
-            input_indexes = obj.get_indexes()
+            
+            #
+            
+            input_indexes = obj.get_data_indexes()
+            
+            #print input_indexes
+            
+            #raise Exception('')
+            
             z_axis = input_indexes[0][0]
 			 
 																			  
@@ -1484,6 +1492,7 @@ def on_cwt(event):
             time = UOM.convert(z_axis.data, z_axis.unit, 's')      
             step = UOM.convert(z_axis.step, z_axis.unit, 's') 
             '''
+            
             ###
             # TODO: rever TIME/DEPTH
             time = z_axis.data
@@ -1678,34 +1687,36 @@ def on_cwt(event):
                     scalogram = OM.new('gather_scalogram', data_out, name=name)
                     parent_uid = OM._getparentuid(obj_uid)
                     if not OM.add(scalogram, parent_uid):
-                        raise Exception('Object was not added. tid={\'gather_scalogram\'}')
+                        raise Exception('Object was not added. tid={\'gather_scalogram\'}')  
+                    #  
+                    obj_index_set = OM.list('index_set', obj.uid)[0]
+                    #
+                    scalogram_index_set = OM.new('index_set', name=obj_index_set.name)
+                    OM.add(scalogram_index_set, scalogram.uid)
+                    #
                 else:
                     raise Exception('Not a gather_scalogram.')
-    
-                
+                #
                 state = z_axis._getstate()
                 index = OM.create_object_from_state('data_index', **state)
-                OM.add(index, scalogram.uid)
+                OM.add(index, scalogram_index_set.uid)
                 #
-                
                 index = OM.new('data_index', 1, 'Frequency', 'FREQUENCY', 'Hz', 
                                data=freqs
                 ) 
-                OM.add(index, scalogram.uid)
+                OM.add(index, scalogram_index_set.uid)
                 #
                 index = OM.new('data_index', 1, 'Scale', 'SCALE', 
                                data=scales
                 ) 
-                OM.add(index, scalogram.uid)
+                OM.add(index, scalogram_index_set.uid)
                 # Inserindo as outras dimensões do dado
                 for idx in range(1, len(input_indexes)):
                     state = input_indexes[idx][0]._getstate()        
                     state['dimension'] = idx+1
                     index = OM.index = OM.create_object_from_state('data_index', **state)
-                    OM.add(index, scalogram.uid)
-                
-
-
+                    OM.add(index, scalogram_index_set.uid)
+                #
     except Exception as e:
         print 'ERROR:', e
 			
@@ -1748,6 +1759,9 @@ def on_phase_rotation(event):
         #
         dlg.view.SetSize((330, 430))
         result = dlg.view.ShowModal()
+        
+        
+        
         if result == wx.ID_OK:
             results = dlg.get_results()  
             print '\nresults:', results, '\n'
@@ -1761,7 +1775,8 @@ def on_phase_rotation(event):
             degrees = float(results.get('degrees'))   
             new_name = str(results.get('name'))              
             
-            index = obj.get_indexes()[0][0]
+            
+            index = obj.get_data_indexes()[0][0]
             
             rot_data_index, rot_data = frequency_phase_rotation(obj.data, degrees, True)   
             rot_data = rot_data.real
@@ -1770,21 +1785,21 @@ def on_phase_rotation(event):
             
             #new_data = new_data.real
             
-            print '\n\nrot_interp_data.shape:', rot_interp_data.shape, obj.data.shape
-            print rot_data_index[0], rot_data_index[-1]
-            print len(index.data), len(rot_data_index)
-            print 
-            for i in rot_data_index:
-                print 'rdi:', i
-            print
+            #print '\n\nrot_interp_data.shape:', rot_interp_data.shape, obj.data.shape
+            #print rot_data_index[0], rot_data_index[-1]
+            #print len(index.data), len(rot_data_index)
+            #print 
+            #for i in rot_data_index:
+            #    print 'rdi:', i
+            #print
             #print obj.data - new_data
 
-            log = OM.new('log', rot_interp_data, name=new_name, 
-                         unit=obj.unit, datatype=obj.datatype
+            log = OM.new('log', rot_interp_data, index_set_uid=obj.index_set_uid,
+                         name=new_name, unit=obj.unit, datatype=obj.datatype
             )
-            print 'kkk 2'
+            #print 'kkk 2'
             OM.add(log, parentuid)  
-            print 'kkk 3'
+            #print 'kkk 3'
 
     except Exception as e:
         print 'ERROR:', e
@@ -2764,12 +2779,12 @@ def on_create_well(event):
             start = float(results['start'])
             end = float(results['end'])
             ts = float(results['ts'])
-            OM = ObjectManager(event.GetEventObject())
+
             well = OM.new('well', name=well_name) 
             OM.add(well)
             samples = ((end-start)/ts)+1
             #
-            index_set = OM.new('index_set', 'Set')
+            index_set = OM.new('index_set', name='Set')
             OM.add(index_set, well.uid)
             #
             index = OM.new('data_index', 0, index_name, datatype, unit, 
@@ -2777,7 +2792,8 @@ def on_create_well(event):
             )
             OM.add(index, index_set.uid)
             ret_val = True
-    except:
+    except Exception as e:
+        print 'ERROR [on_create_well]:', e
         pass
     finally:
         del wait

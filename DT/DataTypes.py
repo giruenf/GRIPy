@@ -854,6 +854,15 @@ class Density(GenericDataType):
     def __init__(self, data, **attributes):
         super(Density, self).__init__(data, **attributes)
 
+    def get_data_indexes(self):
+        OM = ObjectManager(self)            
+        try:
+            index_set = OM.list('index_set', self.uid)[0]
+            return index_set.get_data_indexes()
+        except Exception as e:
+            print 'ERROR [Density.get_data_indexes]:', e, '\n'
+            raise e
+
 
 class Seismic(Density):
     tid = 'seismic'
@@ -866,8 +875,6 @@ class Seismic(Density):
         super(Seismic, self).__init__(data, **attributes)
                 
 
-
-
 class WellGather(Density):
     tid = 'gather'
     _FRIENDLY_NAME = 'Gather'
@@ -877,45 +884,6 @@ class WellGather(Density):
 
     def __init__(self, data, **attributes):
         super(WellGather, self).__init__(data, **attributes)
-
-
-    def get_data_indexes(self):
-        
-        #print '\n\nENTROU!!!'
-        OM = ObjectManager(self)            
-        try:
-            
-            index_set = OM.list('index_set', self.uid)[0]
-            return index_set.get_data_indexes()
-            """
-            well_index_set_uid = index_set.vinculated
-            
-            well_index_set = OM.get(well_index_set_uid)
-            
-            well_uid = OM._getparentuid(self.uid)
-            print well_uid
-            well = OM.get(well_uid)
-            print well
-            
-            index_set = OM.list('index_set', self.uid)[0]
-            
-            print 'index_set:', index_set
-            
-            data_indexes = well.get_data_indexes(index_set.name)
-            my_data_indexes = OM.list('data_index', self.index_set_uid)
-            if not my_data_indexes:
-                return data_indexes
-
-            for data_index in my_data_indexes:
-                if data_index.dimension not in data_indexes.keys():
-                    data_indexes[data_index.dimension] = []    
-                data_indexes.get(data_index.dimension).append(data_index)    
-            return data_indexes
-            """
-        except Exception as e:
-            print 'ERROR: WellGather.gdi:', e
-            raise e
-            #return None
             
 
 class Scalogram(Density):
@@ -936,22 +904,6 @@ class GatherScalogram(Scalogram):
 
     def __init__(self, data, **attributes):
         super(GatherScalogram, self).__init__(data, **attributes)
-
-
-    def get_indexes(self):
-        OM = ObjectManager(self)
-        # Get parent indexes
-        parent_uid = OM._getparentuid(self.uid)
-        parent = OM.get(parent_uid)
-        indexes = parent.get_indexes()  
-        # Complementing with self indexes
-        data_indexes = OM.list('data_index', self.uid)
-        if data_indexes:
-            for di in data_indexes:
-                if di.dimension not in indexes.keys():
-                    indexes[di.dimension] = []
-                indexes.get(di.dimension).append(di)  
-        return indexes    
 
 
 
@@ -1015,21 +967,6 @@ class GatherSpectogram(Spectogram):
     def __init__(self, data, **attributes):
         super(GatherSpectogram, self).__init__(data, **attributes)
         
-    def get_indexes(self):
-        OM = ObjectManager(self)
-        # Get parent indexes
-        parent_uid = OM._getparentuid(self.uid)
-        parent = OM.get(parent_uid)
-        indexes = parent.get_indexes()  
-        # Complementing with self indexes
-        data_indexes = OM.list('data_index', self.uid)
-        if data_indexes:
-            for di in data_indexes:
-                if di.dimension not in indexes.keys():
-                    indexes[di.dimension] = []
-                indexes.get(di.dimension).append(di)  
-        return indexes    
-
         
 ###############################################################################
 ###############################################################################
@@ -1063,36 +1000,6 @@ class InversionParameter(GenericDataType):
     def __init__(self, data, **attributes):
         super(InversionParameter, self).__init__(data, **attributes)
 
-    """
-    @property
-    def start(self):
-        if 'start' not in self.attributes:
-            index_data = self.get_index()._data
-            self.attributes['start'] = float(index_data[np.isfinite(self._data)][0])
-        return self.attributes['start']
-    
-    @property
-    def end(self):
-        if 'end' not in self.attributes:
-            index_data = self.get_index()._data
-            self.attributes['end'] = float(index_data[np.isfinite(self._data)][-1])
-        return self.attributes['end']
-
-    @property
-    def step(self):
-        if 'step' not in self.attributes:
-            index_data = self.get_index()._data
-            self.attributes['step'] = float(index_data[np.isfinite(self._data)][1] - 
-                           index_data[np.isfinite(self._data)][0]
-            )
-        return self.attributes['step']
-
-    def get_friendly_name(self):
-        OM = ObjectManager(self)
-        parent_uid = OM._getparentuid(self.uid)
-        parent = OM.get(parent_uid)         
-        return self.name + '@' + parent.name
-    """
 
 ###############################################################################
 ###############################################################################
@@ -1316,21 +1223,6 @@ class DataIndex(GenericDataType):
         OM = ObjectManager(self)        
         OM.unsubscribe(self._on_OM_add, 'add')
 
-    """
-
-    def get_data_indexes(self):
-        OM = ObjectManager(self)            
-        try:
-            parent_index_set_uid = OM._getparentuid(self.uid)
-            parent_well_uid = OM._getparentuid(parent_index_set_uid)
-            parent_well = OM.get(parent_well_uid)
-            return parent_well.get_indexes_set()[parent_index_set_uid]
-        except Exception as e:
-            print 'ERROR:', e
-            pass
-        return None
-
-    """
     
     def get_data_indexes(self):
         OM = ObjectManager(self)            
@@ -1338,17 +1230,6 @@ class DataIndex(GenericDataType):
             index_set_uid = OM._getparentuid(self.uid)
             index_set = OM.get(index_set_uid)
             return index_set.get_data_indexes()
-            """
-            data_indexes = OM.list('data_index', index_set_uid)
-            if not data_indexes:
-                return None
-            ret_dict = OrderedDict()
-            for data_index in data_indexes:
-                if data_index.dimension not in ret_dict.keys():
-                    ret_dict[data_index.dimension] = []    
-                ret_dict.get(data_index.dimension).append(data_index)    
-            return ret_dict
-            """
         except:
             return None
 
