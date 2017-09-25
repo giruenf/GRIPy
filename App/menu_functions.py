@@ -85,7 +85,7 @@ def on_new_wellplot(event):
         msg = 'This project has not a well. Create one?'
         ret_val = wx.MessageBox(msg, 'Warning', wx.ICON_EXCLAMATION | wx.YES_NO)    
         if ret_val == wx.YES:
-            ret_val = on_createwell(event)
+            ret_val = on_create_well(event)
             if not ret_val:
                 return
             for well in OM.list('well'):
@@ -107,22 +107,9 @@ def on_new_wellplot(event):
         #choice_well.set_trigger(on_change_well) 
         #
         def on_change_well(name, old_value, new_value, **kwargs):
-            #print '\non_change_well:', name, old_value, new_value, kwargs
             OM = ObjectManager(on_change_well)
             well = OM.get(new_value)
-            dis = well.get_index()[0]
-            zaxis = OrderedDict()
-            for di in dis:
-                if di.datatype == 'MD' and 'MD' not in zaxis.values():
-                    zaxis['Measured Depth'] = 'MD'
-                if di.datatype == 'TVD' and 'TVD' not in zaxis.values():
-                    zaxis['True Vertical Depth'] = 'TVD'
-                if di.datatype == 'TVDSS' and 'TVDSS' not in zaxis.values():
-                    zaxis['True Vertical Depth Subsea'] = 'TVDSS'                    
-                if di.datatype == 'TWT' and 'TWT' not in zaxis.values():
-                    zaxis['Two-Way Time'] = 'TWT'
-                if di.datatype == 'TIME' and 'TIME' not in zaxis.values():
-                    zaxis['One-Way Time'] = 'TIME'
+            zaxis = well.get_z_axis_datatypes()
             choice_zaxis_type = dlg.view.get_object('zaxis_type')       
             choice_zaxis_type.set_options(zaxis)
             choice_zaxis_type.set_value(0, True)
@@ -149,6 +136,8 @@ def on_new_wellplot(event):
         pass
     finally:
         UIM.remove(dlg.uid) 
+
+
 
 class ReflectivityModel():
     def __init__(self, event):
@@ -522,7 +511,7 @@ class ReflectivityModel():
             return_flag = Reflectivity(self.OM, parDict)
         except Exception as e:
             print 'ERROR:', e
-            pass
+            raise e
         finally:
             del wait
             del disableAll
@@ -569,9 +558,9 @@ def teste10(event):
     )
     #"""
 
-def on_modelling_pp(event):
+def on_akirichards_pp(event):
     #
-    print '\non_modelling_pp'    
+    print '\non_akirichards_pp'    
     #
     def avo_modeling_akirichards_pp(vp, vs, rho, angles): 
         ret_array = np.zeros((len(vp)-1, len(angles)))
@@ -677,7 +666,8 @@ def on_modelling_pp(event):
             wait = wx.BusyInfo("Wait...")     
    
             welluid = results['welluid']
-            vp_data = OM.get(results.get('vp')).data
+            vp_obj = OM.get(results.get('vp'))
+            vp_data = vp_obj.data
             vs_data = OM.get(results.get('vs')).data
             rho_data = OM.get(results.get('rho')).data
             new_name = results.get('new_name')
@@ -693,16 +683,22 @@ def on_modelling_pp(event):
             #
             #print 'reflectivity.shape:', reflectivity.shape
             well = OM.get(welluid)
+            
+            
+            
             #
+            '''
             model = OM.new('model1d', reflectivity, 
                            datatype='Rpp Aki-Richards', name=new_name
             )
             OM.add(model, welluid)
+            
             #
             index = OM.new('data_index', 1, 'Angle', 'ANGLE', 'deg', 
                            data=angle_degree
             ) 
-            OM.add(index, model.uid)      
+            OM.add(index, model.uid)
+            '''
             #
             # Do the convolution
             synthetic_data = np.zeros(reflectivity.shape) 
@@ -711,15 +707,26 @@ def on_modelling_pp(event):
                 synthetic_data[i] =  np.convolve(w, reflectivity[i], mode='same')
             #           
             print 'synthetic_data:', np.nanmin(synthetic_data), np.nanmax(synthetic_data)
-            synth = OM.new('gather', synthetic_data, datatype='SYNTH', name='TESTE_RICKER_25')
+            #
+            #
+            index_set_uid = OM.get(results.get('vp')).index_set_uid
+            #vp_index_set_name = OM.get(index_set_uid).name
+            #
+            
+            #
+            synth = OM.new('gather', synthetic_data, datatype='SYNTH', name=new_name)
             OM.add(synth, welluid)
+            #
+            new_index_set = OM.new('index_set', vinculated=index_set_uid)
+            OM.add(new_index_set, synth.uid)
             # 
-            for dim_idx, dis in well.get_index().items():
-                for di in dis:
-                    index = OM.new('data_index', dim_idx, di.name, di.datatype, di.unit, data=di.data)
-                    OM.add(index, synth.uid)     
+            #for dim_idx, dis in vp_obj.get_data_indexes().items():
+            #    for di in dis:
+            #        index = OM.new('data_index', dim_idx, di.name, di.datatype, di.unit, data=di.data)
+            #        OM.add(index, index_set_uid)     
+            #        
             index = OM.new('data_index', 1, 'Angle', 'ANGLE', 'deg', data=angle_degree)
-            OM.add(index, synth.uid)
+            OM.add(index, new_index_set.uid)
             #             
         #
 		 
@@ -847,12 +854,12 @@ def teste7(event):
         # ntrace = Numero de tracos # 17
 
         dt_pp = seis_pp.step/1000.0
-        t0 = seis_pp.get_index().data[0]
+        t0 = seis_pp.get_indexes().data[0]
         ntrace_pp = seis_pp.data.shape[0]
         npts_pp = seis_pp.data.shape[1]
         #
         dt_ps = seis_ps.step/1000.0
-        t0_ps = seis_ps.get_index().data[0]
+        t0_ps = seis_ps.get_indexes().data[0]
         ntrace_ps = seis_ps.data.shape[0]
         npts_ps = seis_ps.data.shape[1]
         #
@@ -970,7 +977,7 @@ def teste7(event):
             OM.add(seis_mod_ppps_pp)     
             #
             """
-            index = seis_mod_ppps_pp.get_index()
+            index = seis_mod_ppps_pp.get_indexes()
             print '\nMM:', index.max, index.min
             print mod_ppps_pp.shape
             """
@@ -1214,7 +1221,7 @@ def teste6(event):
         # ntrace = Numero de tracos # 17
 
         dt = seis.step/1000.0
-        t0 = seis.get_index().data[0]
+        t0 = seis.get_indexes().data[0]
 
         ntrace = seis.data.shape[0]
         npts = seis.data.shape[1]
@@ -1293,10 +1300,10 @@ def teste6(event):
             inversion = OM.new('inversion', name=results.get('invmod_name'))
             OM.add(inversion)
     
-            inv_index = OM.new('index_curve', seis.get_index().data,
+            inv_index = OM.new('index_curve', seis.get_indexes().data,
                                name='DEPTH', 
-                               unit=seis.get_index().name, 
-                               datatype=seis.get_index().attributes['curvetype'])
+                               unit=seis.get_indexes().name, 
+                               datatype=seis.get_indexes().attributes['curvetype'])
             OM.add(inv_index, inversion.uid)
     
             intercept = OM.new('inversion_parameter',
@@ -1465,7 +1472,7 @@ def on_cwt(event):
             obj = OM.get(obj_uid) 
             mode = results.get('mode')   
             analytic = results.get('analytic')
-            input_indexes = obj.get_index()
+            input_indexes = obj.get_indexes()
             z_axis = input_indexes[0][0]
 			 
 																			  
@@ -1754,7 +1761,7 @@ def on_phase_rotation(event):
             degrees = float(results.get('degrees'))   
             new_name = str(results.get('name'))              
             
-            index = obj.get_index()[0][0]
+            index = obj.get_indexes()[0][0]
             
             rot_data_index, rot_data = frequency_phase_rotation(obj.data, degrees, True)   
             rot_data = rot_data.real
@@ -1826,7 +1833,7 @@ def on_hilbert_attributes(event):
             obj = OM.get(obj_uid) 
             parentuid = OM._getparentuid(obj_uid)    
             
-            index = obj.get_index()[0][0]
+            index = obj.get_indexes()[0][0]
             step = index.data[1] - index.data[0]
             ht = HilbertTransform(obj.data, step)
 
@@ -1907,12 +1914,6 @@ def on_save_as(*args, **kwargs):
     gripy_app = wx.App.Get()
     gripy_app.on_save_as()
 
-       
- 
-#def on_new_wellplot(event):
-#    UIM = UIManager()
-#    root_controller = UIM.get_root_controller()        
-#    UIM.create('logplot_controller', root_controller.uid)
     
 def on_rock(event):
     OM = ObjectManager(event.GetEventObject()) 
@@ -2201,13 +2202,17 @@ def on_import_las(event):
             well = OM.new('well', name=las_file.wellname, 
                               LASheader=las_file.header)
             OM.add(well)
-            
             index = None
+            part_code = None 
 
-
-            part_code = None
-            #part_color    
-
+            ##
+            indexes = [sel_datatypes[i] for i in range(ncurves) if sel_datatypes[i] == 'Index']
+            if len(indexes) == 0:
+                raise Exception('ERROR: len(indexes) == 0')
+            index_set = OM.new('index_set', name='Run 1')
+            OM.add(index_set, well.uid)
+            ##
+            
 
             for i in range(ncurves):
                 if sel_curvetypes[i]:
@@ -2217,23 +2222,21 @@ def on_import_las(event):
                     PM.votefordatatype(names[i], sel_datatypes[i])
                 
                 if sel_datatypes[i] == 'Index':
-
                     index = OM.new('data_index', 0, names[i], 
                                    sel_curvetypes[i].upper(), units[i].lower(), 
                                    data=data[i]
                     )
-                    #print 'data_index', names[i]
-                    OM.add(index, well.uid)
+                    OM.add(index, index_set.uid)
                 
                 elif sel_datatypes[i] == 'Log':
-                    log = OM.new('log', data[i], name=names[i], 
-                                unit=units[i], datatype=sel_curvetypes[i]
-                                #index_uid=index.uid
+                    log = OM.new('log', data[i], index_set_uid=index_set.uid, 
+                                 name=names[i], unit=units[i], 
+                                 datatype=sel_curvetypes[i]
                     )
                     OM.add(log, well.uid)
 
                 elif sel_datatypes[i] == 'Partition':
-                    
+                    #raise Exception('Tratar isso!')
                     if part_code is None:
                         part_code = OM.new('property', name='partition_code')
                         OM.add(part_code)   
@@ -2555,7 +2558,7 @@ def on_import_segy_vel(event):
 def on_export_las(event):
 
     esdlg = ExportSelector.Dialog(wx.App.Get().GetTopWindow())
-    if esdlg.view.ShowModal() == wx.ID_OK:
+    if esdlg.ShowModal() == wx.ID_OK:
         OM = ObjectManager(event.GetEventObject())   
         ###
         # TODO: Colocar isso em outro lugar
@@ -2668,7 +2671,7 @@ def on_createrock(event):
         UIM.remove(dlg.uid)        
         
     
-def on_createwell(event):
+def on_create_well(event):
     OM = ObjectManager(event.GetEventObject()) 
     UIM = UIManager()
     dlg = UIM.create('dialog_controller', title='Create Well')
@@ -2765,10 +2768,14 @@ def on_createwell(event):
             well = OM.new('well', name=well_name) 
             OM.add(well)
             samples = ((end-start)/ts)+1
+            #
+            index_set = OM.new('index_set', 'Set')
+            OM.add(index_set, well.uid)
+            #
             index = OM.new('data_index', 0, index_name, datatype, unit, 
                    start=start, samples=samples, step=ts
             )
-            OM.add(index, well.uid)
+            OM.add(index, index_set.uid)
             ret_val = True
     except:
         pass
@@ -2790,8 +2797,10 @@ def on_create_synthetic(event):
     def on_change_well(name, old_value, new_value, **kwargs):
         choice = dlg.view.get_object('indexuid')
         opt = OrderedDict()
-        for obj in OM.list('data_index', new_value):
-            opt[obj.name] = obj.uid
+        new_well = OM.get(new_value)
+        
+        for name, obj_uid in new_well.get_friendly_indexes_dict().items():
+            opt[name] = obj_uid
         choice.set_options(opt)
         choice.set_value(0, True)
     #    
@@ -2961,9 +2970,11 @@ def on_create_synthetic(event):
                 
                 print data.shape
                 print data
-            #                   
-            log = OM.new('log', data, indexes=[index.uid], name=synth_name, 
-                         unit='amplitude', datatype=''
+            #
+            index_set_uid = OM._getparentuid(indexuid)       
+            #print indexuid, index_set_uid            
+            log = OM.new('log', data, index_set_uid=index_set_uid, 
+                         name=synth_name, unit='amplitude', datatype=''
             )
             OM.add(log, welluid)  
     except Exception as e:
@@ -2979,7 +2990,7 @@ def on_create_model(event):
 
     OM = ObjectManager(event.GetEventObject()) 
     UIM = UIManager()
-    dlg = UIM.create('dialog_controller', title='Create Model')
+    dlg = UIM.create('dialog_controller', title='Create 2/3 layers model')
     wells = OrderedDict()
     for well in OM.list('well'):
         wells[well.name] = well.uid
@@ -2987,8 +2998,9 @@ def on_create_model(event):
     def on_change_well(name, old_value, new_value, **kwargs):
         choice = dlg.view.get_object('indexuid')
         opt = OrderedDict()
-        for obj in OM.list('data_index', new_value):
-            opt[obj.name] = obj.uid
+        new_well = OM.get(new_value)
+        for name, obj_uid in new_well.get_friendly_indexes_dict().items():
+            opt[name] = obj_uid
         choice.set_options(opt)
         choice.set_value(0, True)
     #    
@@ -3218,25 +3230,27 @@ def on_create_model(event):
                     rho.append(np.nan)
                     q.append(np.nan)
 
+            index_set_uid = OM._getparentuid(index.uid)
+
             if vp:
                 vp = np.array(vp)
                 if np.count_nonzero(~np.isnan(vp)):
-                    log = OM.new('log', vp, name='Vp_model', unit='m/s', datatype='Velocity')
+                    log = OM.new('log', vp, index_set_uid=index_set_uid, name='Vp_model', unit='m/s', datatype='Velocity')
                     OM.add(log, welluid)     
             if vs:
                 vs = np.array(vs)
                 if np.count_nonzero(~np.isnan(vs)):
-                    log = OM.new('log', vs, name='Vs_model', unit='m/s', datatype='ShearVel')
+                    log = OM.new('log', vs, index_set_uid=index_set_uid, name='Vs_model', unit='m/s', datatype='ShearVel')
                     OM.add(log, welluid)
             if rho:
                 rho = np.array(rho)
                 if np.count_nonzero(~np.isnan(rho)):
-                    log = OM.new('log', rho, name='Rho_model', unit='g/cm3', datatype='Density')
+                    log = OM.new('log', rho, index_set_uid=index_set_uid, name='Rho_model', unit='g/cm3', datatype='Density')
                     OM.add(log, welluid)                     
             if q:
                 q = np.array(q)
                 if np.count_nonzero(~np.isnan(q)):
-                    log = OM.new('log', q, name='Q_model', unit=None)
+                    log = OM.new('log', q, index_set_uid=index_set_uid, name='Q_model', unit=None, datatype='QFactor')
                     OM.add(log, welluid)  
                                
     except Exception as e:

@@ -24,10 +24,11 @@ from DT.DataTypes import GatherSpectogram
 #from DT.DataTypes import Inversion
 #from DT.DataTypes import InversionParameter
 from DT.DataTypes import WellGather
+from DT.DataTypes import IndexSet
 from DT.DataTypes import DataIndex
-from DT.DataTypes import Model1D
-from DT.DataTypes import Zone
-from DT.DataTypes import ZoneSet
+#from DT.DataTypes import Model1D
+#from DT.DataTypes import Zone
+#from DT.DataTypes import ZoneSet
 #
 from UI.mvc_classes.track_object import DataFilter
 #
@@ -73,7 +74,7 @@ def register_app_classes():
     
 def register_OM_classes():
     ObjectManager.register_class(Well)
-    ObjectManager.register_class(DataIndex, Well)
+    ObjectManager.register_class(IndexSet, Well)
     ObjectManager.register_class(Core, Well)
     #
     ObjectManager.register_class(Log, Well)
@@ -83,31 +84,33 @@ def register_OM_classes():
     ObjectManager.register_class(Property, Partition)
     #
     ObjectManager.register_class(Seismic)
-    ObjectManager.register_class(DataIndex, Seismic)
+    ObjectManager.register_class(IndexSet, Seismic)
     #
     ObjectManager.register_class(Scalogram)
-    ObjectManager.register_class(DataIndex, Scalogram)
+    ObjectManager.register_class(IndexSet, Scalogram)
     #
     ObjectManager.register_class(WellGather, Well)
-    ObjectManager.register_class(DataIndex, WellGather)
+    ObjectManager.register_class(IndexSet, WellGather)
     #
     ObjectManager.register_class(DataFilter)
     #
     ObjectManager.register_class(GatherSpectogram, Well)
-    ObjectManager.register_class(DataIndex, GatherSpectogram)
+    ObjectManager.register_class(IndexSet, GatherSpectogram)
     #
     ObjectManager.register_class(GatherScalogram, Well)
-    ObjectManager.register_class(DataIndex, GatherScalogram)
+    ObjectManager.register_class(IndexSet, GatherScalogram)
     #
     ObjectManager.register_class(Rock, Well)
     ObjectManager.register_class(Fluid, Well)
     #
-    ObjectManager.register_class(Model1D, Well)
-    ObjectManager.register_class(DataIndex, Model1D)
+    ObjectManager.register_class(DataIndex, IndexSet)
+    
+#    ObjectManager.register_class(Model1D, Well)
+#    ObjectManager.register_class(DataIndex, Model1D)
     #
-    ObjectManager.register_class(ZoneSet, Well)
-    ObjectManager.register_class(Zone, ZoneSet)
-    ObjectManager.register_class(Property, Zone)
+#    ObjectManager.register_class(ZoneSet, Well)
+#    ObjectManager.register_class(Zone, ZoneSet)
+#    ObjectManager.register_class(Property, Zone)
     #
     
     

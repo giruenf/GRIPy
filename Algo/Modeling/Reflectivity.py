@@ -6,6 +6,8 @@ import rfltvPS
 import funcs as fn
 import scipy
 
+
+
 def Reflectivity(OM,parDictionary):
     
        
@@ -28,13 +30,28 @@ def Reflectivity(OM,parDictionary):
      angMax = parDictionary['angMax']
      seisOut = parDictionary['outFlag']
      eventRes = parDictionary['respFlag']                           
+     well_uid = parDictionary['wellID']
      
-     log_index = OM.list('log', parDictionary['wellID'])[0]
-     indexes = log_index.get_index()[0]
-      
-     vp = OM.get(parDictionary['vpLogID']).data
-     vs = OM.get(parDictionary['vsLogID']).data
-     rho = OM.get(parDictionary['rhoLogID']).data
+     well = OM.get(well_uid)
+     #log_index = OM.list('log', well_uid)[0]
+     
+     #print 'B fore!'
+     #index = well.get_z_axis_indexes_by_type('MD')[0]
+     
+     #print index
+     vp_obj = OM.get(parDictionary['vpLogID'])
+     vs_obj = OM.get(parDictionary['vsLogID'])
+     rho_obj = OM.get(parDictionary['rhoLogID'])
+     
+     if vp_obj.index_set_uid != vs_obj.index_set_uid or \
+                         vp_obj.index_set_uid != rho_obj.index_set_uid or \
+                         vs_obj.index_set_uid != rho_obj.index_set_uid:
+         raise Exception('Vp, Vs and Rho must be on same index_set_uid')                        
+     
+     vp = vp_obj.data
+     vs = vs_obj.data
+     rho = rho_obj.data
+     
      vp_nan = np.argwhere(np.isnan(vp))
      vs_nan = np.argwhere(np.isnan(vs))
      rho_nan = np.argwhere(np.isnan(rho))
@@ -42,8 +59,12 @@ def Reflectivity(OM,parDictionary):
      vs = np.delete(vs, vs_nan)
      rho = np.delete(rho, rho_nan)
      
+     index_set = OM.get(vp_obj.index_set_uid)
+     index = index_set.get_z_axis_indexes_by_type('MD')[0]
      
-     z1 = indexes[0].data
+     print 'index.data:', index.data
+     
+     z1 = index.data
      z1 = np.delete(z1, rho_nan)
      z2 = z1[1:]
      last_z = z1[-1] + z1[-1] -z1[-2]
@@ -179,15 +200,48 @@ def Reflectivity(OM,parDictionary):
          else:
              seisMod = rfltvPS.rfltvsubv4.modrfltv(dt, nSamp, numTrcsOut, x, vel1, zcam1, vpSup, vsSup, zSup, nSup, vp, vs, rho, dz, fqp, fqs, nLayers, firstLayer, lastLayer, angMax, wavelet, fWav, wavFlag, eventRes, seisOut, pNum)
  
+    
+     print '\n\n'
+     print seisMod.T.shape
+     print np.nanmin(seisMod), np.nanmax(seisMod)
+     print
+    
      new_name = parDictionary['outName']
+        
+     print 111
+     
+     try:
+         index_set = OM.new('index_set', name='Refletivity_indexes')
+         OM.add(index_set, well.uid)
+     except Exception as e:
+         print 'ABCFHGHTHTHJ'
+         print well.uid
+         raise e
+         
+     print 222        
+     
      synth = OM.new('gather', seisMod.T, datatype='Synth', name=new_name)
-     OM.add(synth, ('well', 0))
-     
+     OM.add(synth, well.uid)
+     #
+     print 333
+     #
      timeVector = timeVector * 1000.0
-     new_index = OM.new('data_index', 0, 'Time', 'TIME', 'ms', data=timeVector)
-     OM.add(new_index, synth.uid)
-     
-     new_index = OM.new('data_index', 1, 'Offset', 'OFFSET', 'm', data=x)
-     OM.add(new_index, synth.uid) 
-     
-     return 6    																		  
+     time_index = OM.new('data_index', 0, 'Time', 'TWT', 'ms', data=timeVector)
+     OM.add(time_index, index_set.uid)
+     #
+     print 444
+     gather_index_set = OM.new('index_set', vinculated=index_set.uid)
+     OM.add(gather_index_set, synth.uid)
+     print 555
+     if seisOut == 1 or seisOut == 2:
+         index = OM.new('data_index', 1, 'Offset', 'OFFSET', 'm', data=x)
+     elif seisOut == 3 or seisOut == 4:    
+         index = OM.new('data_index', 1, 'Ray Parameter', 'P', 's/m', data=x)
+     elif seisOut == 5:     
+         index = OM.new('data_index', 1, 'Angle', 'ANGLE', 'deg', data=x)
+     print 666    
+     OM.add(index, gather_index_set.uid)
+     #
+     print 777
+     return 6    
+																  

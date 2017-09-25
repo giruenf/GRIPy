@@ -11,6 +11,8 @@ from App import log
 from mpl_base import TrackFigureCanvas, PlotLabel
 from App.app_utils import DropTarget
 
+from DT.DataTypes import VALID_Z_AXIS_DATATYPES
+
 
 LP_NORMAL_TOOL = wx.NewId()        
 LP_SELECTION_TOOL = wx.NewId()     
@@ -26,12 +28,24 @@ class LogPlotController(WorkPageController):
     def __init__(self):
         super(LogPlotController, self).__init__()  
 
+
     def PostInit(self):
         self.subscribe(self.on_change_cursor_state, 
                              'change.cursor_state'
         )
         self.subscribe(self.on_change_ylim, 'change.y_min_shown')
         self.subscribe(self.on_change_ylim, 'change.y_max_shown')
+        #
+        UIM = UIManager()
+        UIM.subscribe(self._post_remove, 'post_remove')
+
+
+    def _post_remove(self, objuid):
+        if objuid[0] != self.tid:
+            return
+        if self.uid != objuid:
+            self.view.set_own_name()
+
 
     @property
     def size(self):
@@ -44,11 +58,18 @@ class LogPlotController(WorkPageController):
         return ['log', 'index_curve', 'partition', 'seismic', 'scalogram', 
                 'velocity', 'angle', 'gather', 'model1d']
 
+
     def is_valid_object(self, obj_uid):
-        OM = ObjectManager(self)#wx.App.Get())
+        OM = ObjectManager(self)
+        if obj_uid[0] == 'index_set':
+            return False
+        parent_uid = OM._getparentuid(obj_uid)
+        if obj_uid[0] == 'data_index':
+            granpa_uid = OM._getparentuid(parent_uid)
+            return granpa_uid[0] == 'well' and granpa_uid[1] == self.model.well_oid
         parent_uid = OM._getparentuid(obj_uid)
         try:
-            return parent_uid[0] == 'well'
+            return parent_uid[0] == 'well' and parent_uid[1] == self.model.well_oid
         except:
             return False
             
@@ -197,7 +218,7 @@ class LogPlotController(WorkPageController):
 
 
     def on_change_ylim(self, new_value, old_value):
-        print '\n\non_change_ylim:', new_value, old_value
+        #print '\n\non_change_ylim:', new_value, old_value
         self._reload_ylim()
                 
 
@@ -282,7 +303,7 @@ class LogPlotModel(WorkPageModel):
         'multicursor': {'default_value': 'None', 
                 'type': str
         },
-        'index_type': {'default_value': 'MD', 
+        'index_type': {'default_value': None, 
                 'type': str
         }   
     }
@@ -301,9 +322,9 @@ class LogPlot(WorkPage):
     _FRIENDLY_NAME = 'Well Plot'
     
     
-    
     def __init__(self, controller_uid):
         super(LogPlot, self).__init__(controller_uid) 
+        self.set_own_name()
         self.create_tool_bar()
         self.hbox = wx.BoxSizer(wx.HORIZONTAL)                    
         self.tracks_panel = LogPlotInternal(self.center_panel) 
@@ -329,28 +350,82 @@ class LogPlot(WorkPage):
 
         
     def PostInit(self):
+        print '\nLogPlot.PostInit'
+                
+        OM = ObjectManager(self)
         UIM = UIManager()        
         controller = UIM.get(self._controller_uid)
+        
         controller.subscribe(self.set_fit, 'change.fit')
         controller.subscribe(self.set_multicursor, 'change.multicursor')
         controller.subscribe(self.set_index_type, 'change.index_type')
+        
+        ###
         self._prepare_index_data()
         self.overview_track = UIM.create('track_controller', 
                                          self._controller_uid,
                                          overview=True, plotgrid=False                            
         )
-        self.overview_track.set_ylim(controller.model.y_min_shown, controller.model.y_max_shown)
-        ot_toc = self.overview_track.append_object(self._zaxis_uid)
-        ot_toc_repr_ctrl = ot_toc.get_representation()
+        ###
+        
+
+        well = OM.get(('well', controller.model.well_oid))
+        for z_axis_dt in well.get_z_axis_datatypes().values():
+            self.tool_bar.choice_IT.Append(z_axis_dt)
+        
+
+        
+        idx_index_type = self.tool_bar.choice_IT.GetItems().index(controller.model.index_type)
+        self.tool_bar.choice_IT.SetSelection(idx_index_type)
+
+        self.ot_toc = None
+        self.set_index_type(controller.model.index_type, None)
+        self.tool_bar.choice_IT.Bind(wx.EVT_CHOICE , self._on_index_type) 
+        
+        #ot_toc = self.overview_track.append_object(self._zaxis_uid)
+        #ot_toc_repr_ctrl = ot_toc.get_representation()
         # TODO: Update Adaptative
-        ot_toc_repr_ctrl.model.step = 200
+        #ot_toc_repr_ctrl.model.step = 200
+        #
+        
+        #
+
+        #
+        
+        
+        #
         controller.subscribe(self.on_change_logplot_ylim, 'change.logplot_y_min')
         controller.subscribe(self.on_change_logplot_ylim, 'change.logplot_y_max')   
         
+        #print 'b4 self._reload_z_axis_textctrls'
+        
         self._reload_z_axis_textctrls()
         
+        
+        print 'LogPlot.PostInit ENDED'
 
+
+    def set_own_name(self):
+        OM = ObjectManager(self)
+        UIM = UIManager()   
+        controller = UIM.get(self._controller_uid)
+        idx = 0
+        well = OM.get(('well', controller.model.well_oid))
+        lpcs = UIM.list('logplot_controller')
+        for lpc in lpcs:
+            if lpc == controller:
+                break
+            if lpc.model.well_oid == controller.model.well_oid:
+                idx += 1
+        idx += 1
+        #print '\nset_own_name:', self._controller_uid, controller.model.pos, idx
+        controller.model.title = self._FRIENDLY_NAME + ': ' + well.name + \
+                                    ' ['+ str(idx) + ']'    
+                                    #' ['+ str(self._controller_uid[1]+1) + ']'            
+    
+    
     def _prepare_index_data(self):
+        print '\nLogPlot._prepare_index_data'
         OM = ObjectManager(self)
         UIM = UIManager()        
         controller = UIM.get(self._controller_uid)
@@ -358,32 +433,41 @@ class LogPlot(WorkPage):
             well = OM.get(('well', controller.model.well_oid))
         except:
             raise
+            
         min_ = 100000
         max_ = -1
-        dis = well.get_index()[0]
+        
+        data_indexes_uid = well.get_friendly_indexes_dict().values()
         zaxis = []
-        for di in dis:
-            if controller.model.index_type == di.datatype:
-                if di.start < min_:
-                    min_ = di.start
-                if di.end > max_:
-                    max_ = di.end   
-                zaxis.append(di)    
+        
+        for data_index_uid in data_indexes_uid:
+            data_index = OM.get(data_index_uid)
+            if controller.model.index_type == data_index.datatype:
+                if data_index.start < min_:
+                    min_ = data_index.start
+                if data_index.end > max_:
+                    max_ = data_index.end   
+                zaxis.append(data_index)    
+                
+        #print '\nLogPlot._prepare_index_data:', min_, max_        
+                
         controller.model.logplot_y_min = min_
         controller.model.logplot_y_max = max_
         controller.model.y_min_shown = min_
         controller.model.y_max_shown = max_
+        
         if len(zaxis) > 1 or len(zaxis) == 0:
             print 'ATENCAO COM Z-AXIS!'
         #    
-        #print '_set_index_data 2:', min_, max_
+
         self._zaxis_uid = zaxis[0].uid
+        print 'LogPlot._prepare_index_data FIM'
 
-
+                
 
     def on_change_logplot_ylim(self, new_value, old_value):
-        raise Exception('Cannot do it!')
-        #self._reload_z_axis_textctrls()
+        #raise Exception('Cannot do it!')
+        self._reload_z_axis_textctrls()
         
         
     def _reload_z_axis_textctrls(self):    
@@ -394,7 +478,7 @@ class LogPlot(WorkPage):
         self.tool_bar.z_start.SetValue(z_start_str)
         z_end_str = "{0:.2f}".format(controller.model.y_max_shown)
         self.tool_bar.z_end.SetValue(z_end_str)
-        print '\n_reload_z_axis_textctrls:', z_start_str, z_end_str
+        #print '\n_reload_z_axis_textctrls:', z_start_str, z_end_str
         
 
     def on_change_z_start(self, event):
@@ -820,8 +904,34 @@ class LogPlot(WorkPage):
         for track in tracks:
             track.view.track.update_multicursor(new_value)
 
+
+
     def set_index_type(self, new_value, old_value):     
-        print 'set_index_type:', new_value, old_value
+        print '\n\n\nset_index_type:', new_value, old_value
+
+        UIM = UIManager() 
+        self._prepare_index_data()
+        
+        # TODO: Find a more Pythonic way to write aboxe
+        for track_ctrl in UIM.list('track_controller', self._controller_uid):
+            
+            if track_ctrl.model.overview:
+                print 'overview'
+                if self.ot_toc:
+                    UIM.remove(self.ot_toc.uid)    
+                print self._zaxis_uid    
+                self.ot_toc = self.overview_track.append_object(self._zaxis_uid) 
+                #ot_toc = self.overview_track.append_object(self._zaxis_uid)
+                #ot_toc_repr_ctrl = self.ot_toc.get_representation()
+                # TODO: Update Adaptative
+                #ot_toc_repr_ctrl.model.step = 200
+                
+            else:
+                for toc_ctrl in UIM.list('track_object_controller', track_ctrl.uid):
+                    filter_ = toc_ctrl.get_filter()
+                    filter_.reload_z_dimension_indexes()
+                    toc_ctrl._do_draw() 
+                
 
       
     def show_cursor(self, xdata, ydata):
@@ -899,11 +1009,13 @@ class LogPlot(WorkPage):
         #
         self.tool_bar.label_IT = wx.StaticText(self.tool_bar, label='Z Axis:  ')
         self.tool_bar.AddControl(self.tool_bar.label_IT, '')
-        self.tool_bar.choice_IT = wx.Choice(self.tool_bar, choices=['MD', 'TVD', 'TVDSS', 'TWT', 'TIME'])  
-        controller = UIM.get(self._controller_uid)
-        idx_index_type = ['MD', 'TVD', 'TVDSS', 'TWT', 'TIME'].index(controller.model.index_type)
-        self.tool_bar.choice_IT.SetSelection(idx_index_type)
-        self.tool_bar.choice_IT.Bind(wx.EVT_CHOICE , self._on_index_type) 
+        
+        self.tool_bar.choice_IT = wx.Choice(self.tool_bar, choices=[])
+        #
+        #controller = UIM.get(self._controller_uid)
+        #idx_index_type = ['MD', 'TVD', 'TVDSS', 'TWT', 'TIME'].index(controller.model.index_type)
+        #self.tool_bar.choice_IT.SetSelection(idx_index_type)
+        #self.tool_bar.choice_IT.Bind(wx.EVT_CHOICE , self._on_index_type) 
         self.tool_bar.AddControl(self.tool_bar.choice_IT, '')    
         #
        # self.tool_bar.AddSeparator()  

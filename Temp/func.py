@@ -55,7 +55,7 @@ def do_STFT(*args, **kwargs):
             
             if results.get('spectrogram_type'):
                 
-                index = obj.get_index()[0][0]
+                index = obj.get_indexes()[0][0]
                 
                 start = index.data[0]
                 start = start/1000
@@ -170,7 +170,7 @@ def do_CWT(*args, **kwargs):
             else:
                 raise Exception()   
             valid_data = obj.data[np.isfinite(obj.data)]
-            valid_index_data = obj.get_index().data[np.isfinite(obj.data)]
+            valid_index_data = obj.get_indexes().data[np.isfinite(obj.data)]
             wt = WaveletTransform(valid_data, dj=dj, wavelet=func, dt=obj.step,
                                   time=valid_index_data
             )

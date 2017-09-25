@@ -763,7 +763,24 @@
         "XplotMax": 750.0, 
         "LeftScale": 0.0, 
         "CurveDescription": "Flow In Pump Avg"
-    }, 
+    },
+    "QFactor": {
+        "RightScale": 200.0, 
+        "HistogramLeft": 0.0, 
+        "Color": "DeepPink", 
+        "LineStyle": "Solid", 
+        "Backup": "None", 
+        "XplotLogLin": "Lin", 
+        "HistogramRight": 200.0, 
+        "LogLin": "Lin", 
+        "XplotMin": 0.0, 
+        "HistogramLogLin": "Lin", 
+        "Units": null, 
+        "LineWidth": 1, 
+        "XplotMax": 200.0, 
+        "LeftScale": 0.0, 
+        "CurveDescription": "Absorption Q Factor"
+    }, 	
     "RB_Offset": {
         "RightScale": 360.0, 
         "HistogramLeft": 0.0, 
@@ -867,21 +884,21 @@
         "CurveDescription": "Delta-T Shear"
     }, 
     "ShearVel": {
-        "RightScale": 14000.0, 
-        "HistogramLeft": 4000.0, 
+        "RightScale": 4500.0, 
+        "HistogramLeft": 500.0, 
         "Color": "Green", 
         "LineStyle": "Solid", 
         "Backup": "None", 
         "XplotLogLin": "Lin", 
-        "HistogramRight": 14000.0, 
+        "HistogramRight": 4500.0,
         "LogLin": "Lin", 
-        "XplotMin": 4000.0, 
+        "XplotMin": 500.0,  
         "HistogramLogLin": "Lin", 
-        "Units": "ft/sec", 
+        "Units": "m/s", 
         "LineWidth": 1, 
-        "XplotMax": 14000.0, 
-        "LeftScale": 4000.0, 
-        "CurveDescription": "Sonic shear velocity"
+        "XplotMax": 4500.0, 
+        "LeftScale": 500.0, 
+        "CurveDescription": "S-Wave Shear Velocity"
     }, 
     "Sigma": {
         "RightScale": 0.0, 
@@ -1122,21 +1139,21 @@
         "CurveDescription": "Volume Coal"
     }, 
     "Velocity": {
-        "RightScale": 17000.0, 
-        "HistogramLeft": 7000.0, 
+        "RightScale": 5000.0, 
+        "HistogramLeft": 1000.0, 
         "Color": "Purple", 
         "LineStyle": "Solid", 
         "Backup": "None", 
         "XplotLogLin": "Lin", 
-        "HistogramRight": 17000.0, 
+        "HistogramRight": 5000.0, 
         "LogLin": "Lin", 
-        "XplotMin": 7000.0, 
+        "XplotMin": 1000.0,  
         "HistogramLogLin": "Lin", 
-        "Units": "ft/sec", 
+        "Units": "m/s", 
         "LineWidth": 1, 
-        "XplotMax": 17000.0, 
-        "LeftScale": 7000.0, 
-        "CurveDescription": "Compensated Velocity"
+        "XplotMax": 5000.0, 
+        "LeftScale": 1000.0,  
+        "CurveDescription": "P-Wave Compressional Velocity"
     }, 
     "VertStress": {
         "RightScale": 6000.0, 

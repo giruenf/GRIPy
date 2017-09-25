@@ -34,14 +34,14 @@ class TreeController(UIControllerBase):
         OM = ObjectManager(self)
         OM.subscribe(self.get_treeitem, 'add')
         OM.subscribe(self.remove_treeitem, 'post_remove')
-        #OM.addcallback('add', self.om_add_cb)
-        #OM.addcallback('post-remove', self.om_remove_cb)
 
-
-    #def PreDelete(self):
-    #    del self._maptypes
-    #    del self._mapobjects
-    
+    """
+    # Unsubscribe is called on Manager object deletion
+    def PreDelete(self):
+        OM = ObjectManager(self)
+        OM.unsubscribe(self.get_treeitem, 'add')
+        OM.unsubscribe(self.remove_treeitem, 'post_remove')
+    """
      
     def refresh(self):
         OM = ObjectManager(self)

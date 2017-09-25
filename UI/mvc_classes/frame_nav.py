@@ -353,37 +353,4 @@ class Navigator(Frame):
     def _doCancel(self):
         self.Close()  
 
-
-'''
-class IndexesFilter(GenericObject):
-    
-    tid = 'indexes_filter'
-    _TID_FRIENDLY_NAME = 'Filters'
-    
-    def __init__(self, objuid):
-        super(IndexesFilter, self).__init__()
-        self.data = OrderedDict() 
-        self.append_objuid(objuid)
-            
-        
-    def append_objuid(self, objuid):
-        if objuid in self.data.keys():
-            raise Exception('Object was added before.')
-        try:
-            OM = ObjectManager(self)
-            obj = OM.get(objuid)
-            data_indexes = obj.get_index()
-            vals = []
-            for dim_idx in range(len(data_indexes)):
-                indexes = data_indexes[dim_idx]
-                index = indexes[0]
-                if dim_idx < 2:    
-                    vals.append((index.uid, True, 0, len(index.data)))
-                else:
-                    vals.append((index.uid, False, 0, None))    
-            self.data[objuid] = vals
-    
-        except:
-            raise        
-        
-'''        
+     

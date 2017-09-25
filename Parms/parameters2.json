@@ -45,6 +45,7 @@
         "Phi",
         "PhiT",
         "Pump",
+        "QFactor",
         "RB_Offset",
         "ROP",
         "RotarySpeed",
@@ -274,13 +275,13 @@
             "Density": 0
         },
         "density": {
-            "Density": 9
+            "Density": 10
         },
         "dept": {
             "MD": 136
         },
         "depth": {
-            "MD": 80
+            "MD": 85
         },
         "dev": {
             "Deviation": 0
@@ -742,7 +743,7 @@
             "RB_Offset": 0
         },
         "owt": {
-            "Time": 16
+            "Time": 21
         },
         "p1az": {
             "Tool_Azimuth": 8
@@ -871,7 +872,7 @@
             "GammaRay": 12
         },
         "rho": {
-            "Density": 24
+            "Density": 29
         },
         "rhob": {
             "Density": 116
@@ -1156,7 +1157,7 @@
             "Spectral": 0
         },
         "time": {
-            "Time": 17
+            "Time": 18
         },
         "tnph": {
             "Neutron": 0
@@ -1189,7 +1190,7 @@
             "TwcPredicted": 0
         },
         "twt": {
-            "TWT": 15
+            "TWT": 20
         },
         "u": {
             "Spectral": 1
@@ -1243,10 +1244,10 @@
             "Velocity": 0
         },
         "vp": {
-            "Velocity": 89
+            "Velocity": 95
         },
         "vs": {
-            "ShearVel": 89
+            "ShearVel": 95
         },
         "vsalt": {
             "Vsalt": 0
@@ -1363,13 +1364,13 @@
             "Log": 2
         },
         "density": {
-            "Log": 9
+            "Log": 10
         },
         "dept": {
             "Index": 136
         },
         "depth": {
-            "Index": 76
+            "Index": 81
         },
         "devi": {
             "Log": 4
@@ -1537,7 +1538,7 @@
             "Log": 1
         },
         "owt": {
-            "Index": 16
+            "Index": 21
         },
         "p1az": {
             "Log": 8
@@ -1612,7 +1613,7 @@
             "Log": 4
         },
         "rho": {
-            "Log": 24
+            "Log": 29
         },
         "rhob": {
             "Log": 116
@@ -1693,7 +1694,7 @@
             "Log": 1
         },
         "time": {
-            "Index": 17
+            "Index": 18
         },
         "tot": {
             "Log": 59
@@ -1721,7 +1722,7 @@
             "Index": 9
         },
         "twt": {
-            "Index": 14,
+            "Index": 19,
             "Log": 1
         },
         "u": {
@@ -1737,13 +1738,13 @@
             "Log": 2
         },
         "vp": {
-            "Log": 89
+            "Log": 95
         },
         "vpvs": {
             "Log": 89
         },
         "vs": {
-            "Log": 89
+            "Log": 95
         },
         "vsh": {
             "Log": 12
