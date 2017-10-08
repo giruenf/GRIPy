@@ -481,7 +481,7 @@ class BaseAxes(GripyMPLAxes):
                 raise ValueError('y_major_grid_lines deve ser float.') 
             elif value <= 0:
                 raise ValueError('y_major_grid_lines deve ser maior que 0.') 
-                print 'setting y_major_grid_lines:', value
+    #            print 'setting y_major_grid_lines:', value
             self.yaxis.set_major_locator(MultipleLocator(value))
             self._properties['y_major_grid_lines'] = value             
         elif key == 'y_minor_grid_lines':
@@ -507,13 +507,13 @@ class BaseAxes(GripyMPLAxes):
             if self.get_xscale() == 'log':
                 xlim = (self._properties.get('leftscale'), 
                     self._properties.get('leftscale')*(self._properties.get('log_base')**self._properties.get('decades')))
-                print 'xlim (log):', xlim
+     #           print 'xlim (log):', xlim
                 self.set_xlim(xlim)       
         elif key == 'minorgrid':  
             if not isinstance(value, bool):  
                 raise ValueError('O valor de minorgrid deve ser True ou False.')  
             if self.get_xscale() == 'log' and self._properties.get('plotgrid'): 
-                print 'grid({}, axis=x, which=minor, {})'.format(value, self.default_grid_mapping)
+     #           print 'grid({}, axis=x, which=minor, {})'.format(value, self.default_grid_mapping)
                 if value:
                     self.grid(value, axis='x', which='minor', **self.default_grid_mapping)
                 else:
@@ -714,15 +714,19 @@ class TrackFigureCanvas(FigureCanvas, SelectPanelMixin):
         #self.blit(self.figure.bbox)
         
 
-    def show_cursor(self, xdata, ydata):
+    # TODO: Melhorar esses metodos de cursor
+    def show_cursor(self, xdata, ydata, event_under_me=False):
         if not self.widgetlock.available(self):
             return
         #self.needclear = True
         #if not self._mc_vertOn and not self._mc_horizOn:
         #    return
-        if self._mc_vertOn:
-            self._mc_vline.set_xdata((xdata, xdata))
-            self._mc_vline.set_visible(True)
+        if event_under_me:
+            if self._mc_vertOn:
+                self._mc_vline.set_xdata((xdata, xdata))
+                self._mc_vline.set_visible(True)
+        else:
+            self._mc_vline.set_visible(False)
         if self._mc_horizOn:
             self._mc_hline.set_ydata((ydata, ydata))
             self._mc_hline.set_visible(True)
@@ -738,7 +742,12 @@ class TrackFigureCanvas(FigureCanvas, SelectPanelMixin):
             self.plot_axes.draw_artist(self._mc_hline)
         self.blit(self.figure.bbox)
 
-            
+
+    def mark_vertical(self, xdata):
+        print 'mark_vertical'
+        marked_vert_line = self.plot_axes.axvline(xdata, visible=True, lw=2, color='Lime')
+        self.plot_axes.draw_artist(marked_vert_line)    
+        print 'mark_vertical ended'
             
     def on_pick(self, event):
         if event.mouseevent.button == 1:
@@ -830,11 +839,11 @@ class TrackFigureCanvas(FigureCanvas, SelectPanelMixin):
         elif artist_type == 'contourf':
             #contours = mcontour.QuadContourSet(self.plot_axes, *args, **kwargs)
             #self.plot_axes.autoscale_view()
-            print 'A'
+         #   print 'A'
             image = self.plot_axes.contourf(*args, **kwargs)
-            print 'B'
+         #   print 'B'
             #self.plot_axes.add_image(image)
-            print 'C'
+         #   print 'C'
             return image
         else:
             raise Exception('artist_type not known.')
@@ -1200,11 +1209,12 @@ class VisDataLabel(FigureCanvas):
         Window that owns this component.
 
     """
-    _COLOR = 'white'#'lightblue' #'white'
+    _COLOR = 'white' #'lightblue' #'white'
     
     def __init__(self, parent):
         self.parent = parent
-        fig = Figure(figsize=(1, 0.35))
+        #fig = Figure(figsize=(1, 0.35))
+        fig = Figure(figsize=(1, 0.40))
         super(VisDataLabel, self).__init__(self.parent, -1, fig)     
         self.figure.set_facecolor(self._COLOR)
         self._obj_uid = None  
@@ -1239,8 +1249,11 @@ class VisDataLabel(FigureCanvas):
     def set_object_uid(self, object_uid):
         self._obj_uid = object_uid 
 
+
     def set_title(self, title):
+   #     print '\nVisDataLabel.set_title:', title
         if self.title == title:
+   #         print 'retornou'
             return
         props = self._properties.get('title', None)
         if props:
@@ -1248,11 +1261,17 @@ class VisDataLabel(FigureCanvas):
             if not title_text:
                 title_text = create_text(self.figure, title, props)
                 self._mplot_objects['title_text'] = title_text
+   #             print 111
             else:
                 title_text.set_text(title)
+   #             print 222
             self.draw()    
             self.title = title   
+       # else:
+       #     print 'not props'
+        #print 'set title ended'    
    
+    
     def set_unit(self, unit):
         if self.unit == unit:
             return
@@ -1267,6 +1286,7 @@ class VisDataLabel(FigureCanvas):
             self.draw()    
             self.unit = unit   
                                 
+            
     def set_color(self, color):
         if self.plottype == 'line':
             if self.color == color:
@@ -1283,6 +1303,7 @@ class VisDataLabel(FigureCanvas):
             line.set_color(color) 
             self.draw()
             self.color = color
+
 
     def set_thickness(self, thickness):
         if self.plottype == 'line':
@@ -1321,7 +1342,7 @@ class VisDataLabel(FigureCanvas):
 
 
     def set_zlabel(self, z_axis_label):
-        if self.plottype == 'density' or self.plottype == 'wiggle':
+        if self.plottype == 'density' or self.plottype == 'wiggle' or self.plottype == 'both':
             if self.zlabel == z_axis_label:
                 return
             props = self._properties.get('zlabel', None)    
@@ -1447,18 +1468,36 @@ class VisDataLabel(FigureCanvas):
 
    
 
+    def _remove_all_artists(self):
+        for value in self._mplot_objects.values():
+            if value:
+                value.remove()
+        self._mplot_objects = {}              
+        
 
     def set_plot_type(self, plottype):
-        #print '\nVisDataLabel.set_plotype: ', plottype
+   #     print '\n\nVisDataLabel.set_plotype: ', plottype
         if plottype == self.plottype:
+   #         print 111
             return
         if plottype not in VALID_PLOT_TYPES:
+   #         print 222
             return
+
+
+        self._remove_all_artists()
+
+
         self._start_variables()   
+   #     print 333
+
+
+
 
         self._properties = {}
         self._properties['xleft'] = 0.05
         self._properties['xright'] = 0.95
+        
         
         if plottype == 'line':
             self._properties['title'] = {'x': 0.5, 'y':0.64, 'ha':'center', 'fontsize':10}
@@ -1474,6 +1513,7 @@ class VisDataLabel(FigureCanvas):
                         self._properties['xright']-self._properties['xleft'],
                         0.15
             ]
+            
         elif plottype == 'density':
             self._properties['title'] = {'x': 0.5, 'y':0.55, 'ha':'center', 
                                                                 'fontsize':10}            
@@ -1505,15 +1545,22 @@ class VisDataLabel(FigureCanvas):
             }
             self._properties['xmax'] = {'x': self._properties['xright'],
                         'y':ypos, 'ha':'right', 'va':'center', 'fontsize':9
-            }                        
+            }    
+                    
         elif plottype == 'wiggle':  
-            self._properties['title'] = {'x': 0.5, 'y':0.75, 'ha':'center', 
-                                                                'fontsize':10}  
-            self._properties['zlabel'] = {'x': 0.5, 'y':0.58, 'ha':'center', 
-                                                'va':'center', 'fontsize':9
-            }                                                    
+            #self._properties['title'] = {'x': 0.5, 'y':0.75, 'ha':'center', 
+            #                                                    'fontsize':10}  
+            self._properties['title'] = {'x': 0.5, 'y':0.55, 'ha':'center', 
+                                                                'fontsize':10}   
+            #
+            #self._properties['zlabel'] = {'x': 0.5, 'y':0.58, 'ha':'center', 
+            #                                    'va':'center', 'fontsize':9
+            #}  
+            self._properties['zlabel'] = {'x': 0.5, 'y':0.16, 'ha':'center', 'fontsize':9}    
+            #                                                  
             self._properties['xlabel'] = {'x': 0.5, 'y':0.35, 'ha':'center', 
-                                                'va':'center', 'fontsize':9}           
+                                                'va':'center', 'fontsize':9}    
+            
             self._properties['line_axes_extent'] = [0.0,  0.15, 1.0, 0.2]
             # Falta x_range
             self._properties['xmin'] = {'x': self._properties['xleft'],
@@ -1523,7 +1570,38 @@ class VisDataLabel(FigureCanvas):
                              'y':0.3, 'ha':'right', 'va':'center', 'fontsize':9
             }
             ###
-        
+        elif plottype == 'both':
+            self._properties['title'] = {'x': 0.5, 'y':0.55, 'ha':'center', 
+                                                                'fontsize':10}            
+            self._properties['cmap_axes_extent'] = [self._properties['xleft'],
+                        0.10, 
+                        self._properties['xright']-self._properties['xleft'],
+                        0.22
+            ]
+            ypos = 0.5
+            self._properties['zlabel'] = {'x': 0.5, 'y':ypos, 'ha':'center', 
+                                                'va':'center', 'fontsize':9
+            }
+            self._properties['zmin'] = {'x':self._properties['xleft'],
+                         'y':ypos, 'ha':'left', 'va':'center', 'fontsize':9
+            }
+            self._properties['zmax'] = {'x': self._properties['xright'],
+                        'y':ypos, 'ha':'right', 'va':'center', 'fontsize':9
+            }
+            self._properties['line_axes_extent'] = [self._properties['xleft'],
+                        0.0, 
+                        self._properties['xright']-self._properties['xleft'],
+                        0.2
+            ]
+            ypos = 0.18
+            self._properties['xlabel'] = {'x': 0.5, 'y':ypos, 'ha':'center', 
+                                                'va':'center', 'fontsize':10}   
+            self._properties['xmin'] = {'x':self._properties['xleft'],
+                         'y':ypos, 'ha':'left', 'va':'center', 'fontsize':9
+            }
+            self._properties['xmax'] = {'x': self._properties['xright'],
+                        'y':ypos, 'ha':'right', 'va':'center', 'fontsize':9
+            }                
         elif plottype == 'partition' or plottype == 'index':
             self._properties['title'] = {'x': 0.5, 'y':0.55, 'ha':'center', 
                                                                 'fontsize':10}

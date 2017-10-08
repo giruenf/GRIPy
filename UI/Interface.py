@@ -267,12 +267,21 @@ def load():
 				label=u"Reflectivity Method", 
 				callback='App.menu_functions.ReflectivityModel'
         )
+        #UIM.create('menu_item_controller', mc_model.uid,
+        #               kind=wx.ITEM_SEPARATOR
+        #) 
+        #UIM.create('menu_item_controller', mc_model.uid,
+        #        label=u"Poisson ratio", 
+        #        callback='App.menu_functions.on_poisson_ratio'
+        #)            
+        
 
-        # Well Menu
+        # Debug Menu
         UIM.create('menu_item_controller', mc_debug.uid, 
                 label=u"Debug Console", help=u"Gripy Debug Console", 
                 callback='App.menu_functions.on_debugconsole'
-        )    
+        )  
+        #
         UIM.create('menu_item_controller', mc_debug.uid, 
                        kind=wx.ITEM_SEPARATOR
         )
@@ -290,10 +299,11 @@ def load():
                 callback='App.menu_functions.teste11'
         ) 
      
-
+        UIM.create('menu_item_controller', mc_debug.uid, 
+                label=u'Calc Well Time from Depth curve', 
+                callback='App.menu_functions.calc_well_time_from_depth'
+        ) 
      
-
-        
         # Fim Main Menu Bar
 
         # Object Manager TreeController                                                          
@@ -349,8 +359,12 @@ def load():
         # Area reservada para alguns testes 
         # """
         
-        fullfilename = 'C:\\Users\\Adriano\\Desktop\\aaa_teste_4.pgg'
-        app.load_project_data(fullfilename)    
+        #fullfilename = 'C:\\Users\\Adriano\\Desktop\\aaa_teste_5.pgg'
+        
+        #fullfilename = 'C:\\Users\\Adriano\\Desktop\\aaa_teste_8.pgg'
+        
+        #fullfilename = 'C:\\Users\\Adriano\\Desktop\\2709_pocos_classes.pgg'
+        #app.load_project_data(fullfilename)    
 
         #
         #lpc = UIM.create('logplot_controller', mwc.uid)

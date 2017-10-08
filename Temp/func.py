@@ -55,7 +55,7 @@ def do_STFT(*args, **kwargs):
             
             if results.get('spectrogram_type'):
                 
-                index = obj.get_indexes()[0][0]
+                index = obj.get_data_indexes()[0][0]
                 
                 start = index.data[0]
                 start = start/1000
@@ -158,7 +158,7 @@ def do_CWT(*args, **kwargs):
             elif wavelet == 'dog6':
                 func = DOGWavelet(m=6) 
             elif wavelet == 'paul2':
-                func = Paul(m=2) 
+                func = PaulWavelet(m=2) 
             elif wavelet == 'paul3':
                 func = PaulWavelet(m=3) 
             elif wavelet == 'paul4':
@@ -169,8 +169,10 @@ def do_CWT(*args, **kwargs):
                 func = PaulWavelet(m=6) 
             else:
                 raise Exception()   
+                
             valid_data = obj.data[np.isfinite(obj.data)]
             valid_index_data = obj.get_indexes().data[np.isfinite(obj.data)]
+            
             wt = WaveletTransform(valid_data, dj=dj, wavelet=func, dt=obj.step,
                                   time=valid_index_data
             )

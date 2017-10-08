@@ -35,13 +35,6 @@ class TreeController(UIControllerBase):
         OM.subscribe(self.get_treeitem, 'add')
         OM.subscribe(self.remove_treeitem, 'post_remove')
 
-    """
-    # Unsubscribe is called on Manager object deletion
-    def PreDelete(self):
-        OM = ObjectManager(self)
-        OM.unsubscribe(self.get_treeitem, 'add')
-        OM.unsubscribe(self.remove_treeitem, 'post_remove')
-    """
      
     def refresh(self):
         OM = ObjectManager(self)
@@ -87,29 +80,35 @@ class TreeController(UIControllerBase):
         self._create_object_attributes(objuid)
         #
         return treeitem
-  
-    
-    def _create_object_attributes(self, objuid):
+
+
+    def _get_object_attributes(self, objuid):
         OM = ObjectManager(self)
         obj = OM.get(objuid)
+        ret_list = []
+        for attr, attr_label in obj._SHOWN_ATTRIBUTES:
+            try:
+                value = getattr(obj, attr)
+            except:
+                value = obj.attributes.get(attr)   
+            if isinstance(value, float):
+                value = "{0:.2f}".format(value)
+            elif value is None:
+                value = 'None'
+            attr_str = attr_label + ': ' + str(value)  
+            ret_list.append(attr_str)
+        return ret_list
+
+    
+    def _create_object_attributes(self, objuid):
         obj_treeitem = self._mapobjects.get(objuid)
         if not obj_treeitem:
             raise Exception('Creating object attributes for an object not exists.')
         # Create item obj parameters
         try:
-            for attr, attr_label in obj._SHOWN_ATTRIBUTES:
-                try:
-                    value = getattr(obj, attr)
-                except:
-                    value = obj.attributes.get(attr)   
-                if isinstance(value, float):
-                    value = "{0:.2f}".format(value)
-                elif value is None:
-                    value = 'None'
-                attr_str = attr_label + ': ' + str(value)
+            for attr_str in self._get_object_attributes(objuid):
                 attrtreeid = self.view.AppendItem(obj_treeitem, attr_str)
                 self.view.SetItemData(attrtreeid, (None, None))
-            #'''    
         except Exception:
             pass        
  
@@ -133,8 +132,6 @@ class TreeController(UIControllerBase):
         if not parentuid:
             parentuid = self._PSEUDOROOTUID
         treeitem_parent = self._maptypes[parentuid].get(obj.tid)  
-        #if not treeitem_parent:
-        #    treeitem_parent = self._create_tid_data(obj, parentuid)
         if not treeitem_parent:
             treeitem_parent = self._create_tid_data(obj, parentuid)
         return treeitem_parent   
@@ -143,21 +140,11 @@ class TreeController(UIControllerBase):
     def _get_object_label(self, objuid):
         OM = ObjectManager(self)
         obj = OM.get(objuid)
-        # Unit labels
-        '''
-        if isinstance(obj, DT.DataTypes.DataTypeUnitMixin):    
-            try:    
-                obj_str = obj.name + ' (' + obj.unit + ')'    
-            except AttributeError:
-                obj_str = obj.name + ' (unitless)'
-                
-        else:
-        '''    
         obj_str = obj.name
         # 
         return obj_str
 
-    
+    #"""
     def reload_object(self, objuid):
         treeitem = self._mapobjects.get(objuid)
         if not treeitem:
@@ -165,7 +152,40 @@ class TreeController(UIControllerBase):
         self.view.DeleteChildren(treeitem)
         self.view.SetItemText(treeitem, self._get_object_label(objuid))
         self._create_object_attributes(objuid)
+    #"""    
+    
+    """
+    def reload_object(self, objuid):
+        OM = ObjectManager(self)
+        
+        treeitem = self._mapobjects.get(objuid)
+        if not treeitem:
+            raise Exception('Trying to reload an object not exists.')
+        #    
+        #self.view.DeleteChildren(treeitem)
+        
+        
+        self._reload_object(objuid)
+        
+        #self.view.SetItemText(treeitem, self._get_object_label(objuid))
+        #
+        #self.get_treeitem(objuid)
+        #self._create_object_attributes(objuid)
+        
+        #for son in OM.list(parentuidfilter=objuid):
+        #    self.reload_object(son.uid)
 
+
+    def _reload_object(self, objuid):
+        OM = ObjectManager(self)
+        self.get_treeitem(objuid)    
+        for son in OM.list(parentuidfilter=objuid):
+            self._reload_object(son.uid)
+
+    
+    """    
+#    def     
+        
         
     def remove_treeitem(self, objuid):
         treeitem = self._mapobjects.get(objuid)
@@ -182,57 +202,11 @@ class TreeController(UIControllerBase):
         if not self.view.GetChildrenCount(treeitem_parent):
             del self._maptypes[parentuid][objuid[0]]
             self.view.Delete(treeitem_parent)
-        #self.view.Expand(treeparentid)    
+#        else:
+#            raise Exception('')
         return True        
 
-    '''
-    def om_add_cb(self, objuid):
-        OM = ObjectManager(self)
-        obj = OM.get(objuid)
-        parentuid = OM._getparentuid(objuid)
-        if not parentuid:
-            parentuid = self._PSEUDOROOTUID
-        treeparentid = self._maptypes[parentuid].get(obj.tid)  
-        if not treeparentid:
-            try:
-                treeparentid = self.view.AppendItem(self._mapobjects[parentuid], 
-                                                    obj._FRIENDLY_NAME
-                )
-            except AttributeError:  
-                treeparentid = self.view.AppendItem(self._mapobjects[parentuid], obj.tid)
-            self.view.SetItemData(treeparentid, (parentuid, obj.tid))
-            self._maptypes[parentuid][obj.tid] = treeparentid
-        if isinstance(obj, DT.DataTypes.DataTypeUnitMixin):    
-            try:    
-                obj_str = obj.name + ' (' + obj.unit + ')'    
-            except AttributeError:
-                obj_str = obj.name + ' (unitless)'
-        else:
-            obj_str = obj.name
-         
-        newtreeid = self.view.AppendItem(treeparentid, obj_str)
-        self.view.SetItemData(newtreeid, (obj.uid, None))
 
-        try:
-            #attr_str = 'Object Id: ' + str(obj.oid)
-            #attrtreeid = self.view.AppendItem(newtreeid, attr_str)
-            #self.view.SetPyData(attrtreeid, (None, None))    
-            for attr, attr_label in obj._SHOWN_ATTRIBUTES:
-                value = obj.attributes.get(attr)
-                if value is None:
-                    #value = obj.__dict__.get(attr)
-                    #if value is None:
-                    value = getattr(obj, attr)
-                attr_str = attr_label + ': ' + str(value)
-                attrtreeid = self.view.AppendItem(newtreeid, attr_str)
-                self.view.SetItemData(attrtreeid, (None, None))
-        except AttributeError:    
-            pass
-        self._mapobjects[obj.uid] = newtreeid
-        self._maptypes[obj.uid] = {}
-        #self.view.ExpandAll()
-    
-    '''    
 
 
 
@@ -331,6 +305,11 @@ class TreeView(UIViewBase, wx.TreeCtrl):
         #
         self.popup_obj = (uid, tree_tid)
         self.popupmenu = wx.Menu()  
+        #
+        item = self.popupmenu.Append(wx.NewId(), 'Rename object')
+        self.Bind(wx.EVT_MENU, self.OnRenameObject, item)
+        self.popupmenu.AppendSeparator()
+        #
         if self._is_convertible(uid):
             item = self.popupmenu.Append(wx.NewId(), 'Convert unit')
             self.Bind(wx.EVT_MENU, self.OnUnitConvert, item)
@@ -373,6 +352,42 @@ class TreeView(UIViewBase, wx.TreeCtrl):
             for item in items:
                 OM.remove(item.uid)
               
+
+
+    def OnRenameObject(self, event):  
+        uid, tree_tid = self.popup_obj
+        OM = ObjectManager(self)       
+        obj = OM.get(uid)
+        
+        UIM = UIManager()
+        dlg = UIM.create('dialog_controller', title='Rename object')        
+        #
+        try:        
+            ctn_details = dlg.view.AddCreateContainer('StaticBox', label='Object details', orient=wx.VERTICAL, proportion=0, flag=wx.EXPAND|wx.TOP, border=5)
+            dlg.view.AddStaticText(ctn_details, proportion=0, flag=wx.EXPAND|wx.TOP, border=5, label='Name: ' + obj.name)
+            #
+            dlg.view.AddStaticText(ctn_details, proportion=0, flag=wx.EXPAND|wx.TOP, border=5, label='Type id: ' + obj.tid)
+            dlg.view.AddStaticText(ctn_details, proportion=0, flag=wx.EXPAND|wx.TOP, border=5, label='Object id: ' + str(obj.oid))
+            #
+            ctn_new_name = dlg.view.AddCreateContainer('StaticBox', label='New name', orient=wx.VERTICAL, proportion=0, flag=wx.EXPAND|wx.TOP, border=5)  
+            dlg.view.AddTextCtrl(ctn_new_name, proportion=0, flag=wx.EXPAND|wx.TOP, border=5, widget_name='new_name', initial=obj.name)     
+            #    
+            dlg.view.SetSize((300, 330))
+            answer = dlg.view.ShowModal()
+            #
+            if answer == wx.ID_OK:
+                results = dlg.get_results()  
+                new_name = results.get('new_name')
+                obj.name = new_name   
+                UIM = UIManager()
+                controller = UIM.get(self._controller_uid)
+                controller.reload_object(obj.uid)                 
+        except Exception:
+            pass
+        finally:
+            UIM.remove(dlg.uid)     
+
+
                           
     def OnUnitConvert(self, event):     
         uid, tree_tid = self.popup_obj

@@ -26,7 +26,8 @@ from DT.DataTypes import GatherSpectogram
 from DT.DataTypes import WellGather
 from DT.DataTypes import IndexSet
 from DT.DataTypes import DataIndex
-#from DT.DataTypes import Model1D
+
+from DT.DataTypes import Model1D
 #from DT.DataTypes import Zone
 #from DT.DataTypes import ZoneSet
 #
@@ -86,7 +87,7 @@ def register_OM_classes():
     ObjectManager.register_class(Seismic)
     ObjectManager.register_class(IndexSet, Seismic)
     #
-    ObjectManager.register_class(Scalogram)
+    ObjectManager.register_class(Scalogram, Seismic)
     ObjectManager.register_class(IndexSet, Scalogram)
     #
     ObjectManager.register_class(WellGather, Well)
@@ -105,8 +106,8 @@ def register_OM_classes():
     #
     ObjectManager.register_class(DataIndex, IndexSet)
     
-#    ObjectManager.register_class(Model1D, Well)
-#    ObjectManager.register_class(DataIndex, Model1D)
+    ObjectManager.register_class(Model1D, Well)
+    ObjectManager.register_class(IndexSet, Model1D)
     #
 #    ObjectManager.register_class(ZoneSet, Well)
 #    ObjectManager.register_class(Zone, ZoneSet)

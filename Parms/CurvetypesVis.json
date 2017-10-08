@@ -373,6 +373,23 @@
         "LeftScale": 0.0, 
         "CurveDescription": "Hookload Average"
     }, 
+	"Impedance": {
+        "RightScale": 10000.0, 
+        "HistogramLeft": 4000.0,  
+        "Color": "Blue", 
+        "LineStyle": "Solid", 
+        "Backup": "None", 
+        "XplotLogLin": "Lin", 
+        "HistogramRight": 10000.0,  
+        "LogLin": "Lin", 
+        "XplotMin": 4000.0,
+        "HistogramLogLin": "Lin", 
+        "Units": "(m/s)*(g/cm3)", 
+        "LineWidth": 1, 
+        "XplotMax": 10000.0, 
+        "LeftScale": 4000.0, 
+        "CurveDescription": "Impedance"
+    }, 	
     "LoadFactor": {
         "RightScale": 2.0, 
         "HistogramLeft": 0.0, 
@@ -747,6 +764,23 @@
         "LeftScale": 0.5, 
         "CurveDescription": "Total Porosity"
     }, 
+    "PoissonRatio": {
+        "RightScale": 0.5, 
+        "HistogramLeft": 0.0, 
+        "Color": "Red", 
+        "LineStyle": "Solid", 
+        "Backup": "None", 
+        "XplotLogLin": "Lin", 
+        "HistogramRight": 0.5, 
+        "LogLin": "Lin", 
+        "XplotMin": 0.0, 
+        "HistogramLogLin": "Lin", 
+        "Units": null, 
+        "LineWidth": 1, 
+        "XplotMax": 0.5, 
+        "LeftScale": 0.0, 
+        "CurveDescription": "Poisson Ratio"
+    }, 	
     "Pump": {
         "RightScale": 750.0, 
         "HistogramLeft": 0.0, 

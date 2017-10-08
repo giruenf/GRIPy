@@ -316,15 +316,27 @@ class WellData1D(GenericDataType):
         OM = ObjectManager(self)        
         OM.subscribe(self._on_OM_add, 'add')
 
+
     def _on_OM_add(self, objuid):
         if objuid != self.uid:
             return
-        OM = ObjectManager(self)            
+        print 'WellData1D._on_OM_add:', objuid
+        OM = ObjectManager(self)
         try:
-            OM.unsubscribe(self._on_OM_add, 'add')
+            OM.unsubscribe(self._on_OM_add, 'add')     
+        except Exception as e:
+            print 'Deu ruim no unsub:', e
+        try:
+            
             parent_well_uid = OM._getparentuid(self.uid)
+            print 'parent_well_uid:', parent_well_uid
             my_index_set = OM.get(self.index_set_uid)
+            print 'my_index_set:', my_index_set
+            print 'list:'
+            for obj_is in OM.list('index_set', parent_well_uid):
+                print obj_is
             if my_index_set not in OM.list('index_set', parent_well_uid):
+                print 'DEU RUIM'
                 raise Exception('Invalid attribute \"index_set\"={}'.format(self.index_set_uid))
         except:
             raise
@@ -398,11 +410,11 @@ class Log(WellData1D):
                             ('datatype', 'Curve Type'),
                             ('unit', 'Units'),
                             ('min', 'Min Value'),
-                            ('max', 'Max Value'),
-                            ('index_name', 'Index'),
-                            ('start', 'Start'),
-                            ('end', 'End'),
-                            ('step', 'Step'),
+                            ('max', 'Max Value')
+                            #('index_name', 'Index'),
+                            #('start', 'Start'),
+                            #('end', 'End'),
+                            #('step', 'Step'),
     ] 
     
     def __init__(self, data, **attributes):
@@ -1173,7 +1185,7 @@ class DataIndex(GenericDataType):
     tid = 'data_index'
     _FRIENDLY_NAME = 'Index'
     _SHOWN_ATTRIBUTES = [
-                            ('_oid', 'Object Id'),
+                            #('_oid', 'Object Id'),
                             ('dimension', 'Dimension'),
                             ('datatype', 'Type'),
                             ('unit', 'Unit'),

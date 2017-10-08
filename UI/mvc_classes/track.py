@@ -15,6 +15,7 @@ from App import log
 
 from App.gripy_function_manager import FunctionManager
 
+import numpy as np
 
 
 class TrackController(UIControllerBase):
@@ -538,9 +539,13 @@ class TrackView(UIViewBase):
             uid = (toc.model.obj_tid, toc.model.obj_oid)
             obj = OM.get(uid)
             info += ', {}: {}'.format(obj.name, str_x)    
-            
+               
         parent_controller.show_status_message(info)
-        parent_controller.show_cursor(event.xdata, event.ydata)
+        
+        #print self._controller_uid, event.xdata, event.ydata
+        #print parent_controller, self._controller_uid
+        
+        parent_controller.show_cursor(self._controller_uid, event.xdata, event.ydata)
     
         
         
@@ -593,115 +598,113 @@ class TrackView(UIViewBase):
         #if event.guiEvent.GetEventObject().HasCapture():            
         #    event.guiEvent.GetEventObject().ReleaseMouse()        
         ###
-        #print '\nTrackView.process_event:', event       
-        
+        #print '\nTrackView.process_event:', event     
+        #
+        OM = ObjectManager(self)
         UIM = UIManager()
         controller = UIM.get(self._controller_uid)        
         if isinstance(event, wx.MouseEvent):        
             gui_evt = event
         else:
             gui_evt = event.guiEvent
-        
-
+        #
         if gui_evt.GetEventObject() and gui_evt.GetEventObject().HasCapture():            
             gui_evt.GetEventObject().ReleaseMouse()  
-            
-        
+        #    
         if gui_evt.GetButton() == 1:
             if controller.get_cursor_state() == LogPlotState.SELECTION_TOOL:
                 controller.model.selected = not controller.model.selected
-        #
-        #elif gui_evt.GetButton() == 2:
-        #    pass  
-        #
+        #   
+        elif gui_evt.GetButton() == 2: 
+            print 'entrou 2'
+            self.track.mark_vertical(event.xdata)
+        #    
         elif gui_evt.GetButton() == 3: 
             menu = None
             UIM = UIManager()
             if isinstance(gui_evt.GetEventObject(), VisDataLabel):    
                 visdl = gui_evt.GetEventObject()
+                menu = wx.Menu()
                 if visdl._obj_uid[0] == 'density_representation_controller':
-                    menu = wx.Menu()
                     id_ = wx.NewId() 
                     menu.Append(id_, 'Show navigator')
-                    #print visdl._obj_uid
-                    event.canvas.Bind(wx.EVT_MENU, lambda event: self._show_navigator(event, visdl._obj_uid))
-                    #self.Bind(wx.EVT_BUTTON, lambda event: self.OnClick(event, 'somevalue'), b)
-                    event.canvas.PopupMenu(menu, event.guiEvent.GetPosition())  
-                    menu.Destroy() # destroy to avoid mem leak
-                    '''
-                    dens_ctrl = UIM.get(visdl._obj_uid)
-                    (prev_label, prev_idx), (next_label, next_idx) = dens_ctrl.get_previous_next_line()
-                    #((prev_label, prev_idx), (next_label, next_idx))
-                    #
-                    
-                    if prev_idx or next_idx:
-                        self._ids_prev_next = {}
-                        menu = wx.Menu()
-                        if next_idx:
-                            id_ = wx.NewId() 
-                            menu.Append(id_, next_label)
-                            event.canvas.Bind(wx.EVT_MENU, self._density_prev_next, id=id_) 
-                            self._ids_prev_next[id_] = (dens_ctrl.uid, next_idx)
-                        if prev_idx:
-                            id_ = wx.NewId() 
-                            menu.Append(id_, prev_label)    
-                            event.canvas.Bind(wx.EVT_MENU, self._density_prev_next, id=id_) 
-                            self._ids_prev_next[id_] = (dens_ctrl.uid, prev_idx)
-                        #
-                        event.canvas.PopupMenu(menu, event.guiEvent.GetPosition())  
-                        menu.Destroy() # destroy to avoid mem leak
-                        
-                    '''    
-                
+                    event.canvas.Bind(wx.EVT_MENU, lambda event: self._show_navigator(visdl._obj_uid), id=id_)
+                    menu.AppendSeparator()       
+                id_ = wx.NewId() 
+                menu.Append(id_, 'Remove from track')
+                event.canvas.Bind(wx.EVT_MENU, lambda event: self._remove_object_helper((visdl._obj_uid)), id=id_)    
+                event.canvas.PopupMenu(menu, event.guiEvent.GetPosition())  
+                menu.Destroy() # destroy to avoid mem leak
             #
             elif isinstance(gui_evt.GetEventObject(), TrackFigureCanvas):
-                menu = wx.Menu()
-                #
+                menu = None
                 if gui_evt.GetEventObject().plot_axes.images:
                     dens_uid = gui_evt.GetEventObject().plot_axes.images[0].get_label()
-                    dens_ctrl = UIM.get(dens_uid)
-                    #
-                    dens_ctrl.view.idx
-                    dens_ctrl.view._running_dim
-                    #iline_idx = dens_ctrl.get_iline_idx()
-                    #xline_idx = dens_ctrl.get_xline_idx()
-                    index_idx = dens_ctrl.get_index_idx(event.ydata)
+
+                    ydata = event.ydata
+                    menu = wx.Menu()
+                    id_ = wx.NewId() 
+                    menu.Append(id_, 'CrossPlot ['+str(ydata)+']')
+                    ydata = event.ydata
+                    event.canvas.Bind(wx.EVT_MENU, lambda event: \
+                                self._crossplot(dens_uid, ydata), id=id_)
+                    menu.AppendSeparator() 
                     
-                    obj = dens_ctrl.get_object()
-                    #print iline_idx, xline_idx, index_idx 
-                    data = obj.data[0][0]
-                    data = data.T
-                    #print data[index_idx], len(data[index_idx])
+                    """
                     
-                    #print obj.dimensions[2][1], len(obj.dimensions[2][1])
-                    
-                    ####
-                    root_controller = UIM.get_root_controller()        
-                    cp_ctrl = UIM.create('crossplot_controller', root_controller.uid)  
-                    cpp = cp_ctrl.view
-                    #                    
-                    cpp.crossplot_panel.set_xdata(obj.dimensions[2][1])
-                    cpp.crossplot_panel.set_xlabel(obj.dimensions[2][0])
-                    cpp.crossplot_panel.set_ydata(data[index_idx])
-                    cpp.crossplot_panel.set_ylabel('Amplitude')
-                    #
-                    #'''
-                    #cpp.crossplot_panel.set_zdata(np.array(range(len(obj.dimensions[2][1]))))
-                    #cpp.crossplot_panel.set_zlabel('No Name')
-                    #cpp.crossplot_panel.set_zmode('continuous')
-                    #
-                    cpp.crossplot_panel.plot()
-                    cpp.crossplot_panel.draw()  
-                    ###
-                    
-                    
-                    
-                    #print 'index_idx:', index_idx, event.ydata
-                    #menu = wx.Menu()               
+                    dens_repr_ctrl = UIM.get(dens_uid)
+                    toc_uid = UIM._getparentuid(dens_repr_ctrl.uid)
+                    toc = UIM.get(toc_uid)
+
+                    if dens_repr_ctrl._data is not None:
+                        filter_ = toc.get_filter()
+                        #
+                        z_data = filter_.data[0]
+                        di_uid, display, is_range, z_first, z_last = z_data
+                        z_data_index = OM.get(di_uid)
+                        z_data = z_data_index.data[z_first:z_last]
+                        #
+                        x_data = filter_.data[1]
+                        di_uid, display, is_range, x_first, x_last = x_data
+                        x_data_index = OM.get(di_uid)
+                        x_data = x_data_index.data[z_first:z_last]
+                        #
+                        z_index = dens_repr_ctrl._get_z_index(event.ydata)
+                        if z_index is not None:
+                            #print z_index
+                            #print dens_repr_ctrl._data.shape
+                            #print 
+                            values = dens_repr_ctrl._data[:, z_index]
+                            x_data_index.name
+                            x_data
+
+                            ####
+                            root_controller = UIM.get_root_controller()        
+                            cp_ctrl = UIM.create('crossplot_controller', root_controller.uid)  
+                            cpp = cp_ctrl.view
+                            #                    
+                            cpp.crossplot_panel.set_xdata(x_data)
+                            cpp.crossplot_panel.set_xlabel(x_data_index.name)
+                            #
+                            cpp.crossplot_panel.set_ydata(values)
+                            cpp.crossplot_panel.set_ylabel('Amplitude')
+                            #
+                            #'''
+                            #cpp.crossplot_panel.set_zdata(np.array(range(len(obj.dimensions[2][1]))))
+                            #cpp.crossplot_panel.set_zlabel('No Name')
+                            #cpp.crossplot_panel.set_zmode('continuous')
+                            #
+                            cpp.crossplot_panel.set_zmode('solid')
+                            cpp.crossplot_panel.plot()
+                            cpp.crossplot_panel.draw()  
+                            ###
+                        
                 
-                    #menu.AppendSeparator() 
+                    """
                     
                 #
+                if menu is None:
+                    menu = wx.Menu()
                 self._create_selected_obj_menus(menu)
                 #
                 grid_submenu = wx.Menu()
@@ -965,327 +968,149 @@ class TrackView(UIViewBase):
 
 
 
-    def _show_navigator(self, event, obj_uid):
-        #print '_show_navigator:', obj_uid
+    def _show_navigator(self, obj_uid):
         UIM = UIManager()
         toc_ctrl_uid = UIM._getparentuid(obj_uid)
         toc_ctrl = UIM.get(toc_ctrl_uid)
-        #
         nav_ctrl = UIM.create('navigator_controller', 
                               data_filter_oid=toc_ctrl.model.data_filter_oid,
                               title='Data navigator', size=(350, 600)
         )
         nav_ctrl.view.Show()
-        #
-        
-        """
-        #nav_ctrl = toc_ctrl.get_navigator()
-        if not nav_ctrl:
-            return
-        print nav_ctrl.uid
-        print
-        #
+
+
+
+
+
+
+
+
+    def _crossplot(self, repr_ctrl_uid, ydata):
         OM = ObjectManager(self)
-        for di_uid, display, start, end in nav_ctrl.model.dimensions[::-1]:
-            di = OM.get(di_uid)
-            if not display:
-                print di.name, 'Locked @', di.data[start]
-            else:
-                print di.name, 'Display from:', di.data[start], ' to:', di.data[end-1]
-       """     
-
-    '''
-    def _density_prev_next(self, event):
-        print '_density_prev_next'
-        obj_uid, new_pos = self._ids_prev_next.get(event.GetId())
         UIM = UIManager()
-        dens_ctrl = UIM.get(obj_uid)
-        dens_ctrl.set_data(new_pos)
-        
-        #dens_ctrl.model.iline = new_pos[0]
-        #if len(new_pos)==2:
-        #    dens_ctrl.model.xline = new_pos[1]
-    '''    
-
-##############################################################################
-
-
-"""
-class OverviewFigureCanvas(_BaseFigureCanvas):
-
-        
-    def __init__(self, parent, size, min_depth=0, max_depth=10000,
-                                                 min_pos=None, max_pos=None):
-        self.dummy_ax = None
-        _BaseFigureCanvas.__init__(self, parent, size)
-        self.axes = []
-        self.index_axes = None
-        self._callback = None
-        self.dummy_ax.set_ylim(max_depth, min_depth) 
-        self.dummy_ax.set_xlim(0, 100)
-        
-        
-        self.canvas_color = 'blue'
-        self.canvas_alt_color = 'red'
-        self.canvas_width = 3
-        self.d1_canvas = None
-        self.d2_canvas = None
-        
-        
-        
-        self.create_depth_canvas(min_pos, max_pos)
-        self._in_canvas = -1
-        self._drag_mode = SASH_DRAG_NONE
-        
-        self.Bind(wx.EVT_PAINT, self.on_paint)
-        self.Bind(wx.EVT_SIZE, self.on_size)
-        self.Bind(wx.EVT_MOUSE_EVENTS, self._on_mouse)
-
-        self.d1_canvas.Bind(wx.EVT_MOUSE_EVENTS, self._on_canvas_mouse)
-        self.d2_canvas.Bind(wx.EVT_MOUSE_EVENTS, self._on_canvas_mouse)
-        #self.d1_canvas.Bind(wx.EVT_PAINT, self.on_paint)
-        #self.d2_canvas.Bind(wx.EVT_PAINT, self.on_paint)
+        repr_ctrl = UIM.get(repr_ctrl_uid)
+        toc_uid = UIM._getparentuid(repr_ctrl.uid)
+        toc = UIM.get(toc_uid)
+        if repr_ctrl._data is not None:
+            filter_ = toc.get_filter()
+            #
+            z_data = filter_.data[0]
+            di_uid, display, is_range, z_first, z_last = z_data
+            z_data_index = OM.get(di_uid)
+            z_data = z_data_index.data[z_first:z_last]
+            #
+            
+            #for idx in range(1, len(filter_.data)):
+           # 
+           #     x_data = filter_.data[idx]
+           #     di_uid, display, is_range, x_first, x_last = x_data
+           #     x_data_index = OM.get(di_uid)
+           #     x_data = x_data_index.data[z_first:z_last]
+                
+            #
+            
+            ###
+            
+            data_indexes = filter_.data
+            #x_index = 0
+            #x = xdata
+            #multiplier = 1
+            #
+            #value = 1
+            #idx = 0
+            for (di_uid, display, is_range, first, last) in data_indexes[1:]:
+                #idx +=1
+                
+                obj = OM.get(di_uid)
+                #print '\n\nidx:', idx, obj.name
+                
+                if display and is_range:
+                    x_data = obj.data[slice(first,last)]
+                    x_name = obj.name
+                    break
+                    #value = value * len(values_dim)
+                    #print values_dim
+                    #print 'x % len(values_dim):', len(values_dim)
+                    #index = x % len(values_dim)
+                    #x_index += index * multiplier 
+                    #multiplier *= len(values_dim)
+                    #x = x // len(values_dim)
+                    #value = values_dim[index]
+                        
+            #    obj_str = obj.name + ': ' + str(value)
+            #    if msg:
+            #        msg = obj_str + ', ' + msg
+            #    else:    
+            #        msg = obj_str      
+            #msg += ', Value: ' + str(controller._data[(x_index, z_index)])
+            #return '[' + msg +  ']'
+            
+            ###
+            
+            
+            z_index = repr_ctrl._get_z_index(ydata)
+            if z_index is not None:
+                values = repr_ctrl._data[:, z_index]
      
-
-    def set_callback(self, callback):
-        self._callback = callback
-        
-    def remove_callback(self):
-        self._callback = None
-
-    def create_depth_canvas(self, min_pos=None, max_pos=None):
-        if not self.d1_canvas:
-            self.d1_canvas = wx.Panel(self) 
-            self.d1_canvas.SetSize((self.GetClientSize().width, self.canvas_width))
-            self.d1_canvas.SetBackgroundColour(self.canvas_color)    
-        if not self.d2_canvas:
-                self.d2_canvas = wx.Panel(self) 
-                self.d2_canvas.SetSize((self.GetClientSize().width, self.canvas_width))
-                self.d2_canvas.SetBackgroundColour(self.canvas_color)    
-
-        max_depth, min_depth = self.dummy_ax.get_ylim()        
-            
-        if min_pos is None or min_pos < min_depth or min_pos > max_depth:
-            self.d1 = min_depth
-        else:
-            self.d1 = min_pos
-        if max_pos is None  or max_pos < min_depth or max_pos > max_depth:
-            self.d2 = max_depth
-        else:
-            self.d2 = max_pos        
-        ##print '\nMIN-MAX:', min_depth, max_depth, min_pos, max_pos, self.d1, self.d2     
-        y1 = self.depth_to_wx_position(self.d1)
-        self.d1_canvas.SetPosition((0, y1)) 
-        #self.d1_canvas.Refresh()
-        y2 = self.depth_to_wx_position(self.d2)          
-        self.d2_canvas.SetPosition((0, y2)) 
-        #self.d2_canvas.Refresh()
-
-
-    def _reload_depths_from_canvas_positions(self):
-        y1 = self.d1_canvas.GetPosition()[1]
-        y2 = self.d2_canvas.GetPosition()[1]
-        if y1 <= y2:
-            self.d1 = self.wx_position_to_depth(y1)
-            self.d2 = self.wx_position_to_depth(y2+self.canvas_width)
-        else:
-            self.d1 = self.wx_position_to_depth(y1+self.canvas_width)
-            self.d2 = self.wx_position_to_depth(y2)
-
-
-    def _reload_canvas_positions_from_depths(self):
-        #print '_reload_canvas_positions_from_depths:', self.d1, self.d2
-        y1 = self.depth_to_wx_position(self.d1)
-        y2 = self.depth_to_wx_position(self.d2)
-        if y1 <= y2:
-            self.d1_canvas.SetPosition((0, y1))
-            self.d2_canvas.SetPosition((0, y2-self.canvas_width))
-        else:
-            self.d1_canvas.SetPosition((0, y1-self.canvas_width))
-            self.d2_canvas.SetPosition((0, y2))    
-        #self.d1_canvas.Refresh()
-        #self.d2_canvas.Refresh()
-        
-    
-
-    def get_depth(self):
-        if self.d1 <= self.d2:
-            return (self.d1, self.d2)
-        else:
-            return (self.d2, self.d1)
-            
-
-    '''
-    From wx display coords to mpl display position or vice-versa.
-    ''' 
-    def transform_display_position(self, pos):
-        _, y = self.GetClientSize() 
-        pos = y - pos
-        return int(pos)
-        
-       
-    def wx_position_to_depth(self, wx_pos):
-        y_max, y_min = self.dummy_ax.get_ylim()
-        if wx_pos <= 0:
-            return y_min
-        elif wx_pos >= self.GetClientSize()[1]:   
-            return y_max
-        mpl_y_pos = self.transform_display_position(wx_pos)
-        return self.dummy_ax.transData.inverted().transform((0, mpl_y_pos))[1] 
-
-
-    def depth_to_wx_position(self, depth):
-        y_max, y_min = self.dummy_ax.get_ylim()
-        if depth <= y_min:
-            return 0
-        elif depth >= y_max:
-            return self.GetClientSize()[1]    
-        x, y = self.dummy_ax.transData.transform((0, depth)) 
-        return self.transform_display_position(y)
-
-
-    def on_paint(self, event):
-        event.Skip()
-        if self._drag_mode == SASH_DRAG_DRAGGING:
-            return
-        #print 'OverviewFigureCanvas.on_paint'
-        self._reload_canvas_positions_from_depths()
-
-
-    def on_size(self, event):
-        y1 = self.d1_canvas.GetPosition()[1]
-        y2 = self.d2_canvas.GetPosition()[1]
-        if y1 <= y2:
-            d1 = self.wx_position_to_depth(y1)
-            d2 = self.wx_position_to_depth(y2+self.canvas_width)
-        else:
-            d1 = self.wx_position_to_depth(y1+self.canvas_width)
-            d2 = self.wx_position_to_depth(y2)      
-        event.Skip()
-        
-
-    def _on_mouse(self, event):
-        x, y = event.GetPosition()
-        #data_y = self.wx_position_to_depth((y)
-        ##print '_on_mouse:', x, y, data_y, event.GetEventType()
-            
-        if self._drag_mode == SASH_DRAG_NONE:    
-            self._set_in_canvas(self._canvas_hit_test(x, y))              
-            if event.LeftDown():
-                self.start_dragging(y)
-        elif self._drag_mode == SASH_DRAG_DRAGGING:
-            if event.LeftIsDown():
-                self.drag_it(y)       
-            elif event.LeftUp():
-                self.end_dragging()
-
-
-    def _adjust_canvas_position(self, inc):
-        if self._in_canvas == 1:
-            canvas = self.d1_canvas
-        elif self._in_canvas == 2:
-            canvas = self.d2_canvas
-        x, y = canvas.GetPosition()  
-        new_pos = y + inc
-        if new_pos < 0:
-            new_pos = 0
-        if new_pos > (self.GetClientSize()[1] - self.canvas_width):
-            new_pos = self.GetClientSize()[1] - self.canvas_width
-        canvas.SetPosition((x, new_pos))
-        canvas.Refresh()
-        
-
-
-    def start_dragging(self, start_y):
-        ##print '\nPressed button on canvas ', self._in_canvas
-        if self._in_canvas == -1:
-            return 
-        if self._drag_mode != SASH_DRAG_NONE:
-            return
-        if self._in_canvas == 1:
-            canvas = self.d1_canvas
-        else:
-            canvas = self.d2_canvas
-        self._drag_mode = SASH_DRAG_DRAGGING
-        self.CaptureMouse()
-        self._old_y = start_y
-        canvas.SetBackgroundColour(self.canvas_alt_color)
-        canvas.Refresh()            
-
-
-    def drag_it(self, new_y):
-        ##print '\nDragging canvas:', self._in_canvas
-        if self._in_canvas == -1:
-            return 
-        if self._drag_mode != SASH_DRAG_DRAGGING:
-            return       
-        ##print new_y, self._old_y 
-        if new_y != self._old_y:
-            self._adjust_canvas_position(new_y - self._old_y)
-            self._old_y = new_y
-
-
-    def end_dragging(self):
-        ##print 'Release button of canvas', self._in_canvas
-        if self._in_canvas == -1:
-            return 
-        if self._drag_mode != SASH_DRAG_DRAGGING:
-            return    
-        if self._in_canvas == 1:
-            canvas = self.d1_canvas
-        else:
-            canvas = self.d2_canvas
-        self._drag_mode = SASH_DRAG_NONE
-        self._old_y = None
-        if self.HasCapture():
-            self.ReleaseMouse()
-        self._reload_depths_from_canvas_positions()    
-        if self._callback:
-            self._callback(self.get_depth())
-        #print 'Send ' + str(self.get_depth()) + ' to callback...'    
-        canvas.SetBackgroundColour(self.canvas_color)
-        canvas.Refresh()  
-                   
-        d1, d2 = self.get_depth()           
-        self.SetToolTip(wx.ToolTip('{0:.2f} - {1:.2f}'.format(d1, d2)))
-          
-            
-    def _canvas_hit_test(self, x, y, tolerance=5):
-        r1 = self.d1_canvas.GetRect()   
-        r2 = self.d2_canvas.GetRect() 
-        if y >= r1.y - tolerance and y <= r1.y + r1.height + tolerance:
-            return 1
-        if y >= r2.y - tolerance and y <= r2.y + r2.height + tolerance:
-            return 2        
-        return -1    
-        
-   
-    def _set_in_canvas(self, canvas_number):
-        if canvas_number != self._in_canvas:
-            ##print '_set_in_canvas({})'.format(canvas_number)
-            if canvas_number != -1:
-                ##print 'Entrou -', canvas_number
-                self._in_canvas = canvas_number
-                if is_wxPhoenix():
-                    # Phoenix code
-                    self.SetCursor(wx.Cursor(wx.CURSOR_SIZENS))
+                cp_ctrl = UIM.list('crossplot_controller')[0]
+                cpp = cp_ctrl.view
+                #                    
+                cpp.crossplot_panel.set_xdata(x_data)
+                cpp.crossplot_panel.set_xlabel(x_name)
+                if not cpp.crossplot_panel.xlim:
+                    cpp.crossplot_panel.set_xlim([x_data[0], x_data[-1]])
+                
+                cpp.crossplot_panel.set_ydata(values)
+                cpp.crossplot_panel.set_ylabel('Y Values')
+                #cpp.crossplot_panel.set_ylabel('Aki-Richards Reflectivity')
+                
+                """
+                print '\nvalues:', values
+                print 'b4:', cpp.crossplot_panel.ylim
+                #
+                ymin = -0.3
+                ymax = 0.3
+                cpp.crossplot_panel.set_ylim([ymin, ymax]) 
+                #
+                """
+                
+                if cpp.crossplot_panel.ylim:
+                    ylim = cpp.crossplot_panel.ylim
+                    
+                    if np.nanmin(values) < ylim[0]:
+                        ymin = np.nanmin(values) 
+                    else:
+                        ymin = ylim[0]
+                    if np.nanmax(values) > ylim[1]:
+                        ymax = np.nanmax(values)
+                    else:
+                        ymax = ylim[1]   
+                    #print 'setting:', [ymin, ymax]
+                    
+                    if ymin < ymax:
+                        cpp.crossplot_panel.set_ylim([ymin, ymax]) 
+                        print 'setting:', [ymin, ymax]
+                    else:
+                        cpp.crossplot_panel.set_ylim([ymax, ymin])    
+                        print 'setting:', [ymax, ymin]
                 else:
-                    # wxPython classic code
-                    self.SetCursor(wx.StockCursor(wx.CURSOR_SIZENS))
-            else:
-                ##print 'Saiu -', self._in_canvas
-                self._in_canvas = -1
-                self.SetCursor(wx.STANDARD_CURSOR)
-    
-  
-    def _on_canvas_mouse(self, event):
-        if event.GetEventType() in [wx.wxEVT_MOTION, wx.wxEVT_LEFT_DOWN, 
-                        wx.wxEVT_LEFT_UP, wx.wxEVT_MOTION|wx.wxEVT_LEFT_DOWN]:
-            evt = wx.MouseEvent(event.GetEventType())
-            pos = self.ScreenToClient(wx.GetMousePosition())
-            evt.SetPosition(pos)
-            self.GetEventHandler().ProcessEvent(evt) or evt.IsAllowed()
-            
+                    #if values[0] < values[-1]:
+                    cpp.crossplot_panel.set_ylim([np.nanmin(values), np.nanmax(values)])
+                    print 'setting:', [np.nanmin(values), np.nanmax(values)]
+                    #else:    
+                    #    cpp.crossplot_panel.set_ylim([values[-1], values[0]])
+                    #    print 'setting:', [values[-1], values[0]] 
+                #"""
+                
+                print 'after:', cpp.crossplot_panel.ylim    
+                #
+                cpp.crossplot_panel.set_zmode('continuous')
+                #
+                cpp.crossplot_panel.plot()
+                cpp.crossplot_panel.draw()  
+                
 
-"""
+
+
+
 

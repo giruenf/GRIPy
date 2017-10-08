@@ -60,6 +60,8 @@ class LogPlotController(WorkPageController):
 
 
     def is_valid_object(self, obj_uid):
+        return True
+        """
         OM = ObjectManager(self)
         if obj_uid[0] == 'index_set':
             return False
@@ -72,7 +74,7 @@ class LogPlotController(WorkPageController):
             return parent_uid[0] == 'well' and parent_uid[1] == self.model.well_oid
         except:
             return False
-            
+        """    
     
     def show_track(self, track_uid, show):
         # Adjust track.model...
@@ -193,8 +195,10 @@ class LogPlotController(WorkPageController):
         self.view.status_bar.SetStatusText(msg, 0)
 
 
-    def show_cursor(self, xdata, ydata):
-        self.view.show_cursor(xdata, ydata)
+    
+    #def show_cursor(self, xdata, ydata):
+    def show_cursor(self, event_on_track_ctrl_uid, xdata, ydata):    
+        self.view.show_cursor(event_on_track_ctrl_uid, xdata, ydata)
   
     
     def get_ylim(self):
@@ -350,7 +354,7 @@ class LogPlot(WorkPage):
 
         
     def PostInit(self):
-        print '\nLogPlot.PostInit'
+     #   print '\nLogPlot.PostInit'
                 
         OM = ObjectManager(self)
         UIM = UIManager()        
@@ -402,7 +406,7 @@ class LogPlot(WorkPage):
         self._reload_z_axis_textctrls()
         
         
-        print 'LogPlot.PostInit ENDED'
+      #  print 'LogPlot.PostInit ENDED'
 
 
     def set_own_name(self):
@@ -425,7 +429,7 @@ class LogPlot(WorkPage):
     
     
     def _prepare_index_data(self):
-        print '\nLogPlot._prepare_index_data'
+   #     print '\nLogPlot._prepare_index_data'
         OM = ObjectManager(self)
         UIM = UIManager()        
         controller = UIM.get(self._controller_uid)
@@ -458,10 +462,10 @@ class LogPlot(WorkPage):
         
         if len(zaxis) > 1 or len(zaxis) == 0:
             print 'ATENCAO COM Z-AXIS!'
-        #    
+            
 
         self._zaxis_uid = zaxis[0].uid
-        print 'LogPlot._prepare_index_data FIM'
+    #    print 'LogPlot._prepare_index_data FIM'
 
                 
 
@@ -907,7 +911,7 @@ class LogPlot(WorkPage):
 
 
     def set_index_type(self, new_value, old_value):     
-        print '\n\n\nset_index_type:', new_value, old_value
+      #  print '\n\n\nset_index_type:', new_value, old_value
 
         UIM = UIManager() 
         self._prepare_index_data()
@@ -916,10 +920,10 @@ class LogPlot(WorkPage):
         for track_ctrl in UIM.list('track_controller', self._controller_uid):
             
             if track_ctrl.model.overview:
-                print 'overview'
+        #        print 'overview'
                 if self.ot_toc:
                     UIM.remove(self.ot_toc.uid)    
-                print self._zaxis_uid    
+        #        print self._zaxis_uid    
                 self.ot_toc = self.overview_track.append_object(self._zaxis_uid) 
                 #ot_toc = self.overview_track.append_object(self._zaxis_uid)
                 #ot_toc_repr_ctrl = self.ot_toc.get_representation()
@@ -934,13 +938,16 @@ class LogPlot(WorkPage):
                 
 
       
-    def show_cursor(self, xdata, ydata):
+    def show_cursor(self, event_on_track_ctrl_uid, xdata, ydata):
         UIM = UIManager() 
         tracks = UIM.list('track_controller', self._controller_uid)
         if not tracks:
             return        
         for track in tracks:
-            track.view.track.show_cursor(xdata, ydata)     
+            if track.uid == event_on_track_ctrl_uid:
+                track.view.track.show_cursor(xdata, ydata, True)
+            else:
+                track.view.track.show_cursor(xdata, ydata, False)
         
         
     def create_tool_bar(self):

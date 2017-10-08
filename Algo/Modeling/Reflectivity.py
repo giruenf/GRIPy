@@ -6,6 +6,7 @@ import rfltvPS
 import funcs as fn
 import scipy
 
+from DT.UOM import uom as UOM
 
 
 def Reflectivity(OM,parDictionary):
@@ -33,6 +34,13 @@ def Reflectivity(OM,parDictionary):
      well_uid = parDictionary['wellID']
      
      well = OM.get(well_uid)
+     
+     #
+     print
+     for k, v in parDictionary.items():
+         print k, '-', v
+     print
+     #
      #log_index = OM.list('log', well_uid)[0]
      
      #print 'B fore!'
@@ -48,9 +56,30 @@ def Reflectivity(OM,parDictionary):
                          vs_obj.index_set_uid != rho_obj.index_set_uid:
          raise Exception('Vp, Vs and Rho must be on same index_set_uid')                        
      
-     vp = vp_obj.data
-     vs = vs_obj.data
-     rho = rho_obj.data
+     #vp = vp_obj.data
+     #vs = vs_obj.data
+     #rho = rho_obj.data
+     
+     # Garantindo que as unidades de entrada estao corretas
+     if vp_obj.unit != 'm/s':
+         print 'Convertendo Vp para m/s...',
+         vp = UOM.convert(vp_obj.data, vp_obj.unit, 'm/s')
+         print 'OK!'
+     else:
+         vp = vp_obj.data    
+     if vs_obj.unit != 'm/s':
+         print 'Convertendo Vs para m/s...',
+         vs = UOM.convert(vs_obj.data, vs_obj.unit, 'm/s')
+         print 'OK!'
+     else:
+         vs = vs_obj.data            
+     if rho_obj.unit != 'kg/m3':
+         print 'Convertendo densidade para kg/m3...',
+         rho = UOM.convert(rho_obj.data, rho_obj.unit, 'kg/m3')
+         print 'OK!'
+     else:
+         rho = rho_obj.data         
+     #
      
      vp_nan = np.argwhere(np.isnan(vp))
      vs_nan = np.argwhere(np.isnan(vs))
@@ -73,7 +102,10 @@ def Reflectivity(OM,parDictionary):
 
      
      if np.size(vp) != np.size(vs):
+         print 'vp:', len(vp), np.size(vp)
+         print 'vs:', len(vs), np.size(vs)
          return 1
+     
      if np.size(vp) != np.size(rho):
          return 2
      if np.size(vp) != np.size(z1):  
@@ -114,9 +146,61 @@ def Reflectivity(OM,parDictionary):
      
      timeVector = np.arange(0, nSamp*dt, dt)
      
+     #
+     # Para resolver o erro: 
+     #     rfltvPP.error: failed in converting 12nd argument `qp' of rfltvPP.rfltvsubv4.modrfltv to C/Fortran array
+     # Os arrays de vp, vs, rho, dz, fqp e fqs devem ser cortados de acordo com firstLayer e lastLayer
+     #
+     print '\n\nb4 lens:', len(vp), len(vs), len(rho), len(dz), len(fqp), len(fqs)
+     #
+     vp = vp[firstLayer-1:lastLayer]
+     vs = vs[firstLayer-1:lastLayer]
+     rho = rho[firstLayer-1:lastLayer]
+     dz = dz[firstLayer-1:lastLayer]
+     fqp = fqp[firstLayer-1:lastLayer]
+     fqs = fqs[firstLayer-1:lastLayer]
+     # FIM - rfltvPP.error
+     #
+     
      if parDictionary['modFlag']==0:
         
-         seisMod = rfltvPP.rfltvsubv4.modrfltv(dt, nSamp, x, vel1, zcam1, vpSup, zSup, vp, vs, rho, dz, fqp, fqs, firstLayer, lastLayer, angMax, wavelet, fWav, wavFlag, eventRes, seisOut, pNum,nLayers,numTrcsOut,nSup)
+        #print '\n\n'
+        print 'lens:', len(vp), len(vs), len(rho), len(dz), len(fqp), len(fqs)
+        print '\n\n' 
+        print 'dt:', dt
+        print 'nSamp:', nSamp, '\n'
+        print 'x:', x, '\n'
+        print 'vel1:', vel1
+        print 'zcam1:', zcam1
+        print 'vpSup:', vpSup
+        print 'zSup:', zSup, '\n'
+        print 'vp:', vp, '\n'
+        print 'vs:', vs, '\n'
+        print 'rho:', rho, '\n'
+        print 'dz:', dz, '\n'
+        print 'fqp:', fqp, '\n'
+        print 'fqs:', fqs, '\n'
+        print 'firstLayer:', firstLayer
+        print 'lastLayer:', lastLayer
+        print 'angMax:', angMax
+        print 'wavelet:', wavelet
+        print 'fWav:', fWav
+        print 'wavFlag:', wavFlag
+        print 'eventRes:', eventRes
+        print 'seisOut:', seisOut
+        print 'pNum:', pNum
+        print 'nLayers:', nLayers
+        print 'numTrcsOut:', numTrcsOut
+        print 'nSup:', nSup
+        print '\n\n' 
+        
+        seisMod = rfltvPP.rfltvsubv4.modrfltv(dt, nSamp, x, vel1, zcam1, vpSup, 
+                                               zSup, vp, vs, rho, dz, fqp, fqs,
+                                               firstLayer, lastLayer, angMax, 
+                                               wavelet, fWav, wavFlag, 
+                                               eventRes, seisOut, pNum,
+                                               nLayers,numTrcsOut,nSup
+        )
      
      elif parDictionary['modFlag']==1:
          
@@ -206,12 +290,13 @@ def Reflectivity(OM,parDictionary):
      print np.nanmin(seisMod), np.nanmax(seisMod)
      print
     
-     new_name = parDictionary['outName']
+     new_obj_name = parDictionary['outName']
         
      print 111
      
      try:
-         index_set = OM.new('index_set', name='Refletivity_indexes')
+         index_set_name = new_obj_name + ' indexes'
+         index_set = OM.new('index_set', name=index_set_name)
          OM.add(index_set, well.uid)
      except Exception as e:
          print 'ABCFHGHTHTHJ'
@@ -220,7 +305,7 @@ def Reflectivity(OM,parDictionary):
          
      print 222        
      
-     synth = OM.new('gather', seisMod.T, datatype='Synth', name=new_name)
+     synth = OM.new('gather', seisMod.T, datatype='Synth', name=new_obj_name)
      OM.add(synth, well.uid)
      #
      print 333

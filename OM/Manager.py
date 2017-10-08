@@ -211,14 +211,20 @@ class ObjectManager(PublisherMixin):
         self._childrenuidmap[obj.uid] = []
         self._data[obj.uid] = obj
         if parentuid:
-            self._childrenuidmap[parentuid].append(obj.uid)
+            self._childrenuidmap[parentuid].append(obj.uid)  
         # Sending message  
-        self.send_message('add', objuid=obj.uid)
+        try:
+            self.send_message('add', objuid=obj.uid)
+        except Exception as e:
+            print 'ERROR [ObjectManager.add]:', obj.uid, e
+            #return False
+            pass
         # TODO: Rever isso: UI.mvc_classes.track_object@DataFilter 
         try:
             nsc = obj._NO_SAVE_CLASS
         except:
             nsc = False
+        
         if not ObjectManager._on_load and not nsc:
             ObjectManager._changed  = True       
         return True
@@ -602,28 +608,50 @@ class ObjectManager(PublisherMixin):
             parentuidmap = pickledict['parentmap']
             
             newuidsmap = {}
-            for olduid, objdict in pickledata.iteritems():
-                tid = olduid[0]
-                for key, value in objdict.iteritems():
-                    if isinstance(value, basestring) and value.startswith(self._NPZIDENTIFIER):
-                        objdict[key] = npzdata[value.lstrip(self._NPZIDENTIFIER)]
-                #        
-                # TODO: melhorar isso abaixo
-                # A ideia e que a segunda opcao (except) venha a substituir a primeira
-                try:
-                    obj = self.new(tid, **objdict)
-                except:
-                    obj = self.create_object_from_state(tid, **objdict)
-                newuidsmap[olduid] = obj.uid
-                self.add(obj, newuidsmap.get(parentuidmap[olduid]))
             
+            for olduid, objdict in pickledata.iteritems():
+                try:
+                    tid = olduid[0]
+                    # Obtendo o state dict do objeto
+                    for key, value in objdict.iteritems():
+                        if isinstance(value, basestring) and value.startswith(self._NPZIDENTIFIER):
+                            objdict[key] = npzdata[value.lstrip(self._NPZIDENTIFIER)]    
+                    # TODO: melhorar isso abaixo
+                    # A ideia e que a segunda opcao (except) venha a substituir a primeira
+                    print '\ntentando criar:', tid, objdict,
+                    obj = self.new(tid, **objdict)
+                    print 'Ok'
+                except:
+                    print 'Error'
+                    try:
+                        print 'tentando de novo',
+                        obj = self.create_object_from_state(tid, **objdict)
+                        print 'Ok'
+                    except:
+                        print 'Error'
+                        print 'ERROR [ObjectManager.load]: Could not create object for tid={} with given state: {}'.format(tid, objdict)
+                        continue
+                #try:
+                    #print 'A:', olduid, obj.uid
+                newuidsmap[olduid] = obj.uid
+                #print 'B:', parentuidmap[olduid]
+                parent_uid = newuidsmap.get(parentuidmap[olduid])
+                #print 'Trying to add object:', obj, 'to parent:', parent_uid
+                self.add(obj, parent_uid)
+                    #    print 'Added', obj.uid, 'for', parent_uid
+                    #else:
+                    #    print 'Nao foi added'
+                #except Exception as e:
+                #    print 'S-ERROR:', e
+                #    pass
             npzfile.close()
             
             os.remove(os.path.join(dirname, picklefilename))
             os.remove(os.path.join(dirname, npzfilename))
             ObjectManager._on_load = False
             return True
-        except:
+        except Exception as e:
+            print 'ERROR [ObjectManager.load]:', e
             try:
                 archivefile.close()
                 picklefile.close()

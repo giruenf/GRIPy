@@ -14,6 +14,8 @@ import FileIO
 from OM.Manager import ObjectManager
 
 
+import numpy as np
+
 """
 
 def create_data_object(event, obj_tid, obj_name, parent_uid=None):
@@ -33,6 +35,47 @@ def create_seismic(event, seismic_name, parent_uid=None):
     return create_data_object(event, 'seismic', seismic_name, parent_uid)
 
 """
+
+
+
+def calc_well_time_from_depth(event, well_uid):
+    OM = ObjectManager(event.GetEventObject()) 
+    well = OM.get(well_uid)
+    vp = None
+    for log_obj in OM.list('log', well.uid):
+        if log_obj.datatype == 'Velocity':
+            vp = log_obj
+            break
+    if vp is None:
+        raise Exception('ERROR [calc_prof_tempo]: Vp log not found.')
+    index_set = OM.get(vp.index_set_uid)
+    md = index_set.get_z_axis_indexes_by_type('MD')[0]
+    #
+    if md.data[0] != 0.0:
+        return 
+    owt = [0.0]
+    #
+    for idx in range(1, len(md.data)):
+        if vp.data[idx-1] == np.nan:
+            raise Exception('ERROR [calc_prof_tempo]: Found np.nan on Vp[{}] '.format(idx-1))
+        diff_prof = md.data[idx] - md.data[idx-1]
+        value = (float(diff_prof) / vp.data[idx-1]) * 1000.0   # To milliseconds
+        value = owt[idx-1] + value
+        owt.append(value)
+    #    
+    owt = np.array(owt)       
+    twt = owt * 2.0
+    #
+    print '\nOWT:', owt
+    #
+    owt_index = OM.new('data_index', 0, 'One Way Time', 'TIME', 'ms', data=owt)
+    OM.add(owt_index, index_set.uid)
+    #
+    twt_index = OM.new('data_index', 0, 'Two Way Time', 'TWT', 'ms', data=twt)
+    OM.add(twt_index, index_set.uid)
+    #          
+
+
 
 
 def load_segy(event, filename, new_obj_name='', comparators_list=None, 
@@ -55,24 +98,26 @@ def load_segy(event, filename, new_obj_name='', comparators_list=None,
         if not OM.add(seis_like_obj, parentuid):
             raise Exception('Object was not added. tid={}'.format(tid))
         #
-        
-        index = OM.new('data_index', 0, 'Time', 'TIME', 'ms', start=0.0, 
+        index_set = OM.new('index_set', name='Set')
+        OM.add(index_set, seis_like_obj.uid)
+        #
+        index = OM.new('data_index', 0, 'Time', 'TWT', 'ms', start=0.0, 
                 step=(segy_file.sample_rate*1000), samples=segy_file.number_of_samples 
         )
-        OM.add(index, seis_like_obj.uid)
+        OM.add(index, index_set.uid)
         try:
             index = OM.new('data_index', 1, 'Offset', 'OFFSET', 'm', data=segy_file.dimensions[2]) 
-            OM.add(index, seis_like_obj.uid)
+            OM.add(index, index_set.uid)
             next_dim = 2
         except Exception as e:
             next_dim = 1    
         #
         index = OM.new('data_index', next_dim, 'X Line', 'X_LINE', None, data=segy_file.dimensions[1])
-        if OM.add(index, seis_like_obj.uid):
+        if OM.add(index, index_set.uid):
             next_dim += 1
         #
         index = OM.new('data_index', next_dim, 'I Line', 'I_LINE', None, data=segy_file.dimensions[0])
-        OM.add(index, seis_like_obj.uid)  
+        OM.add(index, index_set.uid)  
         print 'seis_like_obj.traces.shape:', seis_like_obj.data.shape
         #"""
     except Exception as e:
