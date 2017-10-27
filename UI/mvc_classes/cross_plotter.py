@@ -289,12 +289,8 @@ class CrossPlotPanel(wx.Panel):
     def set_zlim(self, zlim):
         self.zlim = zlim    
     
-
-
-    
     def set_zmode(self, zmode):
         self.zmode = zmode    
-    
     
     def set_xlocator(self, xlocator):
         self.xlocator = xlocator

@@ -3,6 +3,10 @@ import os
 import json
 import logging
 import wx
+import matplotlib
+matplotlib.interactive(False)
+matplotlib.use('WXAgg')
+
 
 _APP_INIT_FILE = '.gripy_app_config.json'
 
@@ -42,6 +46,9 @@ def check_platform():
 def check_dependencies():
     if not 'phoenix' in wx.version():    
         raise Exception('Gripy works only with wxPython 4.')
+    if not matplotlib.__version__.startswith('2.'):    
+        raise Exception('Gripy works only with Matplotlib 2.')
+        
 #
 check_platform()    
 check_dependencies()

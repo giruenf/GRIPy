@@ -17,6 +17,10 @@ from App.gripy_function_manager import FunctionManager
 
 import numpy as np
 
+import matplotlib
+import matplotlib.pyplot as plt
+
+
 
 class TrackController(UIControllerBase):
     tid = 'track_controller'
@@ -640,12 +644,17 @@ class TrackView(UIViewBase):
                 menu = None
                 if gui_evt.GetEventObject().plot_axes.images:
                     dens_uid = gui_evt.GetEventObject().plot_axes.images[0].get_label()
-
-                    ydata = event.ydata
+                    ydata = event.ydata    
+                    str_ydata = "{0:.2f}".format(round(ydata, 2))
                     menu = wx.Menu()
+                    #
                     id_ = wx.NewId() 
-                    menu.Append(id_, 'CrossPlot ['+str(ydata)+']')
-                    ydata = event.ydata
+                    menu.Append(id_, 'AVAF [' + str_ydata + ']')
+                    event.canvas.Bind(wx.EVT_MENU, lambda event: \
+                                self._avaf(dens_uid, ydata), id=id_)
+                    #
+                    id_ = wx.NewId() 
+                    menu.Append(id_, 'CrossPlot [' + str_ydata + ']')
                     event.canvas.Bind(wx.EVT_MENU, lambda event: \
                                 self._crossplot(dens_uid, ydata), id=id_)
                     menu.AppendSeparator() 
@@ -982,6 +991,114 @@ class TrackView(UIViewBase):
 
 
 
+    def _avaf(self, repr_ctrl_uid, ydata):
+        str_ydata = "{0:.2f}".format(round(ydata, 2))
+        print '\nAVAF:', str_ydata
+        OM = ObjectManager(self)
+        UIM = UIManager()
+        repr_ctrl = UIM.get(repr_ctrl_uid)
+        toc_uid = UIM._getparentuid(repr_ctrl.uid)
+        toc = UIM.get(toc_uid)
+        if repr_ctrl._data is not None:
+            filter_ = toc.get_filter()
+            z_data = filter_.data[0]
+            di_uid, display, is_range, z_first, z_last = z_data
+            z_data_index = OM.get(di_uid)
+            z_data = z_data_index.data[z_first:z_last]
+            data_indexes = filter_.data
+            
+            slicer = []
+            z_index = repr_ctrl._get_z_index(ydata)
+            slicer.append(z_index)
+            
+            '''
+            for (di_uid, display, is_range, first, last) in data_indexes[1:]:
+                obj = OM.get(di_uid)    
+                print 'name:', obj.name, obj.data
+                """
+                if display and is_range:
+                    x_data = obj.data[slice(first, last)]
+                    x_name = obj.name
+                    break
+                """
+            '''    
+
+            
+            (y_di_uid, y_display, y_is_range, y_first, y_last) = data_indexes[1]
+            (x_di_uid, x_display, x_is_range, x_first, x_last) = data_indexes[2]
+            
+
+            y_obj = OM.get(y_di_uid)
+            y_data = y_obj.data[slice(0, len(y_obj.data))]
+            y_name = y_obj.name            
+            slicer.append(slice(0, len(y_obj.data)))
+            
+            x_obj = OM.get(x_di_uid)
+            x_data = x_obj.data[slice(0, len(x_obj.data))]
+            x_name = x_obj.name
+            slicer.append(slice(0, len(x_obj.data)))
+            
+            slicer.append(0)
+            slicer.append(0)
+            
+            slicer = tuple(slicer[::-1])
+            
+            print '\n\n'
+            print slicer
+            print repr_ctrl.get_object().data.shape
+            data = repr_ctrl.get_object().data[slicer]
+            print data.shape
+            
+            print '\n\n'
+            print 'X:', x_name, x_data, len(x_data)
+            print 'Y:', y_name, y_data, len(y_data)
+            
+            print 'z_index:', z_index
+            
+            
+            #print data.shape[::-1]
+            
+            #values = repr_ctrl.get_object().data[:, z_index]
+            #print values.shape
+            
+            
+            X, Y = np.meshgrid(x_data, y_data)
+
+            CS = plt.contourf(X, Y, data.T, 100, cmap='spectral_r', vmin=0.0, vmax=3000.0)
+                
+            #plt.yscale('lin')
+            
+            plt.title('Poco A - TWT: ' + str_ydata + ' ms', fontsize=14) 
+
+            fs=13
+            plt.xlabel('Angulo', fontsize=fs) 
+            plt.ylabel('Frequencia', fontsize=fs) 
+            #plt.clabel('Densidade espectral', fontsize=12) 
+            plt.xlim(x_data[0], x_data[-1])
+            plt.ylim(0.0, y_data[-1])
+            plt.grid(True)
+
+
+            cbar = plt.colorbar(CS)
+            #cbar.ax.set_ylabel('Densidade espectral')
+            cbar.set_label('Densidade espectral', fontsize=fs) 
+            
+            print '\n\n', cbar
+            #cbar.vmin = 0
+            #cbar.vmax = 6000.0
+            
+            print cbar.get_clim()
+            print cbar.get_cmap()
+            print cbar.ax.get_xlim()
+            print cbar.ax.get_ylim()
+            #
+            print cbar.boundaries, type(cbar.boundaries)
+            print cbar.values
+            print cbar.extendrect
+            # Add the contour line levels to the colorbar
+            
+            plt.show()
+
 
 
 
@@ -993,65 +1110,22 @@ class TrackView(UIViewBase):
         toc = UIM.get(toc_uid)
         if repr_ctrl._data is not None:
             filter_ = toc.get_filter()
-            #
             z_data = filter_.data[0]
             di_uid, display, is_range, z_first, z_last = z_data
             z_data_index = OM.get(di_uid)
             z_data = z_data_index.data[z_first:z_last]
-            #
-            
-            #for idx in range(1, len(filter_.data)):
-           # 
-           #     x_data = filter_.data[idx]
-           #     di_uid, display, is_range, x_first, x_last = x_data
-           #     x_data_index = OM.get(di_uid)
-           #     x_data = x_data_index.data[z_first:z_last]
-                
-            #
-            
-            ###
-            
             data_indexes = filter_.data
-            #x_index = 0
-            #x = xdata
-            #multiplier = 1
-            #
-            #value = 1
-            #idx = 0
+
             for (di_uid, display, is_range, first, last) in data_indexes[1:]:
-                #idx +=1
-                
-                obj = OM.get(di_uid)
-                #print '\n\nidx:', idx, obj.name
-                
+                obj = OM.get(di_uid)      
                 if display and is_range:
-                    x_data = obj.data[slice(first,last)]
+                    x_data = obj.data[slice(first, last)]
                     x_name = obj.name
                     break
-                    #value = value * len(values_dim)
-                    #print values_dim
-                    #print 'x % len(values_dim):', len(values_dim)
-                    #index = x % len(values_dim)
-                    #x_index += index * multiplier 
-                    #multiplier *= len(values_dim)
-                    #x = x // len(values_dim)
-                    #value = values_dim[index]
-                        
-            #    obj_str = obj.name + ': ' + str(value)
-            #    if msg:
-            #        msg = obj_str + ', ' + msg
-            #    else:    
-            #        msg = obj_str      
-            #msg += ', Value: ' + str(controller._data[(x_index, z_index)])
-            #return '[' + msg +  ']'
-            
-            ###
-            
-            
+
             z_index = repr_ctrl._get_z_index(ydata)
             if z_index is not None:
                 values = repr_ctrl._data[:, z_index]
-     
                 cp_ctrl = UIM.list('crossplot_controller')[0]
                 cpp = cp_ctrl.view
                 #                    
@@ -1059,21 +1133,10 @@ class TrackView(UIViewBase):
                 cpp.crossplot_panel.set_xlabel(x_name)
                 if not cpp.crossplot_panel.xlim:
                     cpp.crossplot_panel.set_xlim([x_data[0], x_data[-1]])
-                
+                #
                 cpp.crossplot_panel.set_ydata(values)
                 cpp.crossplot_panel.set_ylabel('Y Values')
-                #cpp.crossplot_panel.set_ylabel('Aki-Richards Reflectivity')
-                
-                """
-                print '\nvalues:', values
-                print 'b4:', cpp.crossplot_panel.ylim
                 #
-                ymin = -0.3
-                ymax = 0.3
-                cpp.crossplot_panel.set_ylim([ymin, ymax]) 
-                #
-                """
-                
                 if cpp.crossplot_panel.ylim:
                     ylim = cpp.crossplot_panel.ylim
                     
@@ -1085,27 +1148,15 @@ class TrackView(UIViewBase):
                         ymax = np.nanmax(values)
                     else:
                         ymax = ylim[1]   
-                    #print 'setting:', [ymin, ymax]
                     
                     if ymin < ymax:
                         cpp.crossplot_panel.set_ylim([ymin, ymax]) 
-                        print 'setting:', [ymin, ymax]
                     else:
                         cpp.crossplot_panel.set_ylim([ymax, ymin])    
-                        print 'setting:', [ymax, ymin]
                 else:
-                    #if values[0] < values[-1]:
                     cpp.crossplot_panel.set_ylim([np.nanmin(values), np.nanmax(values)])
-                    print 'setting:', [np.nanmin(values), np.nanmax(values)]
-                    #else:    
-                    #    cpp.crossplot_panel.set_ylim([values[-1], values[0]])
-                    #    print 'setting:', [values[-1], values[0]] 
-                #"""
-                
-                print 'after:', cpp.crossplot_panel.ylim    
                 #
                 cpp.crossplot_panel.set_zmode('continuous')
-                #
                 cpp.crossplot_panel.plot()
                 cpp.crossplot_panel.draw()  
                 

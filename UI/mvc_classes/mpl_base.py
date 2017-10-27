@@ -3,8 +3,9 @@ import numpy as np
 import wx
 
 import matplotlib
-matplotlib.interactive(False)
-matplotlib.use('WXAgg')
+#matplotlib.interactive(False)
+#matplotlib.use('WXAgg')
+
 from matplotlib.axes import Axes
 from matplotlib.backends.backend_wxagg import FigureCanvasWxAgg as FigureCanvas
 from matplotlib.scale import ScaleBase, register_scale
@@ -12,12 +13,13 @@ from matplotlib.transforms import Transform
 from matplotlib.figure import Figure
 from matplotlib.ticker import NullFormatter, NullLocator, MultipleLocator
 
-from App import log
+#from App import log
 from UI.uimanager import UIManager
 
 
 ###############################################################################
 ###############################################################################
+
 
 # TODO: Review it!
 # Keeping MPL version 1 parameters
@@ -40,10 +42,12 @@ DEFAULT_LABEL_BG_COLOR  = '#B0C4DE' #LightSteelBlue
 SELECTION_WIDTH = 2
 SELECTION_COLOR = 'green'
 
+
 ###############################################################################
 ###############################################################################
 
 
+# Mixin for a selectable Panel
 class SelectPanelMixin(object):
 
     def is_selected(self):
@@ -97,9 +101,9 @@ class SelectPanelMixin(object):
             self._sel_obj_2.Refresh() 
             self._sel_obj_3.Refresh() 
 
-###############################################################################
-###############################################################################
 
+###############################################################################
+###############################################################################
 
 
 class GripyScale(ScaleBase):
@@ -169,67 +173,11 @@ register_scale(GripyScale)
 ###############################################################################
 ###############################################################################
 
-
+"""
+    Inner class to all Figures used in this Project
+"""
 class GripyMPLFigure(Figure):
-
-    """
-    The Figure instance supports callbacks through a *callbacks*
-    attribute which is a :class:`matplotlib.cbook.CallbackRegistry`
-    instance.  The events you can connect to are 'dpi_changed', and
-    the callback will be called with ``func(fig)`` where fig is the
-    :class:`Figure` instance.
-
-    *patch*
-       The figure patch is drawn by a
-       :class:`matplotlib.patches.Rectangle` instance
-
-    *suppressComposite*
-       For multiple figure images, the figure will make composite
-       images depending on the renderer option_image_nocomposite
-       function.  If suppressComposite is True|False, this will
-       override the renderer.
-   
-    def __init__(self,
-                 figsize=None,  # defaults to rc figure.figsize
-                 dpi=None,  # defaults to rc figure.dpi
-                 facecolor=None,  # defaults to rc figure.facecolor
-                 edgecolor=None,  # defaults to rc figure.edgecolor
-                 linewidth=0.0,  # the default linewidth of the frame
-                 frameon=None,  # whether or not to draw the figure frame
-                 subplotpars=None,  # default to rc
-                 tight_layout=None,  # default to rc figure.autolayout
-                 ):
-        
-        *figsize*
-            w,h tuple in inches
-
-        *dpi*
-            Dots per inch
-
-        *facecolor*
-            The figure patch facecolor; defaults to rc ``figure.facecolor``
-
-        *edgecolor*
-            The figure patch edge color; defaults to rc ``figure.edgecolor``
-
-        *linewidth*
-            The figure patch edge linewidth; the default linewidth of the frame
-
-        *frameon*
-            If *False*, suppress drawing the figure frame
-
-        *subplotpars*
-            A :class:`SubplotParams` instance, defaults to rc
-
-        *tight_layout*
-            If *False* use *subplotpars*; if *True* adjust subplot
-            parameters using :meth:`tight_layout` with default padding.
-            When providing a dict containing the keys `pad`, `w_pad`, `h_pad`
-            and `rect`, the default :meth:`tight_layout` paddings will be
-            overridden.
-            Defaults to rc ``figure.autolayout``.
-    """
-
+    
     def __init__(self, *args, **kwargs):
         super(GripyMPLFigure, self).__init__(*args, **kwargs)  
         
@@ -240,75 +188,11 @@ class GripyMPLFigure(Figure):
         return self.transFigure.transform(figure_coordinates)    
         
 
-
 """
-    Inner class to all Axes used in Gripy Project
+    Inner class to all Axes used in this Project
 """
 class GripyMPLAxes(Axes):
 
-    """    
-    def __init__(self, fig, rect,
-                 facecolor=None,  # defaults to rc axes.facecolor
-                 frameon=True,
-                 sharex=None,  # use Axes instance's xaxis info
-                 sharey=None,  # use Axes instance's yaxis info
-                 label='',
-                 xscale=None,
-                 yscale=None,
-                 axisbg=None,  # This will be removed eventually
-                 **kwargs
-                 ):
-        
-        Build an :class:`Axes` instance in
-        :class:`~matplotlib.figure.Figure` *fig* with
-        *rect=[left, bottom, width, height]* in
-        :class:`~matplotlib.figure.Figure` coordinates
-
-        Optional keyword arguments:
-
-          ================   =========================================
-          Keyword            Description
-          ================   =========================================
-          *adjustable*       [ 'box' | 'datalim' | 'box-forced']
-          *alpha*            float: the alpha transparency (can be None)
-          *anchor*           [ 'C', 'SW', 'S', 'SE', 'E', 'NE', 'N',
-                               'NW', 'W' ]
-          *aspect*           [ 'auto' | 'equal' | aspect_ratio ]
-          *autoscale_on*     [ *True* | *False* ] whether or not to
-                             autoscale the *viewlim*
-          *axisbelow*        [ *True* | *False* | 'line'] draw the grids
-                             and ticks below or above most other artists,
-                             or below lines but above patches
-          *cursor_props*     a (*float*, *color*) tuple
-          *figure*           a :class:`~matplotlib.figure.Figure`
-                             instance
-          *frame_on*         a boolean - draw the axes frame
-          *label*            the axes label
-          *navigate*         [ *True* | *False* ]
-          *navigate_mode*    [ 'PAN' | 'ZOOM' | None ] the navigation
-                             toolbar button status
-          *position*         [left, bottom, width, height] in
-                             class:`~matplotlib.figure.Figure` coords
-          *sharex*           an class:`~matplotlib.axes.Axes` instance
-                             to share the x-axis with
-          *sharey*           an class:`~matplotlib.axes.Axes` instance
-                             to share the y-axis with
-          *title*            the title string
-          *visible*          [ *True* | *False* ] whether the axes is
-                             visible
-          *xlabel*           the xlabel
-          *xlim*             (*xmin*, *xmax*) view limits
-          *xscale*           [%(scale)s]
-          *xticklabels*      sequence of strings
-          *xticks*           sequence of floats
-          *ylabel*           the ylabel strings
-          *ylim*             (*ymin*, *ymax*) view limits
-          *yscale*           [%(scale)s]
-          *yticklabels*      sequence of strings
-          *yticks*           sequence of floats
-          ================   =========================================
-    """        
-        
     def __init__(self, *args, **kwargs):
         super(GripyMPLAxes, self).__init__(*args, **kwargs)            
     
@@ -331,8 +215,7 @@ class GripyMPLAxes(Axes):
         return self.figure.figure_to_display_coordinates(figure_coordinates)
    
     
-
-# Antigo DummyAxes    
+    
 class BaseAxes(GripyMPLAxes):    
     
     _valid_keys = [
@@ -357,7 +240,6 @@ class BaseAxes(GripyMPLAxes):
         'ticks_zorder': 8,
         'spines_zorder': 10,
         'grid_linestyle': '-',
-        #'facecolor': 'white',
         'spines_color': 'black',
         'tick_grid_color': '#A9A9A9'    #'#DFDFDF'#
     }  
@@ -615,16 +497,156 @@ class BaseAxes(GripyMPLAxes):
  
 
 
-class TrackFigureCanvas(FigureCanvas, SelectPanelMixin):
+
+
+class PlotFigureCanvas(FigureCanvas, SelectPanelMixin):
     _PLOT_XMIN = 0.0
     _PLOT_XMAX = 1.0
     
     
-    def __init__(self, wx_parent, track_view_object, pos, size, 
-                                                     **base_axes_properties):   
+    def __init__(self, wx_parent, track_view_object, pos, size, **base_axes_properties):   
         self.figure = GripyMPLFigure()
         FigureCanvas.__init__(self, wx_parent, -1, self.figure)
+        #self.selectedCanvas = []
+        self.SetSize(size)
+        #
+        self.base_axes = BaseAxes(self.figure, **base_axes_properties)
+        self.figure.add_axes(self.base_axes)
+        self.base_axes.set_zorder(0)
+        #
+        # Add 
+        self.plot_axes = GripyMPLAxes(self.figure, 
+                         rect=self.base_axes.get_position(True), 
+                         sharey=self.base_axes, 
+                         frameon=False
+        )
+        self.figure.add_axes(self.plot_axes)
+        self.plot_axes.set_xlim(self._PLOT_XMIN, self._PLOT_XMAX)
+        self.plot_axes.xaxis.set_visible(False)
+        self.plot_axes.yaxis.set_visible(False)        
+        self.plot_axes.set_zorder(1)
+        #
+        self.track_view_object = track_view_object
+        #self._selected = False
+        #
+        self.mpl_connect('button_press_event', self.on_press)
+        self.mpl_connect('pick_event', self.on_pick)
+        #
+        #print '\nsupports_blit:', self.supports_blit
+        #self.create_multicursor()
+
+    def on_pick(self, event):
+        if event.mouseevent.button == 1:
+            self._just_picked = True
+            obj_uid = event.artist.get_label()
+            UIM = UIManager()
+            toc_ctrl = UIM.get(obj_uid)
+            track_uid = UIM._getparentuid(toc_ctrl)
+            if not event.mouseevent.guiEvent.ControlDown():
+                selected_tocs = UIM.do_query('track_object_controller', 
+                                               track_uid, 'selected=True'
+                )
+                for sel_toc in selected_tocs:
+                    if sel_toc != toc_ctrl:
+                        sel_toc.model.selected = False
+            toc_ctrl.model.selected = not toc_ctrl.model.selected
+            event.mouseevent.guiEvent.Skip(False)
+
+        
+    def on_press(self, event):
+        if event.guiEvent.GetSkipped():
+            self.track_view_object.process_event(event)
+
+        
+    def display_to_figure_coordinates(self, display_coordinates):
+        return self.figure.display_to_figure_coordinates(display_coordinates) 
+        
+    def figure_to_display_coordinates(self, figure_coordinates):
+        return self.figure.figure_to_display_coordinates(figure_coordinates)
+    
+    def add_axes(self, zorder=None):
+        raise Exception('Cannot use it.')
+             
+    def update(self, key, value):
+        self.base_axes.update(key, value)
+        self.draw()            
+
+    def set_xlim(self, xlim):
+        raise Exception('Cannot use it.')
+                   
+    def set_ylim(self, ylim):
+        self.base_axes.update('ylim', ylim)
+        self.draw()
+        
+        
+    def get_ypixel_from_depth(self, depth):
+        pos = self.base_axes.data_to_display_coordinates((0, depth))[1]
+        return self.GetClientSize().height - pos
+
+
+    def get_depth_from_ypixel(self, ypx):
+        y_max, y_min = self.base_axes.get_ylim()
+        if ypx <= 0:
+            return y_min
+        elif ypx >= self.GetClientSize().height:
+            return y_max
+        pos = self.GetClientSize().height - ypx
+        return self.base_axes.display_to_data_coordinates((0, pos))[1]
+
+
+    def wx_position_to_depth(self, wx_pos):
+        y_max, y_min = self.dummy_ax.get_ylim()
+        if wx_pos <= 0:
+            return y_min
+        elif wx_pos >= self.GetClientSize()[1]:   
+            return y_max
+        mpl_y_pos = self.transform_display_position(wx_pos)
+        return self.dummy_ax.transData.inverted().transform((0, mpl_y_pos))[1] 
+    
+    
+    # TODO: separar create e add
+    def append_artist(self, artist_type, *args, **kwargs):
+        if artist_type == 'Line2D':
+            line = matplotlib.lines.Line2D(*args, **kwargs)
+            return self.plot_axes.add_line(line)
+        elif artist_type == 'Text':
+            return self.plot_axes.text(*args, **kwargs)
+        elif artist_type == 'AxesImage':
+            image = matplotlib.image.AxesImage(self.plot_axes, *args, **kwargs)
+            self.plot_axes.add_image(image)
+            return image
+        elif artist_type == 'Rectangle':
+            rect = matplotlib.patches.Rectangle(*args, **kwargs)
+            return rect
+        elif artist_type == 'PatchCollection':
+            collection = matplotlib.collections.PatchCollection(*args, **kwargs)
+            return self.plot_axes.add_collection(collection)
+        elif artist_type == 'contourf':
+            #contours = mcontour.QuadContourSet(self.plot_axes, *args, **kwargs)
+            #self.plot_axes.autoscale_view()
+            image = self.plot_axes.contourf(*args, **kwargs)
+            #self.plot_axes.add_image(image)
+            return image
+        else:
+            raise Exception('artist_type not known.')
+            
+            
+
+class TrackFigureCanvas(PlotFigureCanvas, SelectPanelMixin):
+    _PLOT_XMIN = 0.0
+    _PLOT_XMAX = 1.0
+    
+    
+    def __init__(self, wx_parent, track_view_object, pos, size, **base_axes_properties): 
+        super(TrackFigureCanvas, self).__init__(wx_parent, track_view_object, pos, size, **base_axes_properties)
         self.selectedCanvas = []
+        self._selected = False
+        self.create_multicursor()
+        
+        """
+        self.figure = GripyMPLFigure()
+        FigureCanvas.__init__(self, wx_parent, -1, self.figure)
+        
         self.SetSize(size)
         #
         self.base_axes = BaseAxes(self.figure, **base_axes_properties)
@@ -650,7 +672,7 @@ class TrackFigureCanvas(FigureCanvas, SelectPanelMixin):
         #
         #print '\nsupports_blit:', self.supports_blit
         self.create_multicursor()
-        
+        """
         
     def create_multicursor(self):
         xmin, xmax = self.plot_axes.get_xlim()
@@ -749,6 +771,8 @@ class TrackFigureCanvas(FigureCanvas, SelectPanelMixin):
         self.plot_axes.draw_artist(marked_vert_line)    
         print 'mark_vertical ended'
             
+        
+    """    
     def on_pick(self, event):
         if event.mouseevent.button == 1:
             self._just_picked = True
@@ -832,242 +856,30 @@ class TrackFigureCanvas(FigureCanvas, SelectPanelMixin):
         elif artist_type == 'Rectangle':
             rect = matplotlib.patches.Rectangle(*args, **kwargs)
             return rect
-            #return self.plot_axes.add_patch(rect)
         elif artist_type == 'PatchCollection':
             collection = matplotlib.collections.PatchCollection(*args, **kwargs)
             return self.plot_axes.add_collection(collection)
         elif artist_type == 'contourf':
             #contours = mcontour.QuadContourSet(self.plot_axes, *args, **kwargs)
             #self.plot_axes.autoscale_view()
-         #   print 'A'
             image = self.plot_axes.contourf(*args, **kwargs)
-         #   print 'B'
             #self.plot_axes.add_image(image)
-         #   print 'C'
             return image
         else:
             raise Exception('artist_type not known.')
 
 
-
-'''
-
-class MultiCursor(Widget):
-
-    def __init__(self, canvas, axes, useblit=True, horizOn=False, vertOn=True,
-                 **lineprops):
-
-        self.canvas = canvas
-        self.axes = axes
-        self.horizOn = horizOn
-        self.vertOn = vertOn
-
-        xmin, xmax = axes[-1].get_xlim()
-        ymin, ymax = axes[-1].get_ylim()
-        xmid = 0.5 * (xmin + xmax)
-        ymid = 0.5 * (ymin + ymax)
-
-        self.visible = True
-        self.useblit = useblit and self.canvas.supports_blit
-        self.background = None
-        self.needclear = False
-
-        if self.useblit:
-            lineprops['animated'] = True
-
-        if vertOn:
-            self.vlines = [ax.axvline(xmid, visible=False, **lineprops)
-                           for ax in axes]
-        else:
-            self.vlines = []
-
-        if horizOn:
-            self.hlines = [ax.axhline(ymid, visible=False, **lineprops)
-                           for ax in axes]
-        else:
-            self.hlines = []
-
-        self.connect()
-
-    def connect(self):
-        """connect events"""
-        self._cidmotion = self.canvas.mpl_connect('motion_notify_event',
-                                                  self.onmove)
-        self._ciddraw = self.canvas.mpl_connect('draw_event', self.clear)
-
-    def disconnect(self):
-        """disconnect events"""
-        self.canvas.mpl_disconnect(self._cidmotion)
-        self.canvas.mpl_disconnect(self._ciddraw)
-
-    def clear(self, event):
-        """clear the cursor"""
-        if self.ignore(event):
-            return
-        if self.useblit:
-            self.background = (
-                self.canvas.copy_from_bbox(self.canvas.figure.bbox))
-        for line in self.vlines + self.hlines:
-            line.set_visible(False)
-
-    def onmove(self, event):
-        if self.ignore(event):
-            return
-        if event.inaxes is None:
-            return
-        if not self.canvas.widgetlock.available(self):
-            return
-        self.needclear = True
-        if not self.visible:
-            return
-        if self.vertOn:
-            for line in self.vlines:
-                line.set_xdata((event.xdata, event.xdata))
-                line.set_visible(self.visible)
-        if self.horizOn:
-            for line in self.hlines:
-                line.set_ydata((event.ydata, event.ydata))
-                line.set_visible(self.visible)
-        self._update()
-
-    def _update(self):
-        if self.useblit:
-            if self.background is not None:
-                self.canvas.restore_region(self.background)
-            if self.vertOn:
-                for ax, line in zip(self.axes, self.vlines):
-                    ax.draw_artist(line)
-            if self.horizOn:
-                for ax, line in zip(self.axes, self.hlines):
-                    ax.draw_artist(line)
-            self.canvas.blit(self.canvas.figure.bbox)
-        else:
-            self.canvas.draw_idle()
-
-'''
-
-'''
-    # TODO: VERIFICAR ISSO
-    def show_index_curve(self, step=500):
-        start = 0
-        end = 10000
-        locs = np.arange(start, end, step)
-        for loc in locs:
-            text = self.plot_axes.text(0.5, loc, "%g" % loc, ha='center', 
-                                        va='center',  fontsize=10
-            )
-            text.set_bbox(dict(color='white', alpha=0.5))
-            text.set_zorder(-1)
-        self.draw()     
+    """
 
 
-    def hide_index_curve(self):
-        if not self.index_axes:
-            return
-        self.plot_axes.texts = []
-        self.draw() 
-'''    
-
-        
-        
-"""     
-class TrackFigureCanvas(FigureCanvas):
-     
-    def __init__(self, wx_parent, track_view_object, pos, size, **base_axes_properties):   
-        self.figure = GripyMPLFigure() #facecolor='white', figsize=(0.01, 0.0))
-        FigureCanvas.__init__(self, wx_parent, -1, self.figure)
-        self.selectedCanvas = []
-        self.SetSize(size)
-        self.base_axes = BaseAxes(self.figure, **base_axes_properties)
-        self.figure.add_axes(self.base_axes)
-        self.track_view_object = track_view_object
-        self._selected = False
-        self.index_axes = None       
-        self.mpl_connect('button_press_event', self.on_press)
-        self.mpl_connect('pick_event', self.on_pick)
-
-
-    def on_pick(self, event):
-        obj_uid = event.artist.get_label()
-        UIM = UIManager()
-        repr_ctrl = UIM.get(obj_uid)
-        repr_ctrl.pick_event(event)
-        
-    def on_press(self, event):
-        self.track_view_object.process_event(event)        
-
-    def display_to_figure_coordinates(self, display_coordinates):
-        return self.figure.display_to_figure_coordinates(display_coordinates) 
-        
-    def figure_to_display_coordinates(self, figure_coordinates):
-        return self.figure.figure_to_display_coordinates(figure_coordinates)
-    
-    def add_axes(self, zorder=None):
-        ax = GripyMPLAxes(self.figure, 
-                         rect=self.base_axes.get_position(True), 
-                         sharey=self.base_axes, 
-                         frameon=False
-        )
-        axes = self.figure.add_axes(ax)
-        axes.xaxis.set_visible(False)
-        axes.yaxis.set_visible(False)
-        if zorder:
-            axes.set_zorder(zorder)
-        return axes  
-    
-    def is_selected(self):
-        return self._selected
-
-    def _do_select(self):
-        self._selected = not self._selected
-        self.GetParent()._draw_window_selection(self)         
-                      
-    def update(self, key, value):
-        self.base_axes.update(key, value)
-        self.draw()            
-                   
-    def set_ylim(self, ylim):
-        self.base_axes.update('ylim', ylim)
-        self.draw()
-
-    # TODO: VERIFICAR ISSO
-    def show_index_curve(self, step=500):
-        if not self.index_axes:
-            self.index_axes = self.add_axes(zorder=LogPlotDisplayOrder.Z_ORDER_INDEX)
-        else:
-            self.index_axes.texts = []
-        start = 0
-        end = 10000
-        locs = np.arange(start, end, step)
-        for loc in locs:
-            text = self.index_axes.text(0.5, loc, "%g" % loc, ha='center', 
-                                        va='center',  fontsize=10
-            )
-            text.set_bbox(dict(color='white', alpha=0.5))
-        self.draw()     
-
-    def hide_index_curve(self):
-        if not self.index_axes:
-            return
-        self.index_axes.texts = []
-        self.draw() 
-
-"""            
-
-
-
-
-
+###############################################################################  
+###
+###############################################################################
 
 # Constants
 DPI = 80
 LABEL_TITLE_HEIGHT = 40
-
-
 VALID_PLOT_TYPES = ['index', 'line', 'partition', 'density', 'wiggle']
-
-
-
 
 
 def prepare_float_value(value):
