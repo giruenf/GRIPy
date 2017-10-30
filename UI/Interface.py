@@ -203,7 +203,7 @@ def load():
         UIM.create('menu_item_controller', mc_edit.uid, 
                 label=u'&Fluid', 
                 help=u'Initialize fluid model',
-                callback='App.menu_functions.on_rock'
+                callback='App.menu_functions.on_fluid'
         )             
         
         # Well Menu

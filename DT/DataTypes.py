@@ -24,7 +24,7 @@ OM.Objects : the base classes for the classes defined in this module.
 
 from collections import OrderedDict
 from OM.Manager import ObjectManager
-from OM.Objects import GenericObject 
+from OM.Objects import GenericObject
 from Basic.Colors import COLOR_CYCLE_RGB
 import numpy as np
 
@@ -491,8 +491,10 @@ class Partition(WellData1D):
 													   
     ] 
     
-    def __init__(self, **attributes):
-        super(Partition, self).__init__(**attributes)
+    def __init__(self, data=None,**attributes):        
+        super(Partition, self).__init__(data,**attributes)
+        self.children = OrderedDict()
+#        self.attributes = attributes
     
     def getdata(self, asbool=True):
         """
@@ -520,13 +522,24 @@ class Partition(WellData1D):
             controls the `dtype` of the matrix.
         """
         data = np.vstack(part.data for part in self.list('part'))
+        print '\ndata', data
         if data.dtype == bool or asbool == False:
             return data
         else:
             bdata = np.zeros_like(data, dtype=bool)
             bdata.T[np.arange(bdata.shape[1]), np.argmax(data, axis=0)] = True
             return bdata
-
+            
+    def list (self, tidfilter=None):
+        children = self.children.values()
+#        for chi in children:
+#            print 'chi', chi
+        if tidfilter:
+            print 'nchild',[child for child in children if child.tid == tidfilter]
+            return [ child for child in children if child.tid == tidfilter]
+        else:
+            return children
+        
     def getaslog(self, propuid=None):
         """
         Return a log representation of the partition or one of its properties.
@@ -547,6 +560,7 @@ class Partition(WellData1D):
             case `propuid` is not given.
         """
         if propuid is None:
+            print 'listaraqui\n', self.list('part')
             values = [part.code for part in self.list('part')]
             null = -1
         else:

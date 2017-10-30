@@ -7,6 +7,11 @@ class Rock (GenericDataType):
     tid = 'rock'
     _TID_FRIENDLY_NAME = 'Rock'
     _SHOWN_ATTRIBUTES = [
+                            ('suporte', 'Suporte'),
+                            ('grain', 'Grain'),
+#                            ('grain', 'Grain'),'
+                            ('matrix', 'Matrix'),
+#                            ('matrix', 'Matrix')
                             ('vp', 'Vp'),
                             ('vs', 'Vs'),                             
                             ('rho', 'Density'),
@@ -27,12 +32,11 @@ class Fluid (GenericDataType):
                             ('vs', 'Vs'),                             
                             ('rho', 'Density'),
                             ('k', 'Kmodulus'),
-                            ('mu', 'Gmodulus'),
                             ('poi', 'Poisson')
     ] 
 
-    def __init__(self, data, **attributes):
-        super(Fluid, self).__init__(data, **attributes)    
+    def __init__(self, **attributes):
+        super(Fluid, self).__init__(None, **attributes)    
 
 
 

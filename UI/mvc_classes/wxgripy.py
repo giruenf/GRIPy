@@ -361,6 +361,15 @@ class EncapsulatedChoice(EncapsulatedControl):
         if self.control.GetSelection() == -1:
             return None
         return self._map[self.control.GetString(self.control.GetSelection())]    
+    
+    def show(self):
+        return self.control.Show()
+    
+    def hide(self):
+        return self.control.Hide()
+        
+    def destroy(self):
+        return self.control.Destroy()
             
 
 class EncapsulatedRadioButton(EncapsulatedControl):
@@ -407,7 +416,20 @@ class EncapsulatedTextCtrl(EncapsulatedControl):
     def get_value(self):
         return self.control.GetValue().strip()
         
-
+    def disable(self):
+        return self.control.Disable()
+        
+    def enable(self):
+        return self.control.Enable()
+        
+    def hide(self):
+        return self.control.Hide()
+    
+    def show(self):
+        return self.control.Show()
+        
+    def destroy(self):
+        return self.control.Destroy()
 
 class EncapsulatedFilePickerCtrl(EncapsulatedControl):
     _control_class = wx.FilePickerCtrl
@@ -456,8 +478,16 @@ class EncapsulatedStaticText(EncapsulatedControl):
    
     def get_value(self):
         return self.control.GetLabel()
+        
+    def hide(self):
+        return self.control.Hide()
+    
+    def show(self):
+        return self.control.Show()
 
-
+    def destroy(self):
+        return self.control.Destroy()
+        
 class EncapsulatedListBox(EncapsulatedControl):
     _control_class = wx.ListBox 
     

@@ -204,12 +204,13 @@ def Reuss (k1, f1, k2):
     kreuss = (f1/k1 + (1-f1)/k2)**(-1)    
     return kreuss
         
-def VRHill (k1, f1, k2):
+def VRHill ():
     
-    kvoigt = Voigt (k1, f1, k2)
-    kreuss = Reuss (k1, f1, k2)
-    kvrh = (kvoigt+kreuss)*0.5    
-    return kvrh
+#    kvoigt = Voigt (k1, f1, k2)
+#    kreuss = Reuss (k1, f1, k2)
+#    kvrh = (kvoigt+kreuss)*0.5    
+#    return kvrh
+    return 'TEST'
     
 def Dens (rhom, rhof, phi):
 
