@@ -2186,14 +2186,6 @@ def on_fluid(event):
     UIM = UIManager()
     dlg = UIM.create('dialog_controller', title='Fluid creator') 
     
-#    cont_well = dlg.view.AddCreateContainer('StaticBox', label='Well', 
-#                                          orient=wx.HORIZONTAL, proportion=0, 
-#                                          flag=wx.EXPAND|wx.TOP, border=5
-#    )
-#    cont_sup = dlg.view.AddCreateContainer('StaticBox', label='Type of Support', 
-#                                          orient=wx.VERTICAL, proportion=0, 
-#                                          flag=wx.EXPAND|wx.TOP, border=5
-#    )
     cont_fluid1 = dlg.view.AddCreateContainer('StaticBox', label='Fluid 1', 
                                           orient=wx.VERTICAL, proportion=0, 
                                           flag=wx.EXPAND|wx.TOP, border=5
@@ -2206,103 +2198,7 @@ def on_fluid(event):
                                           orient=wx.HORIZONTAL, proportion=0, 
                                           flag=wx.EXPAND|wx.TOP, border=5
     )
-#    options = OrderedDict()
-#    partitions = OrderedDict()
-#    
-#    options['PT'] = 'PT'
-#    options['FACIES'] = 'FACIES'
-#    options['TOP&BASE'] = 'TOP&BASE'
-#    
-#    for well in OM.list('well'):
-#        for partition in OM.list('partition', well.uid):
-#            partitions[partition.get_friendly_name()] = partition.uid
-#    wells = OrderedDict()
-#    for well in OM.list('well'):
-#        wells[well.name] = well.uid
-#            
-#    c00 = dlg.view.AddCreateContainer('BoxSizer', cont_sup, orient=wx.HORIZONTAL, proportion=1, flag=wx.EXPAND|wx.ALL, border=5)
-#    dlg.view.AddChoice(c00, widget_name='suporte', options=options)
-#    
-#    def on_change_support(name, old_value, new_value, **kwargs):
-#        textctrl_name = dlg.view.get_object('topo')
-#        statictext_suport = dlg.view.get_object('static_text_suport')
-#        textctrl_range = dlg.view.get_object('base')
-#        statictext_range = dlg.view.get_object('static_text_range')
-#        choice = dlg.view.get_object('chid')
-##        print type(textctrl_range), type(c1hoice),   '\n'
-##        print old_value, new_value
-#        
-#        if old_value == "FACIES":
-##            print 'no old'
-#            choice = dlg.view.get_object('chid')
-##            print choice
-#            choice.hide()
-#        
-#        if old_value == None:
-##            print 'no old'
-#            choice = dlg.view.get_object('chid')
-##            print choice
-#            choice.hide()
-#            
-#        if new_value == "PT":
-##            print choice.show(),'-p'
-##            if choice.show() == False: 
-##                choice.hide()
-##                print 'hide p'
-#            textctrl_name.show()
-#            statictext_suport.show()
-#            textctrl_name.set_value('ponto')
-#            statictext_suport.set_value('PONTO:')
-#            textctrl_range.hide()
-#            statictext_range.hide()
-#            
-#        if new_value == "FACIES":
-##            a = dlg.view.AddChoice(c2, widget_name='partuid', options=partitions)
-##            textctrl_name.set_value('facies')  
-#            
-##            textctrl_name.hide()
-##            statictext_suport.set_value('FACIES:')
-##            dlg.view.AddChoice(c2, widget_name='chid', options=wells)            
-#            choice.show()
-#            
-##            dlg.view.AddChoice(c2,widget_name='partuid', options=partitions)
-##            statictext_suport.set_value('FACIES:')
-#            statictext_suport.hide()
-#            textctrl_name.hide()
-#            textctrl_range.hide()
-#            statictext_range.hide()
-##            choice.show()
-#        
-#            
-#        if new_value == "TOP&BASE":
-##            print choice.show(),'-z',choice.show()
-##            if choice.show() == False: 
-##                choice.hide()
-##                print 'hide z'
-#            textctrl_name.show()
-#            statictext_suport.show()
-#            textctrl_name.set_value('Topo')  
-#            statictext_suport.set_value('TOPO:')
-#            textctrl_range.set_value ('BASE')
-#            textctrl_range.show()
-#            statictext_range.show()
-#            
-#    choice_datatype = dlg.view.get_object('suporte')
-#    choice_datatype.set_trigger(on_change_support)
-#    
-#    c2 = dlg.view.AddCreateContainer('BoxSizer', cont_sup, orient=wx.HORIZONTAL, proportion=1, flag=wx.EXPAND|wx.ALL, border=5)
-#    dlg.view.AddStaticText(c2, label='TOPO:', proportion=1, widget_name='static_text_suport', flag=wx.ALIGN_RIGHT)
-#    dlg.view.AddChoice(c00, widget_name='chid', options=wells,  proportion=1, flag=wx.ALIGN_RIGHT)
-#    dlg.view.AddTextCtrl(c2, proportion=1, flag=wx.ALIGN_LEFT, widget_name='topo', initial='')
-#    
-##    choices = dlg.view.get_object('chid')
-##    choices.hide()
-#    c3 = dlg.view.AddCreateContainer('BoxSizer', cont_sup, orient=wx.HORIZONTAL, proportion=1, flag=wx.EXPAND|wx.ALL, border=5)
-#    dlg.view.AddStaticText(c3, label='BASE:', proportion=1, widget_name='static_text_range',flag=wx.ALIGN_RIGHT)
-#    dlg.view.AddTextCtrl(c3, proportion=1, flag=wx.ALIGN_LEFT, widget_name='base', initial='')
-#    
-#    
-#    dlg.view.AddChoice(cont_well, widget_name='welluid', options=wells)
+    
     dlg.view.AddTextCtrl(cont_fluid, proportion=0, flag=wx.EXPAND|wx.TOP, 
                          border=5, widget_name='fluid_name', initial='new_fluid'#, 
     )
@@ -2392,9 +2288,7 @@ def on_fluid(event):
     try:
         if result == wx.ID_OK:
             results = dlg.get_results()     
-#            well_uid = results.get('welluid')   
-            fluid_name = results.get('fluid_name')
-#            support = results.get('suporte')          
+            fluid_name = results.get('fluid_name')     
             gr_name = results.get('fluid1')
             gr_f = results.get('frac1')
             gr_k = results.get('kmod1')
@@ -2405,20 +2299,7 @@ def on_fluid(event):
             mt_mi = results.get('gmod2')
             mt_rho = results.get('dens2')
             print '\nrounds', gr_f, gr_k, gr_mi, gr_rho, fluid_name
-#            # 
-#            if support == 'PT':
-#                ponto = results.get('topo')
-#                print 'escolheu ponto', ponto
-#            elif support == 'FACIES':
-#                facie = results.get('chid')
-#                print 'escolheu facies', facie
-#            elif support == 'TOP&BASE':
-#                topo = results.get('topo')
-#                base = results.get('base')
-#                print 'escolheu top&base', topo, base, '\n'
-#            rock = OM.new('rock', name=rock_name, output)
             fluid = OM.new('fluid', name=fluid_name, fluid1 = gr_f+'% '+gr_name, vp = gr_f, vs = gr_mi, rho = gr_rho)
-#            OM.add(rock, well_uid)  
             OM.add(fluid)  
     except Exception as e:
         print 'ERROR:', e
@@ -2506,39 +2387,24 @@ def on_new_crossplot(event):
             #
             UIM = UIManager()
             root_controller = UIM.get_root_controller()        
-#            print 111
             cp_ctrl = UIM.create('crossplot_controller', root_controller.uid)  
-#            print 2222
             cpp = cp_ctrl.view
-#            print 222
             xaxis_obj = OM.get(results.get('xaxis'))
             yaxis_obj = OM.get(results.get('yaxis'))
             cpp.crossplot_panel.set_xdata(xaxis_obj.data)
             cpp.crossplot_panel.set_xlabel(xaxis_obj.name)
             cpp.crossplot_panel.set_ydata(yaxis_obj.data)
             cpp.crossplot_panel.set_ylabel(yaxis_obj.name)
-            #
-            #'''
-            print '\n\nzaxis', results.get('xaxis'), '\n',results.get('zaxis'),'\n\n'
             if results.get('zaxis') is not None:
                 zaxis_obj = OM.get(results.get('zaxis'))
                 if zaxis_obj.tid == 'partition':
-#                    for part in OM.list('part'):
-#                        print part.code
-                    print 'no partitio1',zaxis_obj, OM.list('part',zaxis_obj.uid), '\n\n', zaxis_obj.getaslog(OM.list('part',zaxis_obj.uid)),'\nfimmmmm'
-#                    booldata, codes = zaxis_obj.getfromlog(data[i])
-#                    for j in range(len(codes)):
-#                        
                     cpp.crossplot_panel.set_zdata(zaxis_obj.getaslog(OM.list('part',zaxis_obj.uid)))
-                    print '\n\nno partitio01'
                     cpp.crossplot_panel.set_zlabel(zaxis_obj.name)
                     classcolors = {}
                     classnames = {}
-                    print 'no partitio1'
                     for part in OM.list('part', zaxis_obj.uid):
                         classcolors[part.code] = tuple(c/255.0 for c in part.color)
                         classnames[part.code] = part.name
-                    print 'no partitio2'
                     cpp.crossplot_panel.set_classcolors(classcolors)
                     cpp.crossplot_panel.set_classnames(classnames)
                     cpp.crossplot_panel.set_nullclass(-1)
@@ -3049,8 +2915,8 @@ def on_partitionedit(event):
     OM = ObjectManager(event.GetEventObject())
     if OM.list('partition'):
         print 'tem partition', OM.list('partition')
-#    if not OM.list('partition'):
-#        return
+    if not OM.list('partition'):
+        return
     dlg = PartitionEditor.Dialog(wx.App.Get().GetTopWindow())
     dlg.ShowModal()
     dlg.Destroy()
