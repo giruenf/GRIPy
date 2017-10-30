@@ -496,7 +496,7 @@ class Partition(WellData1D):
         self.children = OrderedDict()
 #        self.attributes = attributes
     
-    def getdata(self, asbool=True):
+    def getdata(self, partlist=None, asbool=True):
         """
         Return a matrix which lines are the data from the `Partition` parts.
         
@@ -521,26 +521,19 @@ class Partition(WellData1D):
             instance. The parameters `asbool`, which defaults to `True`,
             controls the `dtype` of the matrix.
         """
-        data = np.vstack(part.data for part in self.list('part'))
-        print '\ndata', data
+        if partlist == None: partlist = self.list('part')
+#        data = np.vstack(part.data for part in self.list('part'))
+        data = np.vstack(part.data for part in partlist)
         if data.dtype == bool or asbool == False:
+            print '\n1data', data
             return data
         else:
             bdata = np.zeros_like(data, dtype=bool)
             bdata.T[np.arange(bdata.shape[1]), np.argmax(data, axis=0)] = True
+            print '\n2data', bdata
             return bdata
-            
-    def list (self, tidfilter=None):
-        children = self.children.values()
-#        for chi in children:
-#            print 'chi', chi
-        if tidfilter:
-            print 'nchild',[child for child in children if child.tid == tidfilter]
-            return [ child for child in children if child.tid == tidfilter]
-        else:
-            return children
         
-    def getaslog(self, propuid=None):
+    def getaslog(self, partlist=None, propuid=None):
         """
         Return a log representation of the partition or one of its properties.
         
@@ -559,15 +552,17 @@ class Partition(WellData1D):
             the property `data` in that `Part`, or to the `Part` `code` in the
             case `propuid` is not given.
         """
+        if partlist == None: partlist = self.list('part')
         if propuid is None:
-            print 'listaraqui\n', self.list('part')
-            values = [part.code for part in self.list('part')]
+#            values = [part.code for part in self.list('part')]
+            values = [part.code for part in partlist]
             null = -1
         else:
             prop = self.get(propuid)
-            values = [prop.getdata(part.uid) for part in self.list('part')]
+#            values = [prop.getdata(part.uid) for part in self.list('part')]
+            values = [prop.getdata(part.uid) for part in partlist]
             null = np.nan
-        return self._getaslog(values, self.getdata(), null)
+        return self._getaslog(values, self.getdata(partlist), null)
 
     @staticmethod
     def _getaslog(values, data, null):
@@ -614,7 +609,6 @@ class Partition(WellData1D):
         # linha anterior, isto é, onde uma coluna de data[notnull] não tem
         # nenhuma entrada não nula
         log[~np.sum(data[notnull], axis=0, dtype=bool)] = null
-        
         return log
     
     @staticmethod

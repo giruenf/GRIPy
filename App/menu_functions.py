@@ -25,7 +25,7 @@ from Algo.Spectral.Hilbert import HilbertTransform
 from Algo.Spectral import get_synthetic_ricker, phase_rotation, frequency_phase_rotation
 
 from scipy.signal import chirp
-from Algo import RockPhysicss as RP
+from Algo import RockPhysics as RP
 from Algo import AVO
 from Algo.Modeling.Reflectivity import Reflectivity
 
@@ -1971,6 +1971,7 @@ def on_rock(event):
 #            print 'no old'
             choice = dlg.view.get_object('chid')
 #            print choice
+            print '\nlist\n', OM.list('partition')[0].uid, '222', OM.list('partition')[0].get_friendly_name()
             choice.hide()
         
         if old_value == None:
@@ -2027,7 +2028,7 @@ def on_rock(event):
     
     c2 = dlg.view.AddCreateContainer('BoxSizer', cont_sup, orient=wx.HORIZONTAL, proportion=1, flag=wx.EXPAND|wx.ALL, border=5)
     dlg.view.AddStaticText(c2, label='TOPO:', proportion=1, widget_name='static_text_suport', flag=wx.ALIGN_RIGHT)
-    dlg.view.AddChoice(c00, widget_name='chid', options=wells,  proportion=1, flag=wx.ALIGN_RIGHT)
+    dlg.view.AddChoice(c00, widget_name='chid', options=partitions,  proportion=1, flag=wx.ALIGN_RIGHT)
     dlg.view.AddTextCtrl(c2, proportion=1, flag=wx.ALIGN_LEFT, widget_name='topo', initial='')
     
 #    choices = dlg.view.get_object('chid')
@@ -2518,16 +2519,18 @@ def on_new_crossplot(event):
             cpp.crossplot_panel.set_ylabel(yaxis_obj.name)
             #
             #'''
-            print '\n\nzaxis', results.get('zaxis')
+            print '\n\nzaxis', results.get('xaxis'), '\n',results.get('zaxis'),'\n\n'
             if results.get('zaxis') is not None:
                 zaxis_obj = OM.get(results.get('zaxis'))
                 if zaxis_obj.tid == 'partition':
-                    print 'no partitio1',zaxis_obj.getaslog()
+#                    for part in OM.list('part'):
+#                        print part.code
+                    print 'no partitio1',zaxis_obj, OM.list('part',zaxis_obj.uid), '\n\n', zaxis_obj.getaslog(OM.list('part',zaxis_obj.uid)),'\nfimmmmm'
 #                    booldata, codes = zaxis_obj.getfromlog(data[i])
 #                    for j in range(len(codes)):
 #                        
-                    cpp.crossplot_panel.set_zdata(zaxis_obj.getaslog())
-                    print 'no partitio01'
+                    cpp.crossplot_panel.set_zdata(zaxis_obj.getaslog(OM.list('part',zaxis_obj.uid)))
+                    print '\n\nno partitio01'
                     cpp.crossplot_panel.set_zlabel(zaxis_obj.name)
                     classcolors = {}
                     classnames = {}
@@ -2554,7 +2557,7 @@ def on_new_crossplot(event):
             cpp.crossplot_panel.draw()        
         
     except Exception as e:
-        print 'ERROR:', e
+        print 'ERROR CROSSPLOT:', e
     finally:
         UIM.remove(dlg.uid)
 
@@ -3044,8 +3047,10 @@ def on_export_las(event):
 
 def on_partitionedit(event):
     OM = ObjectManager(event.GetEventObject())
-    if not OM.list('partition'):
-        return
+    if OM.list('partition'):
+        print 'tem partition', OM.list('partition')
+#    if not OM.list('partition'):
+#        return
     dlg = PartitionEditor.Dialog(wx.App.Get().GetTopWindow())
     dlg.ShowModal()
     dlg.Destroy()
