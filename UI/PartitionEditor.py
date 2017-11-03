@@ -50,24 +50,31 @@ class PartitionTable(wx.grid.GridTableBase):
         super(PartitionTable, self).__init__()
         
         self._OM = ObjectManager(self)
-        
+        self.partuid = []
         self.partitionuid = partitionuid
+        
         
         self.propmap = [prop.uid for prop in self._OM.list('property', self.partitionuid)]
         self.partmap = [part.uid for part in self._OM.list('part', self.partitionuid)]
 
-        print self.propmap
+#        print self.propmap
         
         if False:  # TODO: rever isso para particoes topo-base -> isinstance(self.partition, TopBottomPartition):
-            self.N_PROPS = 4
+            self.N_COLS = 4
         else:
-            self.N_PROPS = 2
+            self.N_COLS = 2
+        self.N_ROWS = 0
     
     @debugdecorator
     def AppendCols(self, numCols=1):
+#        for part in self._OM.list('part', self.partitionuid):
+#            print '\nparts1', part.uid
         for i in range(numCols):
             prop = self._OM.new('property')
             prop.defaultdata = np.nan
+#            for part in self.partuid:
+#                self._OM.add(prop, part)
+#            print '\nparts2', self.partuid
             self._OM.add(prop, self.partitionuid)
             self.propmap.append(prop.uid)
 
@@ -80,8 +87,8 @@ class PartitionTable(wx.grid.GridTableBase):
     
     @debugdecorator
     def DeleteCols(self, pos=0, numCols=1):
-        if pos >= self.N_PROPS:
-            i = pos - self.N_PROPS
+        if pos >= self.N_COLS:
+            i = pos - self.N_COLS
             for j in range(numCols)[::-1]:
                 self._OM.remove(self.propmap.pop(i + j))
 
@@ -93,11 +100,43 @@ class PartitionTable(wx.grid.GridTableBase):
             return True
         else:
             return False
+    
+    @debugdecorator
+    def AppendRows(self, numRows=1):
+        part = self._OM.new('part')
+        part.defaultdata = np.nan
+        self._OM.add(part, self.partitionuid)
+        self.partmap.append(part.uid)
+        color = self.get_color(0)
+        self.set_color(-1,color)
+
+        self.GetView().BeginBatch()
+        msg = wx.grid.GridTableMessage(self, wx.grid.GRIDTABLE_NOTIFY_ROWS_APPENDED, numRows)
+        self.GetView().ProcessTableMessage(msg)
+        self.GetView().EndBatch()
+
+        return True
+        
+    @debugdecorator
+    def DeleteRows(self, pos=0, numRows=1):
+        if pos >= self.N_ROWS:
+            i = pos - self.N_ROWS
+            for j in range(numRows)[::-1]:
+                self._OM.remove(self.partmap.pop(i + j))
+
+            self.GetView().BeginBatch()
+            msg = wx.grid.GridTableMessage(self, wx.grid.GRIDTABLE_NOTIFY_ROWS_DELETED, pos, numRows)
+            self.GetView().ProcessTableMessage(msg)
+            self.GetView().EndBatch()
+
+            return True
+        else:
+            return False
 
     @debugdecorator
     def GetColLabelValue(self, col):
-        if col >= self.N_PROPS:
-            i = col - self.N_PROPS
+        if col >= self.N_COLS:
+            i = col - self.N_COLS
             prop = self._OM.get(self.propmap[i])
             label = prop.name
             unit = prop.unit
@@ -133,10 +172,10 @@ class PartitionTable(wx.grid.GridTableBase):
     def GetRowLabelValue(self, row):
         return str(row + 1)
 
-    @debugdecorator
+#    @debugdecorator
     def SetColLabelValue(self, col, label):
-        if col >= self.N_PROPS:
-            i = col - self.N_PROPS
+        if col >= self.N_COLS:
+            i = col - self.N_COLS
             prop = self._OM.get(self.propmap[i])
             name, unit = label.split(NAME_UNIT_SEPARATOR)
             prop.name = name.strip()
@@ -145,12 +184,12 @@ class PartitionTable(wx.grid.GridTableBase):
             return
 
     @debugdecorator
-    def SetRowLabelValue(self, row, label):
+    def SetRowLabelValue(self, row, label):        
         return
 
     @debugdecorator
     def GetNumberCols(self):
-        return len(self.propmap) + self.N_PROPS
+        return len(self.propmap) + self.N_COLS
 
     @debugdecorator
     def GetNumberRows(self):
@@ -164,7 +203,7 @@ class PartitionTable(wx.grid.GridTableBase):
         #else:
         #    attr = wx.grid.GridCellAttr()
         
-        if col >= self.N_PROPS:
+        if col >= self.N_COLS:
             attr.SetAlignment(wx.ALIGN_RIGHT, wx.ALIGN_CENTER)
         elif col == 0:
             attr.SetAlignment(wx.ALIGN_RIGHT, wx.ALIGN_CENTER)
@@ -180,8 +219,8 @@ class PartitionTable(wx.grid.GridTableBase):
 
     @debugdecorator
     def GetValue(self, row, col):
-        if col >= self.N_PROPS:
-            i = col - self.N_PROPS
+        if col >= self.N_COLS:
+            i = col - self.N_COLS
             prop = self._OM.get(self.propmap[i])
             value = prop.getdata(self.partmap[row])
             if not np.isnan(value):
@@ -210,8 +249,8 @@ class PartitionTable(wx.grid.GridTableBase):
 
     @debugdecorator
     def SetValue(self, row, col, value):
-        if col >= self.N_PROPS:
-            i = col - self.N_PROPS
+        if col >= self.N_COLS:
+            i = col - self.N_COLS
             if value:
                 value = float(value)
             else:
@@ -252,15 +291,15 @@ class PartitionTable(wx.grid.GridTableBase):
     
     @debugdecorator
     def get_nameunit(self, col):
-        if col >= self.N_PROPS:
-            i = col - self.N_PROPS
+        if col >= self.N_COLS:
+            i = col - self.N_COLS
             prop = self._OM.get(self.propmap[i])
             return prop.name, prop.unit
 
     @debugdecorator
     def set_nameunit(self, col, name, unit):
-        if col >= self.N_PROPS:
-            i = col - self.N_PROPS
+        if col >= self.N_COLS:
+            i = col - self.N_COLS
             prop = self._OM.get(self.propmap[i])
             prop.name = name
             prop.unit = unit
@@ -301,6 +340,44 @@ class PropertyEntryDialog(wx.Dialog):
         unit = self.unit_ctrl.GetValue()
         return name, unit
 
+class NewPartitionDialog(wx.Dialog):
+    def __init__(self, *args, **kwargs):
+        if 'size' not in kwargs:
+            kwargs['size'] = (360, 240)
+        super(NewPartitionDialog, self).__init__(*args, **kwargs)
+#        ico = wx.Icon(r'./icons/plus32x32.ico', wx.BITMAP_TYPE_ICO)
+#        self.SetIcon(ico)
+        fgs = wx.BoxSizer(wx.HORIZONTAL)
+        main_label = wx.StaticText(self, label="Fill up the cell below to create a new partition.")
+        name_label = wx.StaticText(self, label="Name Partition: ")
+#        unit_label = wx.StaticText(self, label="Unidade: ")
+        self.name_ctrl = wx.TextCtrl(self)
+#        self.unit_ctrl = wx.TextCtrl(self)
+        fgs.Add(name_label, 0, wx.EXPAND)
+        fgs.Add(self.name_ctrl, 1, wx.EXPAND)
+#        fgs.AddGrowableRow(0)
+        
+        sizer = wx.BoxSizer(wx.VERTICAL)
+
+        button_sizer = self.CreateButtonSizer(wx.OK | wx.CANCEL)
+        
+        #if _iswxphoenix:
+        sizer.Add(main_label, 1, wx.GROW | wx.EXPAND)
+        sizer.Add(fgs, 0, wx.EXPAND)
+        sizer.Add(button_sizer, 0, wx.EXPAND)
+        #else:
+        #    sizer.AddSizer(fgs, proportion=1, flag=wx.EXPAND)
+        #    sizer.AddSizer(button_sizer, proportion=0, flag=wx.EXPAND)
+#        self.
+        self.SetSizer(sizer)
+        self.name_ctrl.SetFocus()
+
+    def set_value(self, name):
+        self.name_ctrl.SetValue(name)
+
+    def get_value(self):
+        name = self.name_ctrl.GetValue()
+        return name
 
 class Dialog(wx.Dialog):
     @debugdecorator
@@ -322,47 +399,74 @@ class Dialog(wx.Dialog):
                 self.wellmap.append(well.uid)
         #
         self.currentpartitionindex = 0
-        self.partitionmap = [partition.uid for partition in self._OM.list('partition', self.wellmap[self.currentwellindex])]
         
-
         self.tables = []
-        for welluid in self.wellmap:
+        
+        if len (self.wellmap) == 0:
+            self.wellmap.append('GLOBAL')
+            self.partitionmap = [partition.uid for partition in self._OM.list('partition')]
             work_table = []
-            for partition in self._OM.list('partition', welluid):
+            for partition in self._OM.list('partition'):
                 work_table.append(PartitionTable(partition.uid))
-            #if work_table:    
             self.tables.append(work_table)
-
+        else:
+            self.partitionmap = [partition.uid for partition in self._OM.list('partition')]
+            for welluid in self.wellmap:
+                work_table = []
+                for partition in self._OM.list('partition'):
+                    work_table.append(PartitionTable(partition.uid))
+                #if work_table:    
+                self.tables.append(work_table)
+        
         self.grid = wx.grid.Grid(self)
         self.grid.DisableDragColSize()
         self.grid.DisableDragRowSize()
         self.grid.SetDefaultColSize(100)
         
-        print self.currentwellindex, self.currentpartitionindex
+#        if len (self.wellmap) == 0:
+#            self.grid.SetTable(self.tables[self.currentwellindex][self.currentpartitionindex])
+#        else:
         self.grid.SetTable(self.tables[self.currentwellindex][self.currentpartitionindex])
         self.grid.Bind(wx.grid.EVT_GRID_CELL_LEFT_DCLICK, self.on_cell_dlclick)
         self.grid.Bind(wx.grid.EVT_GRID_LABEL_LEFT_DCLICK, self.on_label_dlclick)
 
         toolbar_sizer = wx.BoxSizer(wx.HORIZONTAL)
-
-        self.well_choice = wx.Choice(self)
-        self.well_choice.AppendItems([self._OM.get(welluid).name for welluid in self.wellmap])
-        self.well_choice.SetSelection(self.currentwellindex)
-        self.well_choice.Bind(wx.EVT_CHOICE, self.on_well_choice)
+#        self.item = []
+#        self.well_choice = wx.Choice(self)
+#        print 'itemx', self._OM.get(welluid).name for welluid in self.wellmap
+#        for welluid in self.wellmap:
+#            if welluid == 'GLOBAL':
+#                self.item.append('globaLE')
+#                print 'item1',self.item
+##                self.well_choice.AppendItems(self.item)
+#            else:
+#                self.item.append(self._OM.get(welluid).name)
+#                print 'item2', self.item
+#        self.well_choice.AppendItems(self.item)
+#        self.well_choice.SetSelection(self.currentwellindex)
+#        self.well_choice.Bind(wx.EVT_CHOICE, self.on_well_choice)
 
         self.partition_choice = wx.Choice(self)
         self.partition_choice.AppendItems([self._OM.get(partitionuid).name for partitionuid in self.partitionmap])
         self.partition_choice.SetSelection(self.currentpartitionindex)
         self.partition_choice.Bind(wx.EVT_CHOICE, self.on_partition_choice)
 
-        add_property_button = wx.Button(self, label='ADD')
+        add_part_button = wx.Button(self, label='ADD PART')
+        add_part_button.Bind(wx.EVT_BUTTON, self.on_add_part)
+        
+        remove_part_button = wx.Button(self, label='REM PART')
+        remove_part_button.Bind(wx.EVT_BUTTON, self.on_remove_part)
+        
+        add_property_button = wx.Button(self, label='ADD PROP')
         add_property_button.Bind(wx.EVT_BUTTON, self.on_add)
 
-        remove_property_button = wx.Button(self, label='REM')
+        remove_property_button = wx.Button(self, label='REM PROP')
         remove_property_button.Bind(wx.EVT_BUTTON, self.on_remove)
 
-        toolbar_sizer.Add(self.well_choice, 1, wx.ALIGN_LEFT)
+#        toolbar_sizer.Add(self.well_choice, 1, wx.ALIGN_LEFT)
         toolbar_sizer.Add(self.partition_choice, 1, wx.ALIGN_LEFT)
+        toolbar_sizer.Add(add_part_button, 0, wx.ALIGN_LEFT)
+        toolbar_sizer.Add(remove_part_button, 0, wx.ALIGN_LEFT)
         toolbar_sizer.Add(add_property_button, 0, wx.ALIGN_LEFT)
         toolbar_sizer.Add(remove_property_button, 0, wx.ALIGN_LEFT)
 
@@ -372,19 +476,19 @@ class Dialog(wx.Dialog):
 
         self.SetSizer(main_sizer)
 
-    @debugdecorator
-    def on_well_choice(self, event):
-        idx = event.GetSelection()
-        if idx != self.currentwellindex:
-            self.currentwellindex = idx
-            self.currentpartitionindex = 0
-            self.partitionmap = [partition.uid for partition in self._OM.list('partition', self.wellmap[self.currentwellindex])]
-            self.partition_choice.Clear()
-            self.partition_choice.AppendItems([self._OM.get(partitionuid).name for partitionuid in self.partitionmap])
-            self.partition_choice.SetSelection(self.currentpartitionindex)
-            #print idx, self.currentpartitionindex
-            self.grid.SetTable(self.tables[idx][self.currentpartitionindex])
-            self.grid.ForceRefresh()
+#    @debugdecorator
+#    def on_well_choice(self, event):
+#        idx = event.GetSelection()
+#        if idx != self.currentwellindex:
+#            self.currentwellindex = idx
+#            self.currentpartitionindex = 0
+#            self.partitionmap = [partition.uid for partition in self._OM.list('partition', self.wellmap[self.currentwellindex])]
+#            self.partition_choice.Clear()
+#            self.partition_choice.AppendItems([self._OM.get(partitionuid).name for partitionuid in self.partitionmap])
+#            self.partition_choice.SetSelection(self.currentpartitionindex)
+#            #print idx, self.currentpartitionindex
+#            self.grid.SetTable(self.tables[idx][self.currentpartitionindex])
+#            self.grid.ForceRefresh()
 
     @debugdecorator
     def on_partition_choice(self, event):
@@ -407,17 +511,36 @@ class Dialog(wx.Dialog):
             self.grid.SetColLabelValue(n, label)
 
             self.grid.ForceRefresh()
+            
+    @debugdecorator
+    def on_add_part(self, event):
+#        to_remove = self.grid.GetSelectedRows()
+#        to_add = self.grid.GetSelectedRows()
+#        self.grid.ClearSelection()
+        self.grid.AppendRows()
+#        self.grid.SetFocus()
+#        self.grid.SelectedRows()
+        self.grid.ForceRefresh()
+
+    
+    def on_remove_part(self, event):
+#        to_remove = self.grid.GetSelectedCols()
+        to_remove = self.grid.GetSelectedRows()
+        self.grid.ClearSelection()
+        for i in to_remove[::-1]:
+            self.grid.DeleteRows(i)
+
+        self.grid.ForceRefresh()
 
     @debugdecorator
     def on_remove(self, event):
         to_remove = self.grid.GetSelectedCols()
         self.grid.ClearSelection()
-
         for i in to_remove[::-1]:
             self.grid.DeleteCols(i)
 
         self.grid.ForceRefresh()
-
+        
     @debugdecorator
     def on_cell_dlclick(self, event):
         if event.GetCol() == 1:
@@ -445,7 +568,7 @@ class Dialog(wx.Dialog):
         row = event.GetRow()
         col = event.GetCol()
         table = self.tables[self.currentwellindex][self.currentpartitionindex]
-        if row == -1 and col >= table.N_PROPS:
+        if row == -1 and col >= table.N_COLS:
             name, unit = table.get_nameunit(col)
             dlg = PropertyEntryDialog(self)
             dlg.set_value(name, unit)

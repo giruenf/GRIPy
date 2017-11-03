@@ -180,9 +180,18 @@ def load():
         )            
         
         # Edit Menu
-        UIM.create('menu_item_controller', mc_edit.uid, 
-                label=u"Partitions", 
-                help=u'Partitions',
+        mc_partition = UIM.create('menu_controller', mc_edit.uid, 
+                                      label=u"&Partition",
+                                      help=u"Create / Edit Partition"
+        )
+        UIM.create('menu_item_controller', mc_partition.uid, 
+                label=u"New Partitions", 
+                help=u'New Partitions',
+                callback='App.menu_functions.on_new_partition'
+        )
+        UIM.create('menu_item_controller', mc_partition.uid, 
+                label=u"Edit Partition", 
+                help=u'Edit Partitions',
                 callback='App.menu_functions.on_partitionedit'
         )
         UIM.create('menu_item_controller', mc_edit.uid, 

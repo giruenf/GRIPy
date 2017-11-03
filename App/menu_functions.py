@@ -2169,12 +2169,14 @@ def on_rock(event):
                 print 'escolheu top&base', topo, base, '\n'
 #            rock = OM.new('rock', name=rock_name, output)
             rock = OM.new('rock', suporte = support, name=rock_name, grain = gr_f+'% '+gr_name, vp = gr_f, mu = gr_mi)
-            parent = results.get('welluid')
-#            print well_uid, 'wllid'
-#            if well_uid is not None:
-#                OM.add(rock, well_uid)  
+            well_uid = results.get('welluid')
+            print well_uid, 'wellid'
+            if well_uid == 'GLOBAL':
+                OM.add(rock)
+            else:
+                OM.add(rock, well_uid)  
 #            else: 
-            OM.add(rock)  
+#            OM.add(rock)  
     except Exception as e:
         print 'ERROR:', e
     finally:
@@ -2911,12 +2913,51 @@ def on_export_las(event):
 
 
 
+def on_new_partition(event):
+    OM = ObjectManager(event.GetEventObject())
+    partition_dlg = PartitionEditor.NewPartitionDialog(wx.App.Get().GetTopWindow())
+    try:
+        if partition_dlg.ShowModal() == wx.ID_OK:
+#            wx.MessageBox('It was created a partition.')
+            name = partition_dlg.get_value()
+            print 'name', name, type(str(name)), str(name).strip(''), str(name).strip()
+            if name == '': name = 'NEW'
+            rock = OM.new('partition', name = name)
+#            partition_dlg.Destroy()        
+            OM.add(rock)
+    except Exception as e:
+        print 'ERROR:', e
+    finally:
+        partition_dlg.Destroy()
+#        return
+#            
+#    dlg = PartitionEditor.Dialog(wx.App.Get().GetTopWindow())
+#    dlg.ShowModal()
+#    dlg.Destroy()
+#    
+#    _UIM = UIManager()
+#    tree_ctrl = _UIM.list('tree_controller')[0]
+#    tree_ctrl.refresh() 
+
 def on_partitionedit(event):
     OM = ObjectManager(event.GetEventObject())
-    if OM.list('partition'):
-        print 'tem partition', OM.list('partition')
     if not OM.list('partition'):
-        return
+#        partition_dlg = PartitionEditor.NewPartitionDialog(wx.App.Get().GetTopWindow())
+        try:
+#            if partition_dlg.ShowModal() == wx.ID_OK:
+            wx.MessageBox('Please create a new partition first!')
+#                name = partition_dlg.get_value()
+#                print 'name', name, type(str(name)), str(name).strip(''), str(name).strip()
+#                if name == '': name = 'NEW'
+#                rock = OM.new('partition', name = name)
+#            partition_dlg.Destroy()        
+#                OM.add(rock)
+        except Exception as e:
+            print 'ERROR:', e
+        finally:
+#            partition_dlg.Destroy()
+            return
+            
     dlg = PartitionEditor.Dialog(wx.App.Get().GetTopWindow())
     dlg.ShowModal()
     dlg.Destroy()

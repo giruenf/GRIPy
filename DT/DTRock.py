@@ -5,7 +5,7 @@ from DataTypes import GenericDataType
 
 class Rock (GenericDataType):
     tid = 'rock'
-    _TID_FRIENDLY_NAME = 'Rock'
+    _FRIENDLY_NAME = 'Rock'
     _SHOWN_ATTRIBUTES = [
                             ('suporte', 'Suporte'),
                             ('grain', 'Grain'),
@@ -26,7 +26,7 @@ class Rock (GenericDataType):
 
 class Fluid (GenericDataType):
     tid = 'fluid'
-    _TID_FRIENDLY_NAME = 'Fluid'
+    _FRIENDLY_NAME = 'Fluid'
     _SHOWN_ATTRIBUTES = [
                             ('vp', 'Vp'),
                             ('vs', 'Vs'),                             

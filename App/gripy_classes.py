@@ -81,6 +81,7 @@ def register_OM_classes():
     ObjectManager.register_class(Partition, Well)
     ObjectManager.register_class(Part, Partition)
     ObjectManager.register_class(Property, Partition)
+    ObjectManager.register_class(Property, Part)
     #
     ObjectManager.register_class(Seismic)
     ObjectManager.register_class(DataIndex, Seismic)

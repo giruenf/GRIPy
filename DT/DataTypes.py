@@ -412,6 +412,9 @@ class Part(WellData1D):
     _DEFAULTCOLORS = COLOR_CYCLE_RGB
     _FRIENDLY_NAME = 'Part'
     
+    def __init__(self, data=None,**attributes):        
+        super(Part, self).__init__(data,**attributes)
+
     @GenericDataType.name.getter
     def name(self):
         if 'name' not in self.attributes:
