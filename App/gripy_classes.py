@@ -7,6 +7,9 @@ from DT.DataTypes import Well
 from DT.DataTypes import Core
 from DT.DataTypes import Log
 from DT.DataTypes import Partition
+from DT.DataTypes import RockTable
+from DT.DataTypes import Inference
+from DT.DataTypes import RockType
 from DT.DataTypes import Part
 from DT.DataTypes import Property
 
@@ -82,6 +85,15 @@ def register_OM_classes():
     ObjectManager.register_class(Part, Partition)
     ObjectManager.register_class(Property, Partition)
     ObjectManager.register_class(Property, Part)
+    ObjectManager.register_class(Partition) #remover apos alterar pra rocktbale
+    ObjectManager.register_class(RockTable)
+    ObjectManager.register_class(RockType, RockTable)
+    ObjectManager.register_class(Inference, Well)
+    ObjectManager.register_class(Part, Inference)
+    ObjectManager.register_class(Rock)   #remover apos alterar pra rocktbale
+    ObjectManager.register_class(Rock, Partition)   #remover apos alterar pra rocktbale
+    ObjectManager.register_class(Rock, Well)   #remover apos alterar pra rocktbale
+    ObjectManager.register_class(Fluid)
     #
     ObjectManager.register_class(Seismic)
     ObjectManager.register_class(DataIndex, Seismic)
@@ -99,12 +111,7 @@ def register_OM_classes():
     #
     ObjectManager.register_class(GatherScalogram, Well)
     ObjectManager.register_class(DataIndex, GatherScalogram)
-    #
-    ObjectManager.register_class(Partition)
-    ObjectManager.register_class(Rock)
-    ObjectManager.register_class(Rock, Partition)
-    ObjectManager.register_class(Rock, Well)
-    ObjectManager.register_class(Fluid)
+    
     #
     ObjectManager.register_class(Model1D, Well)
     ObjectManager.register_class(DataIndex, Model1D)

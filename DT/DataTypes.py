@@ -449,7 +449,15 @@ class Part(WellData1D):
     def color(self):
         del self.attributes['color']
         
-        
+class RockType(Part):
+    """
+    New type
+    """
+    tid = "rocktype"
+    _FRIENDLY_NAME = 'RockType'
+    
+    def __init__(self, data=None,**attributes):        
+        super(RockType, self).__init__(data,**attributes)
 
 class Partition(WellData1D):
     """
@@ -675,8 +683,36 @@ class Partition(WellData1D):
             self.attributes['end'] = float(index_data[np.isfinite(data)][-1])
         return self.attributes['end']
    
+class RockTable(Partition):
+    """
+    new type
+    """
+    tid = "rocktable"
+    _FRIENDLY_NAME = 'RockTable'
+    _SHOWN_ATTRIBUTES = [
+                            ('_oid', 'Object Id'),
+                            ('datatype', 'Type')
+													   
+    ] 
     
+    def __init__(self, data=None,**attributes):        
+        super(RockTable, self).__init__(data,**attributes)
 
+class Inference(Partition):
+    """
+    new type
+    """
+    tid = "inference"
+    _FRIENDLY_NAME = 'Inference'
+    _SHOWN_ATTRIBUTES = [
+                            ('_oid', 'Object Id'),
+                            ('datatype', 'Type')
+													   
+    ] 
+    
+    def __init__(self, data=None,**attributes):        
+        super(RockTable, self).__init__(data,**attributes)
+        
 class Well(GenericDataType):
     """
     A set of data related to a well.
