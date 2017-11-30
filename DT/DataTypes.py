@@ -448,16 +448,6 @@ class Part(WellData1D):
     @color.deleter
     def color(self):
         del self.attributes['color']
-        
-class RockType(Part):
-    """
-    New type
-    """
-    tid = "rocktype"
-    _FRIENDLY_NAME = 'RockType'
-    
-    def __init__(self, data=None,**attributes):        
-        super(RockType, self).__init__(data,**attributes)
 
 class Partition(WellData1D):
     """
@@ -698,6 +688,76 @@ class RockTable(Partition):
     def __init__(self, data=None,**attributes):        
         super(RockTable, self).__init__(data,**attributes)
 
+class RockType(Part):
+    """
+    New type
+    """
+    tid = "rocktype"
+    _FRIENDLY_NAME = 'RockType'
+    _SHOWN_ATTRIBUTES = [
+#                            ('suporte', 'Suporte'),
+                            ('fracgrain', 'FracGrain'),
+                            ('grain', 'Grain'),
+                            ('fracmatrix', 'FracMatrix'),
+                            ('matrix', 'Matrix'),
+                            ('vp', 'Vp'),
+                            ('vs', 'Vs'),                             
+                            ('rho', 'Density'),
+                            ('k', 'Kmodulus'),
+                            ('mu', 'Gmodulus'),
+                            ('poi', 'Poisson')
+    ] 
+    def __init__(self, data=None,**attributes):        
+        super(RockType, self).__init__(data,**attributes)
+    
+    @property
+    def grain(self):
+        return self.attributes['grain']
+        
+    @grain.setter
+    def grain(self, value):
+        self.attributes['grain'] = value
+    
+    @grain.deleter
+    def grain(self):
+        del self.attributes['grain']
+    
+    @property
+    def matrix(self):
+        return self.attributes['matrix']
+    
+    @matrix.setter
+    def matrix(self, value):
+        self.attributes['matrix'] = value
+    
+    @matrix.deleter
+    def matrix(self):
+        del self.attributes['matrix']
+        
+    @property
+    def fracgrain(self):
+        return self.attributes['fracgrain']
+        
+    @fracgrain.setter
+    def fracgrain(self, value):
+        self.attributes['fracgrain'] = value
+    
+    @fracgrain.deleter
+    def fracgrain(self):
+        del self.attributes['fracgrain']
+    
+    @property
+    def fracmatrix(self):
+        return self.attributes['fracmatrix']
+    
+    @fracmatrix.setter
+    def fracmatrix(self, value):
+        self.attributes['fracmatrix'] = value
+    
+    @fracmatrix.deleter
+    def fracmatrix(self):
+        del self.attributes['fracmatrix']
+        
 class Inference(Partition):
     """
     new type

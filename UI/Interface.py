@@ -184,15 +184,29 @@ def load():
                                       label=u"&Partition",
                                       help=u"Create / Edit Partition"
         )
+        mc_rocktable = UIM.create('menu_controller', mc_edit.uid, 
+                                      label=u"&Rock Table",
+                                      help=u"Create / Edit RockTable"
+        )
+        UIM.create('menu_item_controller', mc_rocktable.uid, 
+                label=u"New Rock Table", 
+                help=u'New Rock Table',
+                callback='App.menu_functions.on_new_rocktable'
+        )
+        UIM.create('menu_item_controller', mc_rocktable.uid, 
+                label=u"Edit Rock Table", 
+                help=u'Edit Rock Table',
+                callback='App.menu_functions.on_edit_rocktable'
+        )
         UIM.create('menu_item_controller', mc_partition.uid, 
-                label=u"New Partitions", 
-                help=u'New Partitions',
+                label=u"New Partition", 
+                help=u'New Partition',
                 callback='App.menu_functions.on_new_partition'
         )
         UIM.create('menu_item_controller', mc_partition.uid, 
                 label=u"Edit Partition", 
                 help=u'Edit Partitions',
-                callback='App.menu_functions.on_partitionedit'
+                callback='App.menu_functions.on_edit_partition'
         )
         UIM.create('menu_item_controller', mc_edit.uid, 
                 label=u'&Well Plot', 

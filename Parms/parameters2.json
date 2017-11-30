@@ -115,7 +115,7 @@
             "Neutron": 4
         },
         "at": {
-            "ShalRes": 195
+            "ShalRes": 200
         },
         "atrt": {
             "DeepRes": 0
@@ -190,7 +190,7 @@
             "Caliper": 8
         },
         "cal": {
-            "Caliper": 35
+            "Caliper": 36
         },
         "cali": {
             "Caliper": 133
@@ -280,7 +280,7 @@
             "MD": 136
         },
         "depth": {
-            "MD": 89
+            "MD": 94
         },
         "dev": {
             "Deviation": 0
@@ -301,7 +301,7 @@
             "Drho": 0
         },
         "drho": {
-            "Drho": 88
+            "Drho": 89
         },
         "drhx": {
             "Drho": 0
@@ -328,7 +328,7 @@
             "Sonic": 0
         },
         "dtco": {
-            "Sonic": 127
+            "Sonic": 128
         },
         "dtco_": {
             "Sonic": 10
@@ -352,7 +352,7 @@
             "ShearSonic": 1
         },
         "dtsm": {
-            "ShearSonic": 54
+            "ShearSonic": 55
         },
         "eatt": {
             "EPT": 0
@@ -427,7 +427,7 @@
             "GammaRay": 0
         },
         "gr": {
-            "GammaRay": 203
+            "GammaRay": 204
         },
         "gr_": {
             "GammaRay": 10
@@ -448,7 +448,7 @@
             "GammaRay": 0
         },
         "grco": {
-            "GammaRay": 17
+            "GammaRay": 21
         },
         "grec": {
             "GammaRay": 0
@@ -709,7 +709,7 @@
             "Neutron": 0
         },
         "nphi": {
-            "Neutron": 78
+            "Neutron": 79
         },
         "nplc": {
             "Neutron": 0
@@ -769,7 +769,7 @@
             "PEF": 1
         },
         "pef": {
-            "PEF": 47
+            "PEF": 48
         },
         "pefz": {
             "PEF": 74
@@ -787,7 +787,7 @@
             "CorePhi": 0
         },
         "phie": {
-            "Phi": 29
+            "Phi": 33
         },
         "phit": {
             "PhiT": 0
@@ -874,10 +874,10 @@
             "Density": 24
         },
         "rhob": {
-            "Density": 117
+            "Density": 118
         },
         "rhoc": {
-            "Density": 17
+            "Density": 21
         },
         "rhoma": {
             "Matrix": 11
@@ -982,7 +982,7 @@
             "ShalRes": 0
         },
         "rt": {
-            "DeepRes": 57
+            "DeepRes": 62
         },
         "rtav": {
             "RotarySpeed": 0
@@ -991,7 +991,7 @@
             "DeepRes": 0
         },
         "rxo": {
-            "MicroRes": 52
+            "MicroRes": 57
         },
         "rxoz": {
             "MicroRes": 11
@@ -1090,7 +1090,7 @@
             "VertStress": 0
         },
         "sw": {
-            "Sw": 29
+            "Sw": 33
         },
         "swb": {
             "Sw": 0
@@ -1177,10 +1177,10 @@
             "Tension": 0
         },
         "tvd": {
-            "TVD": 29
+            "TVD": 33
         },
         "tvdss": {
-            "TVDSS": 17
+            "TVDSS": 21
         },
         "tvt": {
             "Index": 0
@@ -1243,10 +1243,10 @@
             "Velocity": 0
         },
         "vp": {
-            "Velocity": 90
+            "Velocity": 91
         },
         "vs": {
-            "ShearVel": 90
+            "ShearVel": 91
         },
         "vsalt": {
             "Vsalt": 0
@@ -1314,10 +1314,10 @@
             "Log": 4
         },
         "at": {
-            "Log": 195
+            "Log": 200
         },
         "atr": {
-            "Log": 35
+            "Log": 36
         },
         "bs": {
             "Log": 4
@@ -1332,7 +1332,7 @@
             "Log": 1
         },
         "cal": {
-            "Log": 35
+            "Log": 36
         },
         "cali": {
             "Log": 133
@@ -1369,16 +1369,16 @@
             "Index": 136
         },
         "depth": {
-            "Index": 85
+            "Index": 90
         },
         "devi": {
             "Log": 4
         },
         "dlt": {
-            "Log": 17
+            "Log": 21
         },
         "drho": {
-            "Log": 88
+            "Log": 89
         },
         "dt": {
             "Log": 53
@@ -1393,7 +1393,7 @@
             "Log": 1
         },
         "dtco": {
-            "Log": 127
+            "Log": 128
         },
         "dtco_": {
             "Log": 11
@@ -1405,7 +1405,7 @@
             "Log": 12
         },
         "dtsm": {
-            "Log": 54
+            "Log": 55
         },
         "dtst": {
             "Log": 4
@@ -1423,10 +1423,10 @@
             "Log": 4
         },
         "facies": {
-            "Partition": 17
+            "Partition": 21
         },
         "facies_aug": {
-            "Partition": 17
+            "Partition": 21
         },
         "fcaz": {
             "Log": 4
@@ -1441,7 +1441,7 @@
             "Log": 20
         },
         "gr": {
-            "Log": 203
+            "Log": 204
         },
         "gr_": {
             "Log": 11
@@ -1450,7 +1450,7 @@
             "Log": 8
         },
         "grco": {
-            "Log": 17
+            "Log": 21
         },
         "hazi": {
             "Log": 4
@@ -1531,7 +1531,7 @@
             "Log": 11
         },
         "nphi": {
-            "Log": 78
+            "Log": 79
         },
         "npor": {
             "Log": 1
@@ -1552,16 +1552,16 @@
             "Log": 1
         },
         "pef": {
-            "Log": 47
+            "Log": 48
         },
         "pefz": {
             "Log": 74
         },
         "phie": {
-            "Log": 29
+            "Log": 33
         },
         "phin": {
-            "Log": 17
+            "Log": 21
         },
         "phis": {
             "Log": 2
@@ -1576,7 +1576,7 @@
             "Log": 28
         },
         "psr": {
-            "Log": 35
+            "Log": 36
         },
         "raw ": {
             "Log": 2
@@ -1615,10 +1615,10 @@
             "Log": 24
         },
         "rhob": {
-            "Log": 117
+            "Log": 118
         },
         "rhoc": {
-            "Log": 17
+            "Log": 21
         },
         "rhoma": {
             "Log": 11
@@ -1627,10 +1627,10 @@
             "Log": 78
         },
         "rt": {
-            "Log": 57
+            "Log": 62
         },
         "rxo": {
-            "Log": 52
+            "Log": 57
         },
         "rxoz": {
             "Log": 11
@@ -1669,7 +1669,7 @@
             "Log": 4
         },
         "sw": {
-            "Log": 29
+            "Log": 33
         },
         "tcmr": {
             "Log": 11
@@ -1714,11 +1714,11 @@
             "Log": 1
         },
         "tvd": {
-            "Index": 28,
+            "Index": 32,
             "Log": 1
         },
         "tvdss": {
-            "Index": 17
+            "Index": 21
         },
         "twt": {
             "Index": 14,
@@ -1731,19 +1731,19 @@
             "Log": 1
         },
         "ufpr": {
-            "Partition": 17
+            "Partition": 21
         },
         "volu": {
             "Log": 2
         },
         "vp": {
-            "Log": 90
+            "Log": 91
         },
         "vpvs": {
             "Log": 89
         },
         "vs": {
-            "Log": 90
+            "Log": 91
         },
         "vsh": {
             "Log": 12
