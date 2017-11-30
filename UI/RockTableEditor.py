@@ -6,7 +6,7 @@ from UI.uimanager import UIManager
 import numpy as np
 
 from OM.Manager import ObjectManager
-
+from Algo import RockPhysics as RP
 import App.app_utils
 
 from Basic.Colors import COLOR_CYCLE_RGB
@@ -52,7 +52,6 @@ class RockTable(wx.grid.GridTableBase):
         rocktype = self.GrainEntry()
 #        rocktype = self._OM.new('rocktype')
         rocktype.defaultdata = np.nan
-        rocktype.vp = 10.
         self._OM.add(rocktype, self.rocktableuid)
         
         self.rocktypemap.append(rocktype.uid)
@@ -157,17 +156,12 @@ class RockTable(wx.grid.GridTableBase):
                 mtr_k = results.get('kmod2')
                 mtr_mi = results.get('gmod2')
                 mtr_rho = results.get('dens2')
-                
-                print 'grd', gr_f
-                rocktype = self._OM.new('rocktype', fracgrain = gr_f, fracmatrix = mtr_f, grain = ngrain, matrix = nmatrix, )        
+#                kk = RP.VRHill (gr_k, gr_f, mtr_k)
+#                g = RP.VRHill (gr_mi, gr_f, mtr_mi)
+                print '\ngrd', gr_k, gr_f, mtr_k, type(float(mtr_k))
+                rocktype = self._OM.new('rocktype', fracgrain = gr_f, fracmatrix = mtr_f, grain = ngrain, matrix = nmatrix, k=10, mi=20)#vp=vp, vs=vs, rho = rho, k=k, mi=mi, poi=poi        
                 return rocktype
-#        else:'vp', 'Vp'),
-                            ('vs', 'Vs'),                             
-                            ('rho', 'Density'),
-                            ('k', 'Kmodulus'),
-                            ('mu', 'Gmodulus'),
-                            ('poi', 'Poisson')
-#            return None
+
         except Exception as e:
             print 'ERROR:', e
         finally:

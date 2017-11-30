@@ -704,11 +704,15 @@ class RockType(Part):
                             ('vs', 'Vs'),                             
                             ('rho', 'Density'),
                             ('k', 'Kmodulus'),
-                            ('mu', 'Gmodulus'),
+                            ('mi', 'Gmodulus'),
                             ('poi', 'Poisson')
     ] 
     def __init__(self, data=None,**attributes):        
         super(RockType, self).__init__(data,**attributes)
+    
+    @property
+    def k(self):
+        return self.attributes['k']
     
     @property
     def grain(self):
