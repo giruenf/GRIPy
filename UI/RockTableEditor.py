@@ -4,6 +4,7 @@ import wx
 import wx.grid
 from UI.uimanager import UIManager
 import numpy as np
+from os import getcwd as cwd
 
 from OM.Manager import ObjectManager
 from Algo import RockPhysics as RP
@@ -72,8 +73,9 @@ class RockTable(wx.grid.GridTableBase):
         cont_grain = dlg.view.AddCreateContainer('StaticBox', label='Grain Parts', orient=wx.VERTICAL, proportion=0, flag=wx.EXPAND|wx.TOP, border=5)
         cont_matr = dlg.view.AddCreateContainer('StaticBox', label='Matrix Parts', orient=wx.VERTICAL, proportion=0, flag=wx.EXPAND|wx.TOP, border=5)
         
-        json_file = 'min.json'
-        fullpath_json = 'C:\\Users\\rtabelini\\Documents\\Github\\GRIPy\\Temp\\'+json_file
+        json_file = '\\Temp\\min.json'
+#        fullpath_json = 'C:\\Users\\rtabelini\\Documents\\Github\\GRIPy'+json_file
+        fullpath_json = cwd()+json_file
 
         dictmin = App.app_utils.read_json_file(fullpath_json)
         

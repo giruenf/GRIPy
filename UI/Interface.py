@@ -218,16 +218,16 @@ def load():
                 help=u'Crossplot',
                 callback='App.menu_functions.on_new_crossplot'
         )            
-        UIM.create('menu_item_controller', mc_edit.uid, 
-                label=u'&Rock', 
-                help=u'Initialize rock model',
-                callback='App.menu_functions.on_rock'
-        )
-        UIM.create('menu_item_controller', mc_edit.uid, 
-                label=u'&Fluid', 
-                help=u'Initialize fluid model',
-                callback='App.menu_functions.on_fluid'
-        )             
+#        UIM.create('menu_item_controller', mc_edit.uid, 
+#                label=u'&Rock', 
+#                help=u'Initialize rock model',
+#                callback='App.menu_functions.on_rock'
+#        )
+#        UIM.create('menu_item_controller', mc_edit.uid, 
+#                label=u'&Fluid', 
+#                help=u'Initialize fluid model',
+#                callback='App.menu_functions.on_fluid'
+#        )             
         
         # Well Menu
         UIM.create('menu_item_controller', mc_well.uid, 

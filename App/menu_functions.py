@@ -14,6 +14,7 @@ from  UI import ExportSelector
 from  UI import ODTEditor
 from  UI import lisloader
 from  UI import PartitionEditor
+from  UI import PartEditor
 from  UI import RockTableEditor
 from UI import ReflectivityModel as RM
 from App.gripy_debug_console import DebugConsoleFrame
@@ -2595,7 +2596,7 @@ def on_edit_partition(event):
 #            partition_dlg.Destroy()
             return
             
-    dlg = PartitionEditor.Dialog(wx.App.Get().GetTopWindow())
+    dlg = PartEditor.Dialog(wx.App.Get().GetTopWindow())
     dlg.ShowModal()
     dlg.Destroy()
     
