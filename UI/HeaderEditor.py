@@ -13,6 +13,7 @@ MEDIUM_GREY = wx.Colour(224, 224, 224)
 
 class _LASSectionCtrl(wx.ListCtrl, TextEditMixin, CheckListCtrlMixin,
                       ListCtrlAutoWidthMixin, ListRowHighlighter):
+    
     def __init__(self, parent):
         wx.ListCtrl.__init__(self, parent, -1, style=wx.LC_REPORT)
         TextEditMixin.__init__(self)
@@ -20,6 +21,8 @@ class _LASSectionCtrl(wx.ListCtrl, TextEditMixin, CheckListCtrlMixin,
         ListCtrlAutoWidthMixin.__init__(self)
         ListRowHighlighter.__init__(self, color=MEDIUM_GREY, mode=1)
 
+        self.index = 0
+        
         self.InsertColumn(0, '', width=24)
         self.InsertColumn(1, 'MNEM', width=80)
         self.InsertColumn(2, 'UNIT', width=80)
@@ -37,11 +40,12 @@ class _LASSectionCtrl(wx.ListCtrl, TextEditMixin, CheckListCtrlMixin,
     def set_section(self, section):
         for line in section.values():
             #index = self.InsertStringItem(sys.maxint, '')
-            index = self.InsertItem(sys.maxint, '')
+            index = self.InsertItem(self.index, '')
             self.SetItem(index, 1, line["MNEM"])
             self.SetItem(index, 2, line["UNIT"])
             self.SetItem(index, 3, line["DATA"])
             self.SetItem(index, 4, line["DESC"])
+            self.index += 1
         self.RefreshRows()
 
     def get_section(self):
@@ -84,6 +88,8 @@ class _LASSectionPanel(wx.Panel):
 
         self.SetSizer(hbox)
 
+        self.index = 0
+
     def set_section(self, section):
         self.section_ctrl.set_section(section)
 
@@ -92,12 +98,13 @@ class _LASSectionPanel(wx.Panel):
 
     def on_add(self, event):
         #index = self.section_ctrl.InsertStringItem(sys.maxint, '')
-        index = self.section_ctrl.InsertItem(sys.maxint, '')
+        index = self.section_ctrl.InsertItem(self.index, '')
         self.section_ctrl.SetStringItem(index, 1, '')
         self.section_ctrl.SetStringItem(index, 2, '')
         self.section_ctrl.SetStringItem(index, 3, '')
         self.section_ctrl.SetStringItem(index, 4, '')
         self.section_ctrl.RefreshRows()
+        self.index += 1
 
     def on_remove(self, event):
         selection = self.section_ctrl.get_selection()
