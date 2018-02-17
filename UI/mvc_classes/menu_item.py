@@ -42,11 +42,11 @@ class MenuItemModel(UIModelBase):
                'attr_class': UI_MODEL_ATTR_CLASS.APPLICATION
         },
         'label': {'default_value': wx.EmptyString, 
-                  'type': unicode,
+                  'type': str,
                   'attr_class': UI_MODEL_ATTR_CLASS.APPLICATION
         },
         'help': {'default_value': wx.EmptyString, 
-                 'type': unicode,
+                 'type': str,
                  'attr_class': UI_MODEL_ATTR_CLASS.APPLICATION
         },
         'kind': {'default_value': wx.ITEM_NORMAL, 
@@ -78,8 +78,8 @@ class MenuItemView(UIViewBase, wx.MenuItem):
             wx.MenuItem.__init__(self, None, controller.model.id, controller.model.label, 
                   controller.model.help, controller.model.kind
             )
-        except Exception, e:
-            print e.message
+        except Exception as e:
+            print (e.message)
             raise e
 
     def PostInit(self):

@@ -1,9 +1,9 @@
 # -*- coding: utf-8 -*-
 import wx
 
-from workpage import WorkPageController
-from workpage import WorkPageModel
-from workpage import WorkPage
+from UI.mvc_classes.workpage import WorkPageController
+from UI.mvc_classes.workpage import WorkPageModel
+from UI.mvc_classes.workpage import WorkPage
 
 from App import log
 from UI.uimanager import UIManager
@@ -375,8 +375,8 @@ class CrossPlotPanel(wx.Panel):
 #        print    
 #        print 'parts:', parts, len(parts)
 
-        print '\nself.xdata:', self.xdata, len(self.xdata)
-        print 'self.ydata:', self.ydata, len(self.ydata)
+        print ('\nself.xdata:', self.xdata, len(self.xdata))
+        print ('self.ydata:', self.ydata, len(self.ydata))
         print
         
         good = np.sum(parts, axis=0, dtype=bool)

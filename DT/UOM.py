@@ -114,7 +114,8 @@ class UOM(object):
             for attr in ud:
                 key = attr.tag.split('}')[1]
                 if attr.text:
-                    kv[key] = attr.text.translate(None, '\t\n')
+                    #kv[key] = attr.text.translate(None, '\t\n')
+                    kv[key] = attr.text.translate('\t\n')
             self._unit_dimensions[kv['dimension']] = UnitDimension(**kv) 
         for qc in qcs:
             kv = {}
@@ -125,7 +126,8 @@ class UOM(object):
                     if key == 'memberUnit':
                         member_unit.append(attr.text)
                     else:    
-                        kv[key] = attr.text.translate(None, '\t\n')
+                        #kv[key] = attr.text.translate(None, '\t\n')
+                        kv[key] = attr.text.translate('\t\n')
             qc = QuantityClass(**kv)
             qc.memberUnit = member_unit
             self._quantity_classes[kv['name']] = qc
@@ -134,21 +136,24 @@ class UOM(object):
             for attr in ref:
                 key = attr.tag.split('}')[1]
                 if attr.text:
-                    kv[key] = attr.text.translate(None, '\t\n')
+                    #kv[key] = attr.text.translate(None, '\t\n')
+                    kv[key] = attr.text.translate('\t\n')
             self._references[kv['ID']] = Reference(**kv)            
         for pref in ps:
             kv = {}
             for attr in pref:
                 key = attr.tag.split('}')[1]
                 if attr.text:
-                    kv[key] = attr.text.translate(None, '\t\n')
+                    #kv[key] = attr.text.translate(None, '\t\n')
+                    kv[key] = attr.text.translate('\t\n')
             self._prefixes[kv['symbol']] = Prefix(**kv)   
         for unit in us:
             kv = {}
             for attr in unit:
                 key = attr.tag.split('}')[1]
                 if attr.text:
-                    kv[key] = attr.text.translate(None, '\t\n')
+                    #kv[key] = attr.text.translate(None, '\t\n')
+                    kv[key] = attr.text.translate('\t\n')
             self._units[kv['symbol']] = Unit(**kv)    
 
         

@@ -17,7 +17,9 @@ def _read_app_definitions():
         f.close()
         return file_dict
     except Exception as e:
-        print (e.args)
+        print ('\n\nERROR:', e.args)
+        #raise e
+        return None
 
 def start_logging(logging_dict):
     logging_level = logging_dict.get('logging_level', logging.DEBUG)

@@ -5,7 +5,8 @@ from UI.uimanager import UIControllerBase
 from UI.uimanager import UIModelBase 
 from UI.uimanager import UIViewBase 
 from UI.uimanager import UI_MODEL_ATTR_CLASS
-from main_window import MainWindowController
+
+from UI.mvc_classes.main_window import MainWindowController
 from App import log
 
 
@@ -36,7 +37,7 @@ class ToolBarModel(UIModelBase):
                  'attr_class': UI_MODEL_ATTR_CLASS.APPLICATION
         },
         'style': {'default_value': wx.TB_FLAT|wx.TB_NODIVIDER, 
-                  'type': long,
+                  'type': int,
                   'attr_class': UI_MODEL_ATTR_CLASS.APPLICATION
         }
     }    

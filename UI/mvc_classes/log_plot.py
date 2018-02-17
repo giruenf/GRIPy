@@ -1,14 +1,16 @@
 # -*- coding: utf-8 -*-
 import wx
 from OM.Manager import ObjectManager
-from workpage import WorkPageController
-from workpage import WorkPageModel
-from workpage import WorkPage
+
+from UI.mvc_classes.workpage import WorkPageController
+from UI.mvc_classes.workpage import WorkPageModel
+from UI.mvc_classes.workpage import WorkPage
+
 from UI.uimanager import UIManager
 from UI.logplot_internal import LogPlotInternal
 from App.app_utils import LogPlotState  
 from App import log   
-from mpl_base import TrackFigureCanvas, PlotLabel
+from UI.mvc_classes.mpl_base import TrackFigureCanvas, PlotLabel
 from App.app_utils import DropTarget
 
 from DT.DataTypes import VALID_Z_AXIS_DATATYPES
@@ -461,7 +463,7 @@ class LogPlot(WorkPage):
         controller.model.y_max_shown = max_
         
         if len(zaxis) > 1 or len(zaxis) == 0:
-            print 'ATENCAO COM Z-AXIS!'
+            print ('ATENCAO COM Z-AXIS!')
             
 
         self._zaxis_uid = zaxis[0].uid
@@ -486,10 +488,10 @@ class LogPlot(WorkPage):
         
 
     def on_change_z_start(self, event):
-        print 'on_change_z_start:', event.GetString()
+        print ('on_change_z_start:', event.GetString())
 
     def on_change_z_end(self, event):
-        print 'on_change_z_end:', event.GetString()
+        print ('on_change_z_end:', event.GetString())
         
 
     """
@@ -761,10 +763,10 @@ class LogPlot(WorkPage):
         try:
             self.tracks_panel.top_splitter.DetachWindow(label)
             self.tracks_panel.bottom_splitter.DetachWindow(track)  
-        except Exception, e:
+        except Exception as e:
             msg = 'Error in LogPlot._detach_windows: ' + e.args
             log.exception(msg)
-            print msg
+            print (msg)
 
 
     def show_track(self, track_uid, show):
@@ -865,7 +867,7 @@ class LogPlot(WorkPage):
             if not round(zend, 2) <= round(controller.model.logplot_y_max, 2):
                 raise Exception('BBB: ', str(zend) + '   '+ str(controller.model.logplot_y_max))              
         except Exception as e:
-            print 'ERROR:', e
+            print ('ERROR:', e)
             self._reload_z_axis_textctrls()
             return
         #controller.model.set_value_from_event('logplot_y_min', zstart)

@@ -7,8 +7,8 @@ from UI.uimanager import UIManager
 from UI.uimanager import UIControllerBase 
 from UI.uimanager import UIModelBase 
 from UI.uimanager import UIViewBase 
-from mpl_base import TrackFigureCanvas
-from mpl_base import VisDataLabel
+from UI.mvc_classes.mpl_base import TrackFigureCanvas
+from UI.mvc_classes.mpl_base import VisDataLabel
 
 from App.app_utils import LogPlotState  
 from App import log
@@ -17,7 +17,7 @@ from App.gripy_function_manager import FunctionManager
 
 import numpy as np
 
-import matplotlib
+#import matplotlib
 import matplotlib.pyplot as plt
 
 
@@ -111,7 +111,7 @@ class TrackModel(UIModelBase):
                 'type': int
         },        
         'label': {'default_value': wx.EmptyString, 
-                  'type': unicode
+                  'type': str
         },          
         'plotgrid': {'default_value': True, 
                      'type': bool
@@ -349,7 +349,7 @@ class TrackView(UIViewBase):
 
     def end_dragging(self):
         #print 'Release button of canvas', self._in_canvas
-        print '\nSTART of end_dragging'
+        print ('\nSTART of end_dragging')
         if self._in_canvas == -1:
             return 
         if self._drag_mode != SASH_DRAG_DRAGGING:
@@ -401,7 +401,7 @@ class TrackView(UIViewBase):
         #           
         #d1, d2 = self.get_depth()           
         self.track.SetToolTip(wx.ToolTip('{0:.2f} - {1:.2f}'.format(d1, d2)))
-        print 'END of end_dragging'
+        print ('END of end_dragging')
 
 
     """
@@ -588,7 +588,7 @@ class TrackView(UIViewBase):
         UIM = UIManager()
         parent_controller_uid = UIM._getparentuid(self._controller_uid)
         parent_controller =  UIM.get(parent_controller_uid)
-        print '\nTrackView._change_position:', self._controller_uid, old_value, new_value
+        print ('\nTrackView._change_position:', self._controller_uid, old_value, new_value)
         parent_controller.change_track_position(self._controller_uid,
                                                 old_value, new_value
         )
@@ -620,7 +620,7 @@ class TrackView(UIViewBase):
                 controller.model.selected = not controller.model.selected
         #   
         elif gui_evt.GetButton() == 2: 
-            print 'entrou 2'
+            print ('entrou 2')
             self.track.mark_vertical(event.xdata)
         #    
         elif gui_evt.GetButton() == 3: 
@@ -922,7 +922,7 @@ class TrackView(UIViewBase):
         UIM.remove(args[0])
   
     def _delete_object_helper(self, *args):
-        print '_delete_object_helper:', args[0]
+        print ('_delete_object_helper:', args[0])
         OM = ObjectManager(self)
         OM.remove(args[0])    
 
@@ -993,7 +993,7 @@ class TrackView(UIViewBase):
 
     def _avaf(self, repr_ctrl_uid, ydata):
         str_ydata = "{0:.2f}".format(round(ydata, 2))
-        print '\nAVAF:', str_ydata
+        print ('\nAVAF:', str_ydata)
         OM = ObjectManager(self)
         UIM = UIManager()
         repr_ctrl = UIM.get(repr_ctrl_uid)
@@ -1043,17 +1043,17 @@ class TrackView(UIViewBase):
             
             slicer = tuple(slicer[::-1])
             
-            print '\n\n'
-            print slicer
-            print repr_ctrl.get_object().data.shape
+            print ('\n\n')
+            print (slicer)
+            print (repr_ctrl.get_object().data.shape)
             data = repr_ctrl.get_object().data[slicer]
-            print data.shape
+            print (data.shape)
             
-            print '\n\n'
-            print 'X:', x_name, x_data, len(x_data)
-            print 'Y:', y_name, y_data, len(y_data)
+            print ('\n\n')
+            print ('X:', x_name, x_data, len(x_data))
+            print ('Y:', y_name, y_data, len(y_data))
             
-            print 'z_index:', z_index
+            print ('z_index:', z_index)
             
             
             #print data.shape[::-1]
@@ -1083,18 +1083,18 @@ class TrackView(UIViewBase):
             #cbar.ax.set_ylabel('Densidade espectral')
             cbar.set_label('Densidade espectral', fontsize=fs) 
             
-            print '\n\n', cbar
+            print ('\n\n', cbar)
             #cbar.vmin = 0
             #cbar.vmax = 6000.0
             
-            print cbar.get_clim()
-            print cbar.get_cmap()
-            print cbar.ax.get_xlim()
-            print cbar.ax.get_ylim()
+            print (cbar.get_clim())
+            print (cbar.get_cmap())
+            print (cbar.ax.get_xlim())
+            print (cbar.ax.get_ylim())
             #
-            print cbar.boundaries, type(cbar.boundaries)
-            print cbar.values
-            print cbar.extendrect
+            print (cbar.boundaries, type(cbar.boundaries))
+            print (cbar.values)
+            print (cbar.extendrect)
             # Add the contour line levels to the colorbar
             
             plt.show()

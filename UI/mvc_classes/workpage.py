@@ -98,9 +98,9 @@ class WorkPage(UIViewBase, wx.Panel):
         try:
             self.sizer.Remove(0)
             del self.tool_bar
-        except Exception, e:
+        except Exception as e:
             msg = 'PreDelete ' + self.__class__.name + ' ended with error: ' + e.args 
-            print msg       
+            print (msg)       
         
             
             

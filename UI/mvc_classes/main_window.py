@@ -3,9 +3,9 @@ import wx
 import wx.aui as aui
 from UI.uimanager import UIManager
 
-from wxgripy import FrameController
-from wxgripy import FrameModel
-from wxgripy import Frame
+from UI.mvc_classes.wxgripy import FrameController
+from UI.mvc_classes.wxgripy import FrameModel
+from UI.mvc_classes.wxgripy import Frame
 
 from App import log
 

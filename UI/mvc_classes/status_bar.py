@@ -22,7 +22,7 @@ class StatusBarModel(UIModelBase):
     tid = 'statusbar_model'
 
     _ATTRIBUTES = {
-        'label': {'default_value': wx.EmptyString, 'type': unicode}
+        'label': {'default_value': wx.EmptyString, 'type': str}
     }    
     
     def __init__(self, controller_uid, **base_state):

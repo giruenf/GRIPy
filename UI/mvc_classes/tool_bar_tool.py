@@ -6,7 +6,7 @@ from UI.uimanager import UIManager
 from UI.uimanager import UIControllerBase 
 from UI.uimanager import UIModelBase 
 from UI.uimanager import UI_MODEL_ATTR_CLASS
-from main_window import MainWindowController
+from UI.mvc_classes.main_window import MainWindowController
 from App import log
 
 
@@ -93,15 +93,15 @@ class ToolBarToolModel(UIModelBase):
                  'attr_class': UI_MODEL_ATTR_CLASS.APPLICATION
         },
         'label': {'default_value': wx.EmptyString, 
-                  'type': unicode,
+                  'type': str,
                   'attr_class': UI_MODEL_ATTR_CLASS.APPLICATION
         },
         'help': {'default_value': wx.EmptyString, 
-                 'type': unicode,
+                 'type': str,
                  'attr_class': UI_MODEL_ATTR_CLASS.APPLICATION
         },
         'long_help': {'default_value': wx.EmptyString, 
-                      'type': unicode,
+                      'type': str,
                       'attr_class': UI_MODEL_ATTR_CLASS.APPLICATION
         },
         'callback': {'default_value': None, 

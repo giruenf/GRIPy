@@ -5,9 +5,10 @@ from UI.uimanager import UIManager
 
 from collections import OrderedDict
 
-from wxgripy import FrameController
-from wxgripy import FrameModel
-from wxgripy import Frame
+from UI.mvc_classes.wxgripy import FrameController
+from UI.mvc_classes.wxgripy import FrameModel
+from UI.mvc_classes.wxgripy import Frame
+
 from App import log
 
 
@@ -256,7 +257,7 @@ class NavigatorController(FrameController):
 
 
     def Set(self, results):
-        print 'NavigatorController.Set:', results
+        print ('NavigatorController.Set:', results)
         OM = ObjectManager(self)
         df = OM.get(('data_filter', self.model.data_filter_oid))
         new_data = []
@@ -267,7 +268,7 @@ class NavigatorController(FrameController):
             #print result
         df.data = new_data
         df.reload_data()
-        print 'NavigatorController.Set ENDED'
+        print ('NavigatorController.Set ENDED')
         
             
 class NavigatorModel(FrameModel):
@@ -342,14 +343,14 @@ class Navigator(Frame):
         self._doCancel()
 
     def _doApply(self):
-        print '\n_doApply'
+        print ('\n_doApply')
         results = []
         for panel in self.panels:
             results.append(panel.get_result())
         UIM = UIManager()
         controller = UIM.get(self._controller_uid)    
         controller.Set(results)
-        print '_doApply'
+        print ('_doApply')
     def _doCancel(self):
         self.Close()  
 

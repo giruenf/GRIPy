@@ -438,7 +438,7 @@ class EncapsulatedFilePickerCtrl(EncapsulatedControl):
         try:
             super(EncapsulatedFilePickerCtrl, self).__init__(*args, **kwargs)    
         except Exception as e:
-            print e
+            print (e)
         
         
     def set_value(self, value):

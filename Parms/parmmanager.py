@@ -80,11 +80,11 @@ class ParametersManager(object):
     def voteforcurvetype(self, mnem, curvetype):
         key = _removetrailingdigits(mnem).lower()
         if self._parametersdict['mnemtocurvetype'].get(key) is None:
-            print 'voteforcurvetype criou key:', key
+            print ('voteforcurvetype criou key:', key)
             self._parametersdict['mnemtocurvetype'][key] = {}
         if curvetype not in self._parametersdict['mnemtocurvetype'][key]:
             self._parametersdict['mnemtocurvetype'][key][curvetype] = 0
-            print 'voteforcurvetype criou curvetype:', key
+            print ('voteforcurvetype criou curvetype:', key)
         self._parametersdict['mnemtocurvetype'][key][curvetype] += 1
     
     def getcurvetypes(self):
@@ -100,16 +100,16 @@ class ParametersManager(object):
     def votefordatatype(self, mnem, datatype):
         key = _removetrailingdigits(mnem).lower()
         if self._parametersdict['mnemtodatatype'].get(key) is None:
-            print 'votefordatatype criou key:', key
+            print ('votefordatatype criou key:', key)
             self._parametersdict['mnemtodatatype'][key] = {}
         
         if self._parametersdict['mnemtodatatype'][key].get(datatype) is None:
             self._parametersdict['mnemtodatatype'][key][datatype] = 0 
-            print 'votefordatatype criou datatype:', datatype
+            print ('votefordatatype criou datatype:', datatype)
         try:    
             self._parametersdict['mnemtodatatype'][key][datatype] += 1
         except KeyError:
-            print mnem, datatype, key
+            print (mnem, datatype, key)
             raise
             
             

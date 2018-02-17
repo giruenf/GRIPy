@@ -1,3 +1,3 @@
 # -*- coding: utf-8 -*-
-from parmmanager import ParametersManagerSingleton as ParametersManager
+from Parms.parmmanager import ParametersManagerSingleton as ParametersManager
 #import ParametersManager2

@@ -5,7 +5,8 @@ from UI.uimanager import UIControllerBase
 from UI.uimanager import UIModelBase 
 from UI.uimanager import UIViewBase 
 from UI.uimanager import UI_MODEL_ATTR_CLASS
-from menu_bar import MenuBarController
+
+from UI.mvc_classes.menu_bar import MenuBarController
 from App import log
 
 
@@ -49,11 +50,11 @@ class MenuModel(UIModelBase):
                'attr_class': UI_MODEL_ATTR_CLASS.APPLICATION
         },
         'label': {'default_value': wx.EmptyString, 
-                  'type': unicode,
+                  'type': str,
                   'attr_class': UI_MODEL_ATTR_CLASS.APPLICATION
         },
         'help': {'default_value': wx.EmptyString, 
-                 'type': unicode,
+                 'type': str,
                  'attr_class': UI_MODEL_ATTR_CLASS.APPLICATION
         },  
     }    

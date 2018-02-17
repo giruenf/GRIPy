@@ -766,10 +766,10 @@ class TrackFigureCanvas(PlotFigureCanvas, SelectPanelMixin):
 
 
     def mark_vertical(self, xdata):
-        print 'mark_vertical'
+        print ('mark_vertical')
         marked_vert_line = self.plot_axes.axvline(xdata, visible=True, lw=2, color='Lime')
         self.plot_axes.draw_artist(marked_vert_line)    
-        print 'mark_vertical ended'
+        print ('mark_vertical ended')
             
         
     """    

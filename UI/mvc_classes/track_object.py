@@ -163,7 +163,7 @@ class DataFilter(GenericObject):
             #                
             self.track_obj_ctrls_uids.append(track_obj_ctrl_uid) 
         except Exception as e:
-            print 'ERROR:', e
+            print ('ERROR:', e)
             raise e     
 
 
@@ -405,7 +405,7 @@ class TrackObjectController(UIControllerBase):
     # Picking with event that generates pick... 
     # Event(PickEvent) maybe useful in future
     def pick_event(self, event):
-        print event
+        print (event)
         self.model.selected = not self.model.selected 
       
 
@@ -1101,14 +1101,12 @@ class IndexRepresentationView(RepresentationView):
         y_min = controller._data[0] 
         y_max = controller._data[-1]  
         
-        #print 'y_values:', y_min, y_max
         
         if y_min%controller.model.step:
             y_min = (y_min//controller.model.step + 1) * controller.model.step  
         y_values = np.arange(y_min, y_max, controller.model.step)
 
-        #print '\n\n\n\nVAMOS AO TEMIDO FOR:'
-        #print len(controller._data), len(position_data)
+
         for y_value in y_values:
             
             y_pos_index = (np.abs(controller._data - y_value)).argmin()
@@ -1181,7 +1179,7 @@ class DensityRepresentationController(RepresentationController):
     def on_change_colormap(self, new_value, old_value):
         if new_value not in MPL_COLORMAPS:
             msg = 'Invalid colormap. Valid values are: {}'.format(MPL_COLORMAPS)
-            print msg
+            print (msg)
             self.model.set_value_from_event('colormap', old_value)
         else:    
             self.view.set_colormap(new_value)     
