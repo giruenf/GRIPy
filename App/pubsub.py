@@ -181,16 +181,16 @@ class PublisherMixin(object):
             >>> b.send_message(('attr_changed', 'width'), arg1=value, arg2=old_value)
         """
         # TODO: Refazer docs
-        # print 'publisher: {} - topic: {} - data: {}'.format(self.get_publisher_name(), topic, data)
+        # print ('publisher: {} - topic: {} - data: {}'.format(self.get_publisher_name(), topic, data))
         try:
-            print '\n\nPublisherMixin.send_message'
+            print ('\n\nPublisherMixin.send_message')
             topic = self.get_publisher_name() + '.' + topic
-            print 'topic:', topic, data
+            print ('topic:', topic, data)
             pub.sendMessage(topic, **data)
-            print 'OK send message'
+            print ('OK send message')
         except Exception as e:
-            print 'ERROR [PublisherMixin.send_message]:', self, topic, data, e
-            print '\n\n'
+            print ('ERROR [PublisherMixin.send_message]:', self, topic, data, e)
+            print ('\n\n')
             pass
 
     def get_publisher_name(self):

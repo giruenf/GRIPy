@@ -6,9 +6,9 @@ IO
 This module is responsible for reading and writing data to the disk.
 """
 
-import LAS
-import ODT
-import PLT
-import LIS
-import utils
-import SEGY
+from FileIO import LAS
+from FileIO import ODT
+from FileIO import PLT
+from FileIO import LIS
+from FileIO import utils
+from FileIO import SEGY

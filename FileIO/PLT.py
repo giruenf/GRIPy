@@ -19,7 +19,7 @@ References
 
 import time
 from datetime import date    
-import utils  
+from FileIO import utils  
 import os, os.path
 from collections import OrderedDict
 
@@ -252,7 +252,7 @@ def Reader(filename):
             try:
                 maindatum['SHADE'].append(PLTFile._list_to_shade(line[1:]))
             except IndexError:
-                print 'ERROR: SHADE - ' + pltfile.name
+                print ('ERROR: SHADE - ' + pltfile.name)
         elif line and line[0] == 'ORDER':
             maindatum['ORDER'] = line[1:]
         elif line and line[0] in PLTFile.OTHER_KEYS:

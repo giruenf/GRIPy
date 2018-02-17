@@ -11,7 +11,7 @@ import struct
 import App
 from collections import OrderedDict
 import numpy as np
-from TIF import TIFFile
+from FileIO.TIF import TIFFile
 
 
 PRA = {

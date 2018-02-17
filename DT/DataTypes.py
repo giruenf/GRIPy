@@ -320,23 +320,23 @@ class WellData1D(GenericDataType):
     def _on_OM_add(self, objuid):
         if objuid != self.uid:
             return
-        print 'WellData1D._on_OM_add:', objuid
+        print ('WellData1D._on_OM_add:', objuid)
         OM = ObjectManager(self)
         try:
             OM.unsubscribe(self._on_OM_add, 'add')     
         except Exception as e:
-            print 'Deu ruim no unsub:', e
+            print ('Deu ruim no unsub:', e)
         try:
             
             parent_well_uid = OM._getparentuid(self.uid)
-            print 'parent_well_uid:', parent_well_uid
+            print ('parent_well_uid:', parent_well_uid)
             my_index_set = OM.get(self.index_set_uid)
-            print 'my_index_set:', my_index_set
-            print 'list:'
+            print ('my_index_set:', my_index_set)
+            print ('list:')
             for obj_is in OM.list('index_set', parent_well_uid):
-                print obj_is
+                print (obj_is)
             if my_index_set not in OM.list('index_set', parent_well_uid):
-                print 'DEU RUIM'
+                print ('DEU RUIM')
                 raise Exception('Invalid attribute \"index_set\"={}'.format(self.index_set_uid))
         except:
             raise
@@ -673,12 +673,12 @@ class Partition(WellData1D):
 #        data = np.vstack(part.data for part in self.list('part'))
         data = np.vstack(part.data for part in partlist)
         if data.dtype == bool or asbool == False:
-            print '\n1data', data
+            print ('\n1data', data)
             return data
         else:
             bdata = np.zeros_like(data, dtype=bool)
             bdata.T[np.arange(bdata.shape[1]), np.argmax(data, axis=0)] = True
-            print '\n2data', bdata
+            print ('\n2data', bdata)
             return bdata
         
     def getaslog(self, partlist=None, propuid=None):
@@ -784,7 +784,7 @@ class Partition(WellData1D):
             The codes associated with each lines of the the boolean matrix.
         """
         if not np.equal(np.mod(logdata[np.isfinite(logdata)], 1), 0).all():
-            print u"Não é partição!"
+            print ('Não é partição!')
             return
         codes = np.unique(logdata)
         tokeep = np.isfinite(codes)*(codes != null)
@@ -983,7 +983,7 @@ class Density(GenericDataType):
             index_set = OM.list('index_set', self.uid)[0]
             return index_set.get_data_indexes()
         except Exception as e:
-            print 'ERROR [Density.get_data_indexes]:', e, '\n'
+            print ('ERROR [Density.get_data_indexes]:', e, '\n')
             raise e
 
 
@@ -1286,7 +1286,7 @@ class IndexSet(GenericObject):
             vinculated = state.get('vinculated')
             index_set = OM.new(cls.tid, name=name, vinculated=vinculated)
         except Exception as e:
-            print '\nERROR:', e, '\n', state
+            print ('\nERROR:', e, '\n', state)
         return index_set        
 
 
@@ -1396,7 +1396,7 @@ class DataIndex(GenericDataType):
             unit = state.pop('unit')
             index = OM.new(cls.tid, dimension, name, datatype, unit, **state)
         except Exception as e:
-            print '\nERROR:', e, '\n', state
+            print ('\nERROR:', e, '\n', state)
         return index
         
 

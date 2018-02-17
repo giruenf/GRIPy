@@ -305,14 +305,14 @@ class SEGYFile(object):
         for data in self.get_dump_data(samples, start):
             print
             for pos, nbytes in template_positions:
-                print 'byte {}: {}'.format(pos, get_value(data, pos, nbytes))
+                print ('byte {}: {}'.format(pos, get_value(data, pos, nbytes)))
 
 
 
 
 """        
 if __name__=='__main__':
-    #filename = 'D:\Sergio_Adriano\NothViking\Mobil_AVO_Viking_pstm_16_CIP_stk.sgy'
+    #filename = 'D:\\Sergio_Adriano\\NothViking\\Mobil_AVO_Viking_pstm_16_CIP_stk.sgy'
     filename = 'D:\\repo\\AVO_INVTRACE_FUNCIONANDO\\data\\finais\\pp_curvr_curv_curvr2_wrmo_qfilter_mute_sg2.sgy'
     #filename = 'D:\\Sergio_Adriano\\NothViking\\Mobil_AVO_Viking_pstm_16_stk.sgy'
     sgf = SEGYFile(filename)    
@@ -419,4 +419,5 @@ if __name__=='__main__':
     print 
 
     print len(sgf.header)
-"""
+    
+""" 

@@ -216,7 +216,7 @@ class ObjectManager(PublisherMixin):
         try:
             self.send_message('add', objuid=obj.uid)
         except Exception as e:
-            print 'ERROR [ObjectManager.add]:', obj.uid, e
+            print ('ERROR [ObjectManager.add]:', obj.uid, e)
             #return False
             pass
         # TODO: Rever isso: UI.mvc_classes.track_object@DataFilter 
@@ -618,18 +618,18 @@ class ObjectManager(PublisherMixin):
                             objdict[key] = npzdata[value.lstrip(self._NPZIDENTIFIER)]    
                     # TODO: melhorar isso abaixo
                     # A ideia e que a segunda opcao (except) venha a substituir a primeira
-                    print '\ntentando criar:', tid, objdict,
+                    print ('\ntentando criar:', tid, objdict,)
                     obj = self.new(tid, **objdict)
-                    print 'Ok'
+                    print ('Ok')
                 except:
-                    print 'Error'
+                    print ('Error')
                     try:
-                        print 'tentando de novo',
+                        print ('tentando de novo',)
                         obj = self.create_object_from_state(tid, **objdict)
-                        print 'Ok'
+                        print ('Ok')
                     except:
-                        print 'Error'
-                        print 'ERROR [ObjectManager.load]: Could not create object for tid={} with given state: {}'.format(tid, objdict)
+                        print ('Error')
+                        print ('ERROR [ObjectManager.load]: Could not create object for tid={} with given state: {}'.format(tid, objdict))
                         continue
                 #try:
                     #print 'A:', olduid, obj.uid
@@ -651,7 +651,7 @@ class ObjectManager(PublisherMixin):
             ObjectManager._on_load = False
             return True
         except Exception as e:
-            print 'ERROR [ObjectManager.load]:', e
+            print ('ERROR [ObjectManager.load]:', e)
             try:
                 archivefile.close()
                 picklefile.close()

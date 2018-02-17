@@ -2,8 +2,8 @@
 import os
 import wx
 from collections import OrderedDict
-import app_utils
-import gripy_classes
+import App.app_utils
+from App import gripy_classes
 import gripy_functions
 from OM.Manager import ObjectManager
 from UI.uimanager import UIManager
