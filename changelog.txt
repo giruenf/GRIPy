@@ -1,9 +1,9 @@
 ﻿Gripy Change log
-Atualizado em 9/9/2017
+Atualizado em 17/2/2018 por Adriano (@adrianopls)
 
-Versão 0.7b:
-============
-    - Fim do ParentObject. A tarefa de 'dizer' se um objeto tem filhos e 
+Versão 0.7:
+===========
+    - Fim do ParentObject. A tarefa de 'sinalizar' se um objeto tem filhos e 
       quais são seus filhos fica (totalmente) a cargo do ObjectManager.
     - Replicação da alteração acima para os Datatypes, com sensível 
       diminuição de código;
@@ -18,7 +18,11 @@ Versão 0.7b:
       (ex: Seismic) a opção Show Navigator é exibida;
     - Sistema de criacao de dialogos foi remodelado (de novo! [risos]);
     - LogPlot passou a chamar-se WellPlot;
-    - Primeiros passo no GRIPy da classe Rock (enfim!).
+    - Desenvolvimento das classes para realização de Inferência (por @rtabelini e @fmoraes);
+    - Correção de bugs no IO de arquivos ODT (por @rtabelini); 
+    - Separação dos comandos relativos à criação da Interface principal 
+      em um novo arquivo: UI.Interface (sugestão de @fmoraes);
+    - Inclusão de Modelagem de Refletividade (por @apfranco).		
 
 
 Versão 0.6:
