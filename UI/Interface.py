@@ -233,7 +233,7 @@ def load():
         UIM.create('menu_item_controller', mc_well.uid, 
                    label=u"New well",
                    help=u"Create new well",
-                   callback='App.menu_functions.on_createwell'
+                   callback='App.menu_functions.on_create_well'
         ) 
 
         UIM.create('menu_item_controller', mc_well.uid, 
@@ -260,19 +260,51 @@ def load():
                 label=u"Continuous Wavelet Transform", 
                 callback='App.menu_functions.on_cwt'
         )          
+        mc_attributes = UIM.create('menu_controller', mc_interp.uid,  
+                                      label=u"Attributes",
+                                      help=u"Attributes",
+        )
+        UIM.create('menu_item_controller', mc_attributes.uid, 
+                label=u"Phase Rotation", 
+                callback='App.menu_functions.on_phase_rotation'
+        )
+
+        UIM.create('menu_item_controller', mc_attributes.uid, 
+                label=u"Hilbert Attributes", 
+                callback='App.menu_functions.on_hilbert_attributes'
+        )             
         
-        # Modeling Menu          
+        # Modeling Menu  
         UIM.create('menu_item_controller', mc_model.uid, 
-				label=u"Reflectivity", 
+                label=u"Create 2/3 layers model", 
+                callback='App.menu_functions.on_create_model'
+        )   
+        UIM.create('menu_item_controller', mc_model.uid,
+                       kind=wx.ITEM_SEPARATOR
+        )        
+        UIM.create('menu_item_controller', mc_model.uid,
+                label=u"Aki-Richards PP", 
+                callback='App.menu_functions.on_akirichards_pp'
+        )      
+        UIM.create('menu_item_controller', mc_model.uid, 
+				label=u"Reflectivity Method", 
 				callback='App.menu_functions.ReflectivityModel'
         )
-   
+        #UIM.create('menu_item_controller', mc_model.uid,
+        #               kind=wx.ITEM_SEPARATOR
+        #) 
+        #UIM.create('menu_item_controller', mc_model.uid,
+        #        label=u"Poisson ratio", 
+        #        callback='App.menu_functions.on_poisson_ratio'
+        #)            
         
-        # Well Menu
+
+        # Debug Menu
         UIM.create('menu_item_controller', mc_debug.uid, 
                 label=u"Debug Console", help=u"Gripy Debug Console", 
                 callback='App.menu_functions.on_debugconsole'
-        )    
+        )  
+        #
         UIM.create('menu_item_controller', mc_debug.uid, 
                        kind=wx.ITEM_SEPARATOR
         )
@@ -280,10 +312,7 @@ def load():
                 label=u"Load Wilson Synthetics", 
                 callback='App.menu_functions.on_load_wilson'
         )  
-        UIM.create('menu_item_controller', mc_debug.uid, 
-                label=u"Modeling PP", 
-                callback='App.menu_functions.on_modelling_pp'
-        )              
+           
         UIM.create('menu_item_controller', mc_debug.uid, 
                 label=u"Load Stack North Viking Data", 
                 callback='App.menu_functions.teste10'
@@ -292,23 +321,12 @@ def load():
                 label=u"Teste 11", 
                 callback='App.menu_functions.teste11'
         ) 
-        
+     
         UIM.create('menu_item_controller', mc_debug.uid, 
-                label=u"Phase Rotation", 
-                callback='App.menu_functions.on_phase_rotation'
-        )
-
-        UIM.create('menu_item_controller', mc_debug.uid, 
-                label=u"Obtain Hilbert Attributes", 
-                callback='App.menu_functions.on_hilbert_attributes'
-        )        
-
-        UIM.create('menu_item_controller', mc_debug.uid, 
-                label=u"Create model", 
-                callback='App.menu_functions.on_create_model'
-        )        
-
-        
+                label=u'Calc Well Time from Depth curve', 
+                callback='App.menu_functions.calc_well_time_from_depth'
+        ) 
+     
         # Fim Main Menu Bar
 
         # Object Manager TreeController                                                          
@@ -338,14 +356,14 @@ def load():
                        callback='App.menu_functions.on_save'
         )
         UIM.create('toolbartool_controller', tbc.uid,
-                       label=u"Visualizar LogPlot", 
+                       label=u"Well Plot", 
                        bitmap='./icons/log_plot_24.png',
                        help='Well Plot', 
                        long_help='Well Plot',
                        callback='App.menu_functions.on_new_wellplot'
         )
         UIM.create('toolbartool_controller', tbc.uid,
-                       label=u"Visualizar Crossplot", 
+                       label=u"Crossplot", 
                        bitmap='./icons/crossplot_24.png',
                        help='Crossplot', 
                        long_help='Crossplot',
@@ -359,15 +377,18 @@ def load():
         
         #"""
 
+
         # """
         # Area reservada para alguns testes 
         # """
-        #fullfilename = 'C:\\Users\\Adriano\\Desktop\\aaa_teste_4.pgg'
+        
+        #fullfilename = 'C:\\Users\\Adriano\\Desktop\\aaa_teste_5.pgg'
+        
+        #fullfilename = 'C:\\Users\\Adriano\\Desktop\\aaa_teste_8.pgg'
+        
+        #fullfilename = 'C:\\Users\\Adriano\\Desktop\\2709_pocos_classes.pgg'
         #app.load_project_data(fullfilename)    
-        #
-        
-        #Reflectivity2()
-        
+
         #
         #lpc = UIM.create('logplot_controller', mwc.uid)
         #tc1 = UIM.create('track_controller', lpc.uid)

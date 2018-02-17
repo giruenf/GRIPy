@@ -55,8 +55,8 @@ class MainWindow(Frame):
         #
         self.Bind(wx.EVT_CLOSE, self.on_close)          
         self.Bind(aui.EVT_AUINOTEBOOK_PAGE_CLOSE, self.on_page_close, self.note)
-
-
+        self.Bind(aui.EVT_AUINOTEBOOK_PAGE_CHANGED, self.on_page_changed)
+        
     def on_close(self, event):
         wx.App.Get().PreExit()
         event.Skip()
@@ -66,6 +66,14 @@ class MainWindow(Frame):
         UIM = UIManager()
         UIM.remove(panel._controller_uid)
 
+    def on_page_changed(self, event):
+        UIM = UIManager()
+        for idx in range(self.note.GetPageCount()):
+            page = self.note.GetPage(idx)
+            controller = UIM.get(page._controller_uid)
+            controller.model.set_value_from_event('pos', idx)
+        event.Skip()
+     
     def insert_notebook_page(self, *args, **kwargs):
         try:
             page = None
@@ -81,4 +89,10 @@ class MainWindow(Frame):
             pass
         return False
         
-
+    def get_notebook_page_index(self, page):
+        return self.note.GetPageIndex(page)
+ 
+    def set_notebook_page_text(self, page_index, text):
+        return self.note.SetPageText(page_index, text)
+            
+       

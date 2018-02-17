@@ -29,6 +29,16 @@ from Basic.Colors import COLOR_CYCLE_RGB
 import numpy as np
 
 
+VALID_Z_AXIS_DATATYPES = [('MD', 'Measured Depth'), 
+                          ('TVD', 'True Vertical Depth'),
+                          ('TVDSS', 'True Vertical Depth Subsea'), 
+                          ('TIME', 'One-Way Time'),
+                          ('TWT', 'Two-Way Time')
+]
+
+
+
+
 # TODO: Rever docs
 # TODO: Criar GenericObject._loadstate para nao necessitar de colocar tudo no __init__ dos objetos
 class GenericDataType(GenericObject):
@@ -159,24 +169,128 @@ class GenericDataType(GenericObject):
     @datatype.deleter
     def datatype(self):
         del self.attributes['datatype']
-         
-    def get_index(self):
+           
+        
+    def get_indexes_set(self):
         OM = ObjectManager(self)
-        dis = OM.list('data_index', self.uid)
-        if not dis:
-            return None    
+        indexes_set = OM.list('index_set', self.uid)
         ret = OrderedDict()
-        for di in dis:
-            if di.dimension not in ret.keys():
-                ret[di.dimension] = []
-            ret.get(di.dimension).append(di)     
+        for index_set in indexes_set:
+            dis = OM.list('data_index', index_set.uid)
+            if not dis:
+                ret[index_set.uid] = None
+            else:
+                ret[index_set.uid] = index_set.get_data_indexes()
+                """
+                inner_ord_dict = OrderedDict()
+                for di in dis:
+                    if di.dimension not in inner_ord_dict.keys():
+                        inner_ord_dict[di.dimension] = []    
+                    inner_ord_dict.get(di.dimension).append(di)    
+                ret[index_set.uid] = inner_ord_dict    
+                """
         return ret
-  
+    
+    """
+    def get_indexes_set(self):
+        OM = ObjectManager(self)
+        indexes_set = OM.list('index_set', self.uid)
+        ret = OrderedDict()
+        for index_set in indexes_set:
+            dis = OM.list('data_index', index_set.uid)
+            if not dis:
+                ret[index_set.name] = None
+            else:
+                inner_ord_dict = OrderedDict()
+                for di in dis:
+                    if di.dimension not in inner_ord_dict.keys():
+                        inner_ord_dict[di.dimension] = []    
+                    inner_ord_dict.get(di.dimension).append(di)    
+                ret[index_set.name] = inner_ord_dict    
+        return ret    
+    """
+    
+    def get_data_indexes(self, set_name):
+        OM = ObjectManager(self)
+        for index_set_uid, inner_ord_dict in self.get_indexes_set().items():
+            index_set = OM.get(index_set_uid) 
+            if set_name == index_set.name:
+                return inner_ord_dict
+        return None
+    
+    """
+    def get_data_indexes(self, set_name):
+        #OM = ObjectManager(self)
+        for index_set_name, inner_ord_dict in self.get_indexes_set().items():
+            #index_set = OM.get(index_set_uid) 
+            if set_name == index_set_name:
+                return inner_ord_dict
+        return None
+    """
+
+    def get_z_axis_indexes_by_type(self, datatype):
+        ok = False
+        for z_axis_dt, z_axis_dt_desc in VALID_Z_AXIS_DATATYPES:
+            if datatype == z_axis_dt:
+                ok = True
+                break
+        if not ok:    
+            raise Exception('Invalid datatype={}. Valid values are: {}'.format(datatype, VALID_Z_AXIS_DATATYPES))
+        ret_vals = []
+        all_data_indexes = self.get_indexes_set().values()   
+        for data_indexes in all_data_indexes:
+            z_axis_indexes = data_indexes[0]
+            for data_index in z_axis_indexes:
+                if data_index.datatype == datatype:
+                    ret_vals.append(data_index)
+        return ret_vals
+
+   
+    def get_friendly_indexes_dict(self):
+        OM = ObjectManager(self)
+        ret_od = OrderedDict()
+        indexes_set = self.get_indexes_set()
+        for index_set_uid, indexes_ord_dict in indexes_set.items():
+            index_set = OM.get(index_set_uid)
+            for dim_idx, data_indexes in indexes_ord_dict.items():
+                for data_index in data_indexes:
+                    di_friendly_name = data_index.name + '@' + index_set.name
+                    ret_od[di_friendly_name] = data_index.uid       
+        return ret_od
+    
+    """
+    def get_friendly_indexes_dict(self):
+        #OM = ObjectManager(self)
+        ret_od = OrderedDict()
+        indexes_set = self.get_indexes_set()
+        for index_set_name, indexes_ord_dict in indexes_set.items():
+            #index_set = OM.get(index_set_uid)
+            for dim_idx, data_indexes in indexes_ord_dict.items():
+                for data_index in data_indexes:
+                    di_friendly_name = data_index.name + '@' + index_set_name
+                    ret_od[di_friendly_name] = data_index.uid       
+        return ret_od
+    """
+    
+    def get_z_axis_datatypes(self):
+        OM = ObjectManager(self)
+        data_indexes_uid = self.get_friendly_indexes_dict().values()
+        zaxis = OrderedDict()
+        for z_axis_dt, z_axis_dt_desc in VALID_Z_AXIS_DATATYPES:
+            for data_index_uid in data_indexes_uid:
+                data_index = OM.get(data_index_uid)
+                if data_index.datatype == z_axis_dt and z_axis_dt not in zaxis.values():
+                    zaxis[z_axis_dt_desc] = z_axis_dt
+        return zaxis
+
+
+    
     def _getstate(self):
         state = super(GenericDataType, self)._getstate()
         state.update(data=self._data)
         state.update(self.attributes)
         return state
+
 
     def _getparent(self):
         OM = ObjectManager(self)
@@ -191,44 +305,77 @@ class WellData1D(GenericDataType):
     tid = "data1d"
     
     def __init__(self, data, **attributes):
+        index_set_uid = attributes.get('index_set_uid')
+        try:    
+            tid, oid = index_set_uid 
+        except:
+            raise Exception('Object attribute \"index_set_uid\" must be a \"uid\" tuple.')    
+        if tid != 'index_set':
+            raise Exception('Object attribute \"index_set_uid\" must have its first argument as \"index_set\".')
         super(WellData1D, self).__init__(data, **attributes)
-    
-    def get_index(self):
+        OM = ObjectManager(self)        
+        OM.subscribe(self._on_OM_add, 'add')
+
+
+    def _on_OM_add(self, objuid):
+        if objuid != self.uid:
+            return
+        print 'WellData1D._on_OM_add:', objuid
         OM = ObjectManager(self)
-        parent_uid = OM._getparentuid(self.uid)
-        parent = OM.get(parent_uid)
-        return parent.get_index()   
-    
-    """          
-    @property
-    def start(self):
-        if 'start' not in self.attributes:
-            index_data = self.get_index()[0][0].data
-            self.attributes['start'] = float(index_data[np.isfinite(self.data)][0])
-        return self.attributes['start']
-    
-    @property
-    def end(self):
-        if 'end' not in self.attributes:
-            index_data = self.get_index()[0][0].data
-            self.attributes['end'] = float(index_data[np.isfinite(self.data)][-1])
-        return self.attributes['end']
+        try:
+            OM.unsubscribe(self._on_OM_add, 'add')     
+        except Exception as e:
+            print 'Deu ruim no unsub:', e
+        try:
+            
+            parent_well_uid = OM._getparentuid(self.uid)
+            print 'parent_well_uid:', parent_well_uid
+            my_index_set = OM.get(self.index_set_uid)
+            print 'my_index_set:', my_index_set
+            print 'list:'
+            for obj_is in OM.list('index_set', parent_well_uid):
+                print obj_is
+            if my_index_set not in OM.list('index_set', parent_well_uid):
+                print 'DEU RUIM'
+                raise Exception('Invalid attribute \"index_set\"={}'.format(self.index_set_uid))
+        except:
+            raise
 
     @property
-    def step(self):
-        if 'step' not in self.attributes:
-            index_data = self.get_index()[0][0].data
-            self.attributes['step'] = float(index_data[np.isfinite(self.data)][1] - 
-                           index_data[np.isfinite(self.data)][0]
-            )
-        return self.attributes['step']
-    """
+    def index_set_uid(self):
+        return self.attributes['index_set_uid']
+
+
+    def get_data_indexes(self):
+        OM = ObjectManager(self)            
+        try:
+            index_set = OM.get(self.index_set_uid)
+            return index_set.get_data_indexes()
+            """
+            data_indexes = OM.list('data_index', self.index_set_uid)
+            if not data_indexes:
+                return None
+            ret_dict = OrderedDict()
+            for data_index in data_indexes:
+                if data_index.dimension not in ret_dict.keys():
+                    ret_dict[data_index.dimension] = []    
+                ret_dict.get(data_index.dimension).append(data_index)    
+            return ret_dict
+            """
+        except:
+            return None
+        
+        
+    def get_indexes(self):
+        raise Exception('Invalid METHOD')   
     
     def get_friendly_name(self):
         OM = ObjectManager(self)
-        parent_uid = OM._getparentuid(self.uid)
-        parent = OM.get(parent_uid)         
-        return self.name + '@' + parent.name
+        parent_well_uid = OM._getparentuid(self.uid)
+        parent_well = OM.get(parent_well_uid)         
+        return self.name + '@' + parent_well.name
+
+
 
     
 class Log(WellData1D):
@@ -263,11 +410,11 @@ class Log(WellData1D):
                             ('datatype', 'Curve Type'),
                             ('unit', 'Units'),
                             ('min', 'Min Value'),
-                            ('max', 'Max Value'),
-                            ('index_name', 'Index'),
-                            ('start', 'Start'),
-                            ('end', 'End'),
-                            ('step', 'Step'),
+                            ('max', 'Max Value')
+                            #('index_name', 'Index'),
+                            #('start', 'Start'),
+                            #('end', 'End'),
+                            #('step', 'Step'),
     ] 
     
     def __init__(self, data, **attributes):
@@ -830,6 +977,15 @@ class Density(GenericDataType):
     def __init__(self, data, **attributes):
         super(Density, self).__init__(data, **attributes)
 
+    def get_data_indexes(self):
+        OM = ObjectManager(self)            
+        try:
+            index_set = OM.list('index_set', self.uid)[0]
+            return index_set.get_data_indexes()
+        except Exception as e:
+            print 'ERROR [Density.get_data_indexes]:', e, '\n'
+            raise e
+
 
 class Seismic(Density):
     tid = 'seismic'
@@ -842,8 +998,6 @@ class Seismic(Density):
         super(Seismic, self).__init__(data, **attributes)
                 
 
-
-
 class WellGather(Density):
     tid = 'gather'
     _FRIENDLY_NAME = 'Gather'
@@ -852,9 +1006,8 @@ class WellGather(Density):
     ]
 
     def __init__(self, data, **attributes):
-        super(WellGather, self).__init__(data,  **attributes)
-        
-
+        super(WellGather, self).__init__(data, **attributes)
+            
 
 class Scalogram(Density):
     tid = 'scalogram'
@@ -874,7 +1027,6 @@ class GatherScalogram(Scalogram):
 
     def __init__(self, data, **attributes):
         super(GatherScalogram, self).__init__(data, **attributes)
-
 
 
 
@@ -971,36 +1123,6 @@ class InversionParameter(GenericDataType):
     def __init__(self, data, **attributes):
         super(InversionParameter, self).__init__(data, **attributes)
 
-    """
-    @property
-    def start(self):
-        if 'start' not in self.attributes:
-            index_data = self.get_index()._data
-            self.attributes['start'] = float(index_data[np.isfinite(self._data)][0])
-        return self.attributes['start']
-    
-    @property
-    def end(self):
-        if 'end' not in self.attributes:
-            index_data = self.get_index()._data
-            self.attributes['end'] = float(index_data[np.isfinite(self._data)][-1])
-        return self.attributes['end']
-
-    @property
-    def step(self):
-        if 'step' not in self.attributes:
-            index_data = self.get_index()._data
-            self.attributes['step'] = float(index_data[np.isfinite(self._data)][1] - 
-                           index_data[np.isfinite(self._data)][0]
-            )
-        return self.attributes['step']
-
-    def get_friendly_name(self):
-        OM = ObjectManager(self)
-        parent_uid = OM._getparentuid(self.uid)
-        parent = OM.get(parent_uid)         
-        return self.name + '@' + parent.name
-    """
 
 ###############################################################################
 ###############################################################################
@@ -1061,7 +1183,12 @@ VALID_INDEXES = {
             'units': ['deg', 'rad'],
             'name': 'Angle', 
             'desc': 'Angle'            
-    }        
+    },
+    'P': {
+            'units': ['s/m', 's/km'],
+            'name': 'Ray Parameter', 
+            'desc': 'P Ray Parameter'            
+    }             
 }    
 
 
@@ -1074,13 +1201,102 @@ def check_data_index(index_type, axis_unit):
         raise Exception('Invalid index unit.')
 
 
+class IndexSet(GenericObject):
+    tid = 'index_set'
+    _FRIENDLY_NAME = 'Indexes Set'    
+    
+    def __init__(self, **attrbutes):
+        super(IndexSet, self).__init__()
+        self.attributes = {}
+        OM = ObjectManager(self) 
+        vinculated = attrbutes.get('vinculated')
+        if vinculated:
+            try:
+                vinculated_index_set = OM.get(vinculated)
+                if vinculated_index_set.tid != self.tid:
+                    raise Exception('Wrong tid.')
+                self.attributes['name'] = vinculated_index_set.name
+                self.attributes['vinculated'] = vinculated
+            except:
+                raise
+        else:        
+            self.attributes['name'] = attrbutes.get('name')
+            self.attributes['vinculated'] = None
+        OM.subscribe(self._on_OM_add, 'add')
+                   
+    def _on_OM_add(self, objuid):
+        if objuid != self.uid:
+            return
+        OM = ObjectManager(self)        
+        OM.unsubscribe(self._on_OM_add, 'add')
+        
+        parent_uid = OM._getparentuid(self.uid)
+        for obj in OM.list(self.tid, parent_uid):
+            if obj is not self and obj.name == self.name:
+                raise Exception('Parent object has another son with same name.')
+
+    @property
+    def name(self):
+        return self.attributes['name']
+
+    @property
+    def vinculated(self):
+        return self.attributes['vinculated']
+  
+    
+    def get_data_indexes(self):
+        OM = ObjectManager(self) 
+        ret_dict = OrderedDict()
+        if self.vinculated:
+            vinculated_index_set = OM.get(self.vinculated)
+            ret_dict = vinculated_index_set.get_data_indexes()
+        data_indexes = OM.list('data_index', self.uid)
+        if not data_indexes:
+            return ret_dict
+        for data_index in data_indexes:
+            if data_index.dimension not in ret_dict.keys():
+                ret_dict[data_index.dimension] = []    
+            ret_dict.get(data_index.dimension).append(data_index)    
+        return ret_dict     
+
+
+    def get_z_axis_indexes_by_type(self, datatype):
+        ok = False
+        for z_axis_dt, z_axis_dt_desc in VALID_Z_AXIS_DATATYPES:
+            if datatype == z_axis_dt:
+                ok = True
+                break
+        if not ok:    
+            raise Exception('Invalid datatype={}. Valid values are: {}'.format(datatype, VALID_Z_AXIS_DATATYPES))
+        z_axis_indexes = self.get_data_indexes()[0]
+        return [data_index for data_index in z_axis_indexes if data_index.datatype == datatype]
+
+
+    def _getstate(self):
+        state = super(IndexSet, self)._getstate()
+        state.update(name=self.name)
+        state.update(vinculated=self.vinculated)
+        return state
+     
+    @classmethod
+    def _loadstate(cls, **state):
+        OM = ObjectManager(cls)
+        try:
+            name = state.get('name')
+            vinculated = state.get('vinculated')
+            index_set = OM.new(cls.tid, name=name, vinculated=vinculated)
+        except Exception as e:
+            print '\nERROR:', e, '\n', state
+        return index_set        
+
+
 
 # Class for discrete dimensions of Data Objects
 class DataIndex(GenericDataType):
     tid = 'data_index'
     _FRIENDLY_NAME = 'Index'
     _SHOWN_ATTRIBUTES = [
-                            ('_oid', 'Object Id'),
+                            #('_oid', 'Object Id'),
                             ('dimension', 'Dimension'),
                             ('datatype', 'Type'),
                             ('unit', 'Unit'),
@@ -1089,6 +1305,7 @@ class DataIndex(GenericDataType):
                             ('step', 'Step'),
                             ('samples', 'Samples')
     ]   
+    
     
     def __init__(self, dimension_idx, name, datatype=None, unit=None, **kwargs):   
         if dimension_idx is None or dimension_idx < 0 or not isinstance(dimension_idx, int):
@@ -1119,26 +1336,27 @@ class DataIndex(GenericDataType):
         )
         self.attributes['dimension'] = dimension_idx   
         #
-        OM = ObjectManager(self)        
-        OM.subscribe(self._on_OM_add, 'add')
+        #OM = ObjectManager(self)        
+        #OM.subscribe(self._on_OM_add, 'add')
 
 
     def _on_OM_add(self, objuid):
         if objuid != self.uid:
             return
-        #print '_on_OM_add:', self.uid
         OM = ObjectManager(self)        
         OM.unsubscribe(self._on_OM_add, 'add')
-        #
-        #parent_uid = OM._getparentuid(self.uid)
-        #parent = OM.get(parent_uid)
-        #print 
-        #indexes = parent.get_index()
-        #print indexes.keys()
-        #dis = OM.list(self.tid, parent_uid)
-        
-        #if self.dimension > len(dis):
-        #    raise Exception('Dimension not valid [{}]'.format(self.dimension))
+
+    
+    def get_data_indexes(self):
+        OM = ObjectManager(self)            
+        try:
+            index_set_uid = OM._getparentuid(self.uid)
+            index_set = OM.get(index_set_uid)
+            return index_set.get_data_indexes()
+        except:
+            return None
+
+    
 
     @property
     def start(self):
@@ -1208,6 +1426,8 @@ class Model1D(Density):
                     indexes[di.dimension] = []
                 indexes.get(di.dimension).append(di)     
         return indexes     
+
+
 
 class ZoneSet(GenericDataType):
     tid = 'zone_set'

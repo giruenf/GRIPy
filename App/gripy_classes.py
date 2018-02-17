@@ -78,7 +78,7 @@ def register_app_classes():
     
 def register_OM_classes():
     ObjectManager.register_class(Well)
-    ObjectManager.register_class(DataIndex, Well)
+    ObjectManager.register_class(IndexSet, Well)
     ObjectManager.register_class(Core, Well)
     #
     ObjectManager.register_class(Log, Well)
