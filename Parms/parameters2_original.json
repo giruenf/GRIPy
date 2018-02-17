@@ -21,6 +21,7 @@
         "GAS",
         "GammaRay",
         "Hookload",
+		"Impedance",
         "LoadFactor",
         "Matrix",
         "MaxHorzStress",
@@ -44,7 +45,9 @@
         "Perforations",
         "Phi",
         "PhiT",
+		"PoissonRatio"
         "Pump",
+        "QFactor",
         "RB_Offset",
         "ROP",
         "RotarySpeed",
