@@ -36,7 +36,8 @@ class _LASSectionCtrl(wx.ListCtrl, TextEditMixin, CheckListCtrlMixin,
 
     def set_section(self, section):
         for line in section.values():
-            index = self.InsertStringItem(sys.maxint, '')
+            #index = self.InsertStringItem(sys.maxint, '')
+            index = self.InsertItem(sys.maxint, '')
             self.SetItem(index, 1, line["MNEM"])
             self.SetItem(index, 2, line["UNIT"])
             self.SetItem(index, 3, line["DATA"])
@@ -90,7 +91,8 @@ class _LASSectionPanel(wx.Panel):
         return self.section_ctrl.get_section()
 
     def on_add(self, event):
-        index = self.section_ctrl.InsertStringItem(sys.maxint, '')
+        #index = self.section_ctrl.InsertStringItem(sys.maxint, '')
+        index = self.section_ctrl.InsertItem(sys.maxint, '')
         self.section_ctrl.SetStringItem(index, 1, '')
         self.section_ctrl.SetStringItem(index, 2, '')
         self.section_ctrl.SetStringItem(index, 3, '')

@@ -195,7 +195,7 @@
             "Caliper": 34
         },
         "cali": {
-            "Caliper": 148
+            "Caliper": 151
         },
         "caliper": {
             "Caliper": 0
@@ -282,7 +282,7 @@
             "MD": 136
         },
         "depth": {
-            "MD": 101
+            "MD": 104
         },
         "dev": {
             "Deviation": 0
@@ -429,7 +429,7 @@
             "GammaRay": 0
         },
         "gr": {
-            "GammaRay": 217
+            "GammaRay": 220
         },
         "gr_": {
             "GammaRay": 10
@@ -810,7 +810,10 @@
             "Spectral": 0
         },
         "pr": {
-            "PoissonRatio": 14
+            "PoissonRatio": 17
+        },
+        "q": {
+            "QFactor": 3
         },
         "rach": {
             "DeepRes": 0
@@ -882,7 +885,7 @@
             "Density": 30
         },
         "rhob": {
-            "Density": 131
+            "Density": 134
         },
         "rhoc": {
             "Density": 9
@@ -1251,10 +1254,10 @@
             "Velocity": 0
         },
         "vp": {
-            "Velocity": 111
+            "Velocity": 114
         },
         "vs": {
-            "ShearVel": 111
+            "ShearVel": 114
         },
         "vsalt": {
             "Vsalt": 0
@@ -1343,7 +1346,7 @@
             "Log": 34
         },
         "cali": {
-            "Log": 148
+            "Log": 151
         },
         "coordew": {
             "Log": 12
@@ -1377,7 +1380,7 @@
             "Index": 136
         },
         "depth": {
-            "Index": 97
+            "Index": 100
         },
         "devi": {
             "Log": 4
@@ -1449,7 +1452,7 @@
             "Log": 20
         },
         "gr": {
-            "Log": 217
+            "Log": 220
         },
         "gr_": {
             "Log": 11
@@ -1584,13 +1587,13 @@
             "Log": 4
         },
         "pr": {
-            "Log": 42
+            "Log": 45
         },
         "psr": {
             "Log": 34
         },
         "q": {
-            "Log": 2
+            "Log": 5
         },
         "raw ": {
             "Log": 2
@@ -1629,7 +1632,7 @@
             "Log": 30
         },
         "rhob": {
-            "Log": 131
+            "Log": 134
         },
         "rhoc": {
             "Log": 9
@@ -1659,7 +1662,7 @@
             "Log": 4
         },
         "sdr": {
-            "Log": 3
+            "Log": 6
         },
         "sfl ": {
             "Log": 2
@@ -1751,46 +1754,46 @@
             "Partition": 9
         },
         "vclc": {
-            "Log": 3
+            "Log": 6
         },
         "vcoa": {
-            "Log": 2
+            "Log": 5
         },
         "vill": {
-            "Log": 3
+            "Log": 6
         },
         "volu": {
             "Log": 2
         },
         "vp": {
-            "Log": 111
+            "Log": 114
         },
         "vpar": {
-            "Log": 3
+            "Log": 6
         },
         "vpvs": {
             "Log": 89
         },
         "vqua": {
-            "Log": 3
+            "Log": 6
         },
         "vs": {
-            "Log": 111
+            "Log": 114
         },
         "vsh": {
             "Log": 12
         },
         "vxbw": {
-            "Log": 3
+            "Log": 6
         },
         "vxga": {
-            "Log": 3
+            "Log": 6
         },
         "vxoi": {
-            "Log": 3
+            "Log": 6
         },
         "vxwa": {
-            "Log": 3
+            "Log": 6
         },
         "wate": {
             "Log": 2

@@ -4,8 +4,8 @@ import json
 import logging
 import wx
 import matplotlib
-matplotlib.interactive(False)
-matplotlib.use('WXAgg')
+#matplotlib.interactive(False)
+#matplotlib.use('WXAgg')
 
 
 _APP_INIT_FILE = '.gripy_app_config.json'
@@ -17,7 +17,7 @@ def _read_app_definitions():
         f.close()
         return file_dict
     except Exception as e:
-        print e.args
+        print (e.args)
 
 def start_logging(logging_dict):
     logging_level = logging_dict.get('logging_level', logging.DEBUG)

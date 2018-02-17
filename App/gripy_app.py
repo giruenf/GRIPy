@@ -210,7 +210,7 @@ class GripyApp(wx.App):
     def PreExit(self):
         msg = 'GriPy Application is preparing to terminate....'
         log.info(msg)
-        print '\n', msg
+        print ('\n', msg)
         OM = ObjectManager(self)
         if OM.get_changed_flag():
             dial = wx.MessageDialog(self.GetTopWindow(), 
@@ -244,7 +244,7 @@ class GripyApp(wx.App):
     def OnExit(self):
         msg = 'GriPy Application has finished.'
         log.info(msg)
-        print msg, '\n'
+        print (msg, '\n')
         return super(GripyApp, self).OnExit()
         
     # Convenience function    
