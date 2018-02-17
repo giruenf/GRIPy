@@ -1,56 +1,35 @@
-﻿Gripy Change log
+﻿Gripy Change log - (pt-br only)
 Atualizado em 17/2/2018 por Adriano (@adrianopls)
+
 
 Versão 0.7:
 ===========
-    - Fim do ParentObject. A tarefa de 'sinalizar' se um objeto tem filhos e 
-      quais são seus filhos fica (totalmente) a cargo do ObjectManager.
-    - Replicação da alteração acima para os Datatypes, com sensível 
-      diminuição de código;
-    - Criação (redefinição) da classe DataIndex. Agora um dado de multiplas
-      dimensões (exemplo sísmica: Iline/Xline/Tempo) pode possuir um DataIndex
-      para cada dimensão;
-    - Classe DataFilter (graças ao novo DataIndex). DataFilter permite a 
-      seleção de dados em uma das dimensões;
-    - A nova classe de interface NavigatorController é a responsável por
-      fazer a seleção de dados e atualizar DataFilter. Com o botão direito em
-      cima do rótulo de um objeto de uma classe que permita tal exibição
-      (ex: Seismic) a opção Show Navigator é exibida;
-    - Sistema de criacao de dialogos foi remodelado (de novo! [risos]);
-    - LogPlot passou a chamar-se WellPlot;
-    - Desenvolvimento das classes para realização de Inferência (por @rtabelini e @fmoraes);
-    - Correção de bugs no IO de arquivos ODT (por @rtabelini); 
-    - Separação dos comandos relativos à criação da Interface principal 
-      em um novo arquivo: UI.Interface (sugestão de @fmoraes);
-    - Inclusão de Modelagem de Refletividade (por @apfranco).		
+- Fim do ParentObject. A tarefa de 'sinalizar' se um objeto tem filhos e quais são seus filhos fica (totalmente) a cargo do ObjectManager.
+- Replicação da alteração acima para os Datatypes, com sensível diminuição de código.
+- Criação (redefinição) da classe DataIndex. Agora um dado de multiplas dimensões (exemplo sísmica: Iline/Xline/Tempo) pode possuir um DataIndex para cada dimensão.
+- Classe DataFilter (graças ao novo DataIndex). DataFilter permite a seleção de dados em uma das dimensões.
+- A nova classe de interface NavigatorController é a responsável por fazer a seleção de dados e atualizar DataFilter. Com o botão direito em cima do rótulo de um objeto de uma classe que permita tal exibição (ex: Seismic) a opção Show Navigator é exibida.
+- Sistema de criacao de dialogos foi remodelado (de novo! [risos]).
+- LogPlot passou a chamar-se WellPlot.
+- Desenvolvimento das classes para realização de Inferência (por @rtabelini e @fmoraes).
+- Correção de bugs no IO de arquivos ODT (por @rtabelini).
+- Separação dos comandos relativos à criação da Interface principal em um novo arquivo: UI.Interface (sugestão de @fmoraes).
+- Inclusão de Modelagem de Refletividade (por @apfranco).		
 
 
 Versão 0.6:
 ===========
-    - Utilização de Messaging pattern (Pypubsub) evitando o uso de Eventos Wx
-      e facilitando a troca de mensagens entre os objetos;  
-    - Unificação dos ParametersManager desenvolvidos anteriormente
-      por Vizeu e Adriano;
-    - Significativa restilização do LogPlotController, incluindo:
-        - Reinclusão do botão "Edit LogPlot" no LogPlot. A propriedades dos 
-          tracks e dos objetos 'plottados' podem ser 'settadas' nessa tela;
-        - Overview track (track de referência à esquerda do LogPlot)
-          agora também é um objeto da classe TrackController e 
-          pode ser habilitado através do "Edit LogPlot";
-    - Partições passam a ser representadas por MPL Patches e não mais por 
-      MPL AxesImage. Isso leva a um significativo ganho de performance ao 
-      'plottar' partições;
-    - Dados de densidade, como dados sísmicos, podem ser 'plottados' como 
-      somente Density, somente Wiggle ou ambos. Também passa a ser possível 
-      realizar preenchimentos de cores nos Wiggles de forma a demarcar 
-      amplitudes positivas e negativas. Essa última feature é executada com
-      relativa lentidão devido a interpolação realizada para o preenchimento;
-    - Os codigos relacionados ao Matplotlib (tracks e track_labels) 
-      foram concentrados no arquivo UI\mvc_classes\mpl_base.py
-   - OM.registertype -> OM.register_class
-   - Novos DataTypes: Inversion, WellGather, etc
-   - Novo sistema de criacao de dialogos;
-   - Utilização de wx.WindowDisabler e wx.BusyInfo para avisar ao usuário da
-     execução de um processo que necessite uma "pausa" da interface;
-   - Correção de erro nas telas de importação de arquivos .las (por @fvizeus) 
-   - Inclusão de changelog ;-)		
+- Utilização de Messaging pattern (Pypubsub) evitando o uso de Eventos Wx e facilitando a troca de mensagens entre os objetos.
+- Unificação dos ParametersManager desenvolvidos anteriormente por @fvizeus e @adrianopls.
+- Significativa restilização do LogPlotController, incluindo:
+    - Reinclusão do botão "Edit LogPlot" no LogPlot. A propriedades dos tracks e dos objetos 'plottados' podem ser 'settadas' nessa tela.
+    - Overview track (track de referência à esquerda do LogPlot) agora também é um objeto da classe TrackController e pode ser habilitado através do "Edit LogPlot".
+- Partições passam a ser representadas por MPL Patches e não mais por MPL AxesImage. Isso leva a um significativo ganho de performance ao 'plottar' partições.
+- Dados de densidade, como dados sísmicos, podem ser 'plottados' como somente Density, somente Wiggle ou ambos. Também passa a ser possível realizar preenchimentos de cores nos Wiggles de forma a demarcar amplitudes positivas e negativas. Essa última feature é executada com relativa lentidão devido a interpolação realizada para o preenchimento.
+- Os codigos relacionados ao Matplotlib (tracks e track_labels) foram concentrados no arquivo UI\mvc_classes\mpl_base.py.
+- OM.registertype -> OM.register_class.
+- Novos DataTypes: Inversion, WellGather, etc.
+- Novo sistema de criacao de dialogos.
+- Utilização de wx.WindowDisabler e wx.BusyInfo para avisar ao usuário da execução de um processo que necessite uma "pausa" da interface.
+- Correção de erro nas telas de importação de arquivos .las (por @fvizeus).
+- Inclusão de changelog ;-)		
