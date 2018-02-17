@@ -40,7 +40,7 @@ def write_file_from_list(fullfilename, list_to_be_written):
     fullfilename = clean_path_str(fullfilename)
     with open(fullfilename, 'w') as file_:
         for line in list_to_be_written:
-            print line
+            print (line)
             file_.write(' '.join(line) + '\n')
     file_.close()    
 

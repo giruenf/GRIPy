@@ -1,8 +1,8 @@
 # -*- coding: utf-8 -*-
 import wx
 import weakref
-import app_utils
-from pubsub import PublisherMixin
+from App import app_utils
+from App.pubsub import PublisherMixin
 from App import log
 
 """

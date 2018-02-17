@@ -368,8 +368,8 @@ class LASReader(LASFile):
                         new_mnem = old_mnem + '_{:0>4}'.format(count)
                     
                     if _VERBOSE and count:
-                        print "Nome de curva repetido:", old_mnem
-                        print "Substituindo por:", new_mnem
+                        print ("Nome de curva repetido:", old_mnem)
+                        print ("Substituindo por:", new_mnem)
                     
                     parsedline['MNEM'] = new_mnem
                     section[new_mnem] = parsedline

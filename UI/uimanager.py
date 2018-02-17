@@ -56,10 +56,7 @@ class UIBase(object):
     
     def check_creator(self):
         # Only UIManager can create objects. Checking it!
-        #print 'ZZZ'
         caller_info = App.app_utils.get_caller_info()
-        #print 'ZZZ2:', caller_info
-        #print
         ok = False
         for idx, ci in enumerate(caller_info):
             module_name = None
@@ -98,20 +95,20 @@ class UIControllerBase(UIBase, PublisherMixin):
         if model_class is not None:
             try:
                 self.model = model_class(self.uid, **base_state)
-            except Exception, e:
+            except Exception as e:
                 msg = '' #ERROR on creating MVC model {} object: {}'.format(model_class.__name__, e.message)
                 log.exception(msg)
-                print '\n', msg
+                print ('\n', msg)
                 raise e
         else:
             self.model = None
         if view_class is not None:     
             try:
                 self.view = view_class(self.uid)
-            except Exception, e:
+            except Exception as e:
                 msg = 'ERROR on creating MVC view {} object: {}'.format(view_class.__name__, e.message)
                 log.exception(msg)
-                print '\n', msg, view_class
+                print ('\n', msg, view_class)
                 raise e             
         else:
             self.view = None  
@@ -121,25 +118,25 @@ class UIControllerBase(UIBase, PublisherMixin):
         try:
             if self.model:
                 self.model.PostInit()
-        except Exception, e:
+        except Exception as e:
             msg = 'ERROR in {}.PostInit: {}'.format(self.model.__class__.__name__, e.message)
             log.exception(msg)
-            print '\n', msg
+            print ('\n', msg)
             raise
         try:    
             if self.view:        
                 self.view.PostInit()
-        except Exception, e:
+        except Exception as e:
             msg = 'ERROR in {}.PostInit: {}'.format(self.view.__class__.__name__, e.message)
             log.exception(msg)
-            print '\n', msg
+            print ('\n', msg)
             raise
         try:                
             self.PostInit()    
-        except Exception, e:
+        except Exception as e:
             msg = 'ERROR in {}.PostInit: {}'.format(self.__class__.__name__, e.message)
             log.exception(msg)
-            print '\n', msg
+            print ('\n', msg)
             raise
         
 
@@ -149,7 +146,7 @@ class UIControllerBase(UIBase, PublisherMixin):
   
     
     def attach(self, OM_objuid):
-        #print 'attach:', OM_objuid
+        #print ('attach:', OM_objuid)
         OM = ObjectManager(self)
         obj = OM.get(OM_objuid)
         try:
@@ -159,7 +156,7 @@ class UIControllerBase(UIBase, PublisherMixin):
             pass
            
     def detach(self, OM_objuid):
-        #print 'detach:', OM_objuid
+        #print ('detach:', OM_objuid)
         OM = ObjectManager(self)
         obj = OM.get(OM_objuid)
         try:
@@ -235,7 +232,7 @@ class UIModelBase(UIBase):
                 #        self.__class__.__name__, attr_name, 
                 #        attr_props.get('attr_class')
                 #    )
-                #    print '\n', msg
+                #    print ('\n', msg)
                 #if attr_props.get('attr_class') == UI_MODEL_ATTR_CLASS.APPLICATION \
                 if state.has_key(attr_name):
                     self[attr_name] = state.get(attr_name)
@@ -297,7 +294,7 @@ class UIModelBase(UIBase):
                 self._redirects_to._do_set(key, value)
                 return
             log.warning(msg)
-            print msg
+            print (msg)
             return
         '''
         base_attr = self._ATTRIBUTES.get(key).get('base_attr')    
@@ -373,8 +370,8 @@ class UIModelBase(UIBase):
                         state[attr_name] = self[attr_name]
             return state            
         except Exception as e:
-            print e
-            print e.message
+            print (e)
+            print (e.message)
 
  
     def _loadstate(self, **state):
@@ -457,13 +454,13 @@ class UIManager(Manager):
 
     #### Remover isso assim que possivel
     def print_info(self):
-        print '\nUIManager._data: ', UIManager._data
-        print '\nUIManager._types: ', UIManager._types
-        print '\nUIManager._currentobjectids: ', UIManager._currentobjectids
-        print '\nUIManager._parentuidmap: ', UIManager._parentuidmap
-        print '\nUIManager._childrenuidmap: ', UIManager._childrenuidmap
-        print '\nUIManager._parenttidmap: ', UIManager._parenttidmap
-        print '\nUIManager._MVC_CLASSES: ', UIManager._MVC_CLASSES    
+        print ('\nUIManager._data: ', UIManager._data)
+        print ('\nUIManager._types: ', UIManager._types)
+        print ('\nUIManager._currentobjectids: ', UIManager._currentobjectids)
+        print ('\nUIManager._parentuidmap: ', UIManager._parentuidmap)
+        print ('\nUIManager._childrenuidmap: ', UIManager._childrenuidmap)
+        print ('\nUIManager._parenttidmap: ', UIManager._parenttidmap)
+        print ('\nUIManager._MVC_CLASSES: ', UIManager._MVC_CLASSES)    
     ####
 
 
@@ -563,7 +560,7 @@ class UIManager(Manager):
                                parent_uid=None, **base_state):
         try:
             class_ = self._check_controller_tid(controller_tid)
-        except Exception, e:
+        except Exception as e:
             log.exception('Error during calling UIManager.create({}, {})'.format(controller_tid, parent_uid))
             raise e          
         if parent_uid is None:
@@ -598,7 +595,7 @@ class UIManager(Manager):
         try:
             obj._create_model_view(**base_state)
         except Exception as e:
-            print e
+            print (e)
             msg = 'ERROR found in Model-View creation for class {}.'.format(class_.__name__)      
             log.exception(msg)
             raise         
@@ -676,7 +673,7 @@ class UIManager(Manager):
     def remove(self, uid):
         msg = 'Removing object from UI Manager: {}.'.format(uid)
         log.debug(msg)
-        #print '\n', msg
+        #print ('\n', msg)
         self.send_message('pre_remove', objuid=uid)
         obj = self.get(uid)
         if not isinstance(obj, UIControllerBase):
@@ -735,7 +732,7 @@ class UIManager(Manager):
             except AttributeError:
                 pass
             except Exception as e:
-                print '\n\n', obj.uid, e.args, e.message, '\n\n'
+                print ('\n\n', obj.uid, e.args, e.message, '\n\n')
                 raise                
             obj.PreDelete()    
 
@@ -743,14 +740,14 @@ class UIManager(Manager):
     def close(self):
         msg = 'UI Manager has received a close call.'
         log.info(msg)
-        #print '\n', msg
+        #print ('\n', msg)
         #print
         self.print_info()
         for top_level_uid in self._get_top_level_uids():
             self.remove(top_level_uid)
         msg = 'ENDS.'
         log.info(msg)
-        #print '\n', msg
+        #print ('\n', msg)
         #print
         self.print_info()    
         log.info('UI Manager has closed.')
@@ -961,7 +958,7 @@ class UIManager(Manager):
 
     def _load_user_state(self, state):  
         #self.print_info()
-        print '\n_load_user_state'
+        print ('\n_load_user_state')
         
         for obj_tid, objects_state in state.items():
             print
@@ -972,7 +969,7 @@ class UIManager(Manager):
                 obj = objects[i]
                 obj_state = objects_state[i]
                 for key, value in obj_state.items():
-                    print '\n', key, value, type(value)
+                    print ('\n', key, value, type(value))
                     obj.model[key] = value
                     
             '''

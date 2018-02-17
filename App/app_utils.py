@@ -66,7 +66,7 @@ def calc_well_time_from_depth(event, well_uid):
     owt = np.array(owt)       
     twt = owt * 2.0
     #
-    print '\nOWT:', owt
+    print ('\nOWT:', owt)
     #
     owt_index = OM.new('data_index', 0, 'One Way Time', 'TIME', 'ms', data=owt)
     OM.add(owt_index, index_set.uid)
@@ -92,7 +92,7 @@ def load_segy(event, filename, new_obj_name='', comparators_list=None,
         segy_file.read(comparators_list)
         segy_file.organize_3D_data(iline_byte, xline_byte, offset_byte)
         #
-        print 'segy_file.traces.shape:', segy_file.traces.shape
+        print ('segy_file.traces.shape:', segy_file.traces.shape)
         #
         seis_like_obj = OM.new(tid, segy_file.traces, name=new_obj_name)
         if not OM.add(seis_like_obj, parentuid):
@@ -118,7 +118,7 @@ def load_segy(event, filename, new_obj_name='', comparators_list=None,
         #
         index = OM.new('data_index', next_dim, 'I Line', 'I_LINE', None, data=segy_file.dimensions[0])
         OM.add(index, index_set.uid)  
-        print 'seis_like_obj.traces.shape:', seis_like_obj.data.shape
+        print ('seis_like_obj.traces.shape:', seis_like_obj.data.shape)
         #"""
     except Exception as e:
         raise e
@@ -168,7 +168,7 @@ def get_caller_info():
 def get_class_full_name(obj):
     try:
         full_name = obj.__class__.__module__ + "." + obj.__class__.__name__
-    except Exception, e:
+    except Exception as e:
         msg = 'ERROR in function app.app_utils.get_class_full_name().'
         log.exception(msg)
         raise e
@@ -190,7 +190,7 @@ def get_function_from_string(fullpath_function):
         module_ = importlib.import_module(module_str)
         function_ = getattr(module_, function_str)
         return function_    
-    except Exception, e:
+    except Exception as e:
         msg = 'ERROR in function app.app_utils.get_function_from_string({}).'.format(fullpath_function)
         log.exception(msg)
         raise e        
@@ -328,7 +328,7 @@ def write_json_file(py_object, fullfilename):
         os.makedirs(directory)
         msg = 'App.app_utils.write_json_file has created directory: {}'.format(directory)
         #log.debug(msg)
-        print msg
+        print (msg)
     f = open(fullfilename, 'w')
     f.write(json.dumps(py_object, indent=4, cls=GripyJSONEncoder))
     f.close()

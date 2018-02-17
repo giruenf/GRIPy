@@ -196,4 +196,4 @@ if __name__ == '__main__':
 #    odt_file = ODTReader("C:\\Users\\Tabelini\\Dropbox\\Python\\1RJS-0074--RJ-^2.wll")
 #    odt_file.read()
     odt_file = open(dirct, filename)
-    print odt_file.fileheader, '\n\n',odt_file.logheader, '\n\n', odt_file.ndepth
+    print (odt_file.fileheader, '\n\n',odt_file.logheader, '\n\n', odt_file.ndepth)
