@@ -16,15 +16,15 @@ import wx.lib.colourdb
 from collections import OrderedDict
 from OM.Manager import ObjectManager
 ###
-from track import TrackController    
-from track_object import TrackObjectController     
+from UI.mvc_classes.track import TrackController    
+from UI.mvc_classes.track_object import TrackObjectController     
 from App.app_utils import parse_string_to_uid
 
 from wx.adv import OwnerDrawnComboBox  
 
 import App.pubsub as pub
 
-from log_plot import LogPlotController
+from UI.mvc_classes.log_plot import LogPlotController
 
 
 
@@ -97,7 +97,7 @@ class LogPlotEditorController(UIControllerBase):
 
         
     def object_removed(self, objuid):   
-        print 'object_removed', objuid
+        print ('object_removed', objuid)
         UIM = UIManager()
         if objuid[0] == 'track_controller':
             track_parent_uid = UIM._getparentuid(objuid)
@@ -110,7 +110,7 @@ class LogPlotEditorController(UIControllerBase):
                 lpe_tp.remove_item(track)
                 lpe_op.remove_item(track)       
         elif objuid[0] == 'track_object_controller':
-            print 'object_removed:', objuid
+            print ('object_removed:', objuid)
             track_uid = UIM._getparentuid(objuid)
             track_parent_uid = UIM._getparentuid(track_uid)
             logplot_ctrl_uid = UIM._getparentuid(self.uid)
@@ -777,7 +777,7 @@ class LPEObjectsPanelModel(dv.PyDataViewModel):
                     else:
                         return 'Select...'
                 except AttributeError:
-                    print '\nERRO! O objeto nao possui model: ' + str(obj.uid) + '\n'
+                    print ('\nERRO! O objeto nao possui model: ' + str(obj.uid) + '\n')
                     return ''
             elif col == 2:    
                 om_obj = obj.get_object()
@@ -797,7 +797,7 @@ class LPEObjectsPanelModel(dv.PyDataViewModel):
             UIM = UIManager()
             ctrl = UIM.get(self._controller_uid)
             if col == 1 or col == 2:
-                print 'SetValue:', col, value
+                print ('SetValue:', col, value)
                 pgcs = UIM.list('property_grid_controller', self._controller_uid)
                 if pgcs:
                     pgc = pgcs[0]
@@ -807,7 +807,7 @@ class LPEObjectsPanelModel(dv.PyDataViewModel):
                 obj.model.obj_tid = value
             if col == 2:
                 if isinstance(value, tuple):
-                    print 'aqui' 
+                    print ('aqui') 
                     obj.model.obj_oid = value[1]
                     ctrl.view.dvc.Select(item)
         #            
@@ -851,10 +851,10 @@ class LPEObjectsPanelModel(dv.PyDataViewModel):
             
     def ChangeValue(self, value, item, col):
         """ChangeValue(self, wxVariant variant, DataViewItem item, unsigned int col) -> bool"""
-        print 'CurvesModel.ChangeValue: ', col, value
+        print ('CurvesModel.ChangeValue: ', col, value)
         return super(LPEObjectsPanelModel, self).ChangeValue(value, item, col)
         if item is None:
-            print 'item is None'
+            print ('item is None')
             return False
         return False           
 
@@ -1032,7 +1032,7 @@ class LPEObjectsPanel(UIViewBase, wx.Panel):
            
             
     def _OnSplitterDclick(self, event):
-        print '_OnSplitterDclick:', event
+        print ('_OnSplitterDclick:', event)
 
 
     def _get_objects_selected(self):
@@ -1398,10 +1398,10 @@ class ColorSelectorComboBox(OwnerDrawnComboBox):
   
     
     def __init__(self, *args, **kwargs): 
-        print 'ColorSelectorComboBox.__init__'
+        print ('ColorSelectorComboBox.__init__')
         kwargs['choices'] = self.colors.keys()
         OwnerDrawnComboBox.__init__(self, *args, **kwargs)
-        print 'ColorSelectorComboBox.__init__ ENDED'
+        print ('ColorSelectorComboBox.__init__ ENDED')
         #super(ColorSelectorComboBox, self).SetSelection().#SetSelection()
         
     """    
@@ -1450,13 +1450,13 @@ class ColorSelectorComboBox(OwnerDrawnComboBox):
 class ColorPropertyEditor(pg.PGEditor):
 
     def __init__(self):
-        print 'ColorPropertyEditor.__init__'
+        print ('ColorPropertyEditor.__init__')
         pg.PGEditor.__init__(self)
-        print 'ColorPropertyEditor.__init__ ENDED'
+        print ('ColorPropertyEditor.__init__ ENDED')
         
         
     def CreateControls(self, propgrid, property, pos, size):
-        print '\nCreateControls'
+        print ('\nCreateControls')
         csc = ColorSelectorComboBox(propgrid.GetPanel(), pos=pos, size=size)
         idx = ColorSelectorComboBox.get_colors().index(property.get_value())
         csc.SetSelection(idx)
@@ -1470,12 +1470,12 @@ class ColorPropertyEditor(pg.PGEditor):
     
     def UpdateControl(self, property, ctrl):
         idx = ColorSelectorComboBox.get_colors().index(property.get_value())
-        print 'UpdateControl:', idx
+        print ('UpdateControl:', idx)
         ctrl.SetSelection(idx)
 
 
     def DrawValue(self, dc, rect, property, text):        
-        print 'DrawValue:', text
+        print ('DrawValue:', text)
         #dc.SetPen( wxPen(propertyGrid->GetCellTextColour(), 1, wxSOLID) )
         #pen = dc.GetPen()
         #print pen.GetColour(), pen.GetStyle(), wx.PENSTYLE_SOLID
@@ -1490,9 +1490,9 @@ class ColorPropertyEditor(pg.PGEditor):
     def OnEvent(self, propgrid, property, ctrl, event):
         if isinstance(event, wx.CommandEvent):
             if event.GetEventType() == wx.EVT_COMBOBOX:
-                print 'COMBAO DA MASSA\n\n\n'
+                print ('COMBAO DA MASSA\n\n\n')
             if event.GetString():
-                print 'VALUE:', event.GetString(), '\n'
+                print ('VALUE:', event.GetString(), '\n')
                 return True
         return False
 
@@ -1501,7 +1501,7 @@ class ColorPropertyEditor(pg.PGEditor):
         """ Return tuple (wasSuccess, newValue), where wasSuccess is True if
             different value was acquired succesfully.
         """
-        print '\nGetValueFromControl:', ctrl.GetValue()
+        print ('\nGetValueFromControl:', ctrl.GetValue())
         if property.UsesAutoUnspecified() and not ctrl.GetValue():
             return True
         ret_val = property.StringToValue(ctrl.GetValue(), pg.PG_EDITABLE_VALUE)
@@ -1509,7 +1509,7 @@ class ColorPropertyEditor(pg.PGEditor):
 
 
     def SetValueToUnspecified(self, property, ctrl):
-        print '\nSetValueToUnspecified'
+        print ('\nSetValueToUnspecified')
         ctrl.SetSelection(0) #Remove(0, len(ctrl.GetValue()))
 
 
@@ -1595,11 +1595,11 @@ class ColorPropertyEditor(pg.PGEditor):
     """    
 
     def InsertItem(self, ctrl, label, index):
-        print 'InsertItem:', label, index
+        print ('InsertItem:', label, index)
         
         
     def CanContainCustomImage(self):
-        print 'CanContainCustomImage'
+        print ('CanContainCustomImage')
         return True
     
     def OnFocus(self, property, ctrl):
@@ -1615,12 +1615,12 @@ class ColorProperty(pg.PGProperty):
     def __init__(self, controller_uid, model_key, 
              label = wx.propgrid.PG_LABEL,
              name = wx.propgrid.PG_LABEL):
-        print 'ColorProperty.__init__'
+        print ('ColorProperty.__init__')
         self._controller_uid = controller_uid
         self._model_key = model_key
         super(pg.PGProperty, self).__init__(label, name)
         self.SetValue(self.get_value())
-        print 'ColorProperty.__init__ ENDED'
+        print ('ColorProperty.__init__ ENDED')
         
         
     #def OnSetValue(self):
@@ -1632,12 +1632,12 @@ class ColorProperty(pg.PGProperty):
         #_CPEditor #ColorPropertyEditor #wx.PGEditor_TextCtrl
 
     def ValueToString(self, value, flags):
-        print '\nColorProperty.ValueToString'
+        print ('\nColorProperty.ValueToString')
         value = self.get_value()
         return value
 
     def StringToValue(self, text, flags):
-        print 'ColorProperty.StringToValue:', text
+        print ('ColorProperty.StringToValue:', text)
         value = self.set_value(text) 
         self.SetValue(value)
         return value      
@@ -1645,12 +1645,12 @@ class ColorProperty(pg.PGProperty):
     def get_value(self):
         UIM = UIManager()
         controller = UIM.get(self._controller_uid)
-        print 'ColorProperty.get_value:', controller.model[self._model_key]
+        print ('ColorProperty.get_value:', controller.model[self._model_key])
         return controller.model[self._model_key]
 
 
     def set_value(self, new_value):
-        print 'ColorProperty.set_value', new_value
+        print ('ColorProperty.set_value', new_value)
         try:
             UIM = UIManager()
             controller = UIM.get(self._controller_uid)
@@ -1661,25 +1661,25 @@ class ColorProperty(pg.PGProperty):
 
 
     def GetDisplayedString(self):
-        print 'GetDisplayedString'
+        print ('GetDisplayedString')
         return self.get_value()
 
     def GetChoiceSelection(self):
         idx = ColorSelectorComboBox.get_colors().index(self.get_value())
-        print 'GetChoiceSelection:', idx
+        print ('GetChoiceSelection:', idx)
         return idx
 
     def IsTextEditable(self):
         ret = super(pg.PGProperty, self).IsTextEditable()
-        print 'IsTextEditable'
+        print ('IsTextEditable')
         return ret
 
     def IsValueUnspecified(self):
-        print '\n\nColorProperty.IsValueUnspecified\n\n'
+        print ('\n\nColorProperty.IsValueUnspecified\n\n')
         return False
   
     def SetLabel(self, label):
-        print 'SetLabel:', label
+        print ('SetLabel:', label)
         super(pg.PGProperty, self).SetLabel(label)
     
     

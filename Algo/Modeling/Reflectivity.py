@@ -3,7 +3,7 @@ import wx
 from OM.Manager import ObjectManager
 #import rfltvPP
 #import rfltvPS
-import funcs as fn
+from Algo.Modeling import funcs as fn
 import scipy
 
 from DT.UOM import uom as UOM
@@ -36,10 +36,10 @@ def Reflectivity(OM,parDictionary):
      well = OM.get(well_uid)
      
      #
-     print
+     print ()
      for k, v in parDictionary.items():
-         print k, '-', v
-     print
+         print (k, '-', v)
+     print ()
      #
      #log_index = OM.list('log', well_uid)[0]
      
@@ -62,21 +62,21 @@ def Reflectivity(OM,parDictionary):
      
      # Garantindo que as unidades de entrada estao corretas
      if vp_obj.unit != 'm/s':
-         print 'Convertendo Vp para m/s...',
+         print ('Convertendo Vp para m/s...', end='')
          vp = UOM.convert(vp_obj.data, vp_obj.unit, 'm/s')
-         print 'OK!'
+         print ('OK!')
      else:
          vp = vp_obj.data    
      if vs_obj.unit != 'm/s':
-         print 'Convertendo Vs para m/s...',
+         print ('Convertendo Vs para m/s...', end='')
          vs = UOM.convert(vs_obj.data, vs_obj.unit, 'm/s')
-         print 'OK!'
+         print ('OK!')
      else:
          vs = vs_obj.data            
      if rho_obj.unit != 'kg/m3':
-         print 'Convertendo densidade para kg/m3...',
+         print ('Convertendo densidade para kg/m3...', end='')
          rho = UOM.convert(rho_obj.data, rho_obj.unit, 'kg/m3')
-         print 'OK!'
+         print ('OK!')
      else:
          rho = rho_obj.data         
      #
@@ -91,7 +91,7 @@ def Reflectivity(OM,parDictionary):
      index_set = OM.get(vp_obj.index_set_uid)
      index = index_set.get_z_axis_indexes_by_type('MD')[0]
      
-     print 'index.data:', index.data
+     print ('index.data:', index.data)
      
      z1 = index.data
      z1 = np.delete(z1, rho_nan)
@@ -102,8 +102,8 @@ def Reflectivity(OM,parDictionary):
 
      
      if np.size(vp) != np.size(vs):
-         print 'vp:', len(vp), np.size(vp)
-         print 'vs:', len(vs), np.size(vs)
+         print ('vp:', len(vp), np.size(vp))
+         print ('vs:', len(vs), np.size(vs))
          return 1
      
      if np.size(vp) != np.size(rho):
@@ -151,7 +151,7 @@ def Reflectivity(OM,parDictionary):
      #     rfltvPP.error: failed in converting 12nd argument `qp' of rfltvPP.rfltvsubv4.modrfltv to C/Fortran array
      # Os arrays de vp, vs, rho, dz, fqp e fqs devem ser cortados de acordo com firstLayer e lastLayer
      #
-     print '\n\nb4 lens:', len(vp), len(vs), len(rho), len(dz), len(fqp), len(fqs)
+     print ('\n\nb4 lens:', len(vp), len(vs), len(rho), len(dz), len(fqp), len(fqs))
      #
      vp = vp[firstLayer-1:lastLayer]
      vs = vs[firstLayer-1:lastLayer]
@@ -163,7 +163,7 @@ def Reflectivity(OM,parDictionary):
      #
      
      if parDictionary['modFlag']==0:
-        
+        '''
         #print '\n\n'
         print 'lens:', len(vp), len(vs), len(rho), len(dz), len(fqp), len(fqs)
         print '\n\n' 
@@ -193,7 +193,7 @@ def Reflectivity(OM,parDictionary):
         print 'numTrcsOut:', numTrcsOut
         print 'nSup:', nSup
         print '\n\n' 
-        
+        '''
         seisMod = rfltvPP.rfltvsubv4.modrfltv(dt, nSamp, x, vel1, zcam1, vpSup, 
                                                zSup, vp, vs, rho, dz, fqp, fqs,
                                                firstLayer, lastLayer, angMax, 
@@ -285,48 +285,41 @@ def Reflectivity(OM,parDictionary):
              seisMod = rfltvPS.rfltvsubv4.modrfltv(dt, nSamp, numTrcsOut, x, vel1, zcam1, vpSup, vsSup, zSup, nSup, vp, vs, rho, dz, fqp, fqs, nLayers, firstLayer, lastLayer, angMax, wavelet, fWav, wavFlag, eventRes, seisOut, pNum)
  
     
-     print '\n\n'
-     print seisMod.T.shape
-     print np.nanmin(seisMod), np.nanmax(seisMod)
-     print
+     print ('\n\n')
+     print (seisMod.T.shape)
+     print (np.nanmin(seisMod), np.nanmax(seisMod))
+     print ()
     
      new_obj_name = parDictionary['outName']
         
-     print 111
+
      
      try:
          index_set_name = new_obj_name + ' indexes'
          index_set = OM.new('index_set', name=index_set_name)
          OM.add(index_set, well.uid)
      except Exception as e:
-         print 'ABCFHGHTHTHJ'
-         print well.uid
          raise e
-         
-     print 222        
+                
      
      synth = OM.new('gather', seisMod.T, datatype='Synth', name=new_obj_name)
      OM.add(synth, well.uid)
-     #
-     print 333
      #
      timeVector = timeVector * 1000.0
      time_index = OM.new('data_index', 0, 'Time', 'TWT', 'ms', data=timeVector)
      OM.add(time_index, index_set.uid)
      #
-     print 444
      gather_index_set = OM.new('index_set', vinculated=index_set.uid)
      OM.add(gather_index_set, synth.uid)
-     print 555
+     #
      if seisOut == 1 or seisOut == 2:
          index = OM.new('data_index', 1, 'Offset', 'OFFSET', 'm', data=x)
      elif seisOut == 3 or seisOut == 4:    
          index = OM.new('data_index', 1, 'Ray Parameter', 'P', 's/m', data=x)
      elif seisOut == 5:     
          index = OM.new('data_index', 1, 'Angle', 'ANGLE', 'deg', data=x)
-     print 666    
+     #   
      OM.add(index, gather_index_set.uid)
      #
-     print 777
      return 6    
 																  

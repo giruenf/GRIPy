@@ -132,7 +132,7 @@ class PluginFileAnalyzerWithInfoFile(IPluginFileAnalyzer):
         """
         # Make sure extension is a tuple
         if not isinstance(extensions, tuple):
-            extensions = (extensions, )
+            extensions = (extensions, ) 
         self.expectedExtensions = extensions
 
 
@@ -142,13 +142,18 @@ class PluginFileAnalyzerWithInfoFile(IPluginFileAnalyzer):
         If several extensions are provided, the first matching will cause the function
         to exit successfully.
         """
+        # Python 3 rewriting by Adriano - 17/fev/2018
+        extensions = tuple(".{}".format(ext) for ext in self.expectedExtensions)   
+        return filename.endswith(extensions)        
+        '''
         res = False
         for ext in self.expectedExtensions:
             if filename.endswith(".%s" % ext):
                 res = True
                 break
         return res
-
+        '''
+        
     def getPluginNameAndModuleFromStream(self, infoFileObject, candidate_infofile=None):
         """
         Extract the name and module of a plugin from the

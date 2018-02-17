@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-from gripy_function_manager import FunctionManager
+from App.gripy_function_manager import FunctionManager
 from Temp.func import do_STFT, do_CWT
 from DT.DataTypes import Log
 

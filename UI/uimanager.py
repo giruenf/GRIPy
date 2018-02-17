@@ -106,7 +106,7 @@ class UIControllerBase(UIBase, PublisherMixin):
             try:
                 self.view = view_class(self.uid)
             except Exception as e:
-                msg = 'ERROR on creating MVC view {} object: {}'.format(view_class.__name__, e.message)
+                msg = 'ERROR on creating MVC view {} object: {}'.format(view_class.__name__, e)
                 log.exception(msg)
                 print ('\n', msg, view_class)
                 raise e             
@@ -234,7 +234,7 @@ class UIModelBase(UIBase):
                 #    )
                 #    print ('\n', msg)
                 #if attr_props.get('attr_class') == UI_MODEL_ATTR_CLASS.APPLICATION \
-                if state.has_key(attr_name):
+                if attr_name in state:
                     self[attr_name] = state.get(attr_name)
                 else:    
                     self[attr_name] = attr_props.get('default_value')                       
@@ -286,8 +286,8 @@ class UIModelBase(UIBase):
         self._do_set(key, value)
 
     def _do_set(self, key, value):
-        if (not self.initialised() and not self._ATTRIBUTES.has_key(key)) or \
-                       (self.initialised() and not self.__dict__.has_key(key)):
+        if (not self.initialised() and not key in self._ATTRIBUTES) or \
+                       (self.initialised() and not key in self.__dict__):
             msg = '{} does not have attribute {}.'.format(\
                                              self.__class__.__name__, str(key))
             if self.__dict__.has_key('_redirects_to'):
@@ -308,7 +308,7 @@ class UIModelBase(UIBase):
 
         # Special treatment for functions
         if type_ == types.FunctionType:
-            if isinstance(value, basestring):
+            if isinstance(value, str):
                 value = App.app_utils.get_function_from_string(value)
             if value is not None and not callable(value):
                 msg = 'ERROR: Attributes signed as \"types.FunctionType\" can recieve only \"str\" or \"types.FunctionType\" values. '
@@ -338,7 +338,7 @@ class UIModelBase(UIBase):
                 )
         k = key.encode('utf-8')            
         v = self[key]
-        if isinstance(v, basestring):        
+        if isinstance(v, str):        
             v = self[key]
             v = v.encode('utf-8')
         else:
@@ -549,7 +549,7 @@ class UIManager(Manager):
         
 
     def get(self, uid):
-        if isinstance(uid, basestring):
+        if isinstance(uid, str):
             uid = App.app_utils.parse_string_to_uid(uid)
         return self._data.get(uid)
 

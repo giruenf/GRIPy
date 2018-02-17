@@ -21,7 +21,7 @@ from App.gripy_debug_console import DebugConsoleFrame
 
 from DT.UOM import uom as UOM
 
-import app_utils
+from App import app_utils
 
 from Algo.Spectral.Spectral import STFT, WaveletTransform, MorletWavelet, PaulWavelet, DOGWavelet, RickerWavelet
 from Algo.Spectral.Hilbert import HilbertTransform												  
@@ -83,7 +83,7 @@ def calc_well_time_from_depth(event):
             app_utils.calc_well_time_from_depth(event, welluid)
         #
     except Exception as e:
-        print '\n', e.message, e.args
+        print ('\n', str(e))
         pass
     finally:
         UIM.remove(dlg.uid) 
@@ -169,7 +169,7 @@ def on_new_wellplot(event):
             #
         #
     except Exception as e:
-        print '\n', e.message, e.args
+        print ('\n', str(e))
         pass
     finally:
         UIM.remove(dlg.uid) 
@@ -547,7 +547,7 @@ class ReflectivityModel():
             wait = wx.BusyInfo("Running the Modeling...")
             return_flag = Reflectivity(self.OM, parDict)
         except Exception as e:
-            print 'ERROR:', e
+            print ('ERROR:', str(e))
             raise e
         finally:
             del wait
@@ -571,7 +571,7 @@ class ReflectivityModel():
             
 
 def teste11(event):
-    print 'teste 11'
+    print ('teste 11')
 
 
 def teste10(event):
@@ -686,7 +686,7 @@ def on_poisson_ratio(event):
 
 def on_akirichards_pp(event):
     #
-    print '\non_akirichards_pp'    
+    print ('\non_akirichards_pp')    
     #
     
     def calc_poisson(vp, vs):
@@ -767,7 +767,7 @@ def on_akirichards_pp(event):
         dlg.view.AddTextCtrl(ctn_rho, proportion=0, flag=wx.EXPAND|wx.TOP, border=5, widget_name='new_name', initial='') 
         #
         def on_change_well(name, old_value, new_value, **kwargs):
-            print '\non_change_well:', name, old_value, new_value, kwargs
+            print ('\non_change_well:', name, old_value, new_value, kwargs)
             vps = OrderedDict()
             vss = OrderedDict()
             rhos = OrderedDict()
@@ -798,7 +798,7 @@ def on_akirichards_pp(event):
         #
         if result == wx.ID_OK:
             results = dlg.get_results()  
-            print results
+            print (results)
             
             disableAll = wx.WindowDisabler()
             wait = wx.BusyInfo("Wait...")     
@@ -818,7 +818,7 @@ def on_akirichards_pp(event):
             reflectivity = reflectivity.T
             reflectivity = np.nan_to_num(reflectivity)
             
-            print '\n\nreflectivity:', np.nanmin(reflectivity), np.nanmax(reflectivity)
+            print ('\n\nreflectivity:', np.nanmin(reflectivity), np.nanmax(reflectivity))
             #
             #print 'reflectivity.shape:', reflectivity.shape
             well = OM.get(welluid)
@@ -889,7 +889,7 @@ def on_akirichards_pp(event):
 	
    
     except Exception as e:
-        print '\n', e.message, e.args
+        print ('\n', str(e))
         pass
     finally:
         try:
@@ -1597,7 +1597,7 @@ def on_cwt(event):
         
         if result == wx.ID_OK:
             results = dlg.get_results()  
-            print '\nresults:', results, '\n'
+            print ('\nresults:', results, '\n')
             
             disableAll = wx.WindowDisabler()
             wait = wx.BusyInfo("Applying CWT. Wait...")
@@ -1646,11 +1646,11 @@ def on_cwt(event):
             time = z_axis.data
             step = z_axis.step
             if not step:
-                print 'Data has not a step. Trying to calculating it from data.'
+                print ('Data has not a step. Trying to calculating it from data.')
                 try:
                     step = z_axis.data[1] - z_axis.data[0]
                 except:
-                    print 'ERROR: STEP!'
+                    print ('ERROR: STEP!')
                     raise
             ###
             
@@ -1707,10 +1707,10 @@ def on_cwt(event):
             else:
             
             
-                print 'Input obj.data.shape:', obj.data.shape
+                print ('Input obj.data.shape:', obj.data.shape)
                 
                 if len(obj.data.shape) == 4:
-                    print 'Input data shape lenght: 4'
+                    print ('Input data shape lenght: 4')
                     iaxis, jaxis, kaxis, zaxis = obj.data.shape
                     data_out = None
                     for i in range(iaxis):
@@ -1733,7 +1733,7 @@ def on_cwt(event):
                                 if data_out is None:
                                     wt_axis = wt.wavelet_transform.shape[0]
                                     new_shape = (iaxis, jaxis, kaxis, wt_axis, zaxis)
-                                    print 'New data CWT shape:', new_shape 
+                                    print ('New data CWT shape:', new_shape) 
                                     data_out = np.zeros(new_shape)    
                                     freqs =  np.flip(wt.fourier_frequencies, 0)
                                     scales = np.flip(wt.scales, 0)
@@ -1748,7 +1748,7 @@ def on_cwt(event):
                                     data_out[i][j][k] = np.unwrap(np.angle(np.flip(wt.wavelet_transform, 0)), axis=0)    
     
                 elif len(obj.data.shape) == 3:
-                    print 'Input data shape lenght: 3'
+                    print ('Input data shape lenght: 3')
                     iaxis, jaxis, zaxis = obj.data.shape
                     data_out = None
                     
@@ -1770,7 +1770,7 @@ def on_cwt(event):
                             if data_out is None:
                                 wt_axis = wt.wavelet_transform.shape[0]
                                 new_shape = (iaxis, jaxis, wt_axis, zaxis)
-                                print 'New data CWT shape:', new_shape 
+                                print ('New data CWT shape:', new_shape) 
                                 data_out = np.zeros(new_shape)    
                                 freqs =  np.flip(wt.fourier_frequencies, 0)
                                 scales = np.flip(wt.scales, 0)
@@ -1785,7 +1785,7 @@ def on_cwt(event):
                                 data_out[i][j] = np.unwrap(np.angle(np.flip(wt.wavelet_transform, 0)), axis=0)    
     
                 elif len(obj.data.shape) == 2:
-                    print 'Input data shape lenght: 2'
+                    print ('Input data shape lenght: 2')
                     jaxis, zaxis = obj.data.shape
                     data_out = None
     
@@ -1801,7 +1801,7 @@ def on_cwt(event):
                         if data_out is None:
                             wt_axis = wt.wavelet_transform.shape[0]
                             new_shape = (jaxis, wt_axis, zaxis)
-                            print 'New data CWT shape:', new_shape 
+                            print ('New data CWT shape:', new_shape) 
                             data_out = np.zeros(new_shape)    
                             freqs =  np.flip(wt.fourier_frequencies, 0)
                             scales = np.flip(wt.scales, 0)
@@ -1818,8 +1818,8 @@ def on_cwt(event):
                     raise Exception()
                 #
                 
-                print '\ndata_out.shape:', data_out.shape
-                print np.nanmin(data_out), np.nanmax(data_out)
+                print ('\ndata_out.shape:', data_out.shape)
+                print (np.nanmin(data_out), np.nanmax(data_out))
                 
                 #
                 name = results.get('cwt_name')
@@ -1837,7 +1837,7 @@ def on_cwt(event):
                 elif obj_uid[0] == 'seismic':
                     scalogram = OM.new('scalogram', data_out, name=name)
                     result = OM.add(scalogram, obj_uid)
-                    print 'result:', result
+                    print ('result:', result)
                     #
                     #obj_index_set = OM.list('index_set', obj.uid)[0]
                     #scalogram_index_set = OM.new('index_set', vinculated=obj_index_set.uid)
@@ -1866,14 +1866,14 @@ def on_cwt(event):
                 
                 # Inserindo as outras dimensões do dado
                 for idx in range(1, len(input_indexes)):
-                    print 'idx:', idx
+                    print ('idx:', idx)
                     state = input_indexes[idx][0]._getstate()        
                     state['dimension'] = idx+1
                     index = OM.index = OM.create_object_from_state('data_index', **state)
                     OM.add(index, scalogram_index_set.uid)
                 #
     except Exception as e:
-        print 'ERROR [on_cwt]:', e
+        print ('ERROR [on_cwt]:', str(e))
         pass	
     finally:
         try:
@@ -1922,7 +1922,7 @@ def on_phase_rotation(event):
         
         if result == wx.ID_OK:
             results = dlg.get_results()  
-            print '\nresults:', results, '\n'
+            print ('\nresults:', results, '\n')
             #
             disableAll = wx.WindowDisabler()
             wait = wx.BusyInfo("Applying Phase Rotation. Wait...")            
@@ -1960,7 +1960,7 @@ def on_phase_rotation(event):
             #print 'kkk 3'
 
     except Exception as e:
-        print 'ERROR:', e
+        print ('ERROR:', str(e))
 			
     finally:
         del wait
@@ -1998,7 +1998,7 @@ def on_hilbert_attributes(event):
 		
         if result == wx.ID_OK:
             results = dlg.get_results()  
-            print '\nresults:', results, '\n'
+            print ('\nresults:', results, '\n')
             #
             disableAll = wx.WindowDisabler()
             wait = wx.BusyInfo("Applying Hilbert Attributes. Wait...")            
@@ -2034,7 +2034,7 @@ def on_hilbert_attributes(event):
 
 
     except Exception as e:
-        print 'ERROR:', e
+        print ('ERROR:', str(e))
 			
     finally:
         del wait
@@ -2079,7 +2079,7 @@ def on_open(*args, **kwargs):
         gripy_app = wx.App.Get()
         gripy_app.load_project_data(fullfilename)
     except Exception as e:
-        print 'ERROR [on_open]:', e
+        print ('ERROR [on_open]:', str(e))
         raise
 
 
@@ -2150,7 +2150,7 @@ def on_rock(event):
 #            print 'no old'
             choice = dlg.view.get_object('chid')
 #            print choice
-            print '\nlist\n', OM.list('partition')[0].uid, '222', OM.list('partition')[0].get_friendly_name()
+            print ('\nlist\n', OM.list('partition')[0].uid, '222', OM.list('partition')[0].get_friendly_name())
             choice.hide()
         
         if old_value == None:
@@ -2318,7 +2318,7 @@ def on_rock(event):
     #
     dlg.view.SetSize((300, 700))
     result = dlg.view.ShowModal()
-    print 'result0'
+    print ('result0')
     try:
         if result == wx.ID_OK:
             results = dlg.get_results()     
@@ -2334,22 +2334,22 @@ def on_rock(event):
             mt_k = results.get('kmod2')
             mt_mi = results.get('gmod2')
             mt_rho = results.get('dens2')
-            print '\nrounds', gr_f, gr_k, gr_mi, gr_rho, rock_name
+            print ('\nrounds', gr_f, gr_k, gr_mi, gr_rho, rock_name)
             # 
             if support == 'PT':
                 ponto = results.get('topo')
-                print 'escolheu ponto', ponto
+                print ('escolheu ponto', ponto)
             elif support == 'FACIES':
                 facie = results.get('chid')
-                print 'escolheu facies', facie
+                print ('escolheu facies', facie)
             elif support == 'TOP&BASE':
                 topo = results.get('topo')
                 base = results.get('base')
-                print 'escolheu top&base', topo, base, '\n'
+                print ('escolheu top&base', topo, base, '\n')
 #            rock = OM.new('rock', name=rock_name, output)
             rock = OM.new('rock', suporte = support, name=rock_name, grain = gr_f+'% '+gr_name, vp = gr_f, mu = gr_mi)
             well_uid = results.get('welluid')
-            print well_uid, 'wellid'
+            print (well_uid, 'wellid')
             if well_uid == 'GLOBAL':
                 OM.add(rock)
             else:
@@ -2357,7 +2357,7 @@ def on_rock(event):
 #            else: 
 #            OM.add(rock)  
     except Exception as e:
-        print 'ERROR:', e
+        print ('ERROR:', e)
     finally:
         UIM.remove(dlg.uid)
         
@@ -2465,7 +2465,7 @@ def on_fluid(event):
     #
     dlg.view.SetSize((300, 550))
     result = dlg.view.ShowModal()
-    print 'result0'
+    print ('result0')
     try:
         if result == wx.ID_OK:
             results = dlg.get_results()     
@@ -2479,11 +2479,11 @@ def on_fluid(event):
             mt_k = results.get('kmod2')
             mt_mi = results.get('gmod2')
             mt_rho = results.get('dens2')
-            print '\nrounds', gr_f, gr_k, gr_mi, gr_rho, fluid_name
+            print ('\nrounds', gr_f, gr_k, gr_mi, gr_rho, fluid_name)
             fluid = OM.new('fluid', name=fluid_name, fluid1 = gr_f+'% '+gr_name, vp = gr_f, vs = gr_mi, rho = gr_rho)
             OM.add(fluid)  
     except Exception as e:
-        print 'ERROR:', e
+        print ('ERROR:', str(e))
     finally:
         UIM.remove(dlg.uid)
         
@@ -2723,7 +2723,7 @@ def on_import_las(event):
                         booldata, codes = DT.DataTypes.Partition.getfromlog(data[i])
                         
                     except TypeError:
-                        print 'data[{}]: {}'.format(i, data[i])
+                        print ('data[{}]: {}'.format(i, data[i]))
                         raise
                     #    
                     partition = OM.new('partition', name=names[i], 
@@ -2734,14 +2734,14 @@ def on_import_las(event):
                     OM.add(partition, well.uid)
                     for j in range(len(codes)):
                         
-                        print 'OM.new(\'part\', {}, code={}, datatype={})'.format(booldata[j], codes[j], sel_curvetypes[i])
+                        print ('OM.new(\'part\', {}, code={}, datatype={})'.format(booldata[j], codes[j], sel_curvetypes[i]))
                         
                         part = OM.new('part', booldata[j], code=int(codes[j]), datatype=sel_curvetypes[i])
 																		   
                         OM.add(part, partition.uid)
                         
                 else:
-                    print "Not importing {} as no datatype matches '{}'".format(names[i], sel_datatypes[i])
+                    print ("Not importing {} as no datatype matches '{}'".format(names[i], sel_datatypes[i]))
                  
         PM.register_votes()
         
@@ -2771,7 +2771,7 @@ def on_import_odt(event):
     if hedlg.ShowModal() == wx.ID_OK:
         OM = ObjectManager(event.GetEventObject())
         odt_file.header = hedlg.get_header()
-        print 'header 2\n', odt_file.header
+        print ('header 2\n', odt_file.header)
 
         names = [line['MNEM'] for line in odt_file.header["C"].itervalues()]
         units = [line['UNIT'] for line in odt_file.header["C"].itervalues()]
@@ -2868,7 +2868,7 @@ def on_import_odt(event):
                         OM.add(part, partition.uid)
                 
                 else:
-                    print "Not importing {} as no datatype matches '{}'".format(names[i], sel_datatypes[i])
+                    print ("Not importing {} as no datatype matches '{}'".format(names[i], sel_datatypes[i]))
                 
         
         PM.register_votes()
@@ -2953,7 +2953,7 @@ def on_import_segy_well_gather(event):
         result = dlg.view.ShowModal()
         if result == wx.ID_OK:
             results = dlg.get_results()  
-            print results
+            print (results)
             #
             filename = results.get('filename')
             iline_byte = int(results.get('iline_byte'))
@@ -2996,7 +2996,7 @@ def on_import_segy_well_gather(event):
             )
             """
     except Exception as e:
-        print e
+        print (e)
     finally:
         UIM.remove(dlg.uid)  
 
@@ -3110,13 +3110,13 @@ def on_new_rocktable(event):
         if rocktable_dlg.ShowModal() == wx.ID_OK:
 #            wx.MessageBox('It was created a partition.')
             name = rocktable_dlg.get_value()
-            print 'name', name, type(str(name)), str(name).strip(''), str(name).strip()
+            print ('name', name, type(str(name)), str(name).strip(''), str(name).strip())
             if name == '': name = 'Table'
             rock = OM.new('rocktable', name = name)
 #            partition_dlg.Destroy()        
             OM.add(rock)
     except Exception as e:
-        print 'ERROR:', e
+        print ('ERROR:', str(e))
     finally:
         rocktable_dlg.Destroy()
 
@@ -3126,7 +3126,7 @@ def on_edit_rocktable(event):
         try:
             wx.MessageBox('Please create a new Rock Table first!')
         except Exception as e:
-            print 'ERROR:', e
+            print ('ERROR:', str(e))
         finally:
             return
             
@@ -3145,13 +3145,14 @@ def on_new_partition(event):
         if partition_dlg.ShowModal() == wx.ID_OK:
 #            wx.MessageBox('It was created a partition.')
             name = partition_dlg.get_value()
-            print 'name', name, type(str(name)), str(name).strip(''), str(name).strip()
-            if name == '': name = 'NEW'
+            print ('name', name, type(str(name)), str(name).strip(''), str(name).strip())
+            if name == '': 
+                name = 'NEW'
             rock = OM.new('partition', name = name)
 #            partition_dlg.Destroy()        
             OM.add(rock)
     except Exception as e:
-        print 'ERROR:', e
+        print ('ERROR:', str(e))
     finally:
         partition_dlg.Destroy()
 
@@ -3169,7 +3170,7 @@ def on_edit_partition(event):
 #            partition_dlg.Destroy()        
 #                OM.add(rock)
         except Exception as e:
-            print 'ERROR:', e
+            print ('ERROR:', str(e))
         finally:
 #            partition_dlg.Destroy()
             return
@@ -3212,7 +3213,7 @@ def on_createrock(event):
             rock = OM.new('rock', name=rock_name)
             OM.add(rock, well_uid)  
     except Exception as e:
-        print 'ERROR:', e
+        print ('ERROR:', str(e))
     finally:
         UIM.remove(dlg.uid)        
         
@@ -3323,7 +3324,7 @@ def on_create_well(event):
             OM.add(index, index_set.uid)
             ret_val = True
     except Exception as e:
-        print 'ERROR [on_create_well]:', e
+        print ('ERROR [on_create_well]:', str(e))
         pass
     finally:
         del wait
@@ -3472,7 +3473,7 @@ def on_create_synthetic(event):
         wait = wx.BusyInfo("Creating synthetic. Wait...")
         if result == wx.ID_OK:
             results = dlg.get_results()  
-            print results
+            print (results)
             synth_type = results['synth_type']
             welluid = results['welluid']
             indexuid = results['indexuid'] 
@@ -3511,11 +3512,11 @@ def on_create_synthetic(event):
                 ricker_peak = float(results['ricker_peak'])
                 ricker_peak = ricker_peak/1000.0
                 data = get_synthetic_ricker(ricker_freq, ricker_peak, index_data)[1]
-                print data.shape
-                print '\n\nDATA RICKER:', type(data), data.dtype
+                print (data.shape)
+                print ('\n\nDATA RICKER:', type(data), data.dtype)
                 
-                print data.shape
-                print data
+                print (data.shape)
+                print (data)
             #
             index_set_uid = OM._getparentuid(indexuid)       
             #print indexuid, index_set_uid            
@@ -3524,7 +3525,7 @@ def on_create_synthetic(event):
             )
             OM.add(log, welluid)  
     except Exception as e:
-        print 'ERROR:', e
+        print ('ERROR:', str(e))
     finally:
         del wait
         del disableAll
@@ -3888,7 +3889,7 @@ def on_create_model(event):
             OM.add(twt_index, index_set_uid)
             #                   
     except Exception as e:
-        print 'ERROR [on_create_model]:', e
+        print ('ERROR [on_create_model]:', str(e))
     finally:
         del wait
         del disableAll
@@ -3940,12 +3941,12 @@ def on_time_depth(event):
             vp_index_set = OM.get(vp.index_set_uid)
             md = vp_index_set.get_z_axis_indexes_by_type('MD')[0]
             #
-            print len(vp.data), len(md.data)
+            print (len(vp.data), len(md.data))
             #
             
     #
     except Exception as e:
-        print 'ERROR [on_time_depth]:', e
+        print ('ERROR [on_time_depth]:', str(e))
     finally:
         del wait
         del disableAll
@@ -4156,9 +4157,9 @@ def on_test_partition(self, event):
             f.close  
             return d
             
-        poco_densidade  = str("C:\Users\Adriano\Documents\GitHub\AVO_INVTRACE_NEW\data\poco_0210_densidade.dat")
-        poco_vp         = str("C:\Users\Adriano\Documents\GitHub\AVO_INVTRACE_NEW\data\poco_0210_vp.dat")
-        poco_vs         = str("C:\Users\Adriano\Documents\GitHub\AVO_INVTRACE_NEW\data\poco_0210_vs.dat")
+        poco_densidade  = str("C:\\Users\\Adriano\\Documents\\GitHub\\AVO_INVTRACE_NEW\\data\\poco_0210_densidade.dat")
+        poco_vp         = str("C:\\Users\\Adriano\\Documents\\GitHub\\AVO_INVTRACE_NEW\\data\\poco_0210_vp.dat")
+        poco_vs         = str("C:\\Users\\Adriano\\Documents\\GitHub\\AVO_INVTRACE_NEW\\data\\poco_0210_vs.dat")
         
         # Carregando dados ascii (poços)
         p_rho = lerAscii(poco_densidade)

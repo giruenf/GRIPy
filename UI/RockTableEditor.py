@@ -24,12 +24,12 @@ def debugdecorator(func):
         return func
     funcname = func.__name__
     def wrapper(*args, **kwargs):
-        print funcname, "IN"
-        print "args:", repr(args)
-        print "kwargs:", repr(kwargs)
+        print (funcname, "IN")
+        print ("args:", repr(args))
+        print ("kwargs:", repr(kwargs))
         result = func(*args, **kwargs)
-        print "return:", repr(result)
-        print funcname, "OUT"
+        print ("return:", repr(result))
+        print (funcname, "OUT")
         return result
     wrapper.__name__ = funcname
     return wrapper
@@ -80,7 +80,7 @@ class RockTable(wx.grid.GridTableBase):
         dictmin = App.app_utils.read_json_file(fullpath_json)
         
         def on_change_mineral(name, old_value, new_value, **kwargs):
-            print 'new\n', name, new_value, new_value['name'], dictmin.iterkeys()
+            print ('new\n', name, new_value, new_value['name'], dictmin.iterkeys())
             if name == 'mineralgrain':
                 textctrl_k = dlg.view.get_object('kmod1')
                 textctrl_g = dlg.view.get_object('gmod1')
@@ -160,12 +160,12 @@ class RockTable(wx.grid.GridTableBase):
                 mtr_rho = results.get('dens2')
 #                kk = RP.VRHill (gr_k, gr_f, mtr_k)
 #                g = RP.VRHill (gr_mi, gr_f, mtr_mi)
-                print '\ngrd', gr_k, gr_f, mtr_k, type(float(mtr_k))
+                print ('\ngrd', gr_k, gr_f, mtr_k, type(float(mtr_k)))
                 rocktype = self._OM.new('rocktype', fracgrain = gr_f, fracmatrix = mtr_f, grain = ngrain, matrix = nmatrix, k=10, mi=20)#vp=vp, vs=vs, rho = rho, k=k, mi=mi, poi=poi        
                 return rocktype
 
         except Exception as e:
-            print 'ERROR:', e
+            print ('ERROR:', str(e))
         finally:
             UIM.remove(dlg.uid)
             

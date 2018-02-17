@@ -7,7 +7,7 @@ import code
 import wx
 from OM.Manager import ObjectManager
 import UI 
-from app_utils import Chronometer
+from App.app_utils import Chronometer
 import FileIO
 from collections import OrderedDict
 
@@ -162,12 +162,12 @@ class DebugConsoleFrame(wx.Frame):
             os.makedirs(self.dir_name)    
             msg = 'DebugConsoleFrame.__init__ has created directory: {}'.format(self.dir_name)
             #log.debug(msg)
-            print msg
+            print (msg)
         if not os.path.isfile(_fullfilename):
             open(_fullfilename, 'a').close()
             msg = 'DebugConsoleFrame.__init__ has created empty file: {}'.format(_fullfilename)
             #log.debug(msg)
-            print msg
+            print (msg)
         if self.file_name and self.dir_name:
             self._load_file()            
                     

@@ -141,7 +141,7 @@ def DepthToTime(v1, v2, dz, flag):
     if (flag==0):
         
         if (np.size(v1)!=np.size(dz) ):
-            print "O vetor v1 diferem em tamanho de dz!"
+            print ("O vetor v1 diferem em tamanho de dz!")
             return 0
         
         st = 0.
@@ -155,7 +155,7 @@ def DepthToTime(v1, v2, dz, flag):
     elif (flag==1):
         
         if ( np.size(v1)!=np.size(dz) or np.size(v2)!=np.size(dz) ):
-            print "Os vetores v1, v2 e dz diferem em tamanho!"
+            print ("Os vetores v1, v2 e dz diferem em tamanho!")
             return 0
     
         st = 0.

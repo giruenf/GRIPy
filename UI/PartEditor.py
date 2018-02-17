@@ -33,12 +33,12 @@ def debugdecorator(func):
         return func
     funcname = func.__name__
     def wrapper(*args, **kwargs):
-        print funcname, "IN"
-        print "args:", repr(args)
-        print "kwargs:", repr(kwargs)
+        print (funcname, "IN")
+        print ("args:", repr(args))
+        print ("kwargs:", repr(kwargs))
         result = func(*args, **kwargs)
-        print "return:", repr(result)
-        print funcname, "OUT"
+        print ("return:", repr(result))
+        print (funcname, "OUT")
         return result
     wrapper.__name__ = funcname
     return wrapper

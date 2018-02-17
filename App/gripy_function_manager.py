@@ -53,7 +53,7 @@ class FunctionManager(object):
                                  'args': args, 
                                  'kwargs': kwargs
         }     
-        for class_ in list(set(list(args) + kwargs.values())):
+        for class_ in list(args) + list(kwargs.values()):
             if class_ not in cls._with_classes.keys():
                 cls._with_classes[class_] = [func]                
             else:

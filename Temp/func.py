@@ -32,7 +32,6 @@ WAVELET_TYPES['Paul (order=6)'] = 'paul6'
 
 
 def do_STFT(*args, **kwargs):
-    print '\n\n\ndo_STFT'
     obj = args[0]
     OM = ObjectManager(obj)
     UIM = UIManager()
@@ -61,7 +60,6 @@ def do_STFT(*args, **kwargs):
                 start = start/1000
                 step = index.data[1] - index.data[0]
                 step  = step/1000
-                print obj.name, obj.data, step, obj.unit
                 
                 #STFT(x, window_size, noverlap, time_start, Ts, mode='psd'):
                 stft_data, freq_values, index_values = STFT(obj.data, 
@@ -77,19 +75,19 @@ def do_STFT(*args, **kwargs):
 
                 stft_data = stft_data.T
                 
-                print '\n\nOrig shape:', obj.data.shape
-                print 'Freq Index Shape:', len(freq_values), len(index_values), stft_data.shape  
-                print 'data_out.shape:', data_out.shape
-                print 'Freqs:', freq_values
-                print 'Indexes:', index_values
+                #print '\n\nOrig shape:', obj.data.shape
+                #print 'Freq Index Shape:', len(freq_values), len(index_values), stft_data.shape  
+                #print 'data_out.shape:', data_out.shape
+                #print 'Freqs:', freq_values
+                #print 'Indexes:', index_values
                 
-                print '\n\n', stft_index_start, stft_index_end
+                #print '\n\n', stft_index_start, stft_index_end
                 for idx, time in enumerate(index.data/1000):
                     if time >= stft_index_start and time < stft_index_end: 
                         stft_index_idx = int((time - stft_index_start) // stft_index_step)
-                        print time, stft_index_idx
+                        #print time, stft_index_idx
                         data_out[idx] = stft_data[stft_index_idx]
-                print '\n\n'
+                #print '\n\n'
                 
                 data_out = data_out.T               
                 
@@ -113,7 +111,7 @@ def do_STFT(*args, **kwargs):
                 
                 
     except Exception as e:
-        print 'ERROR:', e
+        print ('ERROR:', e)
         pass
     finally:
         UIM.remove(dlg.uid)        
@@ -136,7 +134,7 @@ def do_CWT(*args, **kwargs):
         result = dlg.view.ShowModal()
         if result == wx.ID_OK:
             results = dlg.get_results()  
-            print results
+            print (results)
             dj = None
             try:
                 dj = float(results.get('dj'))
@@ -187,7 +185,7 @@ def do_CWT(*args, **kwargs):
                                    scales=wt.scales
             )                       
             OM.add(seismic)  
-            print wt.wavelet_transform.shape        
+            print (wt.wavelet_transform.shape)        
     except Exception:
         pass
     finally:

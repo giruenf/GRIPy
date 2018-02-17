@@ -291,7 +291,7 @@ class PropertyGridController(UIControllerBase):
         if color_prop:
             self.view.DeleteProperty(color_prop.GetName())
         mpl_color = part.color #[float(c)/255.0 for c in part.color]
-        print value, '-', mpl_color
+        print (value, '-', mpl_color)
         color_prop = pg.ColourProperty(label='Part color', value=mpl_color)
         self._properties['color'] = color_prop
         self.view.Append(color_prop)

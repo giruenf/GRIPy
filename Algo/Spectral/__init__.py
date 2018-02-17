@@ -1,8 +1,8 @@
 # -*- coding: utf-8 -*-
 
 import numpy as np
-import scipy
-from SlidingWindow import SlidingWindow
+#import scipy
+#from Algo.Spectral.SlidingWindow import SlidingWindow
 #from scipy.signal import minimum_phase
 from scipy import signal# import stft
 

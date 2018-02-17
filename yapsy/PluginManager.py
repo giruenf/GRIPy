@@ -518,8 +518,8 @@ class PluginManager(object):
                                     plugin_info.categories.append(current_category)
                                     self.category_mapping[current_category].append(plugin_info_reference)
                                     self._category_file_mapping[current_category].append(candidate_infofile)
-                                except Exception, e:
-                                    print e.args
+                                except Exception as e:
+                                    print (e.args)
                                     pass
         # Remove candidates list since we don't need them any more and
         # don't need to take up the space

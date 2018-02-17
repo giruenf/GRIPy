@@ -113,7 +113,7 @@ class GripyPlugin(IPlugin):
                 if callable(candidate):
                     setattr(self, candidate.__name__, candidate)
         except Exception as e: 
-            print e.args
+            print (e.args)
             raise
        
     def reload_all_modules(self, *args):

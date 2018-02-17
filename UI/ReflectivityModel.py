@@ -376,7 +376,7 @@ class ReflectivityModel():
             wait = wx.BusyInfo("Running the Modeling...")
             return_flag = Reflectivity(self.OM, parDict)
         except Exception as e:
-            print 'ERROR:', e
+            print ('ERROR:', e)
             pass
         finally:
             del wait

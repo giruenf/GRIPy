@@ -3,9 +3,9 @@ import numpy as np
 import scipy
 import matplotlib.pyplot as plt
 
-from SlidingWindow import SlidingWindow
+from Algo.Spectral.SlidingWindow import SlidingWindow
 
-import wavelets 
+from Algo.Spectral.wavelets import wavelets
 #import WaveletAnalysis, Morlet, Paul, DOG, Ricker
 
 from scipy.signal import chirp
@@ -13,8 +13,8 @@ from scipy.signal import chirp
 
 import timeit
 
+from Algo.Spectral.wavelets.transform import WaveletAnalysis as WaveletTransform
 
-WaveletTransform = wavelets.WaveletAnalysis
 #
 MorletWavelet = wavelets.Morlet
 PaulWavelet = wavelets.Paul
@@ -54,12 +54,12 @@ def ricker(freq, peak=0.0, x_values=None, y_values=None):
 
 # Short Time Fourier Transform 1-D using SlidingWindow
 def STFT(x, window_size, noverlap, time_start, Ts, mode='psd'):
-    print 'Ts:', Ts
+    print ('Ts:', Ts)
     f0 = 1.0/Ts
-    print 'F Zero:', f0
-    print 'Frquencia de Nyquist:', f0/2, 'Hz'
-    print 'Resolução em frquencia:', f0/window_size, 'Hz'    
-    print 'Resolução temporal:', Ts, 'seconds'   
+    print ('F Zero:', f0)
+    print ('Frquencia de Nyquist:', f0/2, 'Hz')
+    print ('Resolução em frquencia:', f0/window_size, 'Hz')    
+    print ('Resolução temporal:', Ts, 'seconds')   
     
     #
     window = scipy.hanning(window_size)
@@ -126,9 +126,9 @@ n_fft = 2 ** int(np.ceil(np.log2(2 * (len(h) - 1) / 0.01)))
 
 
 def exemplo_3():
-    print 'Exemplo 3'
-    print '========='
-    print 'Transformada de Fourier usando classe SlidingWindow1D.\n'
+    print ('Exemplo 3')
+    print ('=========')
+    print ('Transformada de Fourier usando classe SlidingWindow1D.\n')
     
     #print 'Parametros de entrada para a transformada.'     
     '''
@@ -183,7 +183,7 @@ def exemplo_3():
     time_end = ret_time[-1]+(ret_time[1]-ret_time[0])/2
     ext = [ret_freq[0], ret_freq[-1], time_end, time_start]
     #ext = [0.0, 1.0, time_end, time_start] 
-    print ext
+    print (ext)
     #ext = [t0, t[-1]+t[0], -f[-1], f[-1]]
     #plt.imshow(transformed.real.T, aspect='auto', cmap='rainbow', extent=ext)
     plt.imshow(result.T, aspect='auto', cmap='rainbow', extent=ext) #, interpolation='bilinear')#cubic')
@@ -195,7 +195,7 @@ def exemplo_3():
     
     idx = np.argsort(freqs)
     
-    print min(y), max(y), freqs
+    print (min(y), max(y), freqs)
         
     plt.plot(freqs[idx], y[idx])    
         
@@ -250,17 +250,17 @@ def exemplo_4():
     time = np.arange(0, 2-Ts, Ts)
     x = A * np.cos(2 * np.pi * time * Fc + phi)
     #
-    print 'time sample:', Ts
+    print ('time sample:', Ts)
     N=256
     #N=len(x)
     #N = 512
     
     Fr = Fs/N
-    print 'Freq res:', Fr    
+    print ('Freq res:', Fr)    
     
     #
     magnitude, phase, freqs = aaa(x, N, Ts)
-    print len(magnitude), len(phase), len(freqs)
+    print (len(magnitude), len(phase), len(freqs))
     #
     plt.figure(1)
     plt.subplot(211)
@@ -306,20 +306,20 @@ def exemplo_5():
     #             mask_coi=False, frequency=False, axis=-1
     
     wa = WaveletTransform(x, dt=Ts)
-    print wa.wavelet_transform
+    print (wa.wavelet_transform)
     #
     #pF = wa.wavelet.w0/wa.scales #wa.wavelet.w0 / (wa.scales*Ts)
     #
     #idx = 6
     #print wa.wavelet_power.shape
-    print len(wa.scales), wa.scales, wa.scales[0], wa.scales[-1]
+    print (len(wa.scales), wa.scales, wa.scales[0], wa.scales[-1])
     #print
     #print len(wa.fourier_frequencies), wa.fourier_frequencies, wa.fourier_frequencies[idx]
     #print
     #print len(pF), pF, pF[idx]
     
     ext = [0, len(wa.wavelet_power)-1, wa.time[0], wa.time[-1]]    
-    print ext
+    print (ext)
     
     #wa.plot_power()
     
@@ -406,12 +406,12 @@ def exemplo_6():
     
     Time, Scale = np.meshgrid(wa.time, wa.fourier_periods) #wa.scales)
     
-    print 'Time:', Time.shape    
-    print 'Scale:', Scale.shape  
-    print 'wa.fourier_periods:', wa.fourier_periods.shape
-    print wa.fourier_periods[0], wa.fourier_periods[-1]
-    print wa.scales[0], wa.scales[-1]
-    print
+    print ('Time:', Time.shape)    
+    print ('Scale:', Scale.shape)  
+    print ('wa.fourier_periods:', wa.fourier_periods.shape)
+    print (wa.fourier_periods[0], wa.fourier_periods[-1])
+    print (wa.scales[0], wa.scales[-1])
+    print ()
     #ax.contourf(Time, Scale, wa.wavelet_power, 100)
     
     
@@ -431,9 +431,9 @@ def exemplo_6():
     #ax.contourf(Time, Scale, self.wavelet_power, 100)
 
     plt.yscale('log')
-    print '\nscales:', wa.scales[0], wa.scales[-1]
-    print 'periods:', wa.fourier_periods[0], wa.fourier_periods[-1]
-    print 'ff:', wa.fourier_frequencies[0], wa.fourier_frequencies[-1]
+    print ('\nscales:', wa.scales[0], wa.scales[-1])
+    print ('periods:', wa.fourier_periods[0], wa.fourier_periods[-1])
+    print ('ff:', wa.fourier_frequencies[0], wa.fourier_frequencies[-1])
     plt.ylim(wa.scales[0], wa.scales[-1])
     plt.grid(True)
     
@@ -680,7 +680,7 @@ def exemplo_8():
     amp = 20
     data2 = amp * np.sin(depth * 2 * np.pi * freq)
     
-    print depth, len(depth)
+    print (depth, len(depth))
 
     t02 = 2200.0
     t12 = 2400.0
@@ -688,24 +688,24 @@ def exemplo_8():
     i, = np.where(depth == t02)
     j,  = np.where(depth == t12)
     
-    print i, j
+    print (i, j)
     
     f2 = 100.0 #/128.0
     x2 = np.sin(time2 * 2 * np.pi * f2)
     
-    print len(x2)
+    print (len(x2))
     
   #  data2[50000:100000] = 1#+= x2
 
 
 
 
-    print '\nWaveletTransform'
+    print ('\nWaveletTransform')
     c = Chronometer()
     factor = 1
     Dj = 0.500/factor
     wa = WaveletTransform(data2, dt=Ts, dj=Dj, time=depth) #dt=Ts)    
-    print c.end()
+    print (c.end())
     
     """
     # Phase 
@@ -726,13 +726,13 @@ def exemplo_8():
     to_plot = wa.wavelet_power    
     #"""
     
-    print '\nmeshgrid'
+    print ('\nmeshgrid')
     c = Chronometer()
     x_axis = wa.fourier_frequencies
     y_axis = wa.time
     
     mesh_x, mesh_y = np.meshgrid(x_axis, y_axis)
-    print c.end()
+    print (c.end())
     
     '''
     for x in mesh_x:
@@ -746,7 +746,7 @@ def exemplo_8():
         print y, len(y)
     
     '''
-    print '\ncontourf'
+    print ('\ncontourf')
     c = Chronometer()
     
     fig, ax = plt.subplots(ncols=1, figsize=(8, 4))
@@ -796,9 +796,9 @@ def exemplo_8():
     print '\n'
     '''
     
-    print '\n'
-    print X[0], X[-1], len(X)
-    print '\n'
+    print ('\n')
+    print (X[0], X[-1], len(X))
+    print ('\n')
     
     coords = np.zeros(((Nx * Ny), 2), dtype=float)
     coords[:, 0] = X
@@ -846,7 +846,7 @@ def exemplo_8():
     collection.sticky_edges.y[:] = [miny, maxy]
     corners = (minx, miny), (maxx, maxy)
     
-    print corners
+    print (corners)
     
     ax.update_datalim(corners)
     ax.autoscale_view()
@@ -862,9 +862,9 @@ def exemplo_8():
     #ret = ax.pcolormesh(mesh_x, mesh_y, to_plot.T, cmap=plt.cm.jet)   
     
     #ret = plt.contourf(mesh_x, mesh_y, to_plot.T, 20, cmap=plt.cm.jet)#, 100, cmap=plt.cm.jet)   
-    print c.end()
+    print (c.end())
     
-    print ret
+    print (ret)
     
     #plt.xscale('log')
 

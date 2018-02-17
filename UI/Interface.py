@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 import wx
-from uimanager import UIManager
+from UI.uimanager import UIManager
 
 #from Algo.Modeling.Reflectivity import Reflectivity2
 

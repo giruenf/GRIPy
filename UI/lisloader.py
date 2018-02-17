@@ -65,7 +65,6 @@ class LISImportFrame(wx.Frame):
         self._OM = ObjectManager(self)         
         
     def on_open(self, evt):
-        print 'xxx', os.getcwd()
         dlg = wx.FileDialog(
                 self, message="Choose a file",
                 defaultDir=os.getcwd(), 
@@ -73,14 +72,11 @@ class LISImportFrame(wx.Frame):
                 #wildcard=wildcard,
                 style=wx.OPEN | wx.CHANGE_DIR
         )
-        print 'yyy',os.getcwd()
         if dlg.ShowModal() == wx.ID_OK:
             paths = dlg.GetPaths()
             if paths[0]:
-                print os.getcwd()
                 self.dirname, self.filename = os.path.split(paths[0])
                 self.status_bar.SetStatusText(paths[0])
-                print os.getcwd()
                 if self.dvc is None:    
                     self.create_inside_panel()
                 if self.model is not None:
@@ -89,7 +85,6 @@ class LISImportFrame(wx.Frame):
                 else:
                     old_model = None
                 self.model = self.get_model_from_LIS(paths[0])
-                print os.getcwd()
                 self.dvc.AssociateModel(self.model)
                 if old_model:
                     del old_model
@@ -127,15 +122,13 @@ class LISImportFrame(wx.Frame):
         
         
     def get_model_from_LIS(self, filename):
-        print '\nINICIO\n'
-        print os.getcwd()
         lis = LISFile()
         lis.read_file(filename)
-        print 'FIM READ FILE'
+        print ('FIM READ FILE')
         lis.read_physical_records()
-        print 'FIM READ PHYSICAL'
+        print ('FIM READ PHYSICAL')
         lis.read_logical_records()
-        print 'FIM READ LOGICAL'   
+        print ('FIM READ LOGICAL')   
         wells = LISWells(lis)     
         return LISModel(wells.data)
 

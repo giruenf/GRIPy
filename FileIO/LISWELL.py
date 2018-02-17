@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 from collections import OrderedDict
-from LIS import LISFile
+from FileIO.LIS import LISFile
 import numpy as np
 
 
@@ -148,14 +148,14 @@ class LISWellLog(object):
                 return idx
                 
     def get_last_occurence_pos(self):
-        print '\nLISWellLog.get_last_occurence_pos'
+        print ('\nLISWellLog.get_last_occurence_pos')
         y = np.isnan(self.data)
-        print y, len(y)
+        print (y, len(y))
         for idx in range(len(y)-1, -1, -1):
             if not y[idx]:
-                print 'RETORNOU LAST: ', idx
+                print ('RETORNOU LAST: ', idx)
                 return idx                
-        print 'DEU RUIM' 
+        print ('DEU RUIM') 
         
         
 class LISWellInfoFactory(object):
@@ -176,9 +176,9 @@ class LISWellInfoFactory(object):
                 if info.get(component.get('Component Mnemonic')) is None:
                     info[component.get('Component Mnemonic')] = [component.get('Component')]
                 else:
-                    print '\nAAA:', component.get('Component Mnemonic')
-                    print info
-                    print 'III: ', info.get(component.get('Component Mnemonic'))
+                    print ('\nAAA:', component.get('Component Mnemonic'))
+                    print (info)
+                    print ('III: ', info.get(component.get('Component Mnemonic')))
                     info.get(component.get('Component Mnemonic')).append(component.get('Component'))
         if cls.data is None:
             cls.data = OrderedDict()

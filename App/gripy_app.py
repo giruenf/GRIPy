@@ -2,15 +2,15 @@
 import os
 import wx
 from collections import OrderedDict
-import App.app_utils
+from App import app_utils
 from App import gripy_classes
-import gripy_functions
+from App import gripy_functions
 from OM.Manager import ObjectManager
 from UI.uimanager import UIManager
 from UI import Interface
 from App import DEFS 
 from App import log
-from gripy_plugin_manager import GripyPluginManagerSingleton
+from App.gripy_plugin_manager import GripyPluginManagerSingleton
 wx.SystemOptions.SetOption("msw.remap", '0')
 
 

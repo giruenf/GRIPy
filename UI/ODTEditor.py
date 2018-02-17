@@ -154,9 +154,9 @@ class Panel(wx.Panel):
         box = wx.BoxSizer()
         box.Add(self.other_textctrl, 1, wx.EXPAND)
         other_panel.SetSizer(box)
-        print '\nno panel', self.version_panel
+        print ('\nno panel', self.version_panel)
         nb.AddPage(self.version_panel, "~VERSION INFORMATION")
-        print '\nno panel'
+        print ('\nno panel')
         nb.AddPage(self.well_panel, "~WELL INFORMATION")
         nb.AddPage(self.curve_panel, "~CURVE INFORMATION")
         nb.AddPage(self.parameter_panel, "~PARAMETER INFORMATION")
