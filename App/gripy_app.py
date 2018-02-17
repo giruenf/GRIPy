@@ -26,7 +26,10 @@ class GripyApp(wx.App):
         self._plugins_state = OrderedDict(DEFS.get('plugins', dict()))
         plugins_places = self._plugins_state.get('plugins_places')
         if plugins_places:
-            plugins_places = [place.encode('utf-8') for place in plugins_places]
+            # Python 2
+            #plugins_places = [place.encode('utf-8') for place in plugins_places]
+            # Python 3
+            plugins_places = [str(place) for place in plugins_places]
         else:
             plugins_places = ['Plugins']
         self._plugins_state['plugins_places'] = plugins_places   

@@ -143,7 +143,7 @@ class PluginFileAnalyzerWithInfoFile(IPluginFileAnalyzer):
         to exit successfully.
         """
         # Python 3 rewriting by Adriano - 17/fev/2018
-        extensions = tuple(".{}".format(ext) for ext in self.expectedExtensions)   
+        extensions = tuple(".{}".format(ext) for ext in self.expectedExtensions)
         return filename.endswith(extensions)        
         '''
         res = False
@@ -406,6 +406,7 @@ class PluginFileLocator(IPluginLocator):
 #         print "%s.locatePlugins" % self.__class__
         _candidates = []
         _discovered = {}
+   
         for directory in map(os.path.abspath, self.plugins_places):
             # first of all, is it a directory :)
             if not os.path.isdir(directory):

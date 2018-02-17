@@ -63,8 +63,8 @@ class GripyPluginInfo(PluginInfo):
             log.debug('Plugin {} will try insert itself to Menu {}'.format(self.name, found.model.label))
 
             menu_item = _UIM.create('menu_item_controller', found.uid, 
-                            label=unicode(self.name, 'utf8'), 
-                            help=unicode(self.description, 'utf8'),
+                            label=str(self.name), 
+                            help=str(self.description),
                             callback=self.plugin_object.event_run
             )
 

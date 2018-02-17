@@ -348,7 +348,7 @@ class LASReader(LASFile):
                 currentsection.append(line.split('\n')[0])
             linecount += 1
         
-        for sectionkey, lines in header.iteritems():
+        for sectionkey, lines in header.items():
             try:
                 section = OrderedDict()
                 sectionlayout = {}
