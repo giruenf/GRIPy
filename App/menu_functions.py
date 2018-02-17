@@ -14,6 +14,9 @@ from  UI import ExportSelector
 from  UI import ODTEditor
 from  UI import lisloader
 from  UI import PartitionEditor
+from  UI import PartEditor
+from  UI import RockTableEditor
+from UI import ReflectivityModel as RM
 from App.gripy_debug_console import DebugConsoleFrame
 
 from DT.UOM import uom as UOM
@@ -25,7 +28,7 @@ from Algo.Spectral.Hilbert import HilbertTransform
 from Algo.Spectral import get_synthetic_ricker, phase_rotation, frequency_phase_rotation
 
 from scipy.signal import chirp
-
+from Algo import RockPhysics as RP
 from Algo import AVO
 from Algo.Modeling.Reflectivity import Reflectivity
 
@@ -140,7 +143,7 @@ def on_new_wellplot(event):
         #choice_well = dlg.view.get_object('welluid')
         #choice_well.set_trigger(on_change_well) 
         #
-        def on_change_well(name, old_value, new_value, **kwargs):
+        def on_change_well(name, old_value, new_value, **kwargs):				
             OM = ObjectManager(on_change_well)
             well = OM.get(new_value)
             zaxis = well.get_z_axis_datatypes()
@@ -1637,8 +1640,7 @@ def on_cwt(event):
             input_indexes = obj.get_data_indexes()
             
             z_axis = input_indexes[0][0]
-			 
-            
+			
             ###
             # TODO: rever TIME/DEPTH
             time = z_axis.data
@@ -1682,15 +1684,14 @@ def on_cwt(event):
                     data_out = np.unwrap(np.angle(np.flip(wt.wavelet_transform, 0)), axis=0)    
 
  
-                name = results.get('cwt_name')
-        
+                name = results.get('cwt_name')	 
 
                 scalogram = OM.new('gather_scalogram', data_out, name=name)
                 parent_uid = OM._getparentuid(obj_uid)
                 if not OM.add(scalogram, parent_uid):
                     raise Exception('Object was not added. tid={\'gather_scalogram\'}')
 
-                new_index_set = OM.new('index_set', vinculated=obj.index_set_uid)
+                new_index_set = OM.new('index_set', vinculated=obj.index_set_uid)	 
                 OM.add(new_index_set, scalogram.uid)
                 #
                 index = OM.new('data_index', 1, 'Frequency', 'FREQUENCY', 'Hz', 
@@ -1702,7 +1703,7 @@ def on_cwt(event):
                                data=scales
                 ) 
                 OM.add(index, new_index_set.uid)     
-
+				
             else:
             
             
@@ -1880,7 +1881,7 @@ def on_cwt(event):
             del disableAll
         except:
             pass
-        UIM.remove(dlg.uid)   
+        UIM.remove(dlg.uid)
 
 
 
@@ -1994,8 +1995,7 @@ def on_hilbert_attributes(event):
         )     
         dlg.view.SetSize((330, 430))
         result = dlg.view.ShowModal()
-        
-        
+		
         if result == wx.ID_OK:
             results = dlg.get_results()  
             print '\nresults:', results, '\n'
@@ -2029,7 +2029,7 @@ def on_hilbert_attributes(event):
                          name=obj.name+'_INST_PHASE', 
                          unit=obj.unit, datatype=obj.datatype
             )
-            OM.add(log, parentuid)  
+            OM.add(log, parentuid)
 
 
 
@@ -2091,27 +2091,31 @@ def on_save(*args, **kwargs):
 def on_save_as(*args, **kwargs):
     gripy_app = wx.App.Get()
     gripy_app.on_save_as()
-
     
+	
 def on_rock(event):
     OM = ObjectManager(event.GetEventObject()) 
     
     UIM = UIManager()
-    dlg = UIM.create('dialog_controller', title='Rock selector') 
+    dlg = UIM.create('dialog_controller', title='Rock creator') 
     
     cont_well = dlg.view.AddCreateContainer('StaticBox', label='Well', 
                                           orient=wx.HORIZONTAL, proportion=0, 
                                           flag=wx.EXPAND|wx.TOP, border=5
     )
-    cont_sup = dlg.view.AddCreateContainer('StaticBox', label='Support', 
-                                          orient=wx.HORIZONTAL, proportion=0, 
+    cont_sup = dlg.view.AddCreateContainer('StaticBox', label='Type of Support', 
+                                          orient=wx.VERTICAL, proportion=0, 
                                           flag=wx.EXPAND|wx.TOP, border=5
     )
     cont_grain = dlg.view.AddCreateContainer('StaticBox', label='Grain Parts', 
-                                          orient=wx.HORIZONTAL, proportion=0, 
+                                          orient=wx.VERTICAL, proportion=0, 
                                           flag=wx.EXPAND|wx.TOP, border=5
     )
     cont_matr = dlg.view.AddCreateContainer('StaticBox', label='Matrix Parts', 
+                                          orient=wx.VERTICAL, proportion=0, 
+                                          flag=wx.EXPAND|wx.TOP, border=5
+    )
+    cont_rock = dlg.view.AddCreateContainer('StaticBox', label='Rock Name', 
                                           orient=wx.HORIZONTAL, proportion=0, 
                                           flag=wx.EXPAND|wx.TOP, border=5
     )
@@ -2126,88 +2130,381 @@ def on_rock(event):
         for partition in OM.list('partition', well.uid):
             partitions[partition.get_friendly_name()] = partition.uid
     wells = OrderedDict()
+    wells['GLOBAL'] = 'GLOBAL'
     for well in OM.list('well'):
         wells[well.name] = well.uid
             
-    #reference
-    dlg.view.AddStaticText(cont_sup, initial='Type of Support   ')
-    dlg.view.AddChoice(cont_sup, widget_name='suporte', options=options)
-    dlg.view.AddTextCtrl(cont_sup, widget_name='point', initial='1500')
-    dlg.view.AddTextCtrl(cont_sup, widget_name='top', initial='1000')
-    dlg.view.AddTextCtrl(cont_sup, widget_name='base', initial='2000')
-    dlg.view.AddChoice(cont_sup, widget_name='fac', options=partitions)
+    c00 = dlg.view.AddCreateContainer('BoxSizer', cont_sup, orient=wx.HORIZONTAL, proportion=1, flag=wx.EXPAND|wx.ALL, border=5)
+    dlg.view.AddChoice(c00, widget_name='suporte', options=options)
+    
+    def on_change_support(name, old_value, new_value, **kwargs):
+        textctrl_name = dlg.view.get_object('topo')
+        statictext_suport = dlg.view.get_object('static_text_suport')
+        textctrl_range = dlg.view.get_object('base')
+        statictext_range = dlg.view.get_object('static_text_range')
+        choice = dlg.view.get_object('chid')
+#        print type(textctrl_range), type(c1hoice),   '\n'
+#        print old_value, new_value
+        
+        if old_value == "FACIES":
+#            print 'no old'
+            choice = dlg.view.get_object('chid')
+#            print choice
+            print '\nlist\n', OM.list('partition')[0].uid, '222', OM.list('partition')[0].get_friendly_name()
+            choice.hide()
+        
+        if old_value == None:
+#            print 'no old'
+            choice = dlg.view.get_object('chid')
+#            print choice
+            choice.hide()
+            
+        if new_value == "PT":
+#            print choice.show(),'-p'
+#            if choice.show() == False: 
+#                choice.hide()
+#                print 'hide p'
+            textctrl_name.show()
+            statictext_suport.show()
+            textctrl_name.set_value('ponto')
+            statictext_suport.set_value('PONTO:')
+            textctrl_range.hide()
+            statictext_range.hide()
+            
+        if new_value == "FACIES":
+#            a = dlg.view.AddChoice(c2, widget_name='partuid', options=partitions)
+#            textctrl_name.set_value('facies')  
+            
+#            textctrl_name.hide()
+#            statictext_suport.set_value('FACIES:')
+#            dlg.view.AddChoice(c2, widget_name='chid', options=wells)            
+            choice.show()
+            
+#            dlg.view.AddChoice(c2,widget_name='partuid', options=partitions)
+#            statictext_suport.set_value('FACIES:')
+            statictext_suport.hide()
+            textctrl_name.hide()
+            textctrl_range.hide()
+            statictext_range.hide()
+#            choice.show()
+        
+            
+        if new_value == "TOP&BASE":
+#            print choice.show(),'-z',choice.show()
+#            if choice.show() == False: 
+#                choice.hide()
+#                print 'hide z'
+            textctrl_name.show()
+            statictext_suport.show()
+            textctrl_name.set_value('Topo')  
+            statictext_suport.set_value('TOPO:')
+            textctrl_range.set_value ('BASE')
+            textctrl_range.show()
+            statictext_range.show()
+            
+    choice_datatype = dlg.view.get_object('suporte')
+    choice_datatype.set_trigger(on_change_support)
+    
+    c2 = dlg.view.AddCreateContainer('BoxSizer', cont_sup, orient=wx.HORIZONTAL, proportion=1, flag=wx.EXPAND|wx.ALL, border=5)
+    dlg.view.AddStaticText(c2, label='TOPO:', proportion=1, widget_name='static_text_suport', flag=wx.ALIGN_RIGHT)
+    dlg.view.AddChoice(c00, widget_name='chid', options=partitions,  proportion=1, flag=wx.ALIGN_RIGHT)
+    dlg.view.AddTextCtrl(c2, proportion=1, flag=wx.ALIGN_LEFT, widget_name='topo', initial='')
+    
+#    choices = dlg.view.get_object('chid')
+#    choices.hide()
+    c3 = dlg.view.AddCreateContainer('BoxSizer', cont_sup, orient=wx.HORIZONTAL, proportion=1, flag=wx.EXPAND|wx.ALL, border=5)
+    dlg.view.AddStaticText(c3, label='BASE:', proportion=1, widget_name='static_text_range',flag=wx.ALIGN_RIGHT)
+    dlg.view.AddTextCtrl(c3, proportion=1, flag=wx.ALIGN_LEFT, widget_name='base', initial='')
+    
+    
     dlg.view.AddChoice(cont_well, widget_name='welluid', options=wells)
-
-    dlg.view.AddTextCtrl(cont_well, proportion=0, flag=wx.EXPAND|wx.TOP, 
+    dlg.view.AddTextCtrl(cont_rock, proportion=0, flag=wx.EXPAND|wx.TOP, 
                          border=5, widget_name='rock_name', initial='new_rock'#, 
     )
-
-    dlg.view.AddStaticText(cont_grain, proportion=0, initial='Fraction '
-    )
-    dlg.view.AddTextCtrl(cont_grain, proportion=0, 
-                  widget_name='frac1', initial='0.20'
-    )
-    dlg.view.AddStaticText(cont_grain,
-                  widget_name='K_Modulus', initial='K Modulus (GPa) '
-    )
-    dlg.view.AddTextCtrl(cont_grain, 
-                  widget_name='kmod1', initial='36.5'
-    )
-    dlg.view.AddStaticText(cont_grain,  
-                  widget_name='G_Modulus', initial='G Modulus (GPa) '
-    )
-    dlg.view.AddTextCtrl(cont_grain, 
-                  widget_name='gmod1', initial='78.6'
-    )
-    dlg.view.AddStaticText(cont_grain,
-                  widget_name='Density', initial='Density (g/cc) '
-    )
-    dlg.view.AddTextCtrl(cont_grain,
-                  widget_name='dens1', initial='2.65'
-    )
+    minerals = OrderedDict()
+    minerals['OTHER'] = 'OTHER'
+    minerals['CALCITE'] = 'CALCITE'    
+    minerals['DOLOMITE'] = 'DOLOMITE'
+    minerals['QUARTZ'] = 'QUARTZ'
+    minerals['FELDSPAR'] = 'FELDSPAR'
+    
+    def on_change_mineral(name, old_value, new_value, **kwargs):
+        if name == 'mineralgrain':
+            textctrl_k = dlg.view.get_object('kmod1')
+            textctrl_g = dlg.view.get_object('gmod1')
+            textctrl_rho = dlg.view.get_object('dens1')
+        elif name == 'mineralmatr':
+            textctrl_k = dlg.view.get_object('kmod2')
+            textctrl_g = dlg.view.get_object('gmod2')
+            textctrl_rho = dlg.view.get_object('dens2')
+            
+        if new_value == "CALCITE":
+            textctrl_k.disable()
+            textctrl_g.disable()
+            textctrl_rho.set_value('2.65')
+            textctrl_rho.disable()
+        
+        if new_value == "DOLOMITE":
+            textctrl_k.disable()
+            textctrl_g.disable()
+            textctrl_rho.set_value('2.71')
+            textctrl_rho.disable()
+        
+        if new_value == "QUARTZ":
+            textctrl_k.disable()
+            textctrl_g.disable()
+            textctrl_rho.set_value('2.65')
+            textctrl_rho.disable()
+            
+        if new_value == "FELDSPAR":
+            textctrl_k.disable()
+            textctrl_g.disable()
+            textctrl_rho.set_value('2.60')
+            textctrl_rho.disable()
+            
+        if new_value == "OTHER":
+            textctrl_k.enable()
+            textctrl_g.enable()
+            textctrl_rho.enable()
+        
+    dlg.view.AddChoice(cont_grain, widget_name='mineralgrain', options=minerals)
+    choice_grain = dlg.view.get_object('mineralgrain')
+    choice_grain.set_trigger(on_change_mineral)
+    
+    dlg.view.AddChoice(cont_matr, widget_name='mineralmatr', options=minerals)
+    choice_matr = dlg.view.get_object('mineralmatr')
+    choice_matr.set_trigger(on_change_mineral)
+    
+    c3_gr = dlg.view.AddCreateContainer('BoxSizer', cont_grain, orient=wx.HORIZONTAL, proportion=1, flag=wx.EXPAND|wx.ALL, border=5)
+    dlg.view.AddStaticText(c3_gr, proportion=1,initial='Fraction ',flag=wx.ALIGN_RIGHT)
+    dlg.view.AddTextCtrl(c3_gr, proportion=1, widget_name='frac1', initial='0.50',flag=wx.ALIGN_RIGHT)
+    
+    c3_poro = dlg.view.AddCreateContainer('BoxSizer', cont_grain, orient=wx.HORIZONTAL, proportion=1, flag=wx.EXPAND|wx.ALL, border=5)
+    dlg.view.AddStaticText(c3_poro, proportion=1,initial='Porosity ',flag=wx.ALIGN_RIGHT)
+    dlg.view.AddTextCtrl(c3_poro, proportion=1, widget_name='poro1', initial='0.20',flag=wx.ALIGN_RIGHT)
+    
+    c4 = dlg.view.AddCreateContainer('BoxSizer', cont_grain, orient=wx.HORIZONTAL, proportion=1, flag=wx.EXPAND|wx.ALL, border=5)
+    dlg.view.AddStaticText(c4, proportion=1,widget_name='K_Modulus', initial='K Modulus (GPa) ',flag=wx.ALIGN_RIGHT)
+    dlg.view.AddTextCtrl(c4, proportion=1, widget_name='kmod1', initial='36.5', flag=wx.ALIGN_RIGHT)
+    
+    c5 = dlg.view.AddCreateContainer('BoxSizer', cont_grain, orient=wx.HORIZONTAL, proportion=1, flag=wx.EXPAND|wx.ALL, border=5)
+    dlg.view.AddStaticText(c5, proportion=1,widget_name='G_Modulus', initial='G Modulus (GPa) ',flag=wx.ALIGN_RIGHT)
+    dlg.view.AddTextCtrl(c5, proportion=1,widget_name='gmod1', initial='78.6', flag=wx.ALIGN_RIGHT)
+    
+    c6 = dlg.view.AddCreateContainer('BoxSizer', cont_grain, orient=wx.HORIZONTAL, proportion=1, flag=wx.EXPAND|wx.ALL, border=5)
+    dlg.view.AddStaticText(c6, proportion=1,widget_name='Density', initial='Density (g/cc) ',flag=wx.ALIGN_RIGHT)
+    dlg.view.AddTextCtrl(c6, proportion=1,widget_name='dens1', initial='2.65', flag=wx.ALIGN_RIGHT)
     # matrix content
-    dlg.view.AddStaticText(cont_matr, proportion=0, 
-                  widget_name='fraction2', initial='Fraction '
-    )
-    dlg.view.AddTextCtrl(cont_matr, proportion=0, 
-                  widget_name='frac2', initial='0.20'
-    )
-    dlg.view.AddStaticText(cont_matr,
-                  widget_name='K_Modulus2', initial='K Modulus (GPa) '
-    )
-    dlg.view.AddTextCtrl(cont_matr, 
-                  widget_name='kmod2', initial='36.5'
-    )
-    dlg.view.AddStaticText(cont_matr,  
-                  widget_name='G_Modulus2', initial='G Modulus (GPa) '
-    )
-    dlg.view.AddTextCtrl(cont_matr, 
-                  widget_name='gmod2', initial='78.6'
-    )
-    dlg.view.AddStaticText(cont_matr,
-                  widget_name='Density2', initial='Density (g/cc) '
-    )
-    dlg.view.AddTextCtrl(cont_matr,
-                  widget_name='dens2', initial='2.65'
-    )
+    c7_gr = dlg.view.AddCreateContainer('BoxSizer', cont_matr, orient=wx.HORIZONTAL, proportion=1, flag=wx.EXPAND|wx.ALL, border=5)
+    dlg.view.AddStaticText(c7_gr, proportion=1,widget_name='fraction2', initial='Fraction ',flag=wx.ALIGN_RIGHT)
+    dlg.view.AddTextCtrl(c7_gr, proportion=1,widget_name='frac2', initial='0.20', flag=wx.ALIGN_LEFT)
+    
+    c7_poro = dlg.view.AddCreateContainer('BoxSizer', cont_matr, orient=wx.HORIZONTAL, proportion=1, flag=wx.EXPAND|wx.ALL, border=5)
+    dlg.view.AddStaticText(c7_poro, proportion=1,initial='Porosity ',flag=wx.ALIGN_RIGHT)
+    dlg.view.AddTextCtrl(c7_poro, proportion=1, widget_name='poro2', initial='0.10',flag=wx.ALIGN_RIGHT)
+    
+    c8 = dlg.view.AddCreateContainer('BoxSizer', cont_matr, orient=wx.HORIZONTAL, proportion=1, flag=wx.EXPAND|wx.ALL, border=5)
+    dlg.view.AddStaticText(c8, proportion=1,widget_name='K_Modulus2', initial='K Modulus (GPa) ',flag=wx.ALIGN_RIGHT)
+    dlg.view.AddTextCtrl(c8, proportion=1,widget_name='kmod2', initial='36.5', flag=wx.ALIGN_LEFT)
+    
+    c9 = dlg.view.AddCreateContainer('BoxSizer', cont_matr, orient=wx.HORIZONTAL, proportion=1, flag=wx.EXPAND|wx.ALL, border=5)
+    dlg.view.AddStaticText(c9,proportion=1, widget_name='G_Modulus2', initial='G Modulus (GPa) ',flag=wx.ALIGN_RIGHT)
+    dlg.view.AddTextCtrl(c9,proportion=1, widget_name='gmod2', initial='78.6', flag=wx.ALIGN_LEFT)
+    
+    c10 = dlg.view.AddCreateContainer('BoxSizer', cont_matr, orient=wx.HORIZONTAL, proportion=1, flag=wx.EXPAND|wx.ALL, border=5)
+    dlg.view.AddStaticText(c10,proportion=1, widget_name='Density2', initial='Density (g/cc) ',flag=wx.ALIGN_RIGHT)
+    dlg.view.AddTextCtrl(c10, proportion=1,widget_name='dens2', initial='2.65', flag=wx.ALIGN_LEFT)
 
     #
-    dlg.view.SetSize((800, 600))
+    dlg.view.SetSize((300, 700))
     result = dlg.view.ShowModal()
     print 'result0'
     try:
         if result == wx.ID_OK:
             results = dlg.get_results()     
-            well_uid = results.get('welluid')   
+            
             rock_name = results.get('rock_name')
-            #                   
-            rock = OM.new('rock', name=rock_name)
-            OM.add(rock, well_uid)  
+            support = results.get('suporte')          
+            gr_name = results.get('mineralgrain')
+            gr_f = results.get('frac1')
+            gr_k = results.get('kmod1')
+            gr_mi = results.get('gmod1')
+            gr_rho = results.get('dens1')
+            mt_f = results.get('frac2')
+            mt_k = results.get('kmod2')
+            mt_mi = results.get('gmod2')
+            mt_rho = results.get('dens2')
+            print '\nrounds', gr_f, gr_k, gr_mi, gr_rho, rock_name
+            # 
+            if support == 'PT':
+                ponto = results.get('topo')
+                print 'escolheu ponto', ponto
+            elif support == 'FACIES':
+                facie = results.get('chid')
+                print 'escolheu facies', facie
+            elif support == 'TOP&BASE':
+                topo = results.get('topo')
+                base = results.get('base')
+                print 'escolheu top&base', topo, base, '\n'
+#            rock = OM.new('rock', name=rock_name, output)
+            rock = OM.new('rock', suporte = support, name=rock_name, grain = gr_f+'% '+gr_name, vp = gr_f, mu = gr_mi)
+            well_uid = results.get('welluid')
+            print well_uid, 'wellid'
+            if well_uid == 'GLOBAL':
+                OM.add(rock)
+            else:
+                OM.add(rock, well_uid)  
+#            else: 
+#            OM.add(rock)  
     except Exception as e:
         print 'ERROR:', e
     finally:
         UIM.remove(dlg.uid)
+        
+def on_fluid(event):
+    OM = ObjectManager(event.GetEventObject()) 
+    
+    UIM = UIManager()
+    dlg = UIM.create('dialog_controller', title='Fluid creator') 
+    
+    cont_fluid1 = dlg.view.AddCreateContainer('StaticBox', label='Fluid 1', 
+                                          orient=wx.VERTICAL, proportion=0, 
+                                          flag=wx.EXPAND|wx.TOP, border=5
+    )
+    cont_fluid2 = dlg.view.AddCreateContainer('StaticBox', label='Fluid 2', 
+                                          orient=wx.VERTICAL, proportion=0, 
+                                          flag=wx.EXPAND|wx.TOP, border=5
+    )
+    cont_fluid = dlg.view.AddCreateContainer('StaticBox', label='Fluid Name', 
+                                          orient=wx.HORIZONTAL, proportion=0, 
+                                          flag=wx.EXPAND|wx.TOP, border=5
+    )
+    
+    dlg.view.AddTextCtrl(cont_fluid, proportion=0, flag=wx.EXPAND|wx.TOP, 
+                         border=5, widget_name='fluid_name', initial='new_fluid'#, 
+    )
+    fluids = OrderedDict()
+    fluids['OTHER'] = 'OTHER'
+    fluids['WATER'] = 'WATER'    
+    fluids['OIL'] = 'OIL'
+    fluids['GAS'] = 'GAS'
+    
+    def on_change_fluid(name, old_value, new_value, **kwargs):
+        if name == 'fluid1':
+            textctrl_k = dlg.view.get_object('kmod1')
+            textctrl_g = dlg.view.get_object('gmod1')
+            textctrl_rho = dlg.view.get_object('dens1')
+        elif name == 'fluid2':
+            textctrl_k = dlg.view.get_object('kmod2')
+            textctrl_g = dlg.view.get_object('gmod2')
+            textctrl_rho = dlg.view.get_object('dens2')
+            
+        if new_value == "WATER":
+            textctrl_k.disable()
+            textctrl_g.disable()
+            textctrl_rho.set_value('1.01')
+            textctrl_rho.disable()
+            
+        if new_value == "OIL":
+            textctrl_k.disable()
+            textctrl_g.disable()
+            textctrl_rho.set_value('O.88')
+            textctrl_rho.disable()
+            
+        if new_value == "GAS":
+            textctrl_k.disable()
+            textctrl_g.disable()
+            textctrl_rho.set_value('O.001')
+            textctrl_rho.disable()
+            
+        if new_value == "OTHER":
+            textctrl_k.enable()
+            textctrl_g.enable()
+            textctrl_rho.enable()
+        
+    dlg.view.AddChoice(cont_fluid1, widget_name='fluid1', options=fluids)
+    choice_fluid1 = dlg.view.get_object('fluid1')
+    choice_fluid1.set_trigger(on_change_fluid)
+    
+    dlg.view.AddChoice(cont_fluid2, widget_name='fluid2', options=fluids)
+    choice_fluid2 = dlg.view.get_object('fluid2')
+    choice_fluid2.set_trigger(on_change_fluid)
+    
+    c3 = dlg.view.AddCreateContainer('BoxSizer', cont_fluid1, orient=wx.HORIZONTAL, proportion=1, flag=wx.EXPAND|wx.ALL, border=5)
+    dlg.view.AddStaticText(c3, proportion=1,initial='Fraction ',flag=wx.ALIGN_RIGHT)
+    dlg.view.AddTextCtrl(c3, proportion=1, widget_name='frac1', initial='0.20',flag=wx.ALIGN_RIGHT)
+    
+    c4 = dlg.view.AddCreateContainer('BoxSizer', cont_fluid1, orient=wx.HORIZONTAL, proportion=1, flag=wx.EXPAND|wx.ALL, border=5)
+    dlg.view.AddStaticText(c4, proportion=1,widget_name='K_Modulus', initial='K Modulus (GPa) ',flag=wx.ALIGN_RIGHT)
+    dlg.view.AddTextCtrl(c4, proportion=1, widget_name='kmod1', initial='36.5', flag=wx.ALIGN_RIGHT)
+    
+    c5 = dlg.view.AddCreateContainer('BoxSizer', cont_fluid1, orient=wx.HORIZONTAL, proportion=1, flag=wx.EXPAND|wx.ALL, border=5)
+    dlg.view.AddStaticText(c5, proportion=1,widget_name='G_Modulus', initial='G Modulus (GPa) ',flag=wx.ALIGN_RIGHT)
+    dlg.view.AddTextCtrl(c5, proportion=1,widget_name='gmod1', initial='78.6', flag=wx.ALIGN_RIGHT)
+    
+    c6 = dlg.view.AddCreateContainer('BoxSizer', cont_fluid1, orient=wx.HORIZONTAL, proportion=1, flag=wx.EXPAND|wx.ALL, border=5)
+    dlg.view.AddStaticText(c6, proportion=1,widget_name='Density', initial='Density (g/cc) ',flag=wx.ALIGN_RIGHT)
+    dlg.view.AddTextCtrl(c6, proportion=1,widget_name='dens1', initial='1.00', flag=wx.ALIGN_RIGHT)
+    # matrix content
+    c7 = dlg.view.AddCreateContainer('BoxSizer', cont_fluid2, orient=wx.HORIZONTAL, proportion=1, flag=wx.EXPAND|wx.ALL, border=5)
+    dlg.view.AddStaticText(c7, proportion=1,widget_name='fraction2', initial='Fraction ',flag=wx.ALIGN_RIGHT)
+    dlg.view.AddTextCtrl(c7, proportion=1,widget_name='frac2', initial='0.20', flag=wx.ALIGN_LEFT)
+    
+    c8 = dlg.view.AddCreateContainer('BoxSizer', cont_fluid2, orient=wx.HORIZONTAL, proportion=1, flag=wx.EXPAND|wx.ALL, border=5)
+    dlg.view.AddStaticText(c8, proportion=1,widget_name='K_Modulus2', initial='K Modulus (GPa) ',flag=wx.ALIGN_RIGHT)
+    dlg.view.AddTextCtrl(c8, proportion=1,widget_name='kmod2', initial='36.5', flag=wx.ALIGN_LEFT)
+    
+    c9 = dlg.view.AddCreateContainer('BoxSizer', cont_fluid2, orient=wx.HORIZONTAL, proportion=1, flag=wx.EXPAND|wx.ALL, border=5)
+    dlg.view.AddStaticText(c9,proportion=1, widget_name='G_Modulus2', initial='G Modulus (GPa) ',flag=wx.ALIGN_RIGHT)
+    dlg.view.AddTextCtrl(c9,proportion=1, widget_name='gmod2', initial='78.6', flag=wx.ALIGN_LEFT)
+    
+    c10 = dlg.view.AddCreateContainer('BoxSizer', cont_fluid2, orient=wx.HORIZONTAL, proportion=1, flag=wx.EXPAND|wx.ALL, border=5)
+    dlg.view.AddStaticText(c10,proportion=1, widget_name='Density2', initial='Density (g/cc) ',flag=wx.ALIGN_RIGHT)
+    dlg.view.AddTextCtrl(c10, proportion=1,widget_name='dens2', initial='1.00', flag=wx.ALIGN_LEFT)
 
+    #
+    dlg.view.SetSize((300, 550))
+    result = dlg.view.ShowModal()
+    print 'result0'
+    try:
+        if result == wx.ID_OK:
+            results = dlg.get_results()     
+            fluid_name = results.get('fluid_name')     
+            gr_name = results.get('fluid1')
+            gr_f = results.get('frac1')
+            gr_k = results.get('kmod1')
+            gr_mi = results.get('gmod1')
+            gr_rho = results.get('dens1')
+            mt_f = results.get('frac2')
+            mt_k = results.get('kmod2')
+            mt_mi = results.get('gmod2')
+            mt_rho = results.get('dens2')
+            print '\nrounds', gr_f, gr_k, gr_mi, gr_rho, fluid_name
+            fluid = OM.new('fluid', name=fluid_name, fluid1 = gr_f+'% '+gr_name, vp = gr_f, vs = gr_mi, rho = gr_rho)
+            OM.add(fluid)  
+    except Exception as e:
+        print 'ERROR:', e
+    finally:
+        UIM.remove(dlg.uid)
+        
+def on_pt(event):
+        
+        if self.flagRB == 1:        
+            dlg.view.AddTextCtrl(cont_sup, widget_name='pointi', initial='5500')
+#            self.qpStatLin = wx.StaticText(self.dlg, -1, "Q value for P-Wave:")
+#            self.qpChoiceBox = wx.Choice(self.dlg, -1, choices=self.logOptions.keys())
+#            self.qsStatLin = wx.StaticText(self.dlg, -1, "Q value for S-Wave:")
+#            self.qsChoiceBox = wx.Choice(self.dlg, -1, choices=self.logOptions.keys())
+#            self.qSizer = wx.FlexGridSizer(cols=2, hgap=3, vgap=3)   
+#            self.qSizer.AddGrowableCol(1)
+#            self.qSizer.Add(self.qpStatLin, 0, wx.ALL, 5)
+#            self.qSizer.Add(self.qpChoiceBox, 0, wx.EXPAND|wx.ALL, 5)
+#            self.qSizer.Add(self.qsStatLin, 0, wx.ALL, 5)
+#            self.qSizer.Add(self.qsChoiceBox, 0, wx.EXPAND|wx.ALL, 5)
+#            self.mainSizer.Insert(8, self.qSizer, 0, wx.EXPAND|wx.ALL, 5)
+#            self.flagRB = 0
+            
+#        self.dlg.SetSize((610, 860))
     
 def on_new_crossplot(event):
     UIM = UIManager()      
@@ -2385,18 +2682,16 @@ def on_import_las(event):
             OM = ObjectManager(event.GetEventObject())
             well = OM.new('well', name=las_file.wellname, 
                               LASheader=las_file.header)
-            OM.add(well)
+            OM.add(well)			
             index = None
-            part_code = None 
-
+            part_code = None 						   
             ##
             indexes = [sel_datatypes[i] for i in range(ncurves) if sel_datatypes[i] == 'Index']
             if len(indexes) == 0:
                 raise Exception('ERROR: len(indexes) == 0')
             index_set = OM.new('index_set', name='Run 1')
             OM.add(index_set, well.uid)
-            ##
-            
+            ##           
 
             for i in range(ncurves):
                 if sel_curvetypes[i]:
@@ -2742,7 +3037,7 @@ def on_import_segy_vel(event):
 def on_export_las(event):
 
     esdlg = ExportSelector.Dialog(wx.App.Get().GetTopWindow())
-    if esdlg.ShowModal() == wx.ID_OK:
+    if esdlg.view.ShowModal() == wx.ID_OK:
         OM = ObjectManager(event.GetEventObject())   
         ###
         # TODO: Colocar isso em outro lugar
@@ -2808,11 +3103,78 @@ def on_export_las(event):
 
 
 
-def on_partitionedit(event):
+def on_new_rocktable(event):
+    OM = ObjectManager(event.GetEventObject())
+    rocktable_dlg = RockTableEditor.NewRockTableDialog(wx.App.Get().GetTopWindow())
+    try:
+        if rocktable_dlg.ShowModal() == wx.ID_OK:
+#            wx.MessageBox('It was created a partition.')
+            name = rocktable_dlg.get_value()
+            print 'name', name, type(str(name)), str(name).strip(''), str(name).strip()
+            if name == '': name = 'Table'
+            rock = OM.new('rocktable', name = name)
+#            partition_dlg.Destroy()        
+            OM.add(rock)
+    except Exception as e:
+        print 'ERROR:', e
+    finally:
+        rocktable_dlg.Destroy()
+
+def on_edit_rocktable(event):
+    OM = ObjectManager(event.GetEventObject())
+    if not OM.list('rocktable'):
+        try:
+            wx.MessageBox('Please create a new Rock Table first!')
+        except Exception as e:
+            print 'ERROR:', e
+        finally:
+            return
+            
+    dlg = RockTableEditor.Dialog(wx.App.Get().GetTopWindow())
+    dlg.ShowModal()
+    dlg.Destroy()
+    
+    _UIM = UIManager()
+    tree_ctrl = _UIM.list('tree_controller')[0]
+    tree_ctrl.refresh()
+
+def on_new_partition(event):
+    OM = ObjectManager(event.GetEventObject())
+    partition_dlg = PartitionEditor.NewPartitionDialog(wx.App.Get().GetTopWindow())
+    try:
+        if partition_dlg.ShowModal() == wx.ID_OK:
+#            wx.MessageBox('It was created a partition.')
+            name = partition_dlg.get_value()
+            print 'name', name, type(str(name)), str(name).strip(''), str(name).strip()
+            if name == '': name = 'NEW'
+            rock = OM.new('partition', name = name)
+#            partition_dlg.Destroy()        
+            OM.add(rock)
+    except Exception as e:
+        print 'ERROR:', e
+    finally:
+        partition_dlg.Destroy()
+
+def on_edit_partition(event):
     OM = ObjectManager(event.GetEventObject())
     if not OM.list('partition'):
-        return
-    dlg = PartitionEditor.Dialog(wx.App.Get().GetTopWindow())
+#        partition_dlg = PartitionEditor.NewPartitionDialog(wx.App.Get().GetTopWindow())
+        try:
+#            if partition_dlg.ShowModal() == wx.ID_OK:
+            wx.MessageBox('Please create a new partition first!')
+#                name = partition_dlg.get_value()
+#                print 'name', name, type(str(name)), str(name).strip(''), str(name).strip()
+#                if name == '': name = 'NEW'
+#                rock = OM.new('partition', name = name)
+#            partition_dlg.Destroy()        
+#                OM.add(rock)
+        except Exception as e:
+            print 'ERROR:', e
+        finally:
+#            partition_dlg.Destroy()
+            return
+            
+    dlg = PartEditor.Dialog(wx.App.Get().GetTopWindow())
     dlg.ShowModal()
     dlg.Destroy()
     
@@ -2948,7 +3310,6 @@ def on_create_well(event):
             start = float(results['start'])
             end = float(results['end'])
             ts = float(results['ts'])
-
             well = OM.new('well', name=well_name) 
             OM.add(well)
             samples = ((end-start)/ts)+1
@@ -2988,7 +3349,7 @@ def on_create_synthetic(event):
             opt[name] = obj_uid
         choice.set_options(opt)
         choice.set_value(0, True)
-    #    
+    #
     c1 = dlg.view.AddCreateContainer('StaticBox', label='Well', orient=wx.VERTICAL, proportion=0, flag=wx.EXPAND|wx.TOP, border=5)
     dlg.view.AddChoice(c1, proportion=0, flag=wx.EXPAND|wx.TOP, border=5, widget_name='welluid', options=wells)
     choice_well = dlg.view.get_object('welluid')
