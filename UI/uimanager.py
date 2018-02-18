@@ -265,7 +265,7 @@ class UIModelBase(UIBase):
 
     def __getattr__(self, key):
         # http://docs.python.org/2/library/functions.html#getattr
-        if self.__dict__.has_key('_redirects_to'):
+        if '_redirects_to' in self.__dict__:
             return self._redirects_to[key]
         raise AttributeError(key)
 
@@ -290,7 +290,7 @@ class UIModelBase(UIBase):
                        (self.initialised() and not key in self.__dict__):
             msg = '{} does not have attribute {}.'.format(\
                                              self.__class__.__name__, str(key))
-            if self.__dict__.has_key('_redirects_to'):
+            if '_redirects_to' in self.__dict__:
                 self._redirects_to._do_set(key, value)
                 return
             log.warning(msg)

@@ -346,7 +346,7 @@ def gripy_make_scanner(context):
     parse_array = context.parse_array
     parse_string = context.parse_string
     match_number = NUMBER_RE.match
-    encoding = context.encoding
+    #encoding = context.encoding
     strict = context.strict
     parse_float = context.parse_float
     parse_int = context.parse_int
@@ -364,9 +364,9 @@ def gripy_make_scanner(context):
                 return GripyJSONParser((string, idx + 10), _scan_once, wx.Point)    
             elif string[idx:idx + 9] == '"wx.Size(':
                 return GripyJSONParser((string, idx + 9), _scan_once, wx.Size)         
-            return parse_string(string, idx + 1, encoding, strict)
+            return parse_string(string, idx + 1,strict)
         elif nextchar == '{':
-            return parse_object((string, idx + 1), encoding, strict,
+            return parse_object((string, idx + 1), strict,
                 _scan_once, object_hook, object_pairs_hook)
         elif nextchar == '[':
             return parse_array((string, idx + 1), _scan_once)
@@ -436,9 +436,10 @@ def GripyJSONParser(s_and_end, scan_once, _class, _w=WHITESPACE.match, _ws=WHITE
 
 
 def read_json_file(fullfilename):
+    #print ('\nread_json_file:', fullfilename, type(fullfilename))
     fullfilename = fullfilename.replace('\\' ,'/')  
-    fullfilename = fullfilename.encode('ascii', 'ignore') # in order to save unicode characters
-    fullfilename = fullfilename.encode('string-escape')
+    #fullfilename = fullfilename.encode('ascii', 'ignore') # in order to save unicode characters
+    #fullfilename = fullfilename.encode('string-escape')
     f = open(fullfilename)
     state = json.load(f, cls=GripyJSONDecoder)
     f.close()

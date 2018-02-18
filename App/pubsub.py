@@ -7,7 +7,9 @@
 # Adriano Paulo Laes de Santana
 # May 11th, 2017
 
-from wx.lib.pubsub import pub
+#from wx.lib.pubsub import pub
+
+from pubsub import pub
 
 """
 
@@ -183,15 +185,18 @@ class PublisherMixin(object):
         # TODO: Refazer docs
         # print ('publisher: {} - topic: {} - data: {}'.format(self.get_publisher_name(), topic, data))
         try:
-            #print ('\n\nPublisherMixin.send_message')
+            #print ('\nPublisherMixin.send_message')
             topic = self.get_publisher_name() + '.' + topic
             #print ('topic:', topic, data)
             pub.sendMessage(topic, **data)
             #print ('OK send message')
         except Exception as e:
+            #print ('\ndeu ruim:', topic, **data)
             #print ('ERROR [PublisherMixin.send_message]:', self, topic, data, e)
             #print ('\n\n')
-            pass
+            #pass
+            raise e
+
 
     def get_publisher_name(self):
         try:

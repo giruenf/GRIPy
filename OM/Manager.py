@@ -14,11 +14,13 @@ import numpy as np
 import zipfile
 import os
 
-import App.app_utils
+from App import app_utils
 from App.pubsub import PublisherMixin
 
 from App import log
 
+
+import copy
 
 try:
     import zlib
@@ -84,13 +86,17 @@ class ObjectManager(PublisherMixin):
         
     def _reset(self):
         # TODO: Resolver DataFilter tid 'data_filter'
-        for uid, parentuid in self._parentuidmap.items():
+        
+        temp_parentuidmap = copy.deepcopy(self._parentuidmap)
+        
+        for uid, parentuid in temp_parentuidmap.items():
             if parentuid is None and uid[0] != 'data_filter':
                 try:
                     # TODO: rever isso, pois alguns uid estao dando problema
                     #       A ideia eh nao ter esse try
                     self.remove(uid)
-                except:
+                except Exception as e:
+                    print ('OM._reset ERROR:', str(e))
                     pass
         #            
         for tid in self._currentobjectids.keys():
@@ -217,8 +223,9 @@ class ObjectManager(PublisherMixin):
             self.send_message('add', objuid=obj.uid)
         except Exception as e:
             print ('ERROR [ObjectManager.add]:', obj.uid, e)
-            #return False
-            pass
+            return False
+            #pass
+            
         # TODO: Rever isso: UI.mvc_classes.track_object@DataFilter 
         try:
             nsc = obj._NO_SAVE_CLASS
@@ -257,10 +264,13 @@ class ObjectManager(PublisherMixin):
         >>> obj2 == obj
         True
         """
-        if isinstance(uid, basestring):
-            uid = App.utils.parse_string_to_uid(uid)
-        return self._data[uid]
-
+        if isinstance(uid, str):
+            uid = app_utils.parse_string_to_uid(uid)
+        try:    
+            obj = self._data[uid]
+        except Exception as e:
+            print ('OM.get:', uid, e)
+        return obj
 
     def remove(self, uid):
         """
@@ -528,7 +538,7 @@ class ObjectManager(PublisherMixin):
         dirname, filename = os.path.split(archivepath)
         pickledata = OrderedDict()
         npzdata = {}
-        for uid, obj in self._data.iteritems():
+        for uid, obj in self._data.items():
             objdict = OrderedDict()
             #
             # TODO: Melhorar isso
@@ -541,7 +551,7 @@ class ObjectManager(PublisherMixin):
                 pass
             #
             #print 'SAVE_CLASS'
-            for key, value in obj._getstate().iteritems():
+            for key, value in obj._getstate().items():
                 if isinstance(value, np.ndarray):
                     npzname = "{}_{}_{}".format(uid[0], uid[1], key)
                     npzdata[npzname] = value
@@ -587,34 +597,41 @@ class ObjectManager(PublisherMixin):
             Whether the operation was successful.
         """
         try:
-            ObjectManager._on_load = True
-            dirname, filename = os.path.split(archivepath)
-            picklefilename = filename.rsplit('.', 1)[0] + ".pkl"
-            npzfilename = filename.rsplit('.', 1)[0] + ".npz"
             
-            archivefile = zipfile.ZipFile(archivepath, mode='r')
-            archivefile.extract(picklefilename, path=dirname)
-            archivefile.extract(npzfilename, path=dirname)
-            archivefile.close()
             
-            picklefile = open(os.path.join(dirname, picklefilename), 'rb')
-            pickledict = pickle.load(picklefile)
-            picklefile.close()
+            try:
+                ObjectManager._on_load = True
+                dirname, filename = os.path.split(archivepath)
+                picklefilename = filename.rsplit('.', 1)[0] + ".pkl"
+                npzfilename = filename.rsplit('.', 1)[0] + ".npz"
+                
+                archivefile = zipfile.ZipFile(archivepath, mode='r')
+                archivefile.extract(picklefilename, path=dirname)
+                archivefile.extract(npzfilename, path=dirname)
+                archivefile.close()
+                
+                picklefile = open(os.path.join(dirname, picklefilename), 'rb')
+                pickledict = pickle.load(picklefile)
+                picklefile.close()
+                
+                npzfile = open(os.path.join(dirname, npzfilename), 'rb')
+                npzdata = np.load(npzfile)
+     
+                pickledata = pickledict['data']
+                parentuidmap = pickledict['parentmap']
+                
+                newuidsmap = {}
+                
+            except:
+                print ('Error 001')   
+                return
             
-            npzfile = open(os.path.join(dirname, npzfilename), 'rb')
-            npzdata = np.load(npzfile)
- 
-            pickledata = pickledict['data']
-            parentuidmap = pickledict['parentmap']
-            
-            newuidsmap = {}
-            
-            for olduid, objdict in pickledata.iteritems():
+            for olduid, objdict in pickledata.items():
                 try:
                     tid = olduid[0]
                     # Obtendo o state dict do objeto
                     for key, value in objdict.iteritems():
-                        if isinstance(value, basestring) and value.startswith(self._NPZIDENTIFIER):
+                        if isinstance(value, str) and value.startswith(self._NPZIDENTIFIER):
                             objdict[key] = npzdata[value.lstrip(self._NPZIDENTIFIER)]    
                     # TODO: melhorar isso abaixo
                     # A ideia e que a segunda opcao (except) venha a substituir a primeira

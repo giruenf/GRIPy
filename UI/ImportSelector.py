@@ -17,6 +17,8 @@ class Dialog(wx.Dialog):
 
         super(Dialog, self).__init__(parent, *args, **kwargs)
         
+        self.index = 0
+        
         self.names = names
         self.units = units
         self.curvetypes = curvetypes
@@ -53,7 +55,9 @@ class Dialog(wx.Dialog):
             curvetype_choice = wx.Choice(self.list, -1, choices=['']+self.curvetypes)
             datatype_choice = wx.Choice(self.list, -1, choices=['']+self.datatypes)
         
-            index = self.list.InsertStringItem(sys.maxint, self.names[i])
+            #index = self.list.InsertStringItem(sys.maxint, self.names[i])
+            index = self.list.InsertStringItem(self.index, self.names[i])
+            
             self.list.SetStringItem(index, 1, self.units[i])
             self.list.SetStringItem(index, 2, ' ')
             self.list.SetStringItem(index, 3, ' ')
@@ -63,6 +67,9 @@ class Dialog(wx.Dialog):
                         
             self.curvetype_choices.append(curvetype_choice)
             self.datatype_choices.append(datatype_choice)
+            
+            self.index += 1
+            
 
     def set_curvetype(self, i, curvetype):
         if curvetype in self.curvetypes:

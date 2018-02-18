@@ -1,6 +1,10 @@
 ﻿Gripy Change log - (pt-br only)
 Atualizado em 17/2/2018 por Adriano (@adrianopls)
 
+Versão 0.8.beta:
+================
+- Pypubsub 4.0 como dependencia
+- Python 3.6
 
 Versão 0.7:
 ===========

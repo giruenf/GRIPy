@@ -195,7 +195,7 @@
             "Caliper": 34
         },
         "cali": {
-            "Caliper": 151
+            "Caliper": 153
         },
         "caliper": {
             "Caliper": 0
@@ -276,13 +276,13 @@
             "Density": 0
         },
         "density": {
-            "Density": 10
+            "Density": 27
         },
         "dept": {
             "MD": 136
         },
         "depth": {
-            "MD": 104
+            "MD": 106
         },
         "dev": {
             "Deviation": 0
@@ -429,7 +429,7 @@
             "GammaRay": 0
         },
         "gr": {
-            "GammaRay": 220
+            "GammaRay": 222
         },
         "gr_": {
             "GammaRay": 10
@@ -810,10 +810,10 @@
             "Spectral": 0
         },
         "pr": {
-            "PoissonRatio": 17
+            "PoissonRatio": 19
         },
         "q": {
-            "QFactor": 3
+            "QFactor": 5
         },
         "rach": {
             "DeepRes": 0
@@ -885,7 +885,7 @@
             "Density": 30
         },
         "rhob": {
-            "Density": 134
+            "Density": 136
         },
         "rhoc": {
             "Density": 9
@@ -1167,7 +1167,7 @@
             "Spectral": 0
         },
         "time": {
-            "Time": 18
+            "Time": 35
         },
         "tnph": {
             "Neutron": 0
@@ -1254,10 +1254,10 @@
             "Velocity": 0
         },
         "vp": {
-            "Velocity": 114
+            "Velocity": 133
         },
         "vs": {
-            "ShearVel": 114
+            "ShearVel": 133
         },
         "vsalt": {
             "Vsalt": 0
@@ -1346,7 +1346,7 @@
             "Log": 34
         },
         "cali": {
-            "Log": 151
+            "Log": 153
         },
         "coordew": {
             "Log": 12
@@ -1374,13 +1374,13 @@
             "Log": 2
         },
         "density": {
-            "Log": 10
+            "Log": 27
         },
         "dept": {
             "Index": 136
         },
         "depth": {
-            "Index": 100
+            "Index": 102
         },
         "devi": {
             "Log": 4
@@ -1452,7 +1452,7 @@
             "Log": 20
         },
         "gr": {
-            "Log": 220
+            "Log": 222
         },
         "gr_": {
             "Log": 11
@@ -1587,13 +1587,13 @@
             "Log": 4
         },
         "pr": {
-            "Log": 45
+            "Log": 47
         },
         "psr": {
             "Log": 34
         },
         "q": {
-            "Log": 5
+            "Log": 7
         },
         "raw ": {
             "Log": 2
@@ -1632,7 +1632,7 @@
             "Log": 30
         },
         "rhob": {
-            "Log": 134
+            "Log": 136
         },
         "rhoc": {
             "Log": 9
@@ -1662,7 +1662,7 @@
             "Log": 4
         },
         "sdr": {
-            "Log": 6
+            "Log": 8
         },
         "sfl ": {
             "Log": 2
@@ -1713,7 +1713,7 @@
             "Log": 1
         },
         "time": {
-            "Index": 18
+            "Index": 35
         },
         "tot": {
             "Log": 59
@@ -1754,46 +1754,46 @@
             "Partition": 9
         },
         "vclc": {
-            "Log": 6
+            "Log": 8
         },
         "vcoa": {
-            "Log": 5
+            "Log": 7
         },
         "vill": {
-            "Log": 6
+            "Log": 8
         },
         "volu": {
             "Log": 2
         },
         "vp": {
-            "Log": 114
+            "Log": 133
         },
         "vpar": {
-            "Log": 6
+            "Log": 8
         },
         "vpvs": {
             "Log": 89
         },
         "vqua": {
-            "Log": 6
+            "Log": 8
         },
         "vs": {
-            "Log": 114
+            "Log": 133
         },
         "vsh": {
             "Log": 12
         },
         "vxbw": {
-            "Log": 6
+            "Log": 8
         },
         "vxga": {
-            "Log": 6
+            "Log": 8
         },
         "vxoi": {
-            "Log": 6
+            "Log": 8
         },
         "vxwa": {
-            "Log": 6
+            "Log": 8
         },
         "wate": {
             "Log": 2

@@ -218,7 +218,7 @@ widget_special_keys = ['initial', 'widget_name', 'options', 'controller_uid']
 
 #
 def get_control_keys(control_class):
-    if registered_widgets.has_key(control_class):
+    if control_class in registered_widgets:
         return registered_widgets.get(control_class)
     raise Exception('Unregistered class')   
 #
