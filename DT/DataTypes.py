@@ -320,7 +320,7 @@ class WellData1D(GenericDataType):
     def _on_OM_add(self, objuid):
         if objuid != self.uid:
             return
-        print ('WellData1D._on_OM_add:', objuid)
+        #print ('WellData1D._on_OM_add:', objuid)
         OM = ObjectManager(self)
         try:
             OM.unsubscribe(self._on_OM_add, 'add')     
@@ -329,12 +329,12 @@ class WellData1D(GenericDataType):
         try:
             
             parent_well_uid = OM._getparentuid(self.uid)
-            print ('parent_well_uid:', parent_well_uid)
+            #print ('parent_well_uid:', parent_well_uid)
             my_index_set = OM.get(self.index_set_uid)
-            print ('my_index_set:', my_index_set)
-            print ('list:')
-            for obj_is in OM.list('index_set', parent_well_uid):
-                print (obj_is)
+            #print ('my_index_set:', my_index_set)
+            #print ('list:')
+            #for obj_is in OM.list('index_set', parent_well_uid):
+            #    print (obj_is)
             if my_index_set not in OM.list('index_set', parent_well_uid):
                 print ('DEU RUIM')
                 raise Exception('Invalid attribute \"index_set\"={}'.format(self.index_set_uid))

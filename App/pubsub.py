@@ -8,7 +8,6 @@
 # May 11th, 2017
 
 #from wx.lib.pubsub import pub
-
 from pubsub import pub
 
 """

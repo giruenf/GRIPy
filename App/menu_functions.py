@@ -112,7 +112,6 @@ def on_new_wellplot(event):
         _, well_oid = results['well_uid']
         UIManager.get().create_log_plot(well_oid, lpf)
     '''        
-
     OM = ObjectManager(event.GetEventObject()) 
     wells = OrderedDict()
     for well in OM.list('well'):
@@ -129,15 +128,11 @@ def on_new_wellplot(event):
                 wells[well.name] = well.uid
         else:
             return
-       
     UIM = UIManager()
-    
     try:
         dlg = UIM.create('dialog_controller', title='New well plot')
-    
         ctn_well = dlg.view.AddCreateContainer('StaticBox', label='Well', orient=wx.VERTICAL, proportion=0, flag=wx.EXPAND|wx.TOP, border=5)
         dlg.view.AddChoice(ctn_well, proportion=0, flag=wx.EXPAND|wx.TOP, border=5, widget_name='welluid', options=wells)
-
         ctn_zaxis = dlg.view.AddCreateContainer('StaticBox', label='Z-axis', orient=wx.VERTICAL, proportion=0, flag=wx.EXPAND|wx.TOP, border=5)
         dlg.view.AddChoice(ctn_zaxis, proportion=0, flag=wx.EXPAND|wx.TOP, border=5, widget_name='zaxis_type')
         #choice_well = dlg.view.get_object('welluid')
@@ -150,7 +145,7 @@ def on_new_wellplot(event):
             choice_zaxis_type = dlg.view.get_object('zaxis_type')       
             choice_zaxis_type.set_options(zaxis)
             choice_zaxis_type.set_value(0, True)
-        #    
+        #
         choice_well = dlg.view.get_object('welluid')
         choice_well.set_trigger(on_change_well)
         choice_well.set_value(0, True)
@@ -169,8 +164,7 @@ def on_new_wellplot(event):
             #
         #
     except Exception as e:
-        print ('\n', str(e))
-        pass
+        print ('\nERROR on_new_wellplot:', str(e))
     finally:
         UIM.remove(dlg.uid) 
 

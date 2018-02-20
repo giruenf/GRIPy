@@ -128,7 +128,9 @@ def load_segy(event, filename, new_obj_name='', comparators_list=None,
 
 
 
-
+#
+# TODO: Verificar melhor opcao no Python 3.6
+#        
 def get_caller_info():
     """
         It is a Python 2 hack for a feature only avaialable in Python 3.3+
@@ -234,7 +236,8 @@ class DropTarget(wx.DropTarget):
 
     def _get_object_uid(self):
         if self.GetData(): 
-            obj_uid_str = self.data.GetData().tobytes()   
+            obj_uid_bytes = self.data.GetData().tobytes()   
+            obj_uid_str = obj_uid_bytes.decode()
             if obj_uid_str:
                 obj_uid = parse_string_to_uid(obj_uid_str)
                 return obj_uid

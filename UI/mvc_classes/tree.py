@@ -274,7 +274,7 @@ class TreeView(UIViewBase, wx.TreeCtrl):
         # Falta tratar Well
         def DoDragDrop():
             data_obj = wx.CustomDataObject('obj_uid')
-            data_obj.SetData(str(uid))
+            data_obj.SetData(str.encode(str(uid)))
             drag_source = wx.DropSource(tree)
             drag_source.SetData(data_obj)    
             drag_source.DoDragDrop()  

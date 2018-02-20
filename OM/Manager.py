@@ -6,7 +6,7 @@ Manager
 This file defines `ObjectManager`.
 """
 
-import wx # Just for MessageBox
+#import wx # Just for MessageBox
 
 import weakref
 from collections import OrderedDict
@@ -264,13 +264,16 @@ class ObjectManager(PublisherMixin):
         >>> obj2 == obj
         True
         """
+        #print ('OM.get:', uid, type(uid))
         if isinstance(uid, str):
             uid = app_utils.parse_string_to_uid(uid)
         try:    
+            #print ('OM.get [2]:', uid, type(uid))
             obj = self._data[uid]
         except Exception as e:
-            print ('OM.get:', uid, e)
+            print ('ERROR OM.get:', uid, e)
         return obj
+
 
     def remove(self, uid):
         """

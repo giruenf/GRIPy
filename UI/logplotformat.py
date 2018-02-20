@@ -1,12 +1,18 @@
 # -*- coding: utf-8 -*-
 
 from collections import OrderedDict
-from FileIO.PLT import PLTFile
-from wx.lib.pubsub import pub
-
+#from FileIO.PLT import PLTFile
+#
+#from wx.lib.pubsub import pub
+from pubsub import pub
+#
 import copy
 import numpy as np
 import inspect
+
+
+# TODO: VERIFICAR O QUE SERVER NESTE ARQUIVO
+
 
 """
 TRACK_KEYS = OrderedDict([
@@ -56,6 +62,7 @@ OTHER_KEYS = ['GRID', 'PRINTOUT', 'HEADER', 'ANNO', 'HEADERREMARKS',
 
 ###############################################################################
 
+# TODO: Verificar melhor opcao no Python 3.6
 
 def caller():
     """

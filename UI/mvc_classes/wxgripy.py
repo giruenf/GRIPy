@@ -6,7 +6,9 @@ from UI.uimanager import UIControllerBase
 from UI.uimanager import UIModelBase 
 from UI.uimanager import UIViewBase 
 
-from wx.lib.pubsub import pub
+#from wx.lib.pubsub import pub
+from pubsub import pub
+
 from collections import OrderedDict
 
 from App import log
@@ -260,12 +262,12 @@ class EncapsulatedControl(object):
         initial = special_kw.get('initial')
         options = special_kw.get('options', {})
         self._controller_uid = special_kw.get('controller_uid')
-        
         self.control = self._control_class(parent, **kwargs)  
         try:
             self.set_options(options)
-        except:
-            pass
+        except Exception as e:
+            print (e)
+            raise e
         if initial is not None:
             self.set_value(initial)
         self.old_value = None
@@ -311,7 +313,6 @@ class EncapsulatedControl(object):
                     raise
         self._trigger_func(name, old_value, new_value, **kwargs)
 
-
     def on_change(self, event):
         new_value = self.get_value()
         pub.sendMessage(self.get_topic(), name=self.name,
@@ -342,19 +343,20 @@ class EncapsulatedChoice(EncapsulatedControl):
         if self._map is not None:
             if not isinstance(self._map, OrderedDict):
                 self._map = OrderedDict(self._map)
-            self.control.AppendItems(self._map.keys())                       
-
+            self.control.AppendItems(list(self._map.keys()))                       
+ 
+        
     def set_value(self, value, event=False):
         if value is None:
             return
         if not isinstance(value, int):
             if not value in self._map.keys():
-                raise Exception('')
+                raise Exception('')  
             value = self._map.keys().index(value)   
-        self.control.SetSelection(value)  
+        self.control.SetSelection(value)     
         if event:             
             self.on_change(None)    
-
+        
     def get_value(self):
         if not self._map:
             return None
@@ -631,12 +633,10 @@ class Dialog(TopLevel, wx.Dialog):
         if container.__class__ == StaticBoxContainer:
             result = parent.GetSizer().Detach(ctn_sizer)
         else:
-            result =  parent.GetSizer().Detach(container)
-        #print '\nDetachContainer:', container, parent, result    
+            result =  parent.GetSizer().Detach(container)  
         container.Show(False)    
-        #self.Refresh()
         return result
-        #print 777
+
         
 
     def CreateContainer(self, container_type_name, *args, **kwargs):
