@@ -55,32 +55,72 @@ class TreeController(UIControllerBase):
 
     def get_treeitem(self, objuid):
         # If object's treeitemid already exists, we are done
-        treeitem = self._mapobjects.get(objuid)
-        if treeitem:
-            return treeitem
-        #
-        OM = ObjectManager(self)
-        obj = OM.get(objuid)
+        #print 'TreeController.get_treeitem:', objuid
+					
+						   
+		 
+								
+							
         try:
-            show = obj.SHOW_ON_TREE
-        except:
-            show = True
-        if not show:
-            return None
-        #
-        # Else, we will check for object parent treeitemid
-        parent_treeitem = self.get_parent_treeitem(objuid)
-        # Dealing with object treeitemid creation
-        obj_str = self._get_object_label(objuid)
-        treeitem = self.view.AppendItem(parent_treeitem, obj_str)
-        self.view.SetItemData(treeitem, (objuid, None))
-        self._mapobjects[objuid] = treeitem
-        self._maptypes[objuid] = {}
-        # Dealing with object attributes
-        self._create_object_attributes(objuid)
-        #
-        return treeitem
+            #print 'self._mapobjects:', self._mapobjects
+			   
+					   
+					
+					   
+		 
+														  
+            treeitem = self._mapobjects.get(objuid)
+            #print 'treeitem:', treeitem
+												
+            if treeitem:
+             #   print 'treeitem existe, retornando o'
+                return treeitem
+        except Exception as e:
+            #print '\nERROR[0]: TreeController.get_treeitem:', e
+            raise
+		 
+					   
 
+
+        try:
+            #print 'treeitem NAO existe, CRIAR...'
+            #print ('1 - Get object_ do OM')
+            OM = ObjectManager(self)
+            #print ('1.5')
+            obj = OM.get(objuid)
+            #print ('2')
+            try:
+                show = obj.SHOW_ON_TREE
+            except:
+                show = True
+            if not show:
+                return None
+            #print (3)
+        except BaseException as e:
+            #print '\nERROR[1]: TreeController.get_treeitem:', e
+            raise
+            
+        try:    
+            # Else, we will check for object parent treeitemid
+            parent_treeitem = self.get_parent_treeitem(objuid)
+            # Dealing with object treeitemid creation
+            #print (4)
+            obj_str = self._get_object_label(objuid)
+            treeitem = self.view.AppendItem(parent_treeitem, obj_str)
+            #print (5)
+            self.view.SetItemData(treeitem, (objuid, None))
+            #print (6)
+            self._mapobjects[objuid] = treeitem
+            self._maptypes[objuid] = {}
+            #print (7)
+            # Dealing with object attributes
+            self._create_object_attributes(objuid)
+            #print ('FIM')
+            #
+            return treeitem
+        except BaseException as e:
+            #print '\nERROR[2]: TreeController.get_treeitem:', e
+            raise
 
     def _get_object_attributes(self, objuid):
         OM = ObjectManager(self)

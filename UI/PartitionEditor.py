@@ -379,6 +379,8 @@ class NewPartitionDialog(wx.Dialog):
         name = self.name_ctrl.GetValue()
         return name
 
+
+
 class Dialog(wx.Dialog):
     @debugdecorator
     def __init__(self, *args, **kwargs):
@@ -559,6 +561,9 @@ class Dialog(wx.Dialog):
                 # TODO: alpha
                 table.set_color(row, color)
                 self.grid.ForceRefresh()
+                
+                ###
+                
             dlg.Destroy()
         else:
             event.Skip()

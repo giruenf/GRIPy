@@ -11,6 +11,8 @@ from App import app_utils
 
 from Basic.Colors import COLOR_CYCLE_RGB
 
+from UI.uimanager import UIManager
+
 # TODO: Tirar a necessidade do uso disso
 NAME_UNIT_SEPARATOR = ':::'
 
@@ -28,6 +30,7 @@ for i, color in enumerate(COLOR_CYCLE_RGB):
 
 __DEBUG = False
 
+
 def debugdecorator(func):
     if not __DEBUG:
         return func
@@ -44,8 +47,10 @@ def debugdecorator(func):
     return wrapper
 
 
+
 class PartitionTable(wx.grid.GridTableBase):
     @debugdecorator
+    
     def __init__(self, partitionuid):
         super(PartitionTable, self).__init__()
         
@@ -108,7 +113,7 @@ class PartitionTable(wx.grid.GridTableBase):
         self._OM.add(part, self.partitionuid)
         self.partmap.append(part.uid)
         color = self.get_color(0)
-        self.set_color(-1,color)
+        self.set_color(-1, color)
 
         self.GetView().BeginBatch()
         msg = wx.grid.GridTableMessage(self, wx.grid.GRIDTABLE_NOTIFY_ROWS_APPENDED, numRows)
@@ -283,6 +288,18 @@ class PartitionTable(wx.grid.GridTableBase):
     def set_color(self, row, color):
         part = self._OM.get(self.partmap[row])
         part.color = color
+        
+        ###
+        # TODO: Isso abaixo eh muito armengue!!!
+        partition_uid = self._OM._getparentuid(part.uid)
+        UIM = UIManager()
+        tocs = UIM.list('track_object_controller') 
+        for toc in tocs:
+            if (toc.model.obj_tid, toc.model.obj_oid) == partition_uid:
+                repr_ctrl = toc.get_representation()
+                repr_ctrl.view.draw()    
+        ###
+        
 
     @debugdecorator
     def get_color(self, row):
@@ -306,6 +323,8 @@ class PartitionTable(wx.grid.GridTableBase):
 
 
 class PropertyEntryDialog(wx.Dialog):
+    
+    
     def __init__(self, *args, **kwargs):
         super(PropertyEntryDialog, self).__init__(*args, **kwargs)
 
@@ -429,7 +448,11 @@ class NewPartitionDialog(wx.Dialog):
         name = self.name_ctrl.GetValue()
         return name
 
+
+
+
 class Dialog(wx.Dialog):
+    
     @debugdecorator
     def __init__(self, *args, **kwargs):
         if 'size' not in kwargs:
@@ -459,6 +482,7 @@ class Dialog(wx.Dialog):
             for partition in self._OM.list('partition'):
                 work_table.append(PartitionTable(partition.uid))
             self.tables.append(work_table)
+            
         else:
             self.partitionmap = [partition.uid for partition in self._OM.list('partition')]
             for welluid in self.wellmap:
@@ -643,6 +667,10 @@ class Dialog(wx.Dialog):
                 # TODO: alpha
                 table.set_color(row, color)
                 self.grid.ForceRefresh()
+                
+                ###
+                
+                
             dlg.Destroy()
         else:
             event.Skip()

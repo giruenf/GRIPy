@@ -275,8 +275,8 @@ class TrackObjectController(UIControllerBase):
         self.model.plottype = None
         obj = self.get_object()
         if obj:
-            if obj.tid != 'partition':
-                self.set_filter()
+            #if obj.tid != 'partition':
+            self.set_filter()
             plottype = _PREFERRED_PLOTTYPES.get(obj.tid)
             self.model.plottype = plottype       
             self.attach(obj.uid)
@@ -314,9 +314,9 @@ class TrackObjectController(UIControllerBase):
                 state = self._get_log_state()
                 UIM.create(repr_tid, self.uid, **state)
                 self._do_draw()
-            except Exception as e:    
+            except:    
                 self.model.plottype = None    
-                raise e
+                raise
                             
                 
     def _do_draw(self):
@@ -1800,23 +1800,49 @@ class PatchesRepresentationView(RepresentationView):
         #
         obj = controller.get_object()
         #
-        index = obj.get_index()[0][0]
+        #print '\n\nENTROU AQUI...'
+        #print obj.uid
+        #index = obj.get_index()[0][0]
+        toc = UIM.get(toc_uid)
+        filter_ = toc.get_filter()
         
+        #print 555
+        
+        z_data = filter_.data[0]
+        di_uid, display, is_range, z_first, z_last = z_data
+        
+        #print 666
+        z_data_index = OM.get(di_uid)
+        #z_data = z_data_index.data[z_first:z_last]
+        
+        #print 777
         
         for part in OM.list('part', obj.uid):
+            #print '\n', obj.uid
             vec = []        
             start = None
             end = None
+            #print part.name
+            #print 
             
-            for idx, d in enumerate(part.data):
+            
+            for idx in range(z_first, z_last):
+            
+            #for idx, d in enumerate(part.data):
+                #print idx, d
+                d = part.data[idx]
                 if d and start is None:
-                    start = index.data[idx]
+                    #start = z_data.data[idx]
+                    start = z_data_index.data[idx]
                 elif not d and start is not None:
-                    end = index.data[idx-1]
-                  #  print (start, end)
+                    #end = z_data.data[idx-1]
+                    end = z_data_index.data[idx]
+              #      print (start, end)
                     vec.append((start, end))
                     start = None
-                    
+                
+            #print 'zzzzzzz'
+            
             #color = colorConverter.to_rgba(part.color)
             #print color
             patches = [] 
@@ -1834,7 +1860,7 @@ class PatchesRepresentationView(RepresentationView):
             )
             self._set_picking(collection, 0)
             self._mplot_objects[part.uid] = collection
-           
+            
         self.set_title(obj.name)    
         self.set_subtitle('partition')
         self.draw_canvas()

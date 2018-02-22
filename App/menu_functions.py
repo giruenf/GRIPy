@@ -2720,7 +2720,7 @@ def on_import_las(event):
                         print ('data[{}]: {}'.format(i, data[i]))
                         raise
                     #    
-                    partition = OM.new('partition', name=names[i], 
+                    partition = OM.new('partition', index_set_uid=index_set.uid, name=names[i], 
                                            datatype=sel_curvetypes[i]
 															   
                     )
@@ -2728,9 +2728,9 @@ def on_import_las(event):
                     OM.add(partition, well.uid)
                     for j in range(len(codes)):
                         
-                        print ('OM.new(\'part\', {}, code={}, datatype={})'.format(booldata[j], codes[j], sel_curvetypes[i]))
+                        #print 'OM.new(\'part\', {}, code={}, datatype={})'.format(booldata[j], codes[j], sel_curvetypes[i])
                         
-                        part = OM.new('part', booldata[j], code=int(codes[j]), datatype=sel_curvetypes[i])
+                        part = OM.new('part', booldata[j], index_set_uid=partition.index_set_uid, code=int(codes[j]), datatype=sel_curvetypes[i])
 																		   
                         OM.add(part, partition.uid)
                         

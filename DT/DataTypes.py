@@ -309,6 +309,7 @@ class WellData1D(GenericDataType):
         try:    
             tid, oid = index_set_uid 
         except:
+            print (index_set_uid, type(index_set_uid))										
             raise Exception('Object attribute \"index_set_uid\" must be a \"uid\" tuple.')    
         if tid != 'index_set':
             raise Exception('Object attribute \"index_set_uid\" must have its first argument as \"index_set\".')
@@ -320,21 +321,26 @@ class WellData1D(GenericDataType):
     def _on_OM_add(self, objuid):
         if objuid != self.uid:
             return
-        #print ('WellData1D._on_OM_add:', objuid)
+        #print 'WellData1D._on_OM_add:', objuid
         OM = ObjectManager(self)
         try:
             OM.unsubscribe(self._on_OM_add, 'add')     
         except Exception as e:
             print ('Deu ruim no unsub:', e)
         try:
-            
-            parent_well_uid = OM._getparentuid(self.uid)
-            #print ('parent_well_uid:', parent_well_uid)
+            parent_uid = OM._getparentuid(self.uid)
+            # TODO: remover esse armengue
+            if self.tid == 'part':
+                parent_well_uid = OM._getparentuid(parent_uid)
+            else:
+                parent_well_uid = parent_uid
+            # FIM - Armengue    
+        #    print 'parent_well_uid:', parent_well_uid
             my_index_set = OM.get(self.index_set_uid)
-            #print ('my_index_set:', my_index_set)
-            #print ('list:')
-            #for obj_is in OM.list('index_set', parent_well_uid):
-            #    print (obj_is)
+        #    print 'my_index_set:', my_index_set
+        #    print 'list:'
+        #    for obj_is in OM.list('index_set', parent_well_uid):
+        #        print obj_is
             if my_index_set not in OM.list('index_set', parent_well_uid):
                 print ('DEU RUIM')
                 raise Exception('Invalid attribute \"index_set\"={}'.format(self.index_set_uid))
@@ -559,8 +565,8 @@ class Part(WellData1D):
     _DEFAULTCOLORS = COLOR_CYCLE_RGB
     _FRIENDLY_NAME = 'Part'
     
-    def __init__(self, data=None,**attributes):        
-        super(Part, self).__init__(data,**attributes)
+    def __init__(self, data=None, **attributes):        
+        super(Part, self).__init__(data, **attributes)
 
     @GenericDataType.name.getter
     def name(self):
@@ -595,6 +601,7 @@ class Part(WellData1D):
     @color.deleter
     def color(self):
         del self.attributes['color']
+
 
 class Partition(WellData1D):
     """

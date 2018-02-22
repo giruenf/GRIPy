@@ -190,11 +190,12 @@ class PublisherMixin(object):
             pub.sendMessage(topic, **data)
             #print ('OK send message')
         except Exception as e:
-            #print ('\ndeu ruim:', topic, **data)
-            #print ('ERROR [PublisherMixin.send_message]:', self, topic, data, e)
+            print ('ERROR [PublisherMixin.send_message]:', self)
+            print ('At:', topic, data)
+            print (e.__class__, e.message, e.args, e)
             #print ('\n\n')
             #pass
-            raise e
+            raise
 
 
     def get_publisher_name(self):
