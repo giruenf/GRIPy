@@ -601,6 +601,7 @@ class ObjectManager(PublisherMixin):
         """
         try:
             
+            print ('\n\nObjectManager.load')
             
             try:
                 ObjectManager._on_load = True
@@ -625,24 +626,28 @@ class ObjectManager(PublisherMixin):
                 
                 newuidsmap = {}
                 
+                print ('parte 001 OK')   
+                
             except:
                 print ('Error 001')   
                 return
+            
+            print ()
             
             for olduid, objdict in pickledata.items():
                 try:
                     tid = olduid[0]
                     # Obtendo o state dict do objeto
-                    for key, value in objdict.iteritems():
+                    for key, value in objdict.items():
                         if isinstance(value, str) and value.startswith(self._NPZIDENTIFIER):
                             objdict[key] = npzdata[value.lstrip(self._NPZIDENTIFIER)]    
                     # TODO: melhorar isso abaixo
                     # A ideia e que a segunda opcao (except) venha a substituir a primeira
-                    print ('\ntentando criar:', tid, objdict,)
+                    print ('\ntentando criar:', tid, objdict)
                     obj = self.new(tid, **objdict)
                     print ('Ok')
-                except:
-                    print ('Error')
+                except Exception as e:
+                    print ('Error', e)
                     try:
                         print ('tentando de novo',)
                         obj = self.create_object_from_state(tid, **objdict)

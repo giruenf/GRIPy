@@ -753,15 +753,18 @@ class UIManager(Manager):
         log.info('UI Manager has closed.')
 
     def list(self, tidfilter=None, parentuidfilter=None):
-        if parentuidfilter is None:
-            objs = self._data.values()
-        else:
-            parent = self.get(parentuidfilter)
-            objs = [self._data.get(uid) for uid in self.get_children(parent.uid)]
-        if tidfilter:
-            return [obj for obj in objs if obj.tid == tidfilter]
-        else:
-            return objs            
+        try:
+            if parentuidfilter is None:
+                objs = self._data.values()
+            else:
+                parent = self.get(parentuidfilter)
+                objs = [self._data.get(uid) for uid in self.get_children(parent.uid)]
+            if tidfilter:
+                return [obj for obj in objs if obj.tid == tidfilter]
+            else:
+                return objs      
+        except:
+            raise
             
     def _get_top_level_uids(self):
         return [uid for uid, puid in UIManager._parentuidmap.items() if puid is None]

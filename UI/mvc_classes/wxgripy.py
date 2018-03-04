@@ -264,10 +264,10 @@ class EncapsulatedControl(object):
         self._controller_uid = special_kw.get('controller_uid')
         self.control = self._control_class(parent, **kwargs)  
         try:
-            self.set_options(options)
+            if options:
+                self.set_options(options)
         except Exception as e:
-            print (e)
-            raise e
+            raise
         if initial is not None:
             self.set_value(initial)
         self.old_value = None
