@@ -62,7 +62,6 @@ def load():
         """
         Construct the application itself.
         """    
-        UIM = UIManager()
         mwc = UIM.create('main_window_controller', 
                          title=app._gripy_app_state.get('app_display_name')
         )
@@ -375,45 +374,51 @@ def load():
             label='Bem vindo ao ' + app._gripy_app_state.get('app_display_name')
         )   
         
-        #"""
+
+    _do_initial_tests()
 
 
-        # """
-        # Area reservada para alguns testes 
-        # """
-        
-        #fullfilename = 'C:\\Users\\Adriano\\Desktop\\aaa_teste_5.pgg'
-        
-        #fullfilename = 'C:\\Users\\Adriano\\Desktop\\aaa_teste_8.pgg'
-        
-        #fullfilename = 'C:\\Users\\Adriano\\Desktop\\2709_pocos_classes.pgg'
-        #app.load_project_data(fullfilename)    
-
-        #
-        #lpc = UIM.create('logplot_controller', mwc.uid)
-        #tc1 = UIM.create('track_controller', lpc.uid)
-        #tc1.model.width = 900
-        
-        #UIM.create('track_controller', lpc.uid)
-        #UIM.create('track_controller', lpc.uid)
-        #UIM.create('track_controller', lpc.uid, overview=True, plotgrid=False)
-
-        # CASA
-        #mwc.model.pos = (-8, 0)
-        #mwc.model.size = (1240, 1046)
-        #mwc.model.maximized = False
-
-        # BR
-        #mwc.model.pos = (-1925, -921) 
-        #mwc.model.size = (1116, 1131) 
-
-        # """    
-        # Fim - Testes
-        # """
 
 
-        return mwc
+def get_main_window_controller():    
+    UIM = UIManager()
+    mwc = UIM.list('main_window_controller')[0]   
+    return mwc
+   
     
     
+"""
+Funcao reservada para alguns testes 
+"""
+def _do_initial_tests():
+    pass
+    #fullfilename = 'C:\\Users\\Adriano\\Desktop\\aaa_teste_5.pgg'
+    
+    #fullfilename = 'C:\\Users\\Adriano\\Desktop\\aaa_teste_8.pgg'
+    
+    #fullfilename = 'C:\\Users\\Adriano\\Desktop\\2709_pocos_classes.pgg'
+    #app.load_project_data(fullfilename)    
+
+    #
+    #lpc = UIM.create('logplot_controller', mwc.uid)
+    #tc1 = UIM.create('track_controller', lpc.uid)
+    #tc1.model.width = 900
+    
+    #UIM.create('track_controller', lpc.uid)
+    #UIM.create('track_controller', lpc.uid)
+    #UIM.create('track_controller', lpc.uid, overview=True, plotgrid=False)
+
+    # CASA
+    #mwc.model.pos = (-8, 0)
+    #mwc.model.size = (1240, 1046)
+    #mwc.model.maximized = False
+
+    # BR
+    #mwc.model.pos = (-1925, -921) 
+    #mwc.model.size = (1116, 1131) 
+
+    # """    
+    # Fim - Testes
+    # """
     
     

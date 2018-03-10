@@ -14,10 +14,12 @@ from App.gripy_plugin_manager import GripyPluginManagerSingleton
 wx.SystemOptions.SetOption("msw.remap", '0')
 
 
+
 class GripyApp(wx.App):
     __version__ = None
     _inited = False
       
+    
     def __init__(self):
         self.OM_file = None
         self._wx_app_state = OrderedDict(DEFS.get('wx.App'))
@@ -193,16 +195,25 @@ class GripyApp(wx.App):
         gripy_functions.register_app_functions()
         log.info('Registering Gripy internal functions ended.')          
         #
-        mwc = Interface.load()
-        PM = GripyPluginManagerSingleton.get()
-        plugins_places = self._plugins_state.get('plugins_places')
-        PM.setPluginPlaces(plugins_places)
-        #PM.setPluginPlaces(['Plugins'])
-        PM.collectPlugins()   
+        Interface.load()
+        self._init_plugins()
+        mwc = Interface.get_main_window_controller()
         mwc.view.Show()
         self.SetTopWindow(mwc.view)
         # Here, it is necessary to return True as requested by wx.App         
         return True
+
+
+    """
+    Init plugins system
+    """
+    def _init_plugins(self):
+        PM = GripyPluginManagerSingleton.get()
+        plugins_places = self._plugins_state.get('plugins_places')
+        PM.setPluginPlaces(plugins_places)
+        #PM.setPluginPlaces(['Plugins'])
+        PM.collectPlugins()           
+
 
 
     """
