@@ -1,0 +1,9 @@
+[Core]
+Name = Synthetic Gathers
+Module = SynthGathers
+
+[Documentation]
+Author = Adriano Paulo
+Version = 0.1
+Website = www.giruenf.net
+Description = Plugin para criação de Gathers Sintéticos 
