@@ -1,9 +1,0 @@
-[Core]
-Name = ExposeIDs
-Module = ExposeIDs
-
-[Documentation]
-Author = Fernando Vizeu Santos
-Version = 0.1.0
-Website = fvize.us
-Description = Exemplo de plugin simples para o programa de python
