@@ -1,17 +1,14 @@
 # -*- coding: utf-8 -*-
-import wx
-
-from UI.uimanager import UIManager
-from UI.uimanager import UIControllerBase 
-from UI.uimanager import UIModelBase 
-from UI.uimanager import UIViewBase 
-
-#from wx.lib.pubsub import pub
-from pubsub import pub
 
 from collections import OrderedDict
 
-from App import log
+import wx
+from pubsub import pub
+
+from ui.uimanager import UIManager
+from ui.uimanager import UIControllerBase 
+from ui.uimanager import UIModelBase 
+from ui.uimanager import UIViewBase 
 
 
 ###############################################################################

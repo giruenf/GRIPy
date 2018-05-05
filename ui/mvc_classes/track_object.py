@@ -1,29 +1,27 @@
 # -*- coding: utf-8 -*-
-from OM.Manager import ObjectManager
-from OM.Objects import GenericObject
-from UI.uimanager import UIManager
-from UI.uimanager import UIControllerBase 
-from UI.uimanager import UIModelBase 
-from UI.uimanager import UIViewBase 
 
-from DT.DataTypes import Density
+import collections    
 
-# TODO: verificar se linhas abaixo devem ser mantidas
-import Parms
 import numpy as np
-
-from scipy.interpolate import interp1d
-
 import numpy.ma as ma
+from scipy.interpolate import interp1d
 import matplotlib.mlab as mlab
 import matplotlib.collections as mcoll
 import matplotlib.cbook as cbook 
 import matplotlib
-                                   
 from matplotlib.patches import FancyBboxPatch
-import collections                                      
-                                          
-from App.app_utils import MPL_COLORS, MPL_COLORMAPS
+
+from om.Manager import ObjectManager
+from om.Objects import GenericObject
+from ui.uimanager import UIManager
+from ui.uimanager import UIControllerBase 
+from ui.uimanager import UIModelBase 
+from ui.uimanager import UIViewBase 
+from datatypes.DataTypes import Density
+# TODO: verificar se linhas abaixo devem ser mantidas
+import basic.parms
+from app.app_utils import MPL_COLORS, MPL_COLORMAPS
+
 
 
 ###############################################################################

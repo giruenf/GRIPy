@@ -7,7 +7,7 @@ This file defines the base classes for objects that can be managed by
 `ObjectManager`.
 """
 
-from App.pubsub import PublisherMixin
+from app.pubsub import PublisherMixin
 
 
 class GenericObject(PublisherMixin):

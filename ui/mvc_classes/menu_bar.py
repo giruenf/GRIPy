@@ -1,10 +1,12 @@
 # -*- coding: utf-8 -*-
+
 import wx
-from UI.uimanager import UIManager
-from UI.uimanager import UIControllerBase 
-from UI.uimanager import UIModelBase 
-from UI.uimanager import UIViewBase 
-from App import log
+
+from ui.uimanager import UIManager
+from ui.uimanager import UIControllerBase 
+from ui.uimanager import UIModelBase 
+from ui.uimanager import UIViewBase 
+from app import log
 
 
 class MenuBarController(UIControllerBase):

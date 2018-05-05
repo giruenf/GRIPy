@@ -1,9 +1,9 @@
 # -*- coding: utf-8 -*-
-#from collections import OrderedDict
-#import FileIO
-import App
+
 import os 
 import json
+
+import app
 
 CURVETYPES_FILE='CurvetypesVis.json'
 PARAMETERS2_FILE = 'parameters2.json'
@@ -44,11 +44,11 @@ class ParametersManager(object):
         self.PLTs['No Tracks Plot'] = None
         self.PLTs = FileIO.PLT.getPLTFiles(self.PLTs, os.path.dirname(os.path.abspath(__file__)))
         """
-        self._curvetypes = App.app_utils.read_json_file(
+        self._curvetypes = app.app_utils.read_json_file(
              os.path.join(os.path.dirname(os.path.abspath(__file__)),
                           CURVETYPES_FILE)
         )
-        self._parametersdict = App.app_utils.read_json_file(
+        self._parametersdict = app.app_utils.read_json_file(
              os.path.join(os.path.dirname(os.path.abspath(__file__)),
                           PARAMETERS2_FILE)
         )   

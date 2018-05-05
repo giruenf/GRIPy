@@ -1,72 +1,72 @@
 # -*- coding: utf-8 -*-
 
-from OM.Manager import ObjectManager
-from UI.uimanager import UIManager
+from om.Manager import ObjectManager
+from ui.uimanager import UIManager
 #
-from DT.DataTypes import Well
-from DT.DataTypes import Core
-from DT.DataTypes import Log
-from DT.DataTypes import Partition
-from DT.DataTypes import RockTable
-from DT.DataTypes import Inference
-from DT.DataTypes import RockType
-from DT.DataTypes import Part
-from DT.DataTypes import Property
+from datatypes.DataTypes import Well
+from datatypes.DataTypes import Core
+from datatypes.DataTypes import Log
+from datatypes.DataTypes import Partition
+from datatypes.DataTypes import RockTable
+from datatypes.DataTypes import Inference
+from datatypes.DataTypes import RockType
+from datatypes.DataTypes import Part
+from datatypes.DataTypes import Property
 
-from DT.DataTypes import Seismic
-#from DT.DataTypes import Velocity
-
-
-from DT.DataTypes import Scalogram
-from DT.DataTypes import GatherScalogram
-from DT.DataTypes import Spectogram
-from DT.DataTypes import GatherSpectogram
+from datatypes.DataTypes import Seismic
+#from datatypes.DataTypes import Velocity
 
 
-#from DT.DataTypes import Angle
-#from DT.DataTypes import Inversion
-#from DT.DataTypes import InversionParameter
-from DT.DataTypes import WellGather
-from DT.DataTypes import IndexSet
-from DT.DataTypes import DataIndex
+from datatypes.DataTypes import Scalogram
+from datatypes.DataTypes import GatherScalogram
+from datatypes.DataTypes import Spectogram
+from datatypes.DataTypes import GatherSpectogram
 
-from DT.DataTypes import Model1D
-from DT.DataTypes import Zone
-from DT.DataTypes import ZoneSet
+
+#from datatypes.DataTypes import Angle
+#from datatypes.DataTypes import Inversion
+#from datatypes.DataTypes import InversionParameter
+from datatypes.DataTypes import WellGather
+from datatypes.DataTypes import IndexSet
+from datatypes.DataTypes import DataIndex
+
+from datatypes.DataTypes import Model1D
+from datatypes.DataTypes import Zone
+from datatypes.DataTypes import ZoneSet
 #
-from UI.mvc_classes.track_object import DataFilter
+from ui.mvc_classes.track_object import DataFilter
 #
-from DT.DTRock import Rock
-from DT.DTRock import Fluid
+from datatypes.DTRock import Rock
+from datatypes.DTRock import Fluid
 #
-from UI.mvc_classes.wxgripy import FrameController, FrameModel, Frame
-from UI.mvc_classes.wxgripy import DialogController, DialogModel, Dialog
-from UI.mvc_classes.main_window import MainWindowController, MainWindowModel, MainWindow
-from UI.mvc_classes.menu_bar import MenuBarController, MenuBarModel, MenuBarView
-from UI.mvc_classes.menu import MenuController, MenuModel, MenuView
-from UI.mvc_classes.menu_item import MenuItemController, MenuItemModel, MenuItemView
-from UI.mvc_classes.tree import TreeController, TreeView
-from UI.mvc_classes.tool_bar import ToolBarController, ToolBarModel, ToolBar
-from UI.mvc_classes.tool_bar_tool import ToolBarToolController, ToolBarToolModel
-from UI.mvc_classes.status_bar import StatusBarController, StatusBarModel, StatusBar
-from UI.mvc_classes.log_plot import LogPlotController, LogPlotModel, LogPlot
-from UI.mvc_classes.track import TrackController, TrackModel, TrackView
-from UI.mvc_classes.track_object import TrackObjectController, \
+from ui.mvc_classes.wxgripy import FrameController, FrameModel, Frame
+from ui.mvc_classes.wxgripy import DialogController, DialogModel, Dialog
+from ui.mvc_classes.main_window import MainWindowController, MainWindowModel, MainWindow
+from ui.mvc_classes.menu_bar import MenuBarController, MenuBarModel, MenuBarView
+from ui.mvc_classes.menu import MenuController, MenuModel, MenuView
+from ui.mvc_classes.menu_item import MenuItemController, MenuItemModel, MenuItemView
+from ui.mvc_classes.tree import TreeController, TreeView
+from ui.mvc_classes.tool_bar import ToolBarController, ToolBarModel, ToolBar
+from ui.mvc_classes.tool_bar_tool import ToolBarToolController, ToolBarToolModel
+from ui.mvc_classes.status_bar import StatusBarController, StatusBarModel, StatusBar
+from ui.mvc_classes.log_plot import LogPlotController, LogPlotModel, LogPlot
+from ui.mvc_classes.track import TrackController, TrackModel, TrackView
+from ui.mvc_classes.track_object import TrackObjectController, \
     TrackObjectModel   
-from UI.mvc_classes.frame_nav import NavigatorController, \
+from ui.mvc_classes.frame_nav import NavigatorController, \
     NavigatorModel, Navigator
-from UI.mvc_classes.cross_plotter import CrossPlotController, CrossPlotModel, CrossPlot
-from UI.mvc_classes.workpage import WorkPageController, WorkPageModel, WorkPage
-from UI.mvc_classes.track_object import \
+from ui.mvc_classes.cross_plotter import CrossPlotController, CrossPlotModel, CrossPlot
+from ui.mvc_classes.workpage import WorkPageController, WorkPageModel, WorkPage
+from ui.mvc_classes.track_object import \
     LineRepresentationController, LineRepresentationModel, LineRepresentationView, \
     IndexRepresentationController, IndexRepresentationModel, IndexRepresentationView, \
     DensityRepresentationController, DensityRepresentationModel, DensityRepresentationView, \
     PatchesRepresentationController, PatchesRepresentationModel, PatchesRepresentationView, \
     ContourfRepresentationController, ContourfRepresentationModel, ContourfRepresentationView                          
-from UI.mvc_classes.lpf import LogPlotEditorController, LogPlotEditor        
-from UI.mvc_classes.lpf import LPETrackPanelController, LPETrackPanel
-from UI.mvc_classes.lpf import LPEObjectsPanelController, LPEObjectsPanel
-from UI.mvc_classes.propgrid import PropertyGridController, \
+from ui.mvc_classes.lpf import LogPlotEditorController, LogPlotEditor        
+from ui.mvc_classes.lpf import LPETrackPanelController, LPETrackPanel
+from ui.mvc_classes.lpf import LPEObjectsPanelController, LPEObjectsPanel
+from ui.mvc_classes.propgrid import PropertyGridController, \
                                             PropertyGridView
 #
 

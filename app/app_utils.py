@@ -8,10 +8,10 @@ import timeit
 import inspect
 import collections
 from enum import Enum  
-from App import log
+from app import log
 
-import FileIO
-from OM.Manager import ObjectManager
+import fileio
+from om.Manager import ObjectManager
 
 
 import numpy as np

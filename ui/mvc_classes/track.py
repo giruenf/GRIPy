@@ -1,25 +1,21 @@
 # -*- coding: utf-8 -*-
+
 from collections import OrderedDict
-import wx
-
-from OM.Manager import ObjectManager
-from UI.uimanager import UIManager
-from UI.uimanager import UIControllerBase 
-from UI.uimanager import UIModelBase 
-from UI.uimanager import UIViewBase 
-from UI.mvc_classes.mpl_base import TrackFigureCanvas
-from UI.mvc_classes.mpl_base import VisDataLabel
-
-from App.app_utils import LogPlotState  
-from App import log
-
-from App.gripy_function_manager import FunctionManager
 
 import numpy as np
-
-#import matplotlib
+import wx
 import matplotlib.pyplot as plt
 
+from om.Manager import ObjectManager
+from ui.uimanager import UIManager
+from ui.uimanager import UIControllerBase 
+from ui.uimanager import UIModelBase 
+from ui.uimanager import UIViewBase 
+from ui.mvc_classes.mpl_base import TrackFigureCanvas
+from ui.mvc_classes.mpl_base import VisDataLabel
+from app.app_utils import LogPlotState  
+from app.gripy_function_manager import FunctionManager
+from app import log
 
 
 class TrackController(UIControllerBase):

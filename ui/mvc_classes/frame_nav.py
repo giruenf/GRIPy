@@ -1,15 +1,15 @@
 # -*- coding: utf-8 -*-
-import wx
-from OM.Manager import ObjectManager
-from UI.uimanager import UIManager
 
 from collections import OrderedDict
 
-from UI.mvc_classes.wxgripy import FrameController
-from UI.mvc_classes.wxgripy import FrameModel
-from UI.mvc_classes.wxgripy import Frame
+import wx
 
-from App import log
+from om.Manager import ObjectManager
+from ui.uimanager import UIManager
+from ui.mvc_classes.wxgripy import FrameController
+from ui.mvc_classes.wxgripy import FrameModel
+from ui.mvc_classes.wxgripy import Frame
+from app import log
 
 
 SLIDER_MARGIN = 5  # Default 6

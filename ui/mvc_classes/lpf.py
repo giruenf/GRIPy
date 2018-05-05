@@ -1,31 +1,26 @@
 # -*- coding: utf-8 -*-
+
 import sys
+from collections import OrderedDict
+
 import wx
-from UI.uimanager import UIManager
-from UI.uimanager import UIControllerBase  
-from UI.uimanager import UIModelBase
-from UI.uimanager import UIViewBase 
-from App import log
-#
-###
+from wx.adv import OwnerDrawnComboBox  
 import wx.dataview as dv
 import wx.propgrid as pg
 from wx.propgrid import PropertyGrid
-#from wx.combo import OwnerDrawnComboBox
 import wx.lib.colourdb
-from collections import OrderedDict
-from OM.Manager import ObjectManager
-###
-from UI.mvc_classes.track import TrackController    
-from UI.mvc_classes.track_object import TrackObjectController     
-from App.app_utils import parse_string_to_uid
 
-from wx.adv import OwnerDrawnComboBox  
-
-import App.pubsub as pub
-
-from UI.mvc_classes.log_plot import LogPlotController
-
+from om.Manager import ObjectManager
+from ui.mvc_classes.log_plot import LogPlotController
+from ui.uimanager import UIManager
+from ui.uimanager import UIControllerBase  
+from ui.uimanager import UIModelBase
+from ui.uimanager import UIViewBase 
+from ui.mvc_classes.track import TrackController    
+from ui.mvc_classes.track_object import TrackObjectController  
+import app.pubsub as pub   
+from app.app_utils import parse_string_to_uid
+from app import log
 
 
 class LogPlotEditorController(UIControllerBase):

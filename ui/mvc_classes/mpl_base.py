@@ -1,11 +1,8 @@
 # -*- coding: utf-8 -*-
+
 import numpy as np
 import wx
-
 import matplotlib
-#matplotlib.interactive(False)
-#matplotlib.use('WXAgg')
-
 from matplotlib.axes import Axes
 from matplotlib.backends.backend_wxagg import FigureCanvasWxAgg as FigureCanvas
 from matplotlib.scale import ScaleBase, register_scale
@@ -13,8 +10,7 @@ from matplotlib.transforms import Transform
 from matplotlib.figure import Figure
 from matplotlib.ticker import NullFormatter, NullLocator, MultipleLocator
 
-#from App import log
-from UI.uimanager import UIManager
+from ui.uimanager import UIManager
 
 
 ###############################################################################

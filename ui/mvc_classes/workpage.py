@@ -1,13 +1,14 @@
 # -*- coding: utf-8 -*-
+
 import wx
+
 #from OM.Manager import ObjectManager
-from UI.uimanager import UIManager
-from UI.uimanager import UIControllerBase 
-from UI.uimanager import UIModelBase 
-from UI.uimanager import UIViewBase 
-from App import log
-import wx.aui as aui
-from UI.plotstatusbar import PlotStatusBar
+from ui.uimanager import UIManager
+from ui.uimanager import UIControllerBase 
+from ui.uimanager import UIModelBase 
+from ui.uimanager import UIViewBase 
+from ui.plotstatusbar import PlotStatusBar
+from app import log
 
 
 class WorkPageController(UIControllerBase):
@@ -48,7 +49,7 @@ class WorkPage(UIViewBase, wx.Panel):
         #
         self.sizer = wx.BoxSizer(wx.VERTICAL) 
         #
-        self.tool_bar = aui.AuiToolBar(self)    # top  
+        self.tool_bar = wx.aui.AuiToolBar(self)    # top  
         self.center_panel = wx.Panel(self)      # center
         self.status_bar = PlotStatusBar(self)   # bottom
         #

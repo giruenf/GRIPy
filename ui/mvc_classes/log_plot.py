@@ -1,19 +1,19 @@
 # -*- coding: utf-8 -*-
+
 import wx
-from OM.Manager import ObjectManager
 
-from UI.mvc_classes.workpage import WorkPageController
-from UI.mvc_classes.workpage import WorkPageModel
-from UI.mvc_classes.workpage import WorkPage
+from om.Manager import ObjectManager
 
-from UI.uimanager import UIManager
-from UI.logplot_internal import LogPlotInternal
-from App.app_utils import LogPlotState  
-from App import log   
-from UI.mvc_classes.mpl_base import TrackFigureCanvas, PlotLabel
-from App.app_utils import DropTarget
-
-from DT.DataTypes import VALID_Z_AXIS_DATATYPES
+from ui.mvc_classes.workpage import WorkPageController
+from ui.mvc_classes.workpage import WorkPageModel
+from ui.mvc_classes.workpage import WorkPage
+from ui.uimanager import UIManager
+from ui.logplot_internal import LogPlotInternal
+from app.app_utils import LogPlotState   
+from ui.mvc_classes.mpl_base import TrackFigureCanvas, PlotLabel
+from app.app_utils import DropTarget
+from datatypes.DataTypes import VALID_Z_AXIS_DATATYPES
+from app import log  
 
 
 LP_NORMAL_TOOL = wx.NewId()        

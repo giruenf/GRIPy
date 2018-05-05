@@ -14,10 +14,10 @@ import numpy as np
 import zipfile
 import os
 
-from App import app_utils
-from App.pubsub import PublisherMixin
+from app import app_utils
+from app.pubsub import PublisherMixin
 
-from App import log
+from app import log
 
 
 import copy

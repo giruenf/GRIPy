@@ -23,10 +23,13 @@ OM.Objects : the base classes for the classes defined in this module.
 """
 
 from collections import OrderedDict
-from OM.Manager import ObjectManager
-from OM.Objects import GenericObject
-from Basic.Colors import COLOR_CYCLE_RGB
+
 import numpy as np
+
+from om.Manager import ObjectManager
+from om.Objects import GenericObject
+from basic.Colors import COLOR_CYCLE_RGB
+
 
 
 VALID_Z_AXIS_DATATYPES = [('MD', 'Measured Depth'), 

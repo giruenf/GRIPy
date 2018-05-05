@@ -1,12 +1,15 @@
 # -*- coding: utf-8 -*-
+
 import types
 import os
 import imp
+
 import wx
-from yapsy.IPlugin import IPlugin
-from yapsy.PluginInfo import PluginInfo
-from UI.uimanager import UIManager
-from App import log
+
+from lib.yapsy.IPlugin import IPlugin
+from lib.yapsy.PluginInfo import PluginInfo
+from ui.uimanager import UIManager
+from app import log
 
 """
 A reloadable PluginInfo. Must be setted as PluginInfo class in

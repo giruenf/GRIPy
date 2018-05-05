@@ -1,17 +1,16 @@
 # -*- coding: utf-8 -*-
+
 import wx
-from UI.uimanager import UIManager
-from UI.uimanager import UIControllerBase 
-from UI.uimanager import UIModelBase 
-from UI.uimanager import UIViewBase 
-from UI.uimanager import UI_MODEL_ATTR_CLASS
 
-from UI.mvc_classes.main_window import MainWindowController
-from App import log
+from ui.uimanager import UIManager
+from ui.uimanager import UIControllerBase 
+from ui.uimanager import UIModelBase 
+from ui.uimanager import UIViewBase 
+from ui.uimanager import UI_MODEL_ATTR_CLASS
+from ui.mvc_classes.main_window import MainWindowController
+from app import log
 
 
-
- 
 class ToolBarController(UIControllerBase):
     tid = 'toolbar_controller'
     _singleton_per_parent = True
@@ -19,7 +18,6 @@ class ToolBarController(UIControllerBase):
     def __init__(self):
         super(ToolBarController, self).__init__()
       
-  
   
 class ToolBarModel(UIModelBase):
     tid = 'toolbar_model'
@@ -42,7 +40,6 @@ class ToolBarModel(UIModelBase):
         }
     }    
     
-
     def __init__(self, controller_uid, **base_state):     
         super(ToolBarModel, self).__init__(controller_uid, **base_state)    
                

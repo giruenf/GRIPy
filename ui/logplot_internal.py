@@ -1,7 +1,10 @@
 # -*- coding: utf-8 -*-
+
 import wx
-from wx.lib.scrolledpanel import ScrolledPanel     
-from UI.trackssplitter import MultiSplitterWindow
+from wx.lib.scrolledpanel import ScrolledPanel    
+ 
+from ui.trackssplitter import MultiSplitterWindow
+
 
 class LogPlotInternal(wx.SplitterWindow):  
     SASH_POSITION = 100    

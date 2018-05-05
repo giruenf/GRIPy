@@ -1,19 +1,16 @@
 # -*- coding: utf-8 -*-
-import numpy as np
-import scipy
-import matplotlib.pyplot as plt
-
-from Algo.Spectral.SlidingWindow import SlidingWindow
-
-from Algo.Spectral.wavelets import wavelets
-#import WaveletAnalysis, Morlet, Paul, DOG, Ricker
-
-from scipy.signal import chirp
-
 
 import timeit
 
-from Algo.Spectral.wavelets.transform import WaveletAnalysis as WaveletTransform
+import numpy as np
+import scipy
+from scipy.signal import chirp
+import matplotlib.pyplot as plt
+
+from algo.spectral.SlidingWindow import SlidingWindow
+from algo.spectral.wavelets import wavelets
+from algo.spectral.wavelets.transform import WaveletAnalysis as WaveletTransform
+
 
 #
 MorletWavelet = wavelets.Morlet

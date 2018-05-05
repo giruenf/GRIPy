@@ -4,17 +4,17 @@ import gc
 import wx
 import types
 from collections import OrderedDict
-import App.app_utils
-from App import log
-from App.pubsub import PublisherMixin
-from App.gripy_manager import Manager
-from OM.Manager import ObjectManager
+import app.app_utils
+from app import log
+from app.pubsub import PublisherMixin
+from app.gripy_manager import Manager
+from om.Manager import ObjectManager
 
 
 ###############################################################################
 ###############################################################################
 
-class UI_MODEL_ATTR_CLASS(App.app_utils.GripyEnum):     
+class UI_MODEL_ATTR_CLASS(app.app_utils.GripyEnum):     
     APPLICATION = 1
     USER = 2
 
@@ -56,7 +56,7 @@ class UIBase(object):
     
     def check_creator(self):
         # Only UIManager can create objects. Checking it!
-        caller_info = App.app_utils.get_caller_info()
+        caller_info = app.app_utils.get_caller_info()
         ok = False
         for idx, ci in enumerate(caller_info):
             module_name = None
@@ -65,7 +65,7 @@ class UIBase(object):
                 module_name = module.__name__
             func_name = ci[2]
             if module_name and func_name:
-                if module_name == 'UI.uimanager' and func_name == 'create':
+                if module_name == 'ui.uimanager' and func_name == 'create':
                     ok = True
                     break     
         if not ok:
@@ -309,7 +309,7 @@ class UIModelBase(UIBase):
         # Special treatment for functions
         if type_ == types.FunctionType:
             if isinstance(value, str):
-                value = App.app_utils.get_function_from_string(value)
+                value = app.app_utils.get_function_from_string(value)
             if value is not None and not callable(value):
                 msg = 'ERROR: Attributes signed as \"types.FunctionType\" can recieve only \"str\" or \"types.FunctionType\" values. '
                 msg += 'Received: {} - Type: {}'.format(value, type(value))

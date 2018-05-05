@@ -12,11 +12,11 @@
 # Energistics UOM data is distributed under the Energistics License Agreement at http://www.energistics.org. 
 # Copyright (c) 2014 Energistics. 
 
-
 import math        
 import xml.etree.ElementTree as ElementTree
 
-UOM_FILENAME = 'DT/Energistics_Unit_of_Measure_Dictionary_V1.0.xml'
+
+UOM_FILENAME = 'basic\\uom\\Energistics_Unit_of_Measure_Dictionary_V1.0.xml'
 NAMESPACE_KEY = 'uom'
 NAMESPACE_VALUE = 'http://www.energistics.org/energyml/data/uomv1'
 

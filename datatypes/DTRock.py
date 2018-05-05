@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-from DT.DataTypes import GenericDataType
+from datatypes.DataTypes import GenericDataType
         
 
 class Rock (GenericDataType):

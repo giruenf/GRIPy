@@ -1,22 +1,17 @@
 # -*- coding: utf-8 -*-
 
-from OM.Manager import ObjectManager
-from UI.uimanager import UIManager
-from UI.uimanager import UIControllerBase 
-from UI.uimanager import UIModelBase 
-from UI.uimanager import UIViewBase 
-
+from collections import OrderedDict
 
 import wx
-import wx.propgrid as pg                                  
-import App.pubsub as pub
+import wx.propgrid as pg 
+from wx.adv import OwnerDrawnComboBox 
 
-from wx.adv import OwnerDrawnComboBox  
-
-
-from collections import OrderedDict
-import collections
-import App.pubsub as pub
+from om.Manager import ObjectManager
+from ui.uimanager import UIManager
+from ui.uimanager import UIControllerBase 
+from ui.uimanager import UIModelBase 
+from ui.uimanager import UIViewBase                                  
+import app.pubsub as pub
 
 
 ###############################################################################
@@ -212,7 +207,7 @@ class PropertyGridController(UIControllerBase):
     
     def __init__(self):
         super(PropertyGridController, self).__init__()
-        self._properties = collections.OrderedDict()
+        self._properties = OrderedDict()
         self._toc_obj_uid = None
 
 

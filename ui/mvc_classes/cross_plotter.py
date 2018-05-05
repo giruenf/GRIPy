@@ -1,27 +1,20 @@
 # -*- coding: utf-8 -*-
+
+import numpy as np
+from scipy import stats
 import wx
-
-from UI.mvc_classes.workpage import WorkPageController
-from UI.mvc_classes.workpage import WorkPageModel
-from UI.mvc_classes.workpage import WorkPage
-
-from App import log
-from UI.uimanager import UIManager
-
-# From Vis.Crossplot
 from matplotlib.backends.backend_wxagg import FigureCanvasWxAgg as FigureCanvas
 from matplotlib.figure import Figure
 from matplotlib.ticker import MaxNLocator, NullLocator, NullFormatter
 from matplotlib.colorbar import ColorbarBase
 from matplotlib.colors import NoNorm, ListedColormap, Normalize
 
-import numpy as np
-from scipy import stats
-
-from Basic import Colors
-#
-
-
+from ui.mvc_classes.workpage import WorkPageController
+from ui.mvc_classes.workpage import WorkPageModel
+from ui.mvc_classes.workpage import WorkPage
+from ui.uimanager import UIManager
+from basic import Colors
+from app import log
 
 
 class CrossPlotController(WorkPageController):

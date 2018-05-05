@@ -1,17 +1,20 @@
 # -*- coding: utf-8 -*-
-import os
-import wx
-import DT
-from OM.Manager import ObjectManager
-from UI.uimanager import UIManager
-from UI.uimanager import UIControllerBase 
-from UI.uimanager import UIViewBase 
-from App import log 
 
-#from UI.dialog_new import Dialog
-from DT.UOM import uom as UOM
+import os
 from collections import OrderedDict
-import numpy as np
+
+import wx
+
+from basic.uom import uom
+
+from om.Manager import ObjectManager
+from ui.uimanager import UIManager
+from ui.uimanager import UIControllerBase 
+from ui.uimanager import UIViewBase 
+from app import log 
+
+
+
 
 
 
@@ -434,9 +437,9 @@ class TreeView(UIViewBase, wx.TreeCtrl):
         OM = ObjectManager(self)       
         obj = OM.get(uid)
         try:
-            unit = UOM.get_unit(obj.unit)
-            dim = UOM.get_unit_dimension(unit.dimension)
-            qc = UOM.get_quantity_class(dim.name)
+            unit = uom.get_unit(obj.unit)
+            dim = uom.get_unit_dimension(unit.dimension)
+            qc = uom.get_quantity_class(dim.name)
             UNITS_OPTIONS = OrderedDict()
             for mu in qc.memberUnit:
                 UNITS_OPTIONS[mu] = mu 
@@ -465,7 +468,7 @@ class TreeView(UIViewBase, wx.TreeCtrl):
             if answer == wx.ID_OK:
                 results = dlg.get_results()  
                 new_unit_name = results.get('new_unit')
-                new_data = UOM.convert(obj.data, obj.unit, new_unit_name)
+                new_data = uom.convert(obj.data, obj.unit, new_unit_name)
                 obj._data = new_data
                 obj.unit = new_unit_name            
                 UIM = UIManager()

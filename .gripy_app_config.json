@@ -5,7 +5,7 @@
         "clear_sig_int": true, 
         "use_best_visual": false
     }, 
-    "App.gripy_app.GripyApp": {
+    "app.gripy_app.GripyApp": {
         "vendor_name": "GIR", 
         "app_name": "GriPy", 
         "class_name": "App.gripy_app.GripyApp", 

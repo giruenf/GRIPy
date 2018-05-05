@@ -2,15 +2,15 @@
 import os
 import wx
 from collections import OrderedDict
-from App import app_utils
-from App import gripy_classes
-from App import gripy_functions
-from OM.Manager import ObjectManager
-from UI.uimanager import UIManager
-from UI import Interface
-from App import DEFS 
-from App import log
-from App.gripy_plugin_manager import GripyPluginManagerSingleton
+from app import app_utils
+from app import gripy_classes
+from app import gripy_functions
+from om.Manager import ObjectManager
+from ui.uimanager import UIManager
+from ui import Interface
+from app import DEFS 
+from app import log
+from app.gripy_plugin_manager import GripyPluginManagerSingleton
 wx.SystemOptions.SetOption("msw.remap", '0')
 
 
@@ -24,6 +24,7 @@ class GripyApp(wx.App):
         self.OM_file = None
         self._wx_app_state = OrderedDict(DEFS.get('wx.App'))
         class_full_name = app_utils.get_class_full_name(self)
+        print(DEFS)
         self._gripy_app_state = OrderedDict(DEFS.get(class_full_name))
         self._plugins_state = OrderedDict(DEFS.get('plugins', dict()))
         plugins_places = self._plugins_state.get('plugins_places')
@@ -194,15 +195,9 @@ class GripyApp(wx.App):
         log.info('Starting to register Gripy internal functions...')
         gripy_functions.register_app_functions()
         log.info('Registering Gripy internal functions ended.')          
-        #
-        Interface.load()
-        self._init_plugins()
-        mwc = Interface.get_main_window_controller()
-        mwc.view.Show()
-        self.SetTopWindow(mwc.view)
         # Here, it is necessary to return True as requested by wx.App         
         return True
-
+        # wx.App was created
 
     """
     Init plugins system

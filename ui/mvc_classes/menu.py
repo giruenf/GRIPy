@@ -1,13 +1,14 @@
 # -*- coding: utf-8 -*-
-import wx
-from UI.uimanager import UIManager
-from UI.uimanager import UIControllerBase 
-from UI.uimanager import UIModelBase 
-from UI.uimanager import UIViewBase 
-from UI.uimanager import UI_MODEL_ATTR_CLASS
 
-from UI.mvc_classes.menu_bar import MenuBarController
-from App import log
+import wx
+
+from ui.uimanager import UIManager
+from ui.uimanager import UIControllerBase 
+from ui.uimanager import UIModelBase 
+from ui.uimanager import UIViewBase 
+from ui.uimanager import UI_MODEL_ATTR_CLASS
+from ui.mvc_classes.menu_bar import MenuBarController
+from app import log
 
 
 

@@ -1,13 +1,13 @@
 # -*- coding: utf-8 -*-
 import wx
 import wx.aui as aui
-from UI.uimanager import UIManager
+from ui.uimanager import UIManager
 
-from UI.mvc_classes.wxgripy import FrameController
-from UI.mvc_classes.wxgripy import FrameModel
-from UI.mvc_classes.wxgripy import Frame
+from ui.mvc_classes.wxgripy import FrameController
+from ui.mvc_classes.wxgripy import FrameModel
+from ui.mvc_classes.wxgripy import Frame
 
-from App import log
+from app import log
 
 
 

@@ -1,9 +1,9 @@
 # -*- coding: utf-8 -*-
 import wx
 import weakref
-from App import app_utils
-from App.pubsub import PublisherMixin
-from App import log
+from app import app_utils
+from app.pubsub import PublisherMixin
+from app import log
 
 """
 Parent class for Managers

@@ -1,12 +1,17 @@
 # -*- coding: utf-8 -*-
+
 import sys
+
 import imp
-from App import log
-from yapsy import NormalizePluginNameForModuleName
-from yapsy.PluginInfo import PluginInfo
-from yapsy.PluginManager import PluginManager
-from Plugins import _CATEGORIES_FILTER
-from Plugins import GripyPluginInfo
+
+from app import log
+from lib.yapsy import NormalizePluginNameForModuleName
+from lib.yapsy.PluginInfo import PluginInfo
+from lib.yapsy.PluginManager import PluginManager
+
+# TODO: rever isso
+from plugins import _CATEGORIES_FILTER
+from plugins import GripyPluginInfo
 
 
 class GripyPluginManager(PluginManager):
