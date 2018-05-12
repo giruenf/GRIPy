@@ -3,7 +3,7 @@
 DataTypes
 =========
 
-`DataTypes` are subtypes of those defined in `OM.Objects` (`GenericObject` and
+`DataTypes` are subtypes of those defined in `OM.Objects` (`GripyObject` and
 `ParentObject`) that represent some kind of data in the program data model
 (for example, wells, logs and partitions).
 
@@ -27,7 +27,7 @@ from collections import OrderedDict
 import numpy as np
 
 from om.Manager import ObjectManager
-from om.Objects import GenericObject
+from om.Objects import GripyObject
 from basic.Colors import COLOR_CYCLE_RGB
 
 
@@ -43,8 +43,8 @@ VALID_Z_AXIS_DATATYPES = [('MD', 'Measured Depth'),
 
 
 # TODO: Rever docs
-# TODO: Criar GenericObject._loadstate para nao necessitar de colocar tudo no __init__ dos objetos
-class GenericDataType(GenericObject):
+# TODO: Criar GripyObject._loadstate para nao necessitar de colocar tudo no __init__ dos objetos
+class GenericDataType(GripyObject):
     """
     The most basic data type, only has name and data.
     
@@ -73,7 +73,7 @@ class GenericDataType(GenericObject):
     
     Examples
     --------
-    >>> class NamedDataType(GenericObject):
+    >>> class NamedDataType(GripyObject):
     >>>     pass
     >>> x = NamedDataType([23, 42], foo='bar', name='ObjName')
     >>> x.data
@@ -1211,7 +1211,7 @@ def check_data_index(index_type, axis_unit):
         raise Exception('Invalid index unit.')
 
 
-class IndexSet(GenericObject):
+class IndexSet(GripyObject):
     tid = 'index_set'
     _FRIENDLY_NAME = 'Indexes Set'    
     

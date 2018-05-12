@@ -8,7 +8,7 @@ from ui.uimanager import UIManager
 from ui.uimanager import UIControllerBase 
 from ui.uimanager import UIModelBase 
 from ui.uimanager import UIViewBase 
-from ui.uimanager import UI_MODEL_ATTR_CLASS
+#from ui.uimanager import UI_MODEL_ATTR_CLASS
 from app import log
 
 
@@ -37,28 +37,29 @@ class MenuItemModel(UIModelBase):
 
     _ATTRIBUTES = {
         'pos': {'default_value': -1, 
-                'type': int,
-                'attr_class': UI_MODEL_ATTR_CLASS.APPLICATION
+                'type': int#,
+        #        'attr_class': UI_MODEL_ATTR_CLASS.APPLICATION
         },
         'id': {'default_value': wx.ID_ANY, 
-               'type': int,
-               'attr_class': UI_MODEL_ATTR_CLASS.APPLICATION
+               'type': int#,
+               #'attr_class': UI_MODEL_ATTR_CLASS.APPLICATION
         },
         'label': {'default_value': wx.EmptyString, 
-                  'type': str,
-                  'attr_class': UI_MODEL_ATTR_CLASS.APPLICATION
+                  'type': str#,
+                  #'attr_class': UI_MODEL_ATTR_CLASS.APPLICATION
         },
         'help': {'default_value': wx.EmptyString, 
-                 'type': str,
-                 'attr_class': UI_MODEL_ATTR_CLASS.APPLICATION
+                 'type': str#,
+                 #'attr_class': UI_MODEL_ATTR_CLASS.APPLICATION
         },
         'kind': {'default_value': wx.ITEM_NORMAL, 
-                 'type': int,
-                 'attr_class': UI_MODEL_ATTR_CLASS.APPLICATION
+                 'type': int#,
+                 #'attr_class': UI_MODEL_ATTR_CLASS.APPLICATION
         },
         'callback': {'default_value': None, 
-                     'attr_class': UI_MODEL_ATTR_CLASS.APPLICATION,
-                     'type': types.FunctionType
+                     'type': types.FunctionType#,
+                     #'attr_class': UI_MODEL_ATTR_CLASS.APPLICATION,
+                     
         }
     }    
     

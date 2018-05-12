@@ -1,7 +1,10 @@
 # -*- coding: utf-8 -*-
+
 from six import add_metaclass
 
+
 class GripyFunctionManager(type):
+    
     def __init__(cls, name, bases, dct):
         super(GripyFunctionManager, cls).__init__(name, bases, dct)
 

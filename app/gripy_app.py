@@ -24,7 +24,7 @@ class GripyApp(wx.App):
         self.OM_file = None
         self._wx_app_state = OrderedDict(DEFS.get('wx.App'))
         class_full_name = app_utils.get_class_full_name(self)
-        print(DEFS)
+        #print(DEFS)
         self._gripy_app_state = OrderedDict(DEFS.get(class_full_name))
         self._plugins_state = OrderedDict(DEFS.get('plugins', dict()))
         plugins_places = self._plugins_state.get('plugins_places')
@@ -49,6 +49,64 @@ class GripyApp(wx.App):
                                        _useBestVisual, _clearSigInt
         )
         # Then, wx.App has inited and it calls OnInit
+
+
+
+    def OnInit(self):
+        self._app_dir = os.getcwd()
+        #self.set_app_dir()  # TODO: REVER ISSO CONFORME ACIMA NA FUNÇÃO
+        if self._gripy_app_state.get('app_name') is not None:
+            self.SetAppName(self._gripy_app_state.get('app_name')) 
+        if self._gripy_app_state.get('app_display_name') is not None:
+            self.SetAppDisplayName(self._gripy_app_state.get('app_display_name'))       
+        if self._gripy_app_state.get('app_version') is not None:    
+            self.__version__ = self._gripy_app_state.get('app_version')   
+        if self._gripy_app_state.get('vendor_name') is not None:
+            self.SetVendorName(self._gripy_app_state.get('vendor_name'))                       
+        if self._gripy_app_state.get('vendor_display_name') is not None:
+            self.SetVendorDisplayName(self._gripy_app_state.get('vendor_display_name'))           
+        class_name = str(self.__class__.__module__) + '.' + str(self.__class__.__name__)  
+        if self._gripy_app_state.get('class_name'):
+            class_name = self._gripy_app_state.get('class_name') 
+        self.SetClassName(class_name)
+        self._gripy_debug_file = self._gripy_app_state.get('gripy_debug_file')
+        self._inited = True
+        self._init_has_ended_message()
+        #
+        log.info('Starting to register Gripy internal classes...')
+        gripy_classes.register_app_classes()
+        log.info('Registering Gripy internal classes ended.')   
+        #
+        log.info('Starting to register Gripy internal functions...')
+        gripy_functions.register_app_functions()
+        log.info('Registering Gripy internal functions ended.') 
+        #
+        log.info('Starting Gripy plugin system...')
+        self._init_plugin_system()
+        log.info('Plugin system was initializated.') 
+        # Here, it is necessary to return True as requested by wx.App         
+        return True
+        # wx.App was created
+
+
+    def load_app_interface(self):
+        #print ('\n\n\nGet:', self.Get())
+        Interface.load()
+        mwc = Interface.get_main_window_controller()
+        mwc.view.Show()
+        self.SetTopWindow(mwc.view)       
+
+
+    """
+    Init plugin system
+    """
+    def _init_plugin_system(self):
+        PM = GripyPluginManagerSingleton.get()
+        plugins_places = self._plugins_state.get('plugins_places')
+        PM.setPluginPlaces(plugins_places)
+        #PM.setPluginPlaces(['Plugins'])
+        PM.collectPlugins()       
+
 
         
     # TODO: REVER ISSO E COLOCAR COMO wx.Config ou wx.StandardPaths
@@ -167,47 +225,8 @@ class GripyApp(wx.App):
             OM.save(self.OM_file)
 
 
-    def OnInit(self):
-        self._app_dir = os.getcwd()
-        #self.set_app_dir()  # TODO: REVER ISSO CONFORME ACIMA NA FUNÇÃO
-        if self._gripy_app_state.get('app_name') is not None:
-            self.SetAppName(self._gripy_app_state.get('app_name')) 
-        if self._gripy_app_state.get('app_display_name') is not None:
-            self.SetAppDisplayName(self._gripy_app_state.get('app_display_name'))       
-        if self._gripy_app_state.get('app_version') is not None:    
-            self.__version__ = self._gripy_app_state.get('app_version')   
-        if self._gripy_app_state.get('vendor_name') is not None:
-            self.SetVendorName(self._gripy_app_state.get('vendor_name'))                       
-        if self._gripy_app_state.get('vendor_display_name') is not None:
-            self.SetVendorDisplayName(self._gripy_app_state.get('vendor_display_name'))           
-        class_name = str(self.__class__.__module__) + '.' + str(self.__class__.__name__)  
-        if self._gripy_app_state.get('class_name'):
-            class_name = self._gripy_app_state.get('class_name') 
-        self.SetClassName(class_name)
-        self._gripy_debug_file = self._gripy_app_state.get('gripy_debug_file')
-        self._inited = True
-        self._init_has_ended_message()
-        #
-        log.info('Starting to register Gripy internal classes...')
-        gripy_classes.register_app_classes()
-        log.info('Registering Gripy internal classes ended.')   
-        #
-        log.info('Starting to register Gripy internal functions...')
-        gripy_functions.register_app_functions()
-        log.info('Registering Gripy internal functions ended.')          
-        # Here, it is necessary to return True as requested by wx.App         
-        return True
-        # wx.App was created
 
-    """
-    Init plugins system
-    """
-    def _init_plugins(self):
-        PM = GripyPluginManagerSingleton.get()
-        plugins_places = self._plugins_state.get('plugins_places')
-        PM.setPluginPlaces(plugins_places)
-        #PM.setPluginPlaces(['Plugins'])
-        PM.collectPlugins()           
+    
 
 
 
@@ -219,7 +238,7 @@ class GripyApp(wx.App):
     def PreExit(self):
         msg = 'GriPy Application is preparing to terminate....'
         log.info(msg)
-        print ('\n', msg)
+        print ('\n\n' + msg)
         OM = ObjectManager(self)
         if OM.get_changed_flag():
             dial = wx.MessageDialog(self.GetTopWindow(), 

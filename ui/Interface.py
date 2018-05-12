@@ -2,6 +2,7 @@
 
 import wx
 
+#import app
 from ui.uimanager import UIManager
 
 #from Algo.Modeling.Reflectivity import Reflectivity2
@@ -50,23 +51,25 @@ Loads Gripy Initial Interface (MainWindow and it's children).
 def load():
     #load_UI_file = True        
     load_UI_file = False
-    app = wx.GetApp()
+    gripy_app = wx.GetApp()
     UIM = UIManager()
     
     if load_UI_file:
         """
         Load basic app from file.            
         """
-        load_application_UI_data(app._gripy_app_state.get('app_UI_file'))
-        load_user_UI_data(app._gripy_app_state.get('user_UI_file'))
+        load_application_UI_data(gripy_app._gripy_app_state.get('app_UI_file'))
+        load_user_UI_data(gripy_app._gripy_app_state.get('user_UI_file'))
         mwc = UIM.list('main_window_controller')[0]      
     else:
         """
         Construct the application itself.
         """    
         mwc = UIM.create('main_window_controller', 
-                         title=app._gripy_app_state.get('app_display_name')
+                         title=gripy_app._gripy_app_state.get('app_display_name')
         )
+
+        """
 
         # Menubar
         menubar_ctrl = UIM.create('menubar_controller', mwc.uid)
@@ -376,6 +379,7 @@ def load():
             label='Bem vindo ao ' + app._gripy_app_state.get('app_display_name')
         )   
         
+        """
 
     _do_initial_tests()
 

@@ -127,13 +127,11 @@ def load_segy(event, filename, new_obj_name='', comparators_list=None,
         del disableAll
 
 
-
 #
 # TODO: Verificar melhor opcao no Python 3.6
 #        
 def get_caller_info():
     """
-        It is a Python 2 hack for a feature only avaialable in Python 3.3+
         Based on: https://gist.github.com/techtonik/2151727 with some 
         changes.
     
@@ -142,28 +140,35 @@ def get_caller_info():
         
         Returns:
             list(collections.namedtuple('CallerInfo', 
-                                   'module obj function_name traceback'))
-       
+                        ['object_', 'class_', 'module', 'function_name', 
+                         'filename', 'line_number', 'line_code']))
     """
     stack = inspect.stack()
-    if len(stack) < 3:
-      return None
-    ret_list = []
     CallerInfo = collections.namedtuple('CallerInfo', 
-        'module obj function_name traceback'
+        ['object_', 'class_', 'module', 'function_name', 
+         'filename', 'line_number', 'line_code'
+        ]
     )
-    for i in range(2, len(stack)):
-        frame = stack[i][0]
-        if 'self' in frame.f_locals:
-            obj = frame.f_locals['self']
+    ret_list = []
+    for i in range(1, len(stack)):
+        fi = stack[i]
+        module_ = None
+        obj = fi.frame.f_locals.get('self', None)
+        if obj:
             module_ = inspect.getmodule(obj)
-        else:
-            obj = None
-            module_ = None    
-        traceback = inspect.getframeinfo(frame)    
-        func_name = traceback[2]
-        ret_list.append(CallerInfo(module=module_, obj=obj, 
-                        function_name=func_name, traceback=traceback))
+        class_ = fi.frame.f_locals.get('__class__', None)    
+        if not class_ and obj:
+            class_ =  obj.__class__       
+        ret_list.append(
+            CallerInfo(object_=obj,class_=class_, module=module_, 
+                        function_name=fi.function, filename=fi.filename,
+                        line_number=fi.lineno, line_code=fi.code_context,
+                        #index=fi.index,
+                        #traceback=traceback, f_locals=fi.frame.f_locals
+            )
+        )        
+        if fi.frame.f_locals.get('__name__') == '__main__':
+            break   
     return ret_list
 
 
@@ -195,6 +200,7 @@ def get_function_from_string(fullpath_function):
     except Exception as e:
         msg = 'ERROR in function app.app_utils.get_function_from_string({}).'.format(fullpath_function)
         log.exception(msg)
+        print ('\n\n\nERRAO: ', msg)
         raise e        
              
 

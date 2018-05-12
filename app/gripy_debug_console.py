@@ -1,15 +1,17 @@
 # -*- coding: utf-8 -*-
 
-
-import sys
-import os
 import code
-import wx
-from OM.Manager import ObjectManager
-import UI 
-from App.app_utils import Chronometer
-import FileIO
 from collections import OrderedDict
+import os
+import sys
+
+import wx
+
+from app.app_utils import Chronometer
+import fileio
+from om.Manager import ObjectManager
+import ui
+
 
 
 class DebugConsole(code.InteractiveConsole):
@@ -21,13 +23,15 @@ class DebugConsole(code.InteractiveConsole):
         self._setPrompt = setPromptFunc
         self._exitCmd = exitCmd
         self._clearFunc = clearFunc
-        self._OM = ObjectManager(self)      
-        self._UIManager = UI.uimanager.UIManager()
         
+        #self._OM = ObjectManager(self)      
+        #self._UIManager = ui.uimanager.UIManager()
+        
+        '''
         self.namespace = {
             "self": self,
             "OM": self._OM,
-            "FileIO": FileIO,
+            "fileio": fileio,
             "UI": self._UIManager,
             "clear": self._clearFunc,
             "self": self,
@@ -38,6 +42,7 @@ class DebugConsole(code.InteractiveConsole):
             "wx": wx,
             "OrderedDict": OrderedDict
         }
+        '''
         
         # Can't use super here because stupid code.InteractiveConsole doesn't sub-class object. Grrr!
         code.InteractiveConsole.__init__(self, locals=self.namespace)

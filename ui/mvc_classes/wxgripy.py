@@ -19,18 +19,19 @@ class TopLevelController(UIControllerBase):
     tid = 'toplevel_controller'
          
     def __init__(self):
-        super(TopLevelController, self).__init__()
+        super().__init__()
 
 
 class TopLevelModel(UIModelBase):
     tid = 'toplevel_model'
+    
     
     _ATTRIBUTES = {
         'title': {'default_value': wx.EmptyString, 
                   'type': str
         },
         # TODO: Use icon from App parameters          
-        'icon': {'default_value': './icons/logo-transp.ico',
+        'icon': {'default_value': './basic/icons/logo-transp.ico',
                  'type': str
         },
         'style': {'default_value': wx.DEFAULT_FRAME_STYLE, 
@@ -47,8 +48,8 @@ class TopLevelModel(UIModelBase):
         }
     }    
     
-    def __init__(self, controller_uid, **base_state):     
-        super(TopLevelModel, self).__init__(controller_uid, **base_state)
+    def __init__(self, controller_uid, **state):     
+        super().__init__(controller_uid, **state)
 
 
 class TopLevel(UIViewBase):
@@ -111,14 +112,14 @@ class FrameController(TopLevelController):
     tid = 'frame_controller'
          
     def __init__(self):
-        super(FrameController, self).__init__()
+        super().__init__()
 
 
 class FrameModel(TopLevelModel):
     tid = 'frame_model'
         
-    def __init__(self, controller_uid, **base_state):      
-        super(FrameModel, self).__init__(controller_uid, **base_state)
+    def __init__(self, controller_uid, **state):  
+        super().__init__(controller_uid, **state)
 
 
 class Frame(TopLevel, wx.Frame):

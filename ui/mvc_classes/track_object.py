@@ -12,7 +12,7 @@ import matplotlib
 from matplotlib.patches import FancyBboxPatch
 
 from om.Manager import ObjectManager
-from om.Objects import GenericObject
+from om.Objects import GripyObject
 from ui.uimanager import UIManager
 from ui.uimanager import UIControllerBase 
 from ui.uimanager import UIModelBase 
@@ -121,7 +121,7 @@ def inverse_transform(value, left_scale, right_scale, scale=0):
 ###############################################################################
 
 
-class DataFilter(GenericObject):
+class DataFilter(GripyObject):
     _NO_SAVE_CLASS = True   # TODO: Melhorar isso! @ObjectManager.save
     tid = 'data_filter'
     _TID_FRIENDLY_NAME = 'Data Filter'

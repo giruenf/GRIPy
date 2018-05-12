@@ -6,7 +6,7 @@ from ui.uimanager import UIManager
 from ui.uimanager import UIControllerBase 
 from ui.uimanager import UIModelBase 
 from ui.uimanager import UIViewBase 
-from ui.uimanager import UI_MODEL_ATTR_CLASS
+#from ui.uimanager import UI_MODEL_ATTR_CLASS
 from ui.mvc_classes.main_window import MainWindowController
 from app import log
 
@@ -23,20 +23,20 @@ class ToolBarModel(UIModelBase):
     tid = 'toolbar_model'
     _ATTRIBUTES = {
         'id': {'default_value': wx.ID_ANY, 
-               'type': int,
-               'attr_class': UI_MODEL_ATTR_CLASS.APPLICATION
+               'type': int#,
+               #'attr_class': UI_MODEL_ATTR_CLASS.APPLICATION
         },
         'pos': {'default_value': wx.DefaultPosition, 
-                'type': wx.Point,
-                'attr_class': UI_MODEL_ATTR_CLASS.APPLICATION
+                'type': wx.Point#,
+                #'attr_class': UI_MODEL_ATTR_CLASS.APPLICATION
         },
         'size': {'default_value': wx.DefaultSize, 
-                 'type': wx.Size,
-                 'attr_class': UI_MODEL_ATTR_CLASS.APPLICATION
+                 'type': wx.Size#,
+                 #'attr_class': UI_MODEL_ATTR_CLASS.APPLICATION
         },
         'style': {'default_value': wx.TB_FLAT|wx.TB_NODIVIDER, 
-                  'type': int,
-                  'attr_class': UI_MODEL_ATTR_CLASS.APPLICATION
+                  'type': int#,
+                  #'attr_class': UI_MODEL_ATTR_CLASS.APPLICATION
         }
     }    
     
