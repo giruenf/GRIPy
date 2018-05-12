@@ -1,7 +1,10 @@
-from Algo import KusterToksoz as KT
-from numpy import sqrt
+# -*- coding: utf-8 -*-
 
+from numpy import sqrt
 import numpy as np
+
+from algo import KusterToksoz as KT
+
      
 def rho(phi, rho_gr, rho_fl):
     return phi*rho_fl + (1.0 - phi)*rho_gr
@@ -111,7 +114,7 @@ def VshGR(GRlog,itmin,itmax):       # Usando o perfil GR
             Vsh[i] = 0
         
     
-    print GRmin, GRminm, GRmax, GRmaxm, np.nanmin(Vsh), np.nanmax(Vsh)
+    print (GRmin, GRminm, GRmax, GRmaxm, np.nanmin(Vsh), np.nanmax(Vsh))
     
     return Vsh
     
@@ -136,7 +139,7 @@ def VshSP(SPlog,itmin,itmax):       # Usando o perfil SP
             Vsh[i] = 0
         
     
-    print SPmin, SPminm, SPmax, SPmaxm, np.nanmin(Vsh), np.nanmax(Vsh)
+    print (SPmin, SPminm, SPmax, SPmaxm, np.nanmin(Vsh), np.nanmax(Vsh))
     
     return Vsh
     
