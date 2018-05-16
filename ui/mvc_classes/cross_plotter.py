@@ -13,7 +13,7 @@ from ui.mvc_classes.workpage import WorkPageController
 from ui.mvc_classes.workpage import WorkPageModel
 from ui.mvc_classes.workpage import WorkPage
 from ui.uimanager import UIManager
-from basic import Colors
+from basic import colors
 from app import log
 
 
@@ -131,7 +131,7 @@ class CrossPlotPanel(wx.Panel):
         self.figure = Figure()
         self.canvas = FigureCanvas(self, -1, self.figure)
         
-        self.cmap = Colors.COLOR_MAP_RAINBOW
+        self.cmap = colors.COLOR_MAP_RAINBOW
         self.colorbar = None
         self.collections = []
         self.xdata = None

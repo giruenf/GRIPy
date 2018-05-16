@@ -11,7 +11,7 @@ class Dialog(wx.Dialog):
         self.welluid = welluid
         self.partitionuid = None
         
-        self._OM = ObjectManager(self)
+        self._OM = ObjectManager()
         
         self.partitionmap = [pttn.uid for pttn in self._OM.list('partition', self.welluid)]
         partitionchoiceitems = [pttn.name for pttn in self._OM.list('partition', self.welluid)]

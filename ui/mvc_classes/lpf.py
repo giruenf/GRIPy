@@ -10,7 +10,7 @@ import wx.propgrid as pg
 from wx.propgrid import PropertyGrid
 import wx.lib.colourdb
 
-from om.Manager import ObjectManager
+from om.manager import ObjectManager
 from ui.mvc_classes.log_plot import LogPlotController
 from ui.uimanager import UIManager
 from ui.uimanager import UIControllerBase  
@@ -1091,7 +1091,7 @@ class TextChoiceRenderer(dv.DataViewCustomRenderer):
 class ObjectTidRenderer(TextChoiceRenderer):
 
     def CreateEditorCtrl(self, parent, rect, value):    
-        OM = ObjectManager(self)
+        OM = ObjectManager()
         acceptable_tids = LogPlotController.get_acceptable_tids()
         tids = list(set([obj._TID_FRIENDLY_NAME for obj in OM.list() \
                          if obj.tid in acceptable_tids
@@ -1122,7 +1122,7 @@ class ObjectTidRenderer(TextChoiceRenderer):
 class ObjectNameRenderer(TextChoiceRenderer):
 
     def CreateEditorCtrl(self, parent, rect, value):    
-        OM = ObjectManager(self)
+        OM = ObjectManager()
         obj = self.model.ItemToObject(self.item)
         self._options = OrderedDict()
         #print 'ObjectNameRenderer:', obj.model.obj_tid

@@ -2,8 +2,10 @@
 import wx
 import os
 import wx.dataview as dv
-from FileIO.LIS import LISFile
-from FileIO.LISWELL import LISWells, LISWell, LISWellLog
+#
+from fileio.lis import LISFile
+from fileio.liswell import LISWells, LISWell, LISWellLog
+#
 from OM.Manager import ObjectManager
 from collections import OrderedDict
 from Parms import ParametersManager
@@ -62,7 +64,7 @@ class LISImportFrame(wx.Frame):
         self.status_bar = self.CreateStatusBar()
         self.model = None
         self.dvc = None
-        self._OM = ObjectManager(self)         
+        self._OM = ObjectManager()         
         
     def on_open(self, evt):
         dlg = wx.FileDialog(

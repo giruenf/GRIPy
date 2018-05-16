@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-from om.Manager import ObjectManager
+from om.manager import ObjectManager
 from ui.uimanager import UIManager
 #
 from datatypes.DataTypes import Well

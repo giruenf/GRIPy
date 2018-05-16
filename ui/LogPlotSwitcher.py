@@ -19,7 +19,7 @@ class Dialog(wx.Dialog):
 
         super(Dialog, self).__init__(parent, *args, **kwargs)
         
-        self._OM = ObjectManager(self)
+        self._OM = ObjectManager()
 
         self.cur_loguid = loguid
         self.lims = OrderedDict()

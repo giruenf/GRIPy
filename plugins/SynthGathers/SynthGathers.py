@@ -6,7 +6,7 @@ class SynthGathers(SimpleDialogPlugin):
 
     def __init__(self):
         super(SynthGathers, self).__init__()
-        #self._OM = ObjectManager(self)
+        #OM = ObjectManager()
 
     def run(self, uiparent):
         print 'uiparent:', uiparent

@@ -1,25 +1,33 @@
 # -*- coding: utf-8 -*-
+
 import os
 import json
 import logging
+
 import wx
 import matplotlib
-#matplotlib.interactive(False)
-#matplotlib.use('WXAgg')
 
-
+# TODO: REVER LINHA ABAIXO
+#_APP_PATH = os.path.abspath(os.path.curdir)
+_APP_PATH = os.path.abspath('E:\\repo\\GRIPy')
 _APP_INIT_FILE = '.gripy_app_config.json'
+_APP_ICONS_REL_PATH = 'basic\\icons'
+_APP_ICONS_PATH = os.path.join(_APP_PATH, _APP_ICONS_REL_PATH)
+
 
 def _read_app_definitions():
     try:
-        f = open(_APP_INIT_FILE, 'r')
-        file_dict = json.load(f)
-        f.close()
-        return file_dict
+        init_file = open(os.path.join(_APP_PATH, _APP_INIT_FILE), 'r')
+        init_dict = json.load(init_file)
+        init_file.close()
+        return init_dict
+    
     except Exception as e:
-        print ('\n\nERROR:', e.args)
-        #raise e
-        return None
+        msg = 'Fatal error while loading GRIPy init file: ' \
+                            + str(os.path.join(_APP_PATH, _APP_INIT_FILE)) \
+                            + 'ERROR: ' + str(e)
+        raise Exception(msg)
+
 
 def start_logging(logging_dict):
     logging_level = logging_dict.get('logging_level', logging.DEBUG)
@@ -39,6 +47,9 @@ def start_logging(logging_dict):
     fmt = logging.Formatter(fs, dfs)
     hdlr.setFormatter(fmt)
     log.addHandler(hdlr)
+    #
+    
+    #
     return log
 
 def check_platform():
@@ -57,8 +68,11 @@ check_dependencies()
 # App definitions
 DEFS = _read_app_definitions()   
 # Logging 
-log = start_logging(DEFS.get('logging'))
 
+
+print ('DEFS.get(logging):',DEFS.get('logging'))
+log = start_logging(DEFS.get('logging'))
+print (logging.getLogger().getEffectiveLevel())
 
 
 

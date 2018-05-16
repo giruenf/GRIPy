@@ -21,7 +21,7 @@ class LogPlotFormatFrame(wx.Frame):
         self.track_id = track_id
         
         self.welluid = self.logplot.get_well_uid()
-        self._OM = ObjectManager(self)
+        self._OM = ObjectManager()
         #well = self._OM.get(self.welluid)
         
         if logplotformat is None:
@@ -579,7 +579,7 @@ class CurvesPanel(wx.Panel):
             | dv.DV_ROW_LINES | dv.DV_VERT_RULES | dv.DV_MULTIPLE)
         self.welluid = welluid
         self.dvc.AssociateModel(self.model)
-        self._OM = ObjectManager(self) 
+        self._OM = ObjectManager() 
         
         self.curves = OrderedDict()
         depth = self._OM.list('depth', self.welluid)
@@ -847,7 +847,7 @@ class CurvesModel(dv.PyDataViewModel):
         self.logplotformat = logplotformat
         self.objmapper.UseWeakRefs(True)
         self.track_id = track_id
-        self._OM = ObjectManager(self) 
+        self._OM = ObjectManager() 
         #print 'CurvesModel: '
         #print self
                 
@@ -1417,7 +1417,7 @@ class LogRenderer(dv.PyDataViewCustomRenderer):
         print 'ColorRenderer.__init__'
         dv.PyDataViewCustomRenderer.__init__(self, mode=dv.DATAVIEW_CELL_EDITABLE)
         self.welluid = welluid
-        self._OM = ObjectManager(self)
+        self._OM = ObjectManager()
         self._value = None    
         self.curves = {}
         for log in self._OM.list('log', self.welluid):

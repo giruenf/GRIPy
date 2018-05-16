@@ -2,7 +2,7 @@
 
 import wx
 
-from om.Manager import ObjectManager
+from om.manager import ObjectManager
 
 from ui.mvc_classes.workpage import WorkPageController
 from ui.mvc_classes.workpage import WorkPageModel
@@ -64,7 +64,7 @@ class LogPlotController(WorkPageController):
     def is_valid_object(self, obj_uid):
         return True
         """
-        OM = ObjectManager(self)
+        OM = ObjectManager()
         if obj_uid[0] == 'index_set':
             return False
         parent_uid = OM._getparentuid(obj_uid)
@@ -358,7 +358,7 @@ class LogPlot(WorkPage):
     def PostInit(self):
      #   print '\nLogPlot.PostInit'
                 
-        OM = ObjectManager(self)
+        OM = ObjectManager()
         UIM = UIManager()        
         controller = UIM.get(self._controller_uid)
         
@@ -412,7 +412,7 @@ class LogPlot(WorkPage):
 
 
     def set_own_name(self):
-        OM = ObjectManager(self)
+        OM = ObjectManager()
         UIM = UIManager()   
         controller = UIM.get(self._controller_uid)
         idx = 0
@@ -432,7 +432,7 @@ class LogPlot(WorkPage):
     
     def _prepare_index_data(self):
    #     print '\nLogPlot._prepare_index_data'
-        OM = ObjectManager(self)
+        OM = ObjectManager()
         UIM = UIManager()        
         controller = UIM.get(self._controller_uid)
         try:

@@ -4,7 +4,7 @@ from collections import OrderedDict
 
 import wx
 
-from om.Manager import ObjectManager
+from om.manager import ObjectManager
 from ui.uimanager import UIManager
 from ui.mvc_classes.wxgripy import FrameController
 from ui.mvc_classes.wxgripy import FrameModel
@@ -118,7 +118,7 @@ class DimensionPanel(wx.Panel):
         self.SetSize(300, 50)
         #
         self.data_index_uid = data_index_uid
-        OM =  ObjectManager(self)
+        OM =  ObjectManager()
         obj = OM.get(data_index_uid)
         #
         main_sizer = wx.StaticBoxSizer(wx.VERTICAL, self, obj.name)
@@ -246,7 +246,7 @@ class NavigatorController(FrameController):
         super(NavigatorController, self).__init__()
  
     def PostInit(self):
-        OM = ObjectManager(self)
+        OM = ObjectManager()
         df = OM.get(('data_filter', self.model.data_filter_oid))
         data_indexes = df.data[::-1]
         for (di_uid, display, is_range, first, last) in data_indexes:
@@ -258,7 +258,7 @@ class NavigatorController(FrameController):
 
     def Set(self, results):
         print ('NavigatorController.Set:', results)
-        OM = ObjectManager(self)
+        OM = ObjectManager()
         df = OM.get(('data_filter', self.model.data_filter_oid))
         new_data = []
         for result in results[::-1]:

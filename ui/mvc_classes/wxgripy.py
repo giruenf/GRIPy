@@ -52,6 +52,8 @@ class TopLevelModel(UIModelBase):
         super().__init__(controller_uid, **state)
 
 
+
+
 class TopLevel(UIViewBase):
     tid = 'toplevel'
 
@@ -61,9 +63,9 @@ class TopLevel(UIViewBase):
         controller = UIM.get(self._controller_uid)
         
         # MainWindow subscribing MainWindowController PubSub messages
-        controller.subscribe(self._set_maximized, 'change.maximized')
+        #controller.subscribe(self._set_maximized, 'change.maximized')
         controller.subscribe(self._set_size, 'change.size')
-        controller.subscribe(self._set_position, 'change.pos')
+        #controller.subscribe(self._set_position, 'change.pos')
         #
         # little hack - on_size
         self._flag = False

@@ -6,19 +6,16 @@ Manager
 This file defines `ObjectManager`.
 """
 
-#import wx # Just for MessageBox
-
-import weakref
 from collections import OrderedDict
 import numpy as np
 import zipfile
 import os
 
 from app import app_utils
-from app.pubsub import PublisherMixin
+
 
 from app import log
-
+from app.gripy_base_classes import GripyManager
 
 import copy
 
@@ -39,7 +36,7 @@ except ImportError:
 # TODO: Acesso simultâneo (multiprocessing)
 
 
-class ObjectManager(PublisherMixin):
+class ObjectManager(GripyManager):
     """
     The Object Manager.
     
@@ -73,17 +70,31 @@ class ObjectManager(PublisherMixin):
     _PUB_NAME = 'ObjectManager'
   
     
-    def __init__(self, owner):
-        self._ownerref = weakref.ref(owner)
+    def __init__(self):
+        super().__init__()
         self._types = ObjectManager._types
         self._currentobjectids = ObjectManager._currentobjectids
         self._parenttidmap = ObjectManager._parenttidmap        
         self._data = ObjectManager._data
         self._parentuidmap = ObjectManager._parentuidmap
         self._childrenuidmap = ObjectManager._childrenuidmap
-        log.debug('ObjectManager new instance was solicitated by {}'.format(str(owner)))
+#        log.debug('ObjectManager new instance was solicitated by {}'.format(str(self._owner)))
         
-        
+ 
+    #### Remover isso assim que possivel
+    def print_info(self):
+        print ('\nObjectManager.print_info:')
+        print ('ObjectManager._data: ', ObjectManager._data)
+        #print ('ObjectManager._types: ', ObjectManager._types)
+        #print ('ObjectManager._currentobjectids: ', ObjectManager._currentobjectids)
+        print ('ObjectManager._parentuidmap: ', ObjectManager._parentuidmap)
+        print ('ObjectManager._childrenuidmap: ', ObjectManager._childrenuidmap)
+        #print ('ObjectManager._parenttidmap: ', ObjectManager._parenttidmap)
+        #print ('ObjectManager._MVC_CLASSES: ', ObjectManager._MVC_CLASSES)    
+    ####
+
+
+       
     def _reset(self):
         # TODO: Resolver DataFilter tid 'data_filter'
         
@@ -169,7 +180,7 @@ class ObjectManager(PublisherMixin):
         
         Examples
         --------
-        >>> om = ObjectManager(owner)
+        >>> om = ObjectManager()
         >>> newobj = om.new('typeid', name='nameofthenewobject')
         >>> # name will be passed to the constructor
         """
@@ -201,7 +212,7 @@ class ObjectManager(PublisherMixin):
         
         Examples
         --------
-        >>> om = ObjectManager(owner)
+        >>> om = ObjectManager()
         >>> parentobj = om.new('parenttypeid')
         >>> om.add(parentobj)
         True
@@ -256,7 +267,7 @@ class ObjectManager(PublisherMixin):
         
         Examples
         --------
-        >>> om = ObjectManager(owner)
+        >>> om = ObjectManager()
         >>> obj = om.new('typeid')
         >>> om.add(obj)
         True
@@ -291,7 +302,7 @@ class ObjectManager(PublisherMixin):
         
         Examples
         --------
-        >>> om = ObjectManager(owner)
+        >>> om = ObjectManager()
         >>> obj = om.new('typeid')
         >>> om.add(obj)
         True
@@ -339,7 +350,7 @@ class ObjectManager(PublisherMixin):
         
         Examples
         --------
-        >>> om = ObjectManager(owner)
+        >>> om = ObjectManager()
         >>> parentobj = om.new('parenttypeid')
         >>> om.add(parentobj)
         True
@@ -393,7 +404,7 @@ class ObjectManager(PublisherMixin):
         
         Examples
         --------
-        >>> om = ObjectManager(owner)
+        >>> om = ObjectManager()
         >>> obj = om.new('unregisteredtypeid', name='nameofobj')
         KeyError: 'unregisteredtypeid'
         >>> ObjectManager.registertype(UnregeristeredType)

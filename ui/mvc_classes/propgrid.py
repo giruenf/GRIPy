@@ -6,7 +6,7 @@ import wx
 import wx.propgrid as pg 
 from wx.adv import OwnerDrawnComboBox 
 
-from om.Manager import ObjectManager
+from om.manager import ObjectManager
 from ui.uimanager import UIManager
 from ui.uimanager import UIControllerBase 
 from ui.uimanager import UIModelBase 
@@ -265,7 +265,7 @@ class PropertyGridController(UIControllerBase):
                 repr_ctrl.subscribe(self.refresh_property, 'change.' + key)
         else:
             obj = toc.get_object()
-            OM = ObjectManager(self)
+            OM = ObjectManager()
             parts =  OM.list('part', obj.uid)
             parts_name = [part.name for part in parts]
             parts_uid = [part.uid for part in parts]
@@ -280,7 +280,7 @@ class PropertyGridController(UIControllerBase):
         
         
     def cb(self, value):
-        OM = ObjectManager(self)
+        OM = ObjectManager()
         part = OM.get(value)
         color_prop = self._properties.get('color')
         if color_prop:

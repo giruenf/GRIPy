@@ -10,7 +10,7 @@ This file defines the base classes for objects that can be managed by
 from app.pubsub import PublisherMixin
 
 
-class GenericObject(PublisherMixin):
+class GripyObject(PublisherMixin):
     """
     The simplest object that can be managed by `ObjectManager`.
     

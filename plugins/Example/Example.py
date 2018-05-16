@@ -9,7 +9,7 @@ class ExamplePlugin(DefaultPlugin):
     def __init__(self):
         super(ExamplePlugin, self).__init__()
         #self._parent_menu = 'Precondicionamento'
-        self._OM = ObjectManager(self)
+        self._OM = ObjectManager()
         self._OF = ObjectFinder()
         self.register_module(core)
     

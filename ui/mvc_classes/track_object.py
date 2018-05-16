@@ -11,8 +11,8 @@ import matplotlib.cbook as cbook
 import matplotlib
 from matplotlib.patches import FancyBboxPatch
 
-from om.Manager import ObjectManager
-from om.Objects import GripyObject
+from om.manager import ObjectManager
+from app.gripy_base_classes import GripyObject
 from ui.uimanager import UIManager
 from ui.uimanager import UIControllerBase 
 from ui.uimanager import UIModelBase 
@@ -247,7 +247,7 @@ class TrackObjectController(UIControllerBase):
     def get_object(self):
         # Get OM object from TrackObjectController
         # Returns None if there is no OM Object associate with it.    
-        OM = ObjectManager(self) 
+        OM = ObjectManager() 
         try:
             obj = OM.get((self.model.obj_tid, self.model.obj_oid))
             if obj: 
@@ -282,7 +282,7 @@ class TrackObjectController(UIControllerBase):
 
     def get_filter(self):
         try:
-            OM = ObjectManager(self)
+            OM = ObjectManager()
             return OM.get(('data_filter', self.model.data_filter_oid))
         except:
             return None
@@ -290,7 +290,7 @@ class TrackObjectController(UIControllerBase):
 
     def set_filter(self, filter_oid=None):
         if filter_oid is None:
-            OM = ObjectManager(self)
+            OM = ObjectManager()
             filter_ = OM.new('data_filter', self.uid)
             OM.add(filter_)
             self.model.data_filter_oid = filter_.oid
@@ -554,7 +554,7 @@ class RepresentationController(UIControllerBase):
         toc_uid = UIM._getparentuid(self.uid)
         toc = UIM.get(toc_uid) 
         #
-        OM = ObjectManager(self)
+        OM = ObjectManager()
         filter_ = toc.get_filter() #OM.get(('data_filter', toc.model.data_filter_oid))
         z_data = filter_.data[0]
         #
@@ -847,7 +847,7 @@ class LineRepresentationView(RepresentationView):
         UIM = UIManager()
         controller = UIM.get(self._controller_uid)
         #
-        OM = ObjectManager(self)
+        OM = ObjectManager()
         obj = controller.get_object()
         #
         if self.label:
@@ -868,7 +868,7 @@ class LineRepresentationView(RepresentationView):
         track_controller_uid = UIM._getparentuid(toc_uid)
         track_controller =  UIM.get(track_controller_uid)        
         #
-        OM = ObjectManager(self)
+        OM = ObjectManager()
         obj = controller.get_object()
         
         filter_ = toc.get_filter()
@@ -1053,7 +1053,7 @@ class IndexRepresentationView(RepresentationView):
         
         
     def get_data_info(self, event):
-        OM = ObjectManager(self)
+        OM = ObjectManager()
         UIM = UIManager()
         controller = UIM.get(self._controller_uid)
                 
@@ -1076,7 +1076,7 @@ class IndexRepresentationView(RepresentationView):
        # print '\nIndexRepresentationView.draw'
         self.clear()
         self._mplot_objects['text'] = []
-        OM = ObjectManager(self)
+        OM = ObjectManager()
         UIM = UIManager()
         controller = UIM.get(self._controller_uid)
         toc_uid = UIM._getparentuid(self._controller_uid)
@@ -1388,7 +1388,7 @@ class DensityRepresentationView(RepresentationView):
 
 
     def get_data_info(self, event):
-        OM = ObjectManager(self)
+        OM = ObjectManager()
         UIM = UIManager()
         controller = UIM.get(self._controller_uid)
         if controller._data is None:
@@ -1405,7 +1405,7 @@ class DensityRepresentationView(RepresentationView):
 
         toc_uid = UIM._getparentuid(self._controller_uid)
         toc = UIM.get(toc_uid)   
-        OM = ObjectManager(self)
+        OM = ObjectManager()
         filter_ = toc.get_filter() #OM.get(('data_filter', toc.model.data_filter_oid))
         #
         data_indexes = filter_.data
@@ -1449,7 +1449,7 @@ class DensityRepresentationView(RepresentationView):
         track_controller_uid = UIM._getparentuid(toc_uid)
         track_controller =  UIM.get(track_controller_uid)
         #
-        OM = ObjectManager(self)
+        OM = ObjectManager()
         filter_ = toc.get_filter() #OM.get(('data_filter', toc.model.data_filter_oid))
         #
         """
@@ -1778,7 +1778,7 @@ class PatchesRepresentationView(RepresentationView):
 
 
     def get_data_info(self, event):
-        OM = ObjectManager(self)
+        OM = ObjectManager()
         for part_uid, collection in self._mplot_objects.items():
             result, dict_ = collection.contains(event)
             if result:
@@ -1789,7 +1789,7 @@ class PatchesRepresentationView(RepresentationView):
     def draw(self):        
         self.clear()
         #
-        OM = ObjectManager(self)
+        OM = ObjectManager()
         UIM = UIManager()
         controller = UIM.get(self._controller_uid)
         toc_uid = UIM._getparentuid(self._controller_uid)

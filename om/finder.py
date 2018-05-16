@@ -5,7 +5,7 @@ from OM.Manager import ObjectManager
 class ObjectFinder(object):
 
     def __init__(self):
-        self._OM = ObjectManager(self)
+        self._OM = ObjectManager()
     
     def findobject(self, **kwargs):
         currentuid = None

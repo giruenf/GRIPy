@@ -6,7 +6,7 @@ import numpy as np
 import wx
 import matplotlib.pyplot as plt
 
-from om.Manager import ObjectManager
+from om.manager import ObjectManager
 from ui.uimanager import UIManager
 from ui.uimanager import UIControllerBase 
 from ui.uimanager import UIModelBase 
@@ -522,7 +522,7 @@ class TrackView(UIViewBase):
         #fig_coords = axes.display_to_figure_coordinates(disp_coords)
         
             
-        OM = ObjectManager(self)
+        OM = ObjectManager()
         UIM = UIManager()
         parent_controller_uid = UIM._getparentuid(self._controller_uid)
         parent_controller =  UIM.get(parent_controller_uid)
@@ -600,7 +600,7 @@ class TrackView(UIViewBase):
         ###
         #print '\nTrackView.process_event:', event     
         #
-        OM = ObjectManager(self)
+        OM = ObjectManager()
         UIM = UIManager()
         controller = UIM.get(self._controller_uid)        
         if isinstance(event, wx.MouseEvent):        
@@ -919,7 +919,7 @@ class TrackView(UIViewBase):
   
     def _delete_object_helper(self, *args):
         print ('_delete_object_helper:', args[0])
-        OM = ObjectManager(self)
+        OM = ObjectManager()
         OM.remove(args[0])    
 
          
@@ -990,7 +990,7 @@ class TrackView(UIViewBase):
     def _avaf(self, repr_ctrl_uid, ydata):
         str_ydata = "{0:.2f}".format(round(ydata, 2))
         print ('\nAVAF:', str_ydata)
-        OM = ObjectManager(self)
+        OM = ObjectManager()
         UIM = UIManager()
         repr_ctrl = UIM.get(repr_ctrl_uid)
         toc_uid = UIM._getparentuid(repr_ctrl.uid)
@@ -1099,7 +1099,7 @@ class TrackView(UIViewBase):
 
 
     def _crossplot(self, repr_ctrl_uid, ydata):
-        OM = ObjectManager(self)
+        OM = ObjectManager()
         UIM = UIManager()
         repr_ctrl = UIM.get(repr_ctrl_uid)
         toc_uid = UIM._getparentuid(repr_ctrl.uid)

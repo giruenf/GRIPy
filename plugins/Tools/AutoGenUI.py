@@ -36,7 +36,7 @@ class _OMSingleInput(_GenericInput):
     
     def __init__(self, *args, **kwargs):
         self._uiobj = wx.Choice(*args, **kwargs)
-        self._OM = ObjectManager(self)
+        self._OM = ObjectManager()
         self.tids = None
         self.well_uid = None
         self.index2uid = None
@@ -78,7 +78,7 @@ class _OMSingleInput(_GenericInput):
 class _OMMultiInput(_GenericInput):
     def __init__(self, *args, **kwargs):
         self._uiobj = wx.CheckListBox(*args, **kwargs)
-        self._OM = ObjectManager(self)
+        self._OM = ObjectManager()
         self.tids = None
         self.well_uid = None
         self.index2uid = None
@@ -122,7 +122,7 @@ class _OMMultiInput(_GenericInput):
 class _OMLogLikeInput(_GenericInput):
     def __init__(self, *args, **kwargs):
         self._uiobj = wx.ComboBox(*args, **kwargs)
-        self._OM = ObjectManager(self)
+        self._OM = ObjectManager()
         self.well_uid = None
         self.index2uid = None
         self.propuid2pttnuid = None
@@ -310,7 +310,7 @@ class AutoGenPanel(wx.Panel):
     def __init__(self, parent, inputdesc, *args, **kwargs):
         super(AutoGenPanel, self).__init__(parent, *args, **kwargs)
         
-        self._OM = ObjectManager(self)
+        self._OM = ObjectManager()
         
         self.inputdesc = inputdesc
         
@@ -572,7 +572,7 @@ class AutoGenDialog(wx.Dialog):
         
         super(AutoGenDialog, self).__init__(uiparent, *args, **kwargs)
         
-        self._OM = ObjectManager(self)
+        self._OM = ObjectManager()
         
         well_label = wx.StaticText(self, label=u"Poço:")
         self.well_choice = self._create_well_choice()

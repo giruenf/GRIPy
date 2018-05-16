@@ -10,7 +10,7 @@ class ExposeIDsPlugin(DefaultPlugin):
     def __init__(self):
         super(ExposeIDsPlugin, self).__init__()
         #self._parent_menu = 'Precondicionamento'
-        self._OM = ObjectManager(self)
+        self._OM = ObjectManager()
         self.register_module(core)
 
     """

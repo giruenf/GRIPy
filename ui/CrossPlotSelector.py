@@ -13,7 +13,7 @@ class Panel(wx.Panel):
     def __init__(self, *args, **kwargs):
         super(Panel, self).__init__(*args, **kwargs)
         
-        self._OM = ObjectManager(self)
+        self._OM = ObjectManager()
         
         self.xselector = wx.Choice(self)
         self.yselector = wx.Choice(self)
@@ -155,7 +155,7 @@ class Dialog(wx.Dialog):
 
         super(Dialog, self).__init__(*args, **kwargs)
         
-        self._OM = ObjectManager(self)
+        self._OM = ObjectManager()
         self._OM.subscribe(self.on_wells_changed, 'add')
         self._OM.subscribe(self.on_wells_changed, 'post_remove')
         #self._OM.addcallback("add", self.on_wells_changed)

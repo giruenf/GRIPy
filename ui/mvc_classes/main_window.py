@@ -56,9 +56,38 @@ class MainWindow(Frame):
         self.Bind(aui.EVT_AUINOTEBOOK_PAGE_CLOSE, self.on_page_close, self.note)
         self.Bind(aui.EVT_AUINOTEBOOK_PAGE_CHANGED, self.on_page_changed)
         
+        
     def on_close(self, event):
-        wx.App.Get().PreExit()
+        '''
+        print ('\nMainWindow.on_close')
+        import app
+        for ci in app.app_utils.get_callers_stack():
+            print ('\n'+str(ci))
+
+        print ('\n\n')
+        '''
+        
         event.Skip()
+        wx.GetApp().PreExit()
+        
+        '''
+        try:
+            wx.GetApp().PreExit()
+        except:
+            import traceback
+            traceback.print_stack()
+        '''
+        
+        '''
+        #
+        # TODO: remover isso 
+        if wx.GetApp():
+            event.Skip()
+            wx.GetApp().PreExit()
+        else:
+            print ('Not app')
+        '''
+
 
     def on_page_close(self, event):
         panel = self.note.GetPage(event.GetSelection())

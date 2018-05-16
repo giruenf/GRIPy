@@ -1,16 +1,16 @@
 # -*- coding: utf-8 -*-
 
 import code
-from collections import OrderedDict
+#from collections import OrderedDict
 import os
 import sys
 
 import wx
 
 from app.app_utils import Chronometer
-import fileio
-from om.Manager import ObjectManager
-import ui
+#import fileio
+#from om.manager import ObjectManager
+#import ui
 
 
 
@@ -24,7 +24,7 @@ class DebugConsole(code.InteractiveConsole):
         self._exitCmd = exitCmd
         self._clearFunc = clearFunc
         
-        #self._OM = ObjectManager(self)      
+        #self._OM = ObjectManager()      
         #self._UIManager = ui.uimanager.UIManager()
         
         '''
@@ -45,7 +45,7 @@ class DebugConsole(code.InteractiveConsole):
         '''
         
         # Can't use super here because stupid code.InteractiveConsole doesn't sub-class object. Grrr!
-        code.InteractiveConsole.__init__(self, locals=self.namespace)
+        code.InteractiveConsole.__init__(self) # , locals=self.namespace)
         self.prompt = ">>>"
         
         

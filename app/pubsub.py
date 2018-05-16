@@ -117,7 +117,7 @@ class PublisherMixin(object):
         Examples
         --------
             Subscribing for ObjectManager objects addition can be written as:
-            >>> OM = ObjectManager(self)
+            >>> OM = ObjectManager()
             >>> listener, ok = OM.subscribe(func_on_add_obj, 'object_added')
             * Actual topic would be "on_add_object@ObjectManager"
         
@@ -174,38 +174,39 @@ class PublisherMixin(object):
         Examples
         --------
             Messaging new object creation.
-            >>> OM = ObjectManager(self)
+            >>> OM = ObjectManager()
             >>> OM.send_message('add', objuid=obj.uid)  
             
             Messaging object attribute change.
             >>> b = B()
             >>> b.send_message(('attr_changed', 'width'), arg1=value, arg2=old_value)
         """
+        
         # TODO: Refazer docs
         # print ('publisher: {} - topic: {} - data: {}'.format(self.get_publisher_name(), topic, data))
         try:
-            #print ('\nPublisherMixin.send_message')
+#            print ('\nPublisherMixin.send_message:')
             topic = self.get_publisher_name() + '.' + topic
-            #print ('topic:', topic, data)
+#            print ('topic:', topic, data, '\n')
             pub.sendMessage(topic, **data)
-            #print ('OK send message')
+#            print ('OK send message')
+            
         except Exception as e:
             print ('ERROR [PublisherMixin.send_message]:', self)
             print ('At:', topic, data)
-            print (e.__class__, e.message, e.args, e)
-            #print ('\n\n')
-            #pass
+            print (e)
             raise
+
+
 
 
     def get_publisher_name(self):
         try:
+            # For managers
             return self._PUB_NAME
         except AttributeError:
             try:
+#                print ('get_publisher_name:', self.uid)
                 return uid_to_pubuid(self.uid)
             except:
-                raise
-    
-
-     
+                raise     

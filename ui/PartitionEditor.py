@@ -5,11 +5,11 @@ import wx.grid
 
 import numpy as np
 
-from OM.Manager import ObjectManager
+from om.manager import ObjectManager
 
-from App import app_utils
+from app import app_utils
 
-from Basic.Colors import COLOR_CYCLE_RGB
+from basic.colors import COLOR_CYCLE_RGB
 
 # TODO: Tirar a necessidade do uso disso
 NAME_UNIT_SEPARATOR = ':::'
@@ -49,7 +49,7 @@ class PartitionTable(wx.grid.GridTableBase):
     def __init__(self, partitionuid):
         super(PartitionTable, self).__init__()
         
-        self._OM = ObjectManager(self)
+        self._OM = ObjectManager()
         self.partuid = []
         self.partitionuid = partitionuid
         
@@ -391,7 +391,7 @@ class Dialog(wx.Dialog):
         
         # TODO: Adaptar para quando não houver partições
         
-        self._OM = ObjectManager(self)
+        self._OM = ObjectManager()
 
         self.currentwellindex = 0
         #

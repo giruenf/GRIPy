@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-import wx
+
 import re
 import os
 import json
@@ -8,13 +8,15 @@ import timeit
 import inspect
 import collections
 from enum import Enum  
-from app import log
-
-import fileio
-from om.Manager import ObjectManager
-
 
 import numpy as np
+import wx
+
+import app
+import fileio
+from om.manager import ObjectManager
+from app import log
+
 
 """
 
@@ -39,7 +41,7 @@ def create_seismic(event, seismic_name, parent_uid=None):
 
 
 def calc_well_time_from_depth(event, well_uid):
-    OM = ObjectManager(event.GetEventObject()) 
+    OM = ObjectManager() 
     well = OM.get(well_uid)
     vp = None
     for log_obj in OM.list('log', well.uid):
@@ -86,7 +88,7 @@ def load_segy(event, filename, new_obj_name='', comparators_list=None,
     wait = wx.BusyInfo("Loading SEG-Y file...")
     #
     try:
-        segy_file = FileIO.SEGY.SEGYFile(filename)    
+        segy_file = fileio.SEGY.SEGYFile(filename)    
         #segy_file.print_dump()
         #"""
         segy_file.read(comparators_list)
@@ -129,8 +131,15 @@ def load_segy(event, filename, new_obj_name='', comparators_list=None,
 
 #
 # TODO: Verificar melhor opcao no Python 3.6
-#        
-def get_caller_info():
+#   
+     
+CallerInfo = collections.namedtuple('CallerInfo', 
+    ['object_', 'class_', 'module', 'function_name', 
+     'filename', 'line_number', 'line_code'
+    ]
+)        
+        
+def get_callers_stack():
     """
         Based on: https://gist.github.com/techtonik/2151727 with some 
         changes.
@@ -143,32 +152,36 @@ def get_caller_info():
                         ['object_', 'class_', 'module', 'function_name', 
                          'filename', 'line_number', 'line_code']))
     """
-    stack = inspect.stack()
-    CallerInfo = collections.namedtuple('CallerInfo', 
-        ['object_', 'class_', 'module', 'function_name', 
-         'filename', 'line_number', 'line_code'
-        ]
-    )
+
     ret_list = []
-    for i in range(1, len(stack)):
-        fi = stack[i]
-        module_ = None
-        obj = fi.frame.f_locals.get('self', None)
-        if obj:
-            module_ = inspect.getmodule(obj)
-        class_ = fi.frame.f_locals.get('__class__', None)    
-        if not class_ and obj:
-            class_ =  obj.__class__       
-        ret_list.append(
-            CallerInfo(object_=obj,class_=class_, module=module_, 
-                        function_name=fi.function, filename=fi.filename,
-                        line_number=fi.lineno, line_code=fi.code_context,
-                        #index=fi.index,
-                        #traceback=traceback, f_locals=fi.frame.f_locals
-            )
-        )        
-        if fi.frame.f_locals.get('__name__') == '__main__':
-            break   
+    
+    print ('app_utils.get_callers_stack')
+    
+    try:
+        stack = inspect.stack()
+        for i in range(1, len(stack)):
+            fi = stack[i]
+            module_ = None
+            obj = fi.frame.f_locals.get('self', None)
+            class_ = fi.frame.f_locals.get('__class__', None)  
+            if obj:
+                module_ = inspect.getmodule(obj)         
+            if not class_ and obj:
+                class_ =  obj.__class__       
+            ret_list.append(
+                CallerInfo(object_=obj,class_=class_, module=module_, 
+                            function_name=fi.function, filename=fi.filename,
+                            line_number=fi.lineno, line_code=fi.code_context,
+                            #index=fi.index,
+                            #traceback=traceback, f_locals=fi.frame.f_locals
+                )
+            )        
+            if fi.frame.f_locals.get('__name__') == '__main__':
+                break
+    except Exception as e:
+        print (e)
+        raise       
+        
     return ret_list
 
 
@@ -190,17 +203,39 @@ def get_string_from_function(function_):
     return function_.__module__ + '.' + function_.__name__
 
 
+def get_function_from_filename(full_filename, function_name):
+    try:
+        #print ('\nget_function_from_filename', full_filename, function_name)
+        if function_name == '<module>':
+            return None
+        
+        rel_path = os.path.relpath(full_filename, app._APP_PATH)
+        module_rel_path = os.path.splitext(rel_path)[0]
+        #print (module_rel_path)
+        module_str = '.'.join(module_rel_path.split(os.path.sep))
+        #print (module_str)
+        module_ = importlib.import_module(module_str)
+        #print (module_, function_name)
+        function_ = getattr(module_, function_name)
+        return function_  
+    except:
+        raise
+        
+
 def get_function_from_string(fullpath_function):
     try:
+        #print ('\nget_function_from_string:', fullpath_function)
         module_str = '.'.join(fullpath_function.split('.')[:-1]) 
         function_str = fullpath_function.split('.')[-1]
+        #print ('importing module:', module_str)
         module_ = importlib.import_module(module_str)
+        #print ('getting function:', function_str, '\n')
         function_ = getattr(module_, function_str)
         return function_    
     except Exception as e:
         msg = 'ERROR in function app.app_utils.get_function_from_string({}).'.format(fullpath_function)
         log.exception(msg)
-        print ('\n\n\nERRAO: ', msg)
+        print (msg)
         raise e        
              
 

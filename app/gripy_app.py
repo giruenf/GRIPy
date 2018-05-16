@@ -5,7 +5,7 @@ from collections import OrderedDict
 from app import app_utils
 from app import gripy_classes
 from app import gripy_functions
-from om.Manager import ObjectManager
+from om.manager import ObjectManager
 from ui.uimanager import UIManager
 from ui import Interface
 from app import DEFS 
@@ -21,39 +21,44 @@ class GripyApp(wx.App):
       
     
     def __init__(self):
-        self.OM_file = None
+        print ('\nGripyApp.Init')
+        #
+        # wx.App args    
         self._wx_app_state = OrderedDict(DEFS.get('wx.App'))
+        _redirect = self._wx_app_state.get('redirect', False)
+        _filename = self._wx_app_state.get('filename', None) 
+        _useBestVisual = self._wx_app_state.get('useBestVisual', False) 
+        _clearSigInt = self._wx_app_state.get('clearSigInt', True)
+
+        #
+#        self.OM_file = None
+
         class_full_name = app_utils.get_class_full_name(self)
-        #print(DEFS)
         self._gripy_app_state = OrderedDict(DEFS.get(class_full_name))
         self._plugins_state = OrderedDict(DEFS.get('plugins', dict()))
         plugins_places = self._plugins_state.get('plugins_places')
         if plugins_places:
-            # Python 2
-            #plugins_places = [place.encode('utf-8') for place in plugins_places]
-            # Python 3
             plugins_places = [str(place) for place in plugins_places]
         else:
             plugins_places = ['Plugins']
         self._plugins_state['plugins_places'] = plugins_places   
         self._logging_state = OrderedDict(DEFS.get('logging', dict()))   
         #
-        self._app_dir = os.getcwd()
-        # wx.App args    
-        _redirect = self._wx_app_state.get('redirect', False)
-        _filename = self._wx_app_state.get('filename', None) 
-        _useBestVisual = self._wx_app_state.get('useBestVisual', False) 
-        _clearSigInt = self._wx_app_state.get('clearSigInt', True)
-        # wx.App.__init__()        
-        super(GripyApp, self).__init__(_redirect, _filename, 
-                                       _useBestVisual, _clearSigInt
-        )
-        # Then, wx.App has inited and it calls OnInit
+#        self._app_dir = os.getcwd()
 
+
+        # wx.App.__init__()        
+        super().__init__(_redirect, _filename, 
+                                       _useBestVisual, _clearSigInt
+        ) 
+
+        # Then, wx.App has inited and it calls OnInit
+        print ('GripyApp.Init ended')
 
 
     def OnInit(self):
-        self._app_dir = os.getcwd()
+        print ('GripyApp.OnInit')
+#        self._app_dir = os.getcwd()
         #self.set_app_dir()  # TODO: REVER ISSO CONFORME ACIMA NA FUNÇÃO
         if self._gripy_app_state.get('app_name') is not None:
             self.SetAppName(self._gripy_app_state.get('app_name')) 
@@ -82,19 +87,30 @@ class GripyApp(wx.App):
         log.info('Registering Gripy internal functions ended.') 
         #
         log.info('Starting Gripy plugin system...')
-        self._init_plugin_system()
+ #       self._init_plugin_system()
         log.info('Plugin system was initializated.') 
+        #
+        
+        self.load_app_interface()
+        
         # Here, it is necessary to return True as requested by wx.App         
+        print ('GripyApp.OnInit ended')
+        
         return True
         # wx.App was created
 
 
     def load_app_interface(self):
-        #print ('\n\n\nGet:', self.Get())
+        print ('GripyApp.load_app_interface')
+        
+        if not wx.App.Get():
+            raise Exception('ERROR: wx.App not found.')
+            
         Interface.load()
         mwc = Interface.get_main_window_controller()
         mwc.view.Show()
         self.SetTopWindow(mwc.view)       
+        print ('GripyApp.load_app_interface ended')
 
 
     """
@@ -108,99 +124,21 @@ class GripyApp(wx.App):
         PM.collectPlugins()       
 
 
-        
-    # TODO: REVER ISSO E COLOCAR COMO wx.Config ou wx.StandardPaths
-    #def set_app_dir():
-    #    wx.App.Get()._app_dir = os.getcwd()
-        """        
-        print 'a1:', os.getcwd()
-        sp = wx.StandardPaths.Get()
-        sp.SetInstallPrefix(os.getcwd())
-        print type(wx.App.Get())
-        print wx.App.Get()
-        
-        print '\n\n\n'
-        for f in ['GetConfigDir',
-                  'GetUserConfigDir',
-                  'GetDataDir',
-                  'GetLocalDataDir',
-                  'GetUserDataDir',
-                  'GetUserLocalDataDir',
-                  'GetDocumentsDir',
-                  'GetPluginsDir',
-                  'GetInstallPrefix',
-                  'GetResourcesDir',
-                  'GetTempDir',
-                  'GetExecutablePath',
-        ]:
-            func = getattr(sp, f)
-            print f, func()
-        """    
-        '''    
-        print 'ExecutablePath:', sp.GetExecutablePath()
-        print 'UserConfigDir:', sp.GetUserConfigDir()
-        print 'DataDir:', sp.GetDataDir()
-        print 'PluginsDir:', sp.GetPluginsDir()
-        print 'InstallPrefix:', sp.GetInstallPrefix()
-        '''
-        #print os.getcwd()
-        # print '\n\n\n'
-        
-        
-    @staticmethod    
-    def get_app_dir():
-        return wx.App.Get()._app_dir
+    #@staticmethod    
+    #def get_app_dir():
+    #    return wx.App.Get()._app_dir
         
 
     def get_project_filename(self):
         return self.OM_file
         
-        
-    #def get_interface_filename(self):
-    #    return self.UIM_file
- 
-    '''
-    def _load_app_definitions(self):
-        self.OM_file = None
-        #self.UIM_file = None
-        self._wx_app_state = OrderedDict(DEFS.get('wx.App'))
-        class_full_name = app_utils.get_class_full_name(self)
-        self._gripy_app_state = OrderedDict(DEFS.get(class_full_name))
-        self._plugins_state = OrderedDict(DEFS.get('plugins', dict()))
-        plugins_places = self._plugins_state.get('plugins_places')
-        if plugins_places:
-            plugins_places = [place.encode('utf-8') for place in plugins_places]
-        else:
-            plugins_places = ['Plugins']
-        self._plugins_state['plugins_places'] = plugins_places   
-        self._logging_state = OrderedDict(DEFS.get('logging', dict()))      
-    '''
-          
-    '''          
-    def save_app_state(self):
-        return self.save_state_as(self._app_full_filename)
-        
-        
-    def save_app_state_as(self, fullfilename):
-        try:
-            _state = self._get_state_dict()
-            AsciiFile.write_json_file(_state, fullfilename)
-            self._app_full_filename = fullfilename
-            msg = 'GripyApp state was saved to file {}'.format(self._app_full_filename)
-            self.loginfo(msg)
-            return True
-        except Exception, e:
-            msg = 'Error in saving GripyApp state to file {}'.format(fullfilename)
-            self.logexception(msg)
-            raise e     
-    '''        
 
     """
     Load ObjectManager data.
     """
     # Falta unload data
     def load_project_data(self, fullfilename):
-        OM = ObjectManager(self)
+        OM = ObjectManager()
         UIM = UIManager()
         self.OM_file = fullfilename
         ret = OM.load(self.OM_file)
@@ -221,12 +159,8 @@ class GripyApp(wx.App):
         if fullfilename:
             self.OM_file = fullfilename
         if self.OM_file:
-            OM = ObjectManager(self)
+            OM = ObjectManager()
             OM.save(self.OM_file)
-
-
-
-    
 
 
 
@@ -238,8 +172,9 @@ class GripyApp(wx.App):
     def PreExit(self):
         msg = 'GriPy Application is preparing to terminate....'
         log.info(msg)
-        print ('\n\n' + msg)
-        OM = ObjectManager(self)
+        print ('GripyApp.PreExit: ' + msg)
+        
+        OM = ObjectManager()
         if OM.get_changed_flag():
             dial = wx.MessageDialog(self.GetTopWindow(), 
                                     'Do you want to save your project?', 
@@ -268,13 +203,29 @@ class GripyApp(wx.App):
         aui_manager = wx.aui.AuiManager.GetManager(self.GetTopWindow())
         aui_manager.UnInit()        
         
+        #UIM.close()
+        
+#        OM.print_info()
+        
+        print ('GripyApp.PreExit ended')
+        
         
     def OnExit(self):
         msg = 'GriPy Application has finished.'
         log.info(msg)
-        print (msg, '\n')
-        return super(GripyApp, self).OnExit()
+        print (msg)
         
+        '''
+        try:
+            ret_val = super().OnExit()
+        except:
+            raise
+        print (msg, ret_val, '\n')
+        '''
+        
+        return super().OnExit()
+        
+    
     # Convenience function    
     def getLogger(self):    
         return log
@@ -353,5 +304,5 @@ class GripyApp(wx.App):
 
 
     def reset_ObjectManager(self):
-        OM = ObjectManager(self)
+        OM = ObjectManager()
         OM._reset()

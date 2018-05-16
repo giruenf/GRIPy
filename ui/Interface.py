@@ -2,7 +2,7 @@
 
 import wx
 
-#import app
+import app
 from ui.uimanager import UIManager
 
 #from Algo.Modeling.Reflectivity import Reflectivity2
@@ -51,7 +51,14 @@ Loads Gripy Initial Interface (MainWindow and it's children).
 def load():
     #load_UI_file = True        
     load_UI_file = False
+    
     gripy_app = wx.GetApp()
+    #gripy_app = app.gripy_app.GripyApp.Get()
+    
+    if not gripy_app:
+        raise Exception('ERRO grave.')
+    
+    
     UIM = UIManager()
     
     if load_UI_file:
@@ -69,14 +76,13 @@ def load():
                          title=gripy_app._gripy_app_state.get('app_display_name')
         )
 
-        """
-
         # Menubar
         menubar_ctrl = UIM.create('menubar_controller', mwc.uid)
         
         
         # First level Menus
         mc_project = UIM.create('menu_controller', menubar_ctrl.uid, label=u"&Project")      
+        
         mc_edit = UIM.create('menu_controller', menubar_ctrl.uid, label=u"&Edit")
         mc_well = UIM.create('menu_controller', menubar_ctrl.uid, label=u"&Well")
         mc_precond = UIM.create('menu_controller', menubar_ctrl.uid, label=u"&Preconditioning")
@@ -87,6 +93,8 @@ def load():
         mc_tools = UIM.create('menu_controller', menubar_ctrl.uid, label=u"&Tools")
         mc_plugins = UIM.create('menu_controller', menubar_ctrl.uid, label=u"&Plugins")
         mc_debug = UIM.create('menu_controller', menubar_ctrl.uid, label=u"&Debug")  
+        
+        
         
         # Project Menu
         UIM.create('menu_item_controller', mc_project.uid, 
@@ -119,10 +127,16 @@ def load():
         UIM.create('menu_item_controller', mc_project.uid, 
                        kind=wx.ITEM_SEPARATOR
         )
+        
+       
+        
         mc_import = UIM.create('menu_controller', mc_project.uid, 
                                       label=u"&Import",
                                       help=u"Import file"
         )
+        
+        
+        
         UIM.create('menu_item_controller', mc_import.uid, 
                 label=u"LAS File", 
                 help=u'Import a LAS file to current GriPy Project',
@@ -173,6 +187,10 @@ def load():
                 help=u'Export a LAS file from a well in current GriPy Project',
                 callback='app.menu_functions.on_export_las'
         )
+        
+        
+        
+        
         UIM.create('menu_item_controller', mc_project.uid, 
                        kind=wx.ITEM_SEPARATOR
         )
@@ -182,6 +200,8 @@ def load():
                 id=wx.ID_EXIT,
                 callback='app.menu_functions.on_exit'
         )            
+        
+        
         
         # Edit Menu
         mc_partition = UIM.create('menu_controller', mc_edit.uid, 
@@ -233,6 +253,7 @@ def load():
 #                callback='app.menu_functions.on_fluid'
 #        )             
         
+        
         # Well Menu
         UIM.create('menu_item_controller', mc_well.uid, 
                    label=u"New well",
@@ -254,6 +275,7 @@ def load():
                 label=u"Avo PP-PS", 
                 callback='app.menu_functions.teste7'
         )  
+        
         
         # Interpretation Menu
         mc_specdecom = UIM.create('menu_controller', mc_interp.uid,  
@@ -301,7 +323,8 @@ def load():
         #        label=u"Poisson ratio", 
         #        callback='app.menu_functions.on_poisson_ratio'
         #)            
-        
+
+
 
         # Debug Menu
         UIM.create('menu_item_controller', mc_debug.uid, 
@@ -333,6 +356,8 @@ def load():
      
         # Fim Main Menu Bar
 
+       
+
         # Object Manager TreeController                                                          
         UIM.create('tree_controller', mwc.uid)                            
             
@@ -340,35 +365,35 @@ def load():
         tbc = UIM.create('toolbar_controller', mwc.uid)
         UIM.create('toolbartool_controller', tbc.uid,
                        label=u"New project", 
-                       bitmap='./icons/aqua_new_file_24.png',
+                       bitmap='aqua_new_file_24.png',
                        help='New project', 
                        long_help='Start a new Gripy project, closes existing',
                        callback='app.menu_functions.on_open'
         )            
         UIM.create('toolbartool_controller', tbc.uid,
                        label=u"Abrir projeto", 
-                       bitmap='./icons/folder_opened_24.png',
+                       bitmap='folder_opened_24.png',
                        help='Abrir projeto', 
                        long_help='Abrir projeto GriPy',
                        callback='app.menu_functions.on_open'
         )
         UIM.create('toolbartool_controller', tbc.uid,
                        label=u"Salvar projeto", 
-                       bitmap='./icons/floppy_24.png',
+                       bitmap='floppy_24.png',
                        help='Salvar projeto', 
                        long_help='Salvar projeto GriPy',
                        callback='app.menu_functions.on_save'
         )
         UIM.create('toolbartool_controller', tbc.uid,
                        label=u"Well Plot", 
-                       bitmap='./icons/log_plot_24.png',
+                       bitmap='log_plot_24.png',
                        help='Well Plot', 
                        long_help='Well Plot',
                        callback='app.menu_functions.on_new_wellplot'
         )
         UIM.create('toolbartool_controller', tbc.uid,
                        label=u"Crossplot", 
-                       bitmap='./icons/crossplot_24.png',
+                       bitmap='crossplot_24.png',
                        help='Crossplot', 
                        long_help='Crossplot',
                        callback='app.menu_functions.on_new_crossplot'
@@ -376,10 +401,12 @@ def load():
 
         # StatusBar
         UIM.create('statusbar_controller', mwc.uid, 
-            label='Bem vindo ao ' + app._gripy_app_state.get('app_display_name')
-        )   
+            label='Bem vindo ao ' + app.gripy_app.GripyApp.Get()._gripy_app_state.get('app_display_name')
+        )  
         
-        """
+        
+        
+        
 
     _do_initial_tests()
 

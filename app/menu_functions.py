@@ -19,14 +19,16 @@ from algo.spectral.Hilbert import HilbertTransform
 from algo.spectral import get_synthetic_ricker, phase_rotation, frequency_phase_rotation
 from algo import RockPhysics as RP
 from algo import avo
-from algo.modeling.Reflectivity import Reflectivity
-from om.Manager import ObjectManager
+
+from algo.modeling.reflectivity import Reflectivity
+from om.manager import ObjectManager
 from basic.parms import ParametersManager
 from  ui import HeaderEditor
 from  ui import ImportSelector
 from  ui import ExportSelector
 from  ui import ODTEditor
-from  ui import lisloader
+
+#from  ui import lisloader
 from  ui import PartitionEditor
 from  ui import PartEditor
 from  ui import RockTableEditor
@@ -66,7 +68,7 @@ WAVELET_MODES['Phase (unwrap)'] = 3
 
 def calc_well_time_from_depth(event):
     
-    OM = ObjectManager(event.GetEventObject()) 
+    OM = ObjectManager() 
     wells = OrderedDict()
     for well in OM.list('well'):
         wells[well.name] = well.uid
@@ -116,7 +118,7 @@ def on_new_wellplot(event):
         _, well_oid = results['well_uid']
         UIManager.get().create_log_plot(well_oid, lpf)
     '''        
-    OM = ObjectManager(event.GetEventObject()) 
+    OM = ObjectManager() 
     wells = OrderedDict()
     for well in OM.list('well'):
         wells[well.name] = well.uid
@@ -176,7 +178,7 @@ def on_new_wellplot(event):
 
 class ReflectivityModel():
     def __init__(self, event):
-        self.OM = ObjectManager(event.GetEventObject()) 
+        self.OM = ObjectManager() 
         
         self.flagRB = 1        
         
@@ -606,7 +608,7 @@ def on_poisson_ratio(event):
         return poisson
 
     
-    OM = ObjectManager(event.GetEventObject())
+    OM = ObjectManager()
     UIM = UIManager()
     dlg = UIM.create('dialog_controller', title='Poisson ratio')
     #
@@ -734,7 +736,7 @@ def on_akirichards_pp(event):
         y = (1. - 2.*(np.pi**2)*(f**2)*(t**2))*np.exp(-(np.pi**2)*(f**2)*(t**2))
         return t, y    
     #
-    OM = ObjectManager(event.GetEventObject())
+    OM = ObjectManager()
     #
     UIM = UIManager()
     dlg = UIM.create('dialog_controller', title='P-Wave Modeling')
@@ -902,7 +904,7 @@ def on_akirichards_pp(event):
 def teste7(event):
     raise Exception()
     '''
-    OM = ObjectManager(event.GetEventObject()) 
+    OM = ObjectManager() 
     # Init options to be used in wxChoices
     seismics = OrderedDict()
     for seis in OM.list('seismic'):
@@ -1259,7 +1261,7 @@ def teste6(event):
     raise Exception()
     
     """
-    OM = ObjectManager(event.GetEventObject()) 
+    OM = ObjectManager() 
 
 
     dlg = Dialog(None, title='AVO-PP', 
@@ -1538,7 +1540,7 @@ def teste6(event):
 
 def on_cwt(event):
     #
-    OM = ObjectManager(event.GetEventObject()) 
+    OM = ObjectManager() 
     
     UIM = UIManager()
     dlg = UIM.create('dialog_controller', title='Continuous Wavelet Transform') 
@@ -1885,7 +1887,7 @@ def on_cwt(event):
 
 def on_phase_rotation(event):
     #
-    OM = ObjectManager(event.GetEventObject()) 
+    OM = ObjectManager() 
     
     UIM = UIManager()
     dlg = UIM.create('dialog_controller', title='Phase Rotation') 
@@ -1970,7 +1972,7 @@ def on_phase_rotation(event):
 
 def on_hilbert_attributes(event):
     #
-    OM = ObjectManager(event.GetEventObject()) 
+    OM = ObjectManager() 
     
     UIM = UIManager()
     dlg = UIM.create('dialog_controller', title='Hiltert Attibutes') 
@@ -2043,7 +2045,7 @@ def on_hilbert_attributes(event):
 
 
 def on_exit(*args, **kwargs):
-    gripy_app = wx.App.Get() 
+    gripy_app = wx.GetApp() 
     event = args[0]
     event.Skip()
     gripy_app.PreExit()
@@ -2092,7 +2094,7 @@ def on_save_as(*args, **kwargs):
     
 	
 def on_rock(event):
-    OM = ObjectManager(event.GetEventObject()) 
+    OM = ObjectManager() 
     
     UIM = UIManager()
     dlg = UIM.create('dialog_controller', title='Rock creator') 
@@ -2360,7 +2362,7 @@ def on_rock(event):
         UIM.remove(dlg.uid)
         
 def on_fluid(event):
-    OM = ObjectManager(event.GetEventObject()) 
+    OM = ObjectManager() 
     
     UIM = UIManager()
     dlg = UIM.create('dialog_controller', title='Fluid creator') 
@@ -2510,7 +2512,7 @@ def on_new_crossplot(event):
     UIM.create('crossplot_controller', root_controller.uid)  
     
     """
-    OM = ObjectManager(event.GetEventObject()) 
+    OM = ObjectManager() 
     options = OrderedDict()
     partitions = OrderedDict()
     '''
@@ -2677,7 +2679,7 @@ def on_import_las(event):
             sel_datatypes = isdlg.get_datatypes()
             data = las_file.data
             
-            OM = ObjectManager(event.GetEventObject())
+            OM = ObjectManager()
             well = OM.new('well', name=las_file.wellname, 
                               LASheader=las_file.header)
             OM.add(well)			
@@ -2767,7 +2769,7 @@ def on_import_odt(event):
     hedlg.set_header(odt_file.fileheader, odt_file.logheader, odt_file.ndepth)
 
     if hedlg.ShowModal() == wx.ID_OK:
-        OM = ObjectManager(event.GetEventObject())
+        OM = ObjectManager()
         odt_file.header = hedlg.get_header()
         print ('header 2\n', odt_file.header)
 
@@ -2939,7 +2941,7 @@ def on_import_segy_well_gather(event):
         #
         ctn_wells = dlg.view.AddCreateContainer('StaticBox', label='Well', orient=wx.VERTICAL, proportion=0, flag=wx.EXPAND|wx.TOP, border=5)
         wells = OrderedDict()
-        OM = ObjectManager(event.GetEventObject())
+        OM = ObjectManager()
         for well in OM.list('well'):
             wells[well.name] = well.uid
         dlg.view.AddChoice(ctn_wells, proportion=0, flag=wx.EXPAND|wx.TOP, border=5,  widget_name='welluid', options=wells)     
@@ -3019,7 +3021,7 @@ def on_import_segy_vel(event):
     name = name.split('.')[0]
     
 
-    OM = ObjectManager(event.GetEventObject())     
+    OM = ObjectManager()     
     velocity = OM.new('velocity', segy_file.data, name=name, 
                            unit='ms', domain='time', 
                            sample_rate=segy_file.sample_rate*1000, datum=0,
@@ -3036,7 +3038,7 @@ def on_export_las(event):
 
     esdlg = ExportSelector.Dialog(wx.App.Get().GetTopWindow())
     if esdlg.view.ShowModal() == wx.ID_OK:
-        OM = ObjectManager(event.GetEventObject())   
+        OM = ObjectManager()   
         ###
         # TODO: Colocar isso em outro lugar
         names = []
@@ -3102,7 +3104,7 @@ def on_export_las(event):
 
 
 def on_new_rocktable(event):
-    OM = ObjectManager(event.GetEventObject())
+    OM = ObjectManager()
     rocktable_dlg = RockTableEditor.NewRockTableDialog(wx.App.Get().GetTopWindow())
     try:
         if rocktable_dlg.ShowModal() == wx.ID_OK:
@@ -3119,7 +3121,7 @@ def on_new_rocktable(event):
         rocktable_dlg.Destroy()
 
 def on_edit_rocktable(event):
-    OM = ObjectManager(event.GetEventObject())
+    OM = ObjectManager()
     if not OM.list('rocktable'):
         try:
             wx.MessageBox('Please create a new Rock Table first!')
@@ -3137,7 +3139,7 @@ def on_edit_rocktable(event):
     tree_ctrl.refresh()
 
 def on_new_partition(event):
-    OM = ObjectManager(event.GetEventObject())
+    OM = ObjectManager()
     partition_dlg = PartitionEditor.NewPartitionDialog(wx.App.Get().GetTopWindow())
     try:
         if partition_dlg.ShowModal() == wx.ID_OK:
@@ -3155,7 +3157,7 @@ def on_new_partition(event):
         partition_dlg.Destroy()
 
 def on_edit_partition(event):
-    OM = ObjectManager(event.GetEventObject())
+    OM = ObjectManager()
     if not OM.list('partition'):
 #        partition_dlg = PartitionEditor.NewPartitionDialog(wx.App.Get().GetTopWindow())
         try:
@@ -3183,7 +3185,7 @@ def on_edit_partition(event):
  
     
 def on_createrock(event):
-    OM = ObjectManager(event.GetEventObject()) 
+    OM = ObjectManager() 
     UIM = UIManager()
     dlg = UIM.create('dialog_controller', title='Create Rock')
     wells = OrderedDict()
@@ -3217,7 +3219,7 @@ def on_createrock(event):
         
     
 def on_create_well(event):
-    OM = ObjectManager(event.GetEventObject()) 
+    OM = ObjectManager() 
     UIM = UIManager()
     dlg = UIM.create('dialog_controller', title='Create Well')
     ctn_name = dlg.view.AddCreateContainer('StaticBox', label='Name', 
@@ -3332,7 +3334,7 @@ def on_create_well(event):
     
 
 def on_create_synthetic(event):
-    OM = ObjectManager(event.GetEventObject()) 
+    OM = ObjectManager() 
     UIM = UIManager()
     dlg = UIM.create('dialog_controller', title='Create Synthetic Log')
     wells = OrderedDict()
@@ -3533,7 +3535,7 @@ def on_create_synthetic(event):
 
 def on_create_model(event):
 
-    OM = ObjectManager(event.GetEventObject()) 
+    OM = ObjectManager() 
     UIM = UIManager()
     dlg = UIM.create('dialog_controller', title='Create 2/3 layers model')
     wells = OrderedDict()
@@ -3897,7 +3899,7 @@ def on_create_model(event):
 
 def on_time_depth(event):
 
-    OM = ObjectManager(event.GetEventObject()) 
+    OM = ObjectManager() 
     UIM = UIManager()
     dlg = UIM.create('dialog_controller', title='Time Depth')
     wells = OrderedDict()
@@ -4015,7 +4017,7 @@ def on_load_wilson(event):
     pre_stack_data = np.array(pre_stack_data)    
 
 
-    OM = ObjectManager(event.GetEventObject())
+    OM = ObjectManager()
     
     offsets = []
     for i in range(1, len(pre_stack_data)+1):

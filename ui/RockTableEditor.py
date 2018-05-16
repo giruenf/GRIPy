@@ -1,16 +1,16 @@
 # -*- coding: utf-8 -*-
 
-import wx
-import wx.grid
-from UI.uimanager import UIManager
-import numpy as np
 from os import getcwd as cwd
 
-from OM.Manager import ObjectManager
-from Algo import RockPhysics as RP
-import App.app_utils
+import numpy as np
+import wx
+import wx.grid
 
-from Basic.Colors import COLOR_CYCLE_RGB
+from ui.uimanager import UIManager
+from om.manager import ObjectManager
+from algo import rockphysics as RP
+import app.app_utils
+from basic.colors import COLOR_CYCLE_RGB
 
 
 COLOUR_DATA = wx.ColourData()
@@ -40,20 +40,20 @@ class RockTable(wx.grid.GridTableBase):
     def __init__(self, rocktableuid):
         super(RockTable, self).__init__()
         
-        self._OM = ObjectManager(self)
+        self.OM = ObjectManager()
         self.rocktypeuid = []
         self.rocktableuid = rocktableuid
         
-        self.rocktypemap = [rocktype.uid for rocktype in self._OM.list('rocktype', self.rocktableuid)]
+        self.rocktypemap = [rocktype.uid for rocktype in self.OM.list('rocktype', self.rocktableuid)]
         self.N_COLS = 4
         self.N_ROWS = 0
     
     @debugdecorator
     def AppendRows(self, numRows=1):
         rocktype = self.GrainEntry()
-#        rocktype = self._OM.new('rocktype')
+#        rocktype = self.OM.new('rocktype')
         rocktype.defaultdata = np.nan
-        self._OM.add(rocktype, self.rocktableuid)
+        self.OM.add(rocktype, self.rocktableuid)
         
         self.rocktypemap.append(rocktype.uid)
         color = self.get_color(0)
@@ -77,7 +77,7 @@ class RockTable(wx.grid.GridTableBase):
 #        fullpath_json = 'C:\\Users\\rtabelini\\Documents\\Github\\GRIPy'+json_file
         fullpath_json = cwd()+json_file
 
-        dictmin = App.app_utils.read_json_file(fullpath_json)
+        dictmin = app.app_utils.read_json_file(fullpath_json)
         
         def on_change_mineral(name, old_value, new_value, **kwargs):
             print ('new\n', name, new_value, new_value['name'], dictmin.iterkeys())
@@ -161,7 +161,7 @@ class RockTable(wx.grid.GridTableBase):
 #                kk = RP.VRHill (gr_k, gr_f, mtr_k)
 #                g = RP.VRHill (gr_mi, gr_f, mtr_mi)
                 print ('\ngrd', gr_k, gr_f, mtr_k, type(float(mtr_k)))
-                rocktype = self._OM.new('rocktype', fracgrain = gr_f, fracmatrix = mtr_f, grain = ngrain, matrix = nmatrix, k=10, mi=20)#vp=vp, vs=vs, rho = rho, k=k, mi=mi, poi=poi        
+                rocktype = self.OM.new('rocktype', fracgrain = gr_f, fracmatrix = mtr_f, grain = ngrain, matrix = nmatrix, k=10, mi=20)#vp=vp, vs=vs, rho = rho, k=k, mi=mi, poi=poi        
                 return rocktype
 
         except Exception as e:
@@ -174,7 +174,7 @@ class RockTable(wx.grid.GridTableBase):
         if pos >= self.N_ROWS:
             i = pos - self.N_ROWS
             for j in range(numRows)[::-1]:
-                self._OM.remove(self.rocktypemap.pop(i + j))
+                self.OM.remove(self.rocktypemap.pop(i + j))
 
             self.GetView().BeginBatch()
             msg = wx.grid.GridTableMessage(self, wx.grid.GRIDTABLE_NOTIFY_ROWS_DELETED, pos, numRows)
@@ -226,7 +226,7 @@ class RockTable(wx.grid.GridTableBase):
         elif col == 0:
             attr.SetAlignment(wx.ALIGN_RIGHT, wx.ALIGN_CENTER)
         elif col == 1:
-            rocktype = self._OM.get(self.rocktypemap[row])
+            rocktype = self.OM.get(self.rocktypemap[row])
             attr.SetBackgroundColour(rocktype.color)
             attr.SetReadOnly(True)
         elif col == 2:
@@ -239,22 +239,22 @@ class RockTable(wx.grid.GridTableBase):
     def GetValue(self, row, col):
         if col >= self.N_COLS:
             i = col - self.N_COLS
-            prop = self._OM.get(self.propmap[i])
+            prop = self.OM.get(self.propmap[i])
             value = prop.getdata(self.rocktypemap[row])
             if not np.isnan(value):
                 return str(value)
             else:
                 return ''
         elif col == 0:
-            rocktype = self._OM.get(self.rocktypemap[row])
+            rocktype = self.OM.get(self.rocktypemap[row])
             return rocktype.name
         elif col == 1:
             return ''
         elif col == 2:
-            rocktype = self._OM.get(self.rocktypemap[row])
+            rocktype = self.OM.get(self.rocktypemap[row])
             return rocktype.fracgrain + ' ' + rocktype.grain
         elif col == 3:
-            rocktype = self._OM.get(self.rocktypemap[row])
+            rocktype = self.OM.get(self.rocktypemap[row])
             return rocktype.fracmatrix + ' ' + rocktype.matrix
 
     @debugdecorator
@@ -265,10 +265,10 @@ class RockTable(wx.grid.GridTableBase):
                 value = float(value)
             else:
                 value = np.nan
-            prop = self._OM.get(self.propmap[i])
+            prop = self.OM.get(self.propmap[i])
             prop.setdata(self.rocktypemap[row], value)
         elif col == 0:
-            rocktype = self._OM.get(self.rocktypemap[row])
+            rocktype = self.OM.get(self.rocktypemap[row])
             rocktype.name = value
         elif col == 1:
             return
@@ -278,26 +278,26 @@ class RockTable(wx.grid.GridTableBase):
             return
     @debugdecorator
     def set_color(self, row, color):
-        rocktype = self._OM.get(self.rocktypemap[row])
+        rocktype = self.OM.get(self.rocktypemap[row])
         rocktype.color = color
 
     @debugdecorator
     def get_color(self, row):
-        rocktype = self._OM.get(self.rocktypemap[row])
+        rocktype = self.OM.get(self.rocktypemap[row])
         return rocktype.color
     
     @debugdecorator
     def get_nameunit(self, col):
         if col >= self.N_COLS:
             i = col - self.N_COLS
-            prop = self._OM.get(self.propmap[i])
+            prop = self.OM.get(self.propmap[i])
             return prop.name, prop.unit
 
     @debugdecorator
     def set_nameunit(self, col, name, unit):
         if col >= self.N_COLS:
             i = col - self.N_COLS
-            prop = self._OM.get(self.propmap[i])
+            prop = self.OM.get(self.propmap[i])
             prop.name = name
             prop.unit = unit
 
@@ -368,6 +368,8 @@ class NewRockTableDialog(wx.Dialog):
         name = self.name_ctrl.GetValue()
         return name
 
+
+
 class Dialog(wx.Dialog):
     @debugdecorator
     def __init__(self, *args, **kwargs):
@@ -376,16 +378,16 @@ class Dialog(wx.Dialog):
         
         super(Dialog, self).__init__(*args, **kwargs)
         
-        self._OM = ObjectManager(self)
+        self.OM = ObjectManager()
 
         self.currentwellindex = 0
         self.currentrocktableindex = 0
         
         self.tables = []
         
-        self.rocktablemap = [rocktable.uid for rocktable in self._OM.list('rocktable')]
+        self.rocktablemap = [rocktable.uid for rocktable in self.OM.list('rocktable')]
         work_table = []
-        for rocktable in self._OM.list('rocktable'):
+        for rocktable in self.OM.list('rocktable'):
             work_table.append(RockTable(rocktable.uid))
         self.tables.append(work_table)
         self.grid = wx.grid.Grid(self)
@@ -399,7 +401,7 @@ class Dialog(wx.Dialog):
         toolbar_sizer = wx.BoxSizer(wx.HORIZONTAL)
 
         self.rocktable_choice = wx.Choice(self)
-        self.rocktable_choice.AppendItems([self._OM.get(rocktableuid).name for rocktableuid in self.rocktablemap])
+        self.rocktable_choice.AppendItems([self.OM.get(rocktableuid).name for rocktableuid in self.rocktablemap])
         self.rocktable_choice.SetSelection(self.currentrocktableindex)
         self.rocktable_choice.Bind(wx.EVT_CHOICE, self.on_rocktable_choice)
 

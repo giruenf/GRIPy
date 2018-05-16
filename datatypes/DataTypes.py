@@ -26,9 +26,11 @@ from collections import OrderedDict
 
 import numpy as np
 
-from om.Manager import ObjectManager
-from om.Objects import GripyObject
-from basic.Colors import COLOR_CYCLE_RGB
+from om.manager import ObjectManager
+
+from app.gripy_base_classes import GripyObject
+
+from basic.colors import COLOR_CYCLE_RGB
 
 
 
@@ -97,6 +99,7 @@ class GenericDataType(GripyObject):
         if isinstance(self._data, np.ndarray):
             self._data.flags.writeable = False    
     
+    
     @property
     def name(self):
         if 'name' not in self.attributes:
@@ -106,10 +109,12 @@ class GenericDataType(GripyObject):
     @name.setter
     def name(self, value):
         self.attributes['name'] = value
-    
+        
+    '''
     @name.deleter
     def name(self):
         del self.attributes['name']
+    '''
     
     def get_friendly_name(self):
         return self.name
@@ -175,7 +180,7 @@ class GenericDataType(GripyObject):
            
         
     def get_indexes_set(self):
-        OM = ObjectManager(self)
+        OM = ObjectManager()
         indexes_set = OM.list('index_set', self.uid)
         ret = OrderedDict()
         for index_set in indexes_set:
@@ -196,7 +201,7 @@ class GenericDataType(GripyObject):
     
     """
     def get_indexes_set(self):
-        OM = ObjectManager(self)
+        OM = ObjectManager()
         indexes_set = OM.list('index_set', self.uid)
         ret = OrderedDict()
         for index_set in indexes_set:
@@ -214,7 +219,7 @@ class GenericDataType(GripyObject):
     """
     
     def get_data_indexes(self, set_name):
-        OM = ObjectManager(self)
+        OM = ObjectManager()
         for index_set_uid, inner_ord_dict in self.get_indexes_set().items():
             index_set = OM.get(index_set_uid) 
             if set_name == index_set.name:
@@ -223,7 +228,7 @@ class GenericDataType(GripyObject):
     
     """
     def get_data_indexes(self, set_name):
-        #OM = ObjectManager(self)
+        #OM = ObjectManager()
         for index_set_name, inner_ord_dict in self.get_indexes_set().items():
             #index_set = OM.get(index_set_uid) 
             if set_name == index_set_name:
@@ -250,7 +255,7 @@ class GenericDataType(GripyObject):
 
    
     def get_friendly_indexes_dict(self):
-        OM = ObjectManager(self)
+        OM = ObjectManager()
         ret_od = OrderedDict()
         indexes_set = self.get_indexes_set()
         for index_set_uid, indexes_ord_dict in indexes_set.items():
@@ -263,7 +268,7 @@ class GenericDataType(GripyObject):
     
     """
     def get_friendly_indexes_dict(self):
-        #OM = ObjectManager(self)
+        #OM = ObjectManager()
         ret_od = OrderedDict()
         indexes_set = self.get_indexes_set()
         for index_set_name, indexes_ord_dict in indexes_set.items():
@@ -276,7 +281,7 @@ class GenericDataType(GripyObject):
     """
     
     def get_z_axis_datatypes(self):
-        OM = ObjectManager(self)
+        OM = ObjectManager()
         data_indexes_uid = self.get_friendly_indexes_dict().values()
         zaxis = OrderedDict()
         for z_axis_dt, z_axis_dt_desc in VALID_Z_AXIS_DATATYPES:
@@ -296,7 +301,7 @@ class GenericDataType(GripyObject):
 
 
     def _getparent(self):
-        OM = ObjectManager(self)
+        OM = ObjectManager()
         parent_uid = OM._getparentuid(self.uid)
         if not parent_uid:
             return None
@@ -317,7 +322,7 @@ class WellData1D(GenericDataType):
         if tid != 'index_set':
             raise Exception('Object attribute \"index_set_uid\" must have its first argument as \"index_set\".')
         super(WellData1D, self).__init__(data, **attributes)
-        OM = ObjectManager(self)        
+        OM = ObjectManager()        
         OM.subscribe(self._on_OM_add, 'add')
 
 
@@ -325,7 +330,7 @@ class WellData1D(GenericDataType):
         if objuid != self.uid:
             return
         #print 'WellData1D._on_OM_add:', objuid
-        OM = ObjectManager(self)
+        OM = ObjectManager()
         try:
             OM.unsubscribe(self._on_OM_add, 'add')     
         except Exception as e:
@@ -356,7 +361,7 @@ class WellData1D(GenericDataType):
 
 
     def get_data_indexes(self):
-        OM = ObjectManager(self)            
+        OM = ObjectManager()            
         try:
             index_set = OM.get(self.index_set_uid)
             return index_set.get_data_indexes()
@@ -379,7 +384,7 @@ class WellData1D(GenericDataType):
         raise Exception('Invalid METHOD')   
     
     def get_friendly_name(self):
-        OM = ObjectManager(self)
+        OM = ObjectManager()
         parent_well_uid = OM._getparentuid(self.uid)
         parent_well = OM.get(parent_well_uid)         
         return self.name + '@' + parent_well.name
@@ -808,7 +813,7 @@ class Partition(WellData1D):
 
     """
     def get_index(self):
-        _OM = ObjectManager(self)
+        _OM = ObjectManager()
         parent_uid = _OM._getparentuid(self.uid)
         parent = _OM.get(parent_uid)
         return parent.get_index()
@@ -988,7 +993,7 @@ class Density(GenericDataType):
         super(Density, self).__init__(data, **attributes)
 
     def get_data_indexes(self):
-        OM = ObjectManager(self)            
+        OM = ObjectManager()            
         try:
             index_set = OM.list('index_set', self.uid)[0]
             return index_set.get_data_indexes()
@@ -1218,7 +1223,7 @@ class IndexSet(GripyObject):
     def __init__(self, **attrbutes):
         super(IndexSet, self).__init__()
         self.attributes = {}
-        OM = ObjectManager(self) 
+        OM = ObjectManager() 
         vinculated = attrbutes.get('vinculated')
         if vinculated:
             try:
@@ -1237,7 +1242,7 @@ class IndexSet(GripyObject):
     def _on_OM_add(self, objuid):
         if objuid != self.uid:
             return
-        OM = ObjectManager(self)        
+        OM = ObjectManager()        
         OM.unsubscribe(self._on_OM_add, 'add')
         
         parent_uid = OM._getparentuid(self.uid)
@@ -1255,7 +1260,7 @@ class IndexSet(GripyObject):
   
     
     def get_data_indexes(self):
-        OM = ObjectManager(self) 
+        OM = ObjectManager() 
         ret_dict = OrderedDict()
         if self.vinculated:
             vinculated_index_set = OM.get(self.vinculated)
@@ -1290,7 +1295,7 @@ class IndexSet(GripyObject):
      
     @classmethod
     def _loadstate(cls, **state):
-        OM = ObjectManager(cls)
+        OM = ObjectManager()
         try:
             name = state.get('name')
             vinculated = state.get('vinculated')
@@ -1346,19 +1351,19 @@ class DataIndex(GenericDataType):
         )
         self.attributes['dimension'] = dimension_idx   
         #
-        #OM = ObjectManager(self)        
+        #OM = ObjectManager()        
         #OM.subscribe(self._on_OM_add, 'add')
 
 
     def _on_OM_add(self, objuid):
         if objuid != self.uid:
             return
-        OM = ObjectManager(self)        
+        OM = ObjectManager()        
         OM.unsubscribe(self._on_OM_add, 'add')
 
     
     def get_data_indexes(self):
-        OM = ObjectManager(self)            
+        OM = ObjectManager()            
         try:
             index_set_uid = OM._getparentuid(self.uid)
             index_set = OM.get(index_set_uid)
@@ -1398,7 +1403,7 @@ class DataIndex(GenericDataType):
     
     @classmethod
     def _loadstate(cls, **state):
-        OM = ObjectManager(cls)
+        OM = ObjectManager()
         try:
             dimension = state.pop('dimension')
             name = state.pop('name')
@@ -1424,7 +1429,7 @@ class Model1D(Density):
 
     def get_index(self):
         #print '\nModel1d.get_index'
-        OM = ObjectManager(self)  
+        OM = ObjectManager()  
         parent_uid = OM._getparentuid(self.uid)
         parent = OM.get(parent_uid)
         indexes = parent.get_index()

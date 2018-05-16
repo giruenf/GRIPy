@@ -5,14 +5,14 @@ from collections import OrderedDict
 
 import wx.lib.agw.customtreectrl as CT
 
-from OM.Manager import ObjectManager
+from om.manager import ObjectManager
 
 
 class Panel(wx.Panel):  # TODO: enxugar métodos repetidos (getblabla, setblabla)
     def __init__(self, *args, **kwargs):
         super(Panel, self).__init__(*args, **kwargs)
 
-        self._OM = ObjectManager(self)
+        self._OM = ObjectManager()
         
         self.welluid = None
 
@@ -183,7 +183,7 @@ class Dialog(wx.Dialog):
 
         super(Dialog, self).__init__(*args, **kwargs)
         
-        self._OM = ObjectManager(self)
+        self._OM = ObjectManager()
         self._OM.subscribe(self.on_wells_changed, 'add')
         self._OM.subscribe(self.on_wells_changed, 'post_remove')
         #self._OM.addcallback('add_object', self.on_wells_changed)

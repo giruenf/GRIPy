@@ -5,7 +5,7 @@ from collections import OrderedDict
 import numpy as np
 import wx
 
-from om.Manager import ObjectManager
+from om.manager import ObjectManager
 from ui.uimanager import UIManager
 from algo.spectral.Spectral import STFT, WaveletTransform, MorletWavelet, PaulWavelet, DOGWavelet, RickerWavelet
 
@@ -34,7 +34,7 @@ WAVELET_TYPES['Paul (order=6)'] = 'paul6'
 
 def do_STFT(*args, **kwargs):
     obj = args[0]
-    OM = ObjectManager(obj)
+    OM = ObjectManager()
     UIM = UIManager()
     dlg = UIM.create('dialog_controller', title='Short Time Fourier Transform') 
     #
@@ -175,7 +175,7 @@ def do_CWT(*args, **kwargs):
             wt = WaveletTransform(valid_data, dj=dj, wavelet=func, dt=obj.step,
                                   time=valid_index_data
             )
-            OM = ObjectManager(obj) 
+            OM = ObjectManager() 
             seismic = OM.new('scalogram', wt.wavelet_power, name=obj.name+'_CWT', 
                                    unit='m', domain='depth', 
                                    sample_rate=wt.time[1] - wt.time[0],

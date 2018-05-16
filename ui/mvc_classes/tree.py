@@ -7,7 +7,7 @@ import wx
 
 from basic.uom import uom
 
-from om.Manager import ObjectManager
+from om.manager import ObjectManager
 from ui.uimanager import UIManager
 from ui.uimanager import UIControllerBase 
 from ui.uimanager import UIViewBase 
@@ -34,13 +34,13 @@ class TreeController(UIControllerBase):
     def PostInit(self):
         self._mapobjects[self._PSEUDOROOTUID] = self.view._rootid
         self._maptypes[self._PSEUDOROOTUID] = {} 
-        OM = ObjectManager(self)
+        OM = ObjectManager()
         OM.subscribe(self.get_treeitem, 'add')
         OM.subscribe(self.remove_treeitem, 'post_remove')
 
      
     def refresh(self):
-        OM = ObjectManager(self)
+        OM = ObjectManager()
         for uid, treeid in self._mapobjects.items():
             if uid == self._PSEUDOROOTUID:
                 continue
@@ -88,7 +88,7 @@ class TreeController(UIControllerBase):
         try:
             #print 'treeitem NAO existe, CRIAR...'
             #print ('1 - Get object_ do OM')
-            OM = ObjectManager(self)
+            OM = ObjectManager()
             #print ('1.5')
             obj = OM.get(objuid)
             #print ('2')
@@ -126,7 +126,7 @@ class TreeController(UIControllerBase):
             raise
 
     def _get_object_attributes(self, objuid):
-        OM = ObjectManager(self)
+        OM = ObjectManager()
         obj = OM.get(objuid)
         ret_list = []
         for attr, attr_label in obj._SHOWN_ATTRIBUTES:
@@ -169,7 +169,7 @@ class TreeController(UIControllerBase):
     
     def get_parent_treeitem(self, objuid):
         if objuid !=  self._PSEUDOROOTUID:
-            OM = ObjectManager(self)
+            OM = ObjectManager()
             obj = OM.get(objuid)
             parentuid = OM._getparentuid(objuid)
         if not parentuid:
@@ -181,7 +181,7 @@ class TreeController(UIControllerBase):
     
 
     def _get_object_label(self, objuid):
-        OM = ObjectManager(self)
+        OM = ObjectManager()
         obj = OM.get(objuid)
         obj_str = obj.name
         # 
@@ -199,7 +199,7 @@ class TreeController(UIControllerBase):
     
     """
     def reload_object(self, objuid):
-        OM = ObjectManager(self)
+        OM = ObjectManager()
         
         treeitem = self._mapobjects.get(objuid)
         if not treeitem:
@@ -220,7 +220,7 @@ class TreeController(UIControllerBase):
 
 
     def _reload_object(self, objuid):
-        OM = ObjectManager(self)
+        OM = ObjectManager()
         self.get_treeitem(objuid)    
         for son in OM.list(parentuidfilter=objuid):
             self._reload_object(son.uid)
@@ -339,7 +339,7 @@ class TreeView(UIViewBase, wx.TreeCtrl):
         uid, tree_tid = self.GetItemData(treeid)
         UIM = UIManager()
         controller = UIM.get(self._controller_uid)
-        OM = ObjectManager(self)
+        OM = ObjectManager()
         
         if uid is None:  # Object attributes
             return
@@ -384,7 +384,7 @@ class TreeView(UIViewBase, wx.TreeCtrl):
 
     def OnPopupItemSelected(self, event):
         uid, tree_tid = self.popup_obj
-        OM = ObjectManager(self)
+        OM = ObjectManager()
         if tree_tid is None:
             OM.remove(uid)
         else:
@@ -399,7 +399,7 @@ class TreeView(UIViewBase, wx.TreeCtrl):
 
     def OnRenameObject(self, event):  
         uid, tree_tid = self.popup_obj
-        OM = ObjectManager(self)       
+        OM = ObjectManager()       
         obj = OM.get(uid)
         
         UIM = UIManager()
@@ -434,7 +434,7 @@ class TreeView(UIViewBase, wx.TreeCtrl):
                           
     def OnUnitConvert(self, event):     
         uid, tree_tid = self.popup_obj
-        OM = ObjectManager(self)       
+        OM = ObjectManager()       
         obj = OM.get(uid)
         try:
             unit = uom.get_unit(obj.unit)

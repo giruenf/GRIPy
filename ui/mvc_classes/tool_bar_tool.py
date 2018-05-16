@@ -2,6 +2,7 @@
 
 import logging
 import types
+import os
 
 import wx
 
@@ -10,6 +11,7 @@ from ui.uimanager import UIControllerBase
 from ui.uimanager import UIModelBase 
 #from ui.uimanager import UI_MODEL_ATTR_CLASS
 from ui.mvc_classes.main_window import MainWindowController
+import app
 from app import log
 
 
@@ -48,9 +50,17 @@ class ToolBarToolController(UIControllerBase):
        
         if self.model.bitmap is None:
             bitmap = wx.Bitmap()
-        else:
+        elif os.path.exists(self.model.bitmap):
             bitmap = wx.Bitmap(self.model.bitmap)
-            
+        elif os.path.exists(os.path.join(app._APP_ICONS_PATH, \
+                                                 self.model.bitmap)):
+            bitmap = wx.Bitmap(os.path.join(app._APP_ICONS_PATH, \
+                                                    self.model.bitmap))
+        else:
+            raise Exception('ERROR: Wrong bitmap path.')
+                
+
+                    
         # TODO: Rever isso
         try:
             tool = parent.view.InsertTool(self.model.pos, self.model.id,

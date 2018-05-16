@@ -1,13 +1,17 @@
 # -*- coding: utf-8 -*-
 
-import wx
 from collections import OrderedDict
-from OM.Manager import ObjectManager
-from Algo.Modeling.Reflectivity import Reflectivity
+
+import wx
+
+from om.manager import ObjectManager
+from algo.modeling.reflectivity import Reflectivity
+
 
 class ReflectivityModel():
-    def __init__(self, event):
-        self.OM = ObjectManager(event.GetEventObject()) 
+    
+    def __init__(self):
+        self.OM = ObjectManager() 
         
         self.flagRB = 1        
         

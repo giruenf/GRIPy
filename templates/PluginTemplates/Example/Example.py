@@ -8,7 +8,7 @@ class ExamplePlugin(DefaultPlugin):
 
     def __init__(self):
         super(ExamplePlugin, self).__init__()
-        self._OM = ObjectManager(self)
+        self._OM = ObjectManager()
         self.input = {}
         self.output = {}
 

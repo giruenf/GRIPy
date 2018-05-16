@@ -40,7 +40,7 @@ class AutoGenExamplePlugin(AutoGenDataPlugin):
     def __init__(self):
         super(AutoGenExamplePlugin, self).__init__()
         
-        self._OM = ObjectManager(self)
+        self._OM = ObjectManager()
         
         self.inputdesc = inputdesc
         self.outputdesc = outputdesc
