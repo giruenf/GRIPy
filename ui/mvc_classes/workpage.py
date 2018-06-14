@@ -106,7 +106,7 @@ class WorkPage(UIViewBase, wx.Panel):
             
             
     def _set_title(self, new_value, old_value):
-        #print '_reset_title:', new_value, old_value
+        print ('_set_title:', new_value, old_value)
         UIM = UIManager()
         controller = UIM.get(self._controller_uid)
         main_window_uid = UIM._getparentuid(controller.uid)

@@ -21,7 +21,7 @@ from app import log
 """
 
 def create_data_object(event, obj_tid, obj_name, parent_uid=None):
-    OM = ObjectManager(event.GetEventObject())
+    OM = ObjectManager()
     obj = OM.new(obj_tid, name=obj_name) 
     OM.add(obj)
     axis = OM.new('data_axis', 'Z Axis')
@@ -39,6 +39,36 @@ def create_seismic(event, seismic_name, parent_uid=None):
 """
 
 
+
+class GripyBitmap(wx.Bitmap):
+    
+    def __init__(self, path_to_bitmap=None):
+        if path_to_bitmap is None:
+            super().__init__()
+            return
+        if os.path.exists(path_to_bitmap):
+            full_file_name = path_to_bitmap
+        elif os.path.exists(os.path.join(app._APP_ICONS_PATH, \
+                                                 path_to_bitmap)):
+            full_file_name = os.path.join(app._APP_ICONS_PATH, path_to_bitmap)
+        else:
+            raise Exception('ERROR: Wrong bitmap path.')
+        super().__init__(full_file_name)    
+
+
+class GripyIcon(wx.Icon):
+    
+    def __init__(self, path_to_bitmap=None, type_=wx.BITMAP_TYPE_ANY):
+        if path_to_bitmap is not None:
+            if os.path.exists(path_to_bitmap):
+                path_to_bitmap = path_to_bitmap
+            elif os.path.exists(os.path.join(app._APP_ICONS_PATH, \
+                                                     path_to_bitmap)):
+                path_to_bitmap = os.path.join(app._APP_ICONS_PATH, path_to_bitmap)
+            else:
+                raise Exception('ERROR: Wrong bitmap path.')
+        super().__init__(path_to_bitmap, type_)    
+        
 
 def calc_well_time_from_depth(event, well_uid):
     OM = ObjectManager() 
@@ -83,7 +113,7 @@ def calc_well_time_from_depth(event, well_uid):
 def load_segy(event, filename, new_obj_name='', comparators_list=None, 
               iline_byte=9, xline_byte=21, offset_byte=37, tid='seismic', 
               parentuid=None):    
-    OM = ObjectManager(event.GetEventObject())  
+    OM = ObjectManager()  
     disableAll = wx.WindowDisabler()
     wait = wx.BusyInfo("Loading SEG-Y file...")
     #
@@ -507,18 +537,21 @@ def parse_string_to_uid(obj_uid_string):
     tuple
         A pair (tid, oid) which can be a Gripy object identifier.
     """
-    left_index = obj_uid_string.find('(')
-    right_index = obj_uid_string.rfind(')')
-    if left_index == -1 or right_index == -1:
-        return None
-    elif right_index < left_index:
-        return None
-    obj_uid_string = obj_uid_string[left_index+1:right_index]
-    tid, oid = obj_uid_string.split(',')
-    tid = tid.strip('\'\" ')
-    oid = int(oid.strip('\'\" '))
-    return tid, oid       
-
+    try:
+#        print ('parse_string_to_uid:', obj_uid_string)
+        left_index = obj_uid_string.find('(')
+        right_index = obj_uid_string.rfind(')')
+        if left_index == -1 or right_index == -1:
+            return None
+        elif right_index < left_index:
+            return None
+        obj_uid_string = obj_uid_string[left_index+1:right_index]
+        tid, oid = obj_uid_string.split(',')
+        tid = tid.strip('\'\" ')
+        oid = int(oid.strip('\'\" '))
+        return tid, oid       
+    except:
+        raise
 
 
 

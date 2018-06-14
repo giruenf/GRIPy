@@ -424,7 +424,62 @@ def get_main_window_controller():
 Funcao reservada para alguns testes 
 """
 def _do_initial_tests():
-    pass
+    #pass
+
+    mwc = get_main_window_controller()
+    mwc.model.pos = (-1092, 606)
+    mwc.model.size = (900, 600)
+    mwc.model.maximized = False
+    
+
+    '''
+
+    print ('\n\n\n\n\n\n\n\n\n\n')
+
+    from om.manager import ObjectManager
+    OM = ObjectManager()
+    
+    
+    OM.print_info()
+    
+    well = OM.new('well', name='ZZZ')
+    OM.add(well)
+    
+    '''
+    
+    
+    """
+    
+    OM.print_info()
+
+
+
+
+    OM.remove(well.uid)
+
+
+    OM.print_info()
+
+    well1 = OM.new('well', name='xxx')
+    OM.add(well1)
+    
+    OM.print_info()
+    
+    well2 = OM.new('well', name='yyy')
+    OM.add(well2)
+
+    OM.print_info()
+
+    OM.remove(well1.uid)
+    
+    OM.print_info()
+    
+    OM.remove(well2.uid)
+
+    OM.print_info()
+
+    """
+
     #fullfilename = 'C:\\Users\\Adriano\\Desktop\\aaa_teste_5.pgg'
     
     #fullfilename = 'C:\\Users\\Adriano\\Desktop\\aaa_teste_8.pgg'

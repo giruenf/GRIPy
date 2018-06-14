@@ -94,6 +94,7 @@ class MainWindow(Frame):
         UIM = UIManager()
         UIM.remove(panel._controller_uid)
 
+
     def on_page_changed(self, event):
         UIM = UIManager()
         for idx in range(self.note.GetPageCount()):
@@ -102,6 +103,7 @@ class MainWindow(Frame):
             controller.model.set_value_from_event('pos', idx)
         event.Skip()
      
+        
     def insert_notebook_page(self, *args, **kwargs):
         try:
             page = None

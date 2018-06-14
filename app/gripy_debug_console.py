@@ -17,8 +17,9 @@ from app.app_utils import Chronometer
 class DebugConsole(code.InteractiveConsole):
     _OM = None
     
-    def __init__(self, outputFunc, setPromptFunc, exitCmd, clearFunc, echoFunc=None):
+    def __init__(self, outputFunc, flushFunc, setPromptFunc, exitCmd, clearFunc, echoFunc=None):
         self._output = outputFunc
+        self._flush = flushFunc
         self._echo = echoFunc
         self._setPrompt = setPromptFunc
         self._exitCmd = exitCmd
@@ -79,6 +80,9 @@ class DebugConsole(code.InteractiveConsole):
             
         sys.stdout, sys.stderr = stdout, stderr
         
+
+    def flush(self):
+        self._flush()
         
  
 class DebugConsoleFrame(wx.Frame):
@@ -149,7 +153,8 @@ class DebugConsoleFrame(wx.Frame):
         bottom_panel.SetMinSize((40,40))
         frame_panel_sizer.Add(bottom_panel, 0, wx.EXPAND)
         frame_panel.SetSizer(frame_panel_sizer)
-        self.console = DebugConsole(outputFunc=self.output, exitCmd=self.Close,
+        self.console = DebugConsole(outputFunc=self.output, flushFunc=self.flush,
+                            exitCmd=self.Close,
                             clearFunc=self.clearOutput,
                             echoFunc=self.echo, setPromptFunc=self.setPrompt)
         self.SetSize((1350,700))
@@ -247,6 +252,9 @@ class DebugConsoleFrame(wx.Frame):
 
     def output(self, data):
         self.outputCtrl.WriteText(data)
+
+    def flush(self):
+        self.outputCtrl.flush()
 
     def echo(self, data):
         self.outputCtrl.WriteText(data)

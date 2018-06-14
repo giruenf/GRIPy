@@ -7,6 +7,8 @@ import wx
 from om.manager import ObjectManager
 from algo.modeling.reflectivity import Reflectivity
 
+from app.app_utils import GripyIcon
+
 
 class ReflectivityModel():
     
@@ -37,7 +39,7 @@ class ReflectivityModel():
         self.outtype['Angle Gather'] = 5
     
         self.dlg = wx.Dialog(None, title='Reflectivity Modeling')
-        ico = wx.Icon(r'./icons/logo-transp.ico', wx.BITMAP_TYPE_ICO)
+        ico = GripyIcon('logo-transp.ico', wx.BITMAP_TYPE_ICO)
         self.dlg.SetIcon(ico)
         
         

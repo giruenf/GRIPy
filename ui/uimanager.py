@@ -92,11 +92,6 @@ class UIControllerBase(UIBase, PublisherMixin):
         else:
             self.model = None
             
-            
-#        print ('self.model:', self.model, base_state, self.model.name)    
-#        self.model._oid = 7    
-        
-        
         if view_class is not None:     
             try:
                 self.view = view_class(self.uid)
@@ -455,7 +450,7 @@ class UIModelBase(UIBase):
                     )
                     log.exception(msg)
             else:
-                msg = u'    ' + unicode(key) + ' cannot be loaded. [key in _SPECIALS_KEYS]'
+                msg = '    {} cannot be loaded. [key in _SPECIALS_KEYS]'.format(key)
                 log.error(msg)
         log.debug('{} state has loaded.'.format(self.__class__.__name__))
      
@@ -741,7 +736,7 @@ class UIManager(GripyManager):
     def remove(self, uid):
         msg = 'Removing object from UI Manager: {}.'.format(uid)
         log.debug(msg)
-        print ('\n' + msg)
+#        print ('\n' + msg)
         self.send_message('pre_remove', objuid=uid)
         obj = self.get(uid)
         if not isinstance(obj, UIControllerBase):
@@ -789,7 +784,7 @@ class UIManager(GripyManager):
 
     # Before exit application
     def PreExit(self):
-        print ('UIManager PreExit')
+        print ('\nUIManager PreExit')
         for obj in self.list():
             try:
                 obj.model.PreDelete() 
@@ -805,7 +800,7 @@ class UIManager(GripyManager):
                 print ('\n\n', obj.uid, e.args, e.message, '\n\n')
                 raise                
             obj.PreDelete()    
-
+#            obj.unsubAll()  
 #        self.print_info()
         print ('UIManager PreExit ended')
 

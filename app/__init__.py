@@ -70,9 +70,9 @@ DEFS = _read_app_definitions()
 # Logging 
 
 
-print ('DEFS.get(logging):',DEFS.get('logging'))
+#print ('DEFS.get(logging):',DEFS.get('logging'))
 log = start_logging(DEFS.get('logging'))
-print (logging.getLogger().getEffectiveLevel())
+#print (logging.getLogger().getEffectiveLevel())
 
 
 

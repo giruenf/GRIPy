@@ -53,7 +53,7 @@ class GripyApp(wx.App):
         ) 
 
         # Then, wx.App has inited and it calls OnInit
-        print ('GripyApp.Init ended')
+        print ('GripyApp.Init ended\n')
 
 
     def OnInit(self):
@@ -130,7 +130,8 @@ class GripyApp(wx.App):
         
 
     def get_project_filename(self):
-        return self.OM_file
+        return wx.EmptyString
+        #return self.OM_file
         
 
     """
@@ -184,7 +185,8 @@ class GripyApp(wx.App):
             if dial.ShowModal() == wx.ID_YES:
                 self.on_save()   
         #
-        self.reset_ObjectManager()
+        OM._reset()
+        
         #
         app_UI_filename = self._gripy_app_state.get('app_UI_file')
         Interface.save_UI_application_data(app_UI_filename)
@@ -303,6 +305,3 @@ class GripyApp(wx.App):
         fdlg.Destroy()   
 
 
-    def reset_ObjectManager(self):
-        OM = ObjectManager()
-        OM._reset()

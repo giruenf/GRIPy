@@ -42,10 +42,6 @@ class GripyObject(PublisherMixin):
     def __str__(self):
         return str(self.uid)        
 
-    ###
-    #def _being_deleted(self):
-    #    self.send_message('remove')
-    ###
     
     @property
     def name(self): 
@@ -120,12 +116,13 @@ class GripyManager(PublisherMixin):
     """
 
     def __init__(self):
-        super().__init__()
+        #super().__init__()
         self._ownerref = None
+        
         return
     
         print ('\nGripyManager.init')
-    
+     
         '''
         print ('\nGripyManager.init')
         

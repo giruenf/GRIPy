@@ -13,6 +13,7 @@ from ui.uimanager import UIModelBase
 from ui.mvc_classes.main_window import MainWindowController
 import app
 from app import log
+from app.app_utils import GripyBitmap
 
 
 class ToolBarToolController(UIControllerBase):
@@ -48,19 +49,10 @@ class ToolBarToolController(UIControllerBase):
             logging.warning(msg)
             self.model.pos = parent.view.GetToolsCount() 
        
-        if self.model.bitmap is None:
-            bitmap = wx.Bitmap()
-        elif os.path.exists(self.model.bitmap):
-            bitmap = wx.Bitmap(self.model.bitmap)
-        elif os.path.exists(os.path.join(app._APP_ICONS_PATH, \
-                                                 self.model.bitmap)):
-            bitmap = wx.Bitmap(os.path.join(app._APP_ICONS_PATH, \
-                                                    self.model.bitmap))
-        else:
-            raise Exception('ERROR: Wrong bitmap path.')
-                
 
-                    
+        bitmap = GripyBitmap(self.model.bitmap)
+
+                                  
         # TODO: Rever isso
         try:
             tool = parent.view.InsertTool(self.model.pos, self.model.id,

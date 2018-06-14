@@ -10,6 +10,7 @@ from ui.mvc_classes.workpage import WorkPage
 from ui.uimanager import UIManager
 from ui.logplot_internal import LogPlotInternal
 from app.app_utils import LogPlotState   
+from app.app_utils import GripyBitmap  
 from ui.mvc_classes.mpl_base import TrackFigureCanvas, PlotLabel
 from app.app_utils import DropTarget
 from datatypes.DataTypes import VALID_Z_AXIS_DATATYPES
@@ -329,6 +330,7 @@ class LogPlot(WorkPage):
     
     
     def __init__(self, controller_uid):
+        
         super(LogPlot, self).__init__(controller_uid) 
         self.set_own_name()
         self.create_tool_bar()
@@ -424,7 +426,9 @@ class LogPlot(WorkPage):
             if lpc.model.well_oid == controller.model.well_oid:
                 idx += 1
         idx += 1
-        #print '\nset_own_name:', self._controller_uid, controller.model.pos, idx
+        
+        print ('\nset_own_name:', self._FRIENDLY_NAME + ': ' + well.name + \
+                                    ' ['+ str(idx) + ']')
         controller.model.title = self._FRIENDLY_NAME + ': ' + well.name + \
                                     ' ['+ str(idx) + ']'    
                                     #' ['+ str(self._controller_uid[1]+1) + ']'            
@@ -955,7 +959,7 @@ class LogPlot(WorkPage):
     def create_tool_bar(self):
         self.tool_bar.AddTool(LP_NORMAL_TOOL, 
                       wx.EmptyString,
-                      wx.Bitmap('./icons/cursor_24.png'), 
+                      GripyBitmap('cursor_24.png'), 
                       wx.NullBitmap,
                       wx.ITEM_RADIO,
                       'Normal Tool', 
@@ -966,7 +970,7 @@ class LogPlot(WorkPage):
         #
         self.tool_bar.AddTool(LP_SELECTION_TOOL, 
                       wx.EmptyString,
-                      wx.Bitmap('./icons/cursor_filled_24.png'), 
+                      GripyBitmap('cursor_filled_24.png'), 
                       wx.NullBitmap,
                       wx.ITEM_RADIO,
                       'Selection Tool', 
@@ -980,13 +984,13 @@ class LogPlot(WorkPage):
         self.tool_bar.AddSeparator()
         #
         tb_item = self.tool_bar.AddTool(-1, u"Insert Track", 
-                                  wx.Bitmap('./icons/table_add_24.png'),
+                                  GripyBitmap('table_add_24.png'),
                                   'Insert a new track'
         )
         self.tool_bar.Bind(wx.EVT_TOOL, self._on_toolbar_insert_track, tb_item)
         #
         tb_item = self.tool_bar.AddTool(-1, u"Remove Track", 
-                                  wx.Bitmap('./icons/table_delete_24.png'),
+                                  GripyBitmap('table_delete_24.png'),
                                  'Remove selected tracks'
         )
         self.tool_bar.Bind(wx.EVT_TOOL, self._on_toolbar_remove_track, tb_item)

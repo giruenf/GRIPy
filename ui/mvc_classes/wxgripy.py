@@ -9,7 +9,7 @@ from ui.uimanager import UIManager
 from ui.uimanager import UIControllerBase 
 from ui.uimanager import UIModelBase 
 from ui.uimanager import UIViewBase 
-
+from app.app_utils import GripyIcon
 
 ###############################################################################
 ###############################################################################
@@ -24,7 +24,6 @@ class TopLevelController(UIControllerBase):
 
 class TopLevelModel(UIModelBase):
     tid = 'toplevel_model'
-    
     
     _ATTRIBUTES = {
         'title': {'default_value': wx.EmptyString, 
@@ -52,8 +51,6 @@ class TopLevelModel(UIModelBase):
         super().__init__(controller_uid, **state)
 
 
-
-
 class TopLevel(UIViewBase):
     tid = 'toplevel'
 
@@ -63,9 +60,9 @@ class TopLevel(UIViewBase):
         controller = UIM.get(self._controller_uid)
         
         # MainWindow subscribing MainWindowController PubSub messages
-        #controller.subscribe(self._set_maximized, 'change.maximized')
+        controller.subscribe(self._set_maximized, 'change.maximized')
         controller.subscribe(self._set_size, 'change.size')
-        #controller.subscribe(self._set_position, 'change.pos')
+        controller.subscribe(self._set_position, 'change.pos')
         #
         # little hack - on_size
         self._flag = False
@@ -144,7 +141,7 @@ class Frame(TopLevel, wx.Frame):
             style=controller.model.style              
         ) 
         if controller.model.icon:   
-            self.icon = wx.Icon(controller.model.icon, wx.BITMAP_TYPE_ICO)        
+            self.icon = GripyIcon(controller.model.icon, wx.BITMAP_TYPE_ICO)        
             self.SetIcon(self.icon)     
         if controller.model.maximized:
             self.Maximize()   
@@ -573,7 +570,7 @@ class Dialog(TopLevel, wx.Dialog):
         ) 
         self._objects = {}
         if controller.model.icon:   
-            self.icon = wx.Icon(controller.model.icon, wx.BITMAP_TYPE_ICO)        
+            self.icon = GripyIcon(controller.model.icon, wx.BITMAP_TYPE_ICO)        
             self.SetIcon(self.icon)     
         if controller.model.maximized:
             self.Maximize()   

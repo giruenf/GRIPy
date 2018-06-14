@@ -71,10 +71,13 @@ class ObjectManager(GripyManager):
   
     
     def __init__(self):
-        super().__init__()
+        #super().__init__()
         self._types = ObjectManager._types
         self._currentobjectids = ObjectManager._currentobjectids
-        self._parenttidmap = ObjectManager._parenttidmap        
+        self._parenttidmap = ObjectManager._parenttidmap   
+        
+#        print ('\nObjectManager is initing...')
+#        print ('ObjectManager._data:', ObjectManager._data)
         self._data = ObjectManager._data
         self._parentuidmap = ObjectManager._parentuidmap
         self._childrenuidmap = ObjectManager._childrenuidmap
@@ -84,6 +87,7 @@ class ObjectManager(GripyManager):
     #### Remover isso assim que possivel
     def print_info(self):
         print ('\nObjectManager.print_info:')
+        print (hex(id(ObjectManager)))
         print ('ObjectManager._data: ', ObjectManager._data)
         #print ('ObjectManager._types: ', ObjectManager._types)
         #print ('ObjectManager._currentobjectids: ', ObjectManager._currentobjectids)
@@ -97,6 +101,9 @@ class ObjectManager(GripyManager):
        
     def _reset(self):
         # TODO: Resolver DataFilter tid 'data_filter'
+    
+        print ('\n\nOM._reset')
+        self.print_info()
         
         temp_parentuidmap = copy.deepcopy(self._parentuidmap)
         
@@ -222,21 +229,28 @@ class ObjectManager(GripyManager):
         >>> om.add(childobj, parentobj.uid)
         True
         """
-        if not self._isvalidparent(obj.uid, parentuid):
-            return False
-        self._parentuidmap[obj.uid] = parentuid
-        self._childrenuidmap[obj.uid] = []
-        self._data[obj.uid] = obj
-        if parentuid:
-            self._childrenuidmap[parentuid].append(obj.uid)  
+        
+        try:
+            if not self._isvalidparent(obj.uid, parentuid):
+                return False
+            self._parentuidmap[obj.uid] = parentuid
+            self._childrenuidmap[obj.uid] = []
+            self._data[obj.uid] = obj
+
+            if parentuid:
+                self._childrenuidmap[parentuid].append(obj.uid)  
+        
+        except Exception as e:
+            print ('ERROR in adding object [ObjectManager.add]:', obj.uid, e)
+            raise
+            
         # Sending message  
         try:
             self.send_message('add', objuid=obj.uid)
         except Exception as e:
-            print ('ERROR [ObjectManager.add]:', obj.uid, e)
+            print ('ERROR in dealing with object creation [ObjectManager.add]:', obj.uid, e)
             return False
-            #pass
-            
+
         # TODO: Rever isso: UI.mvc_classes.track_object@DataFilter 
         try:
             nsc = obj._NO_SAVE_CLASS
@@ -246,6 +260,7 @@ class ObjectManager(GripyManager):
         if not ObjectManager._on_load and not nsc:
             ObjectManager._changed  = True       
         return True
+
 
 
     def get(self, uid):  # TODO: colocar "Raises" na docstring
@@ -275,11 +290,12 @@ class ObjectManager(GripyManager):
         >>> obj2 == obj
         True
         """
-        #print ('OM.get:', uid, type(uid))
+#        print ('OM.get:', uid, type(uid))
         if isinstance(uid, str):
             uid = app_utils.parse_string_to_uid(uid)
         try:    
-            #print ('OM.get [2]:', uid, type(uid))
+#            print ('OM.get [2]:', uid, type(uid))
+#            print (self._data)
             obj = self._data[uid]
         except Exception as e:
             print ('ERROR OM.get:', uid, e)
@@ -315,9 +331,12 @@ class ObjectManager(GripyManager):
         for childuid in self._childrenuidmap[uid][::-1]:
             self.remove(childuid) 
         parentuid = self._parentuidmap[uid]
-        if parentuid:
-            del self._parentuidmap[uid]
+        
+        del self._parentuidmap[uid]
+        
+        if parentuid:      
             self._childrenuidmap[parentuid].remove(uid)    
+        
         del self._childrenuidmap[uid]
         #
         obj = self._data.pop(uid)
@@ -511,6 +530,8 @@ class ObjectManager(GripyManager):
             The unique identificator of the object's parent.
         """
         return self._parentuidmap[uid]
+
+
 
     def _gettype(self, tid):
         """

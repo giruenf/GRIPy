@@ -36,7 +36,7 @@ from ui import ReflectivityModel as RM
 from ui.uimanager import UIManager
 
 
-
+from app.app_utils import GripyIcon
 
 
 """
@@ -117,23 +117,29 @@ def on_new_wellplot(event):
             lpf = logplotformat.LogPlotFormat.create_from_PLTFile(plt)
         _, well_oid = results['well_uid']
         UIManager.get().create_log_plot(well_oid, lpf)
-    '''        
-    OM = ObjectManager() 
-    wells = OrderedDict()
-    for well in OM.list('well'):
-        wells[well.name] = well.uid
-    #    
-    if not wells: 
-        msg = 'This project has not a well. Create one?'
-        ret_val = wx.MessageBox(msg, 'Warning', wx.ICON_EXCLAMATION | wx.YES_NO)    
-        if ret_val == wx.YES:
-            ret_val = on_create_well(event)
-            if not ret_val:
+    '''    
+
+    try:
+    
+        OM = ObjectManager() 
+        wells = OrderedDict()
+        for well in OM.list('well'):
+            wells[well.name] = well.uid
+        #    
+        if not wells: 
+            msg = 'This project has not a well. Create one?'
+            ret_val = wx.MessageBox(msg, 'Warning', wx.ICON_EXCLAMATION | wx.YES_NO)    
+            if ret_val == wx.YES:
+                ret_val = on_create_well(event)
+                if not ret_val:
+                    return
+                for well in OM.list('well'):
+                    wells[well.name] = well.uid
+            else:
                 return
-            for well in OM.list('well'):
-                wells[well.name] = well.uid
-        else:
-            return
+    except:
+        raise        
+            
     UIM = UIManager()
     try:
         dlg = UIM.create('dialog_controller', title='New well plot')
@@ -145,7 +151,7 @@ def on_new_wellplot(event):
         #choice_well.set_trigger(on_change_well) 
         #
         def on_change_well(name, old_value, new_value, **kwargs):				
-            OM = ObjectManager(on_change_well)
+            OM = ObjectManager()
             well = OM.get(new_value)
             zaxis = well.get_z_axis_datatypes()
             choice_zaxis_type = dlg.view.get_object('zaxis_type')       
@@ -166,11 +172,14 @@ def on_new_wellplot(event):
             zaxis_type = results['zaxis_type']
             #
             root_controller = UIM.get_root_controller()        
-            UIM.create('logplot_controller', root_controller.uid, well_oid=welluid[1], index_type=zaxis_type)
+            UIM.create('logplot_controller', root_controller.uid, 
+                       well_oid=welluid[1], index_type=zaxis_type
+            )
             #
         #
     except Exception as e:
         print ('\nERROR on_new_wellplot:', str(e))
+        raise
     finally:
         UIM.remove(dlg.uid) 
 
@@ -204,7 +213,7 @@ class ReflectivityModel():
         self.outtype['Angle Gather'] = 5
     
         self.dlg = wx.Dialog(None, title='Reflectivity Modeling')
-        ico = wx.Icon(r'./icons/logo-transp.ico', wx.BITMAP_TYPE_ICO)
+        ico = GripyIcon('logo-transp.ico', wx.BITMAP_TYPE_ICO)
         self.dlg.SetIcon(ico)
         
         
@@ -633,7 +642,7 @@ def on_poisson_ratio(event):
             print '\non_change_well:', name, old_value, new_value, kwargs
             vps = OrderedDict()
             vss = OrderedDict()
-            OM = ObjectManager(on_change_well)
+            OM = ObjectManager()
             logs = OM.list('log', new_value)
             for log in logs:
                 if log.datatype == 'Velocity':
@@ -771,7 +780,7 @@ def on_akirichards_pp(event):
             vps = OrderedDict()
             vss = OrderedDict()
             rhos = OrderedDict()
-            OM = ObjectManager(on_change_well)
+            OM = ObjectManager()
             logs = OM.list('log', new_value)
             for log in logs:
                 if log.datatype == 'Velocity':
@@ -3219,6 +3228,7 @@ def on_createrock(event):
         
     
 def on_create_well(event):
+    
     OM = ObjectManager() 
     UIM = UIManager()
     dlg = UIM.create('dialog_controller', title='Create Well')
@@ -3296,9 +3306,11 @@ def on_create_well(event):
     dlg.view.SetSize((280, 360))
     result = dlg.view.ShowModal()
     ret_val = False
+    
     try:
         disableAll = wx.WindowDisabler()
         wait = wx.BusyInfo("Creating new well. Wait...")
+        
         if result == wx.ID_OK:
             results = dlg.get_results() 
             well_name = results['well_name']
@@ -3311,6 +3323,7 @@ def on_create_well(event):
             start = float(results['start'])
             end = float(results['end'])
             ts = float(results['ts'])
+            
             well = OM.new('well', name=well_name) 
             OM.add(well)
             samples = ((end-start)/ts)+1
@@ -3325,7 +3338,7 @@ def on_create_well(event):
             ret_val = True
     except Exception as e:
         print ('ERROR [on_create_well]:', str(e))
-        pass
+        raise
     finally:
         del wait
         del disableAll
