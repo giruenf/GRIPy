@@ -21,7 +21,7 @@ class GripyApp(wx.App):
       
     
     def __init__(self):
-        print ('\nGripyApp.Init')
+#        print ('\nGripyApp.Init')
         #
         # wx.App args    
         self._wx_app_state = OrderedDict(DEFS.get('wx.App'))
@@ -53,11 +53,11 @@ class GripyApp(wx.App):
         ) 
 
         # Then, wx.App has inited and it calls OnInit
-        print ('GripyApp.Init ended\n')
+#        print ('GripyApp.Init ended\n')
 
 
     def OnInit(self):
-        print ('GripyApp.OnInit')
+#        print ('GripyApp.OnInit')
 #        self._app_dir = os.getcwd()
         #self.set_app_dir()  # TODO: REVER ISSO CONFORME ACIMA NA FUNÇÃO
         if self._gripy_app_state.get('app_name') is not None:
@@ -94,14 +94,14 @@ class GripyApp(wx.App):
         self.load_app_interface()
         
         # Here, it is necessary to return True as requested by wx.App         
-        print ('GripyApp.OnInit ended')
+#        print ('GripyApp.OnInit ended')
         
         return True
         # wx.App was created
 
 
     def load_app_interface(self):
-        print ('GripyApp.load_app_interface')
+#        print ('GripyApp.load_app_interface')
         
         if not wx.App.Get():
             raise Exception('ERROR: wx.App not found.')
@@ -110,7 +110,7 @@ class GripyApp(wx.App):
         mwc = Interface.get_main_window_controller()
         mwc.view.Show()
         self.SetTopWindow(mwc.view)       
-        print ('GripyApp.load_app_interface ended')
+#        print ('GripyApp.load_app_interface ended')
 
 
     """

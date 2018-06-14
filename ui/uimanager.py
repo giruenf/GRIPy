@@ -28,6 +28,7 @@ class UI_MODEL_ATTR_CLASS(app.app_utils.GripyEnum):
 
 
 class UIBase(GripyObject):
+    
     tid = None
     
     def __init__(self):
@@ -290,12 +291,7 @@ class UIModelBase(UIBase):
 
 
 
-    def __setattr__(self, key, value):
-#        print ('\nsetattr:', self.__class__.__name__, key, value)
-        if key in self._SPECIALS_KEYS:
-            self.__dict__[key] = value
-            return
-        self._do_set(key, value)
+
 
 
     def __setitem__(self, key, value):
@@ -303,6 +299,14 @@ class UIModelBase(UIBase):
         self._do_set(key, value)
 
 
+    def __setattr__(self, key, value):
+#        print ('\nsetattr:', self.__class__.__name__, key, value)
+        if key in self._SPECIALS_KEYS:
+            self.__dict__[key] = value
+            return
+        self._do_set(key, value)
+        
+        
     def _do_set(self, key, value):
         
 #        print ('_do_set:', key, value)

@@ -7,7 +7,7 @@ This file defines the base classes for all GRIPy objects.
 """
 
 import os
-import weakref
+#import weakref
 
 import wx
 
@@ -16,7 +16,33 @@ from app.pubsub import PublisherMixin
 from app import log
 
 
-class GripyObject(PublisherMixin):
+class GripyMeta(type):
+    
+    def __new__(cls, clsname, superclasses, attributedict):
+#        print("clsname: ", clsname)
+#        print("superclasses: ", superclasses)
+#        print("attributedict: ", attributedict)
+        return type.__new__(cls, clsname, superclasses, attributedict)
+
+
+class GripyWxMeta(GripyMeta, wx.siplib.wrappertype):
+    pass
+        
+
+#
+# Opcao com metaclass:    
+#   class GripyObject(PublisherMixin, metaclass=GripyWxMeta):
+# Opcao sem metaclass:    
+#   class GripyObject(PublisherMixin): 
+#
+# Usando metaclass é possível instanciar um GripyObject 
+# em uma forma diferenciada. 
+#    
+#    
+#class GripyObject(PublisherMixin, metaclass=GripyWxMeta):
+    
+    
+class GripyObject(PublisherMixin):    
     """
     The simplest object that can be managed by `ObjectManager`.
     

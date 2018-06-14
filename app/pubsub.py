@@ -191,11 +191,11 @@ class PublisherMixin(object):
         # TODO: Refazer docs
         # print ('publisher: {} - topic: {} - data: {}'.format(self.get_publisher_name(), topic, data))
         try:
-            print ('\nPublisherMixin.send_message:')
+#            print ('\nPublisherMixin.send_message:')
             topic = self.get_publisher_name() + '.' + topic
-            print ('topic:', topic, data, '\n')
+#            print ('topic:', topic, data, '\n')
             pub.sendMessage(topic, **data)
-            print ('OK send message')
+#            print ('OK send message')
             
         except Exception as e:
 #            print ('ERROR [PublisherMixin.send_message]:', self)
