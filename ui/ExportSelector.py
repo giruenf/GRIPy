@@ -43,7 +43,7 @@ class Panel(wx.Panel):  # TODO: enxugar métodos repetidos (getblabla, setblabla
         self.pagenames["partition"] = u"Partição"
         self.pagenames["property"] = u"Propriedade"
         
-        for key in self.pages.iterkeys():
+        for key in iter(self.pages.keys()):
             nb.AddPage(self.pages[key], self.pagenames[key])
 
         sizer = wx.BoxSizer()
@@ -64,7 +64,7 @@ class Panel(wx.Panel):  # TODO: enxugar métodos repetidos (getblabla, setblabla
         if self.welluid is None:
             return
         depthitems = []
-        for i, depth in enumerate(self._OM.list('depth', self.welluid)):
+        for i, depth in enumerate(self._OM.list('data_index', self.welluid)):
             depthitems.append(depth.name)
             self.depthmap.append(depth.uid)
             self.idepthmap[depth.uid] = i
@@ -149,8 +149,8 @@ class Panel(wx.Panel):  # TODO: enxugar métodos repetidos (getblabla, setblabla
     def set_property_selection(self, selection):
         if self.welluid is None:
             return
-        for value in self.ipropertymap.itervalues():
-            for item in value.itervalues():
+        for value in iter(self.ipropertymap.values()):
+            for item in iter(value.values()):
                 self.pages['property'].CheckItem(item, False)
         for partitionuid, propertiesuids in selection:
             for propertyuid in propertiesuids:
@@ -159,9 +159,9 @@ class Panel(wx.Panel):  # TODO: enxugar métodos repetidos (getblabla, setblabla
     
     def get_property_selection(self):
         selection = OrderedDict()
-        for partitionuid, value in self.ipropertymap.iteritems():
+        for partitionuid, value in iter(self.ipropertymap.items()):
             propselection = []
-            for propertyuid, item in value.iteritems():
+            for propertyuid, item in iter(value.items()):
                 if self.pages['property'].IsItemChecked(item):
                     propselection.append(propertyuid)
             if propselection:

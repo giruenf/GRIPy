@@ -11,11 +11,13 @@ from lib.yapsy.PluginInfo import PluginInfo
 from ui.uimanager import UIManager
 from app import log
 
+
 """
 A reloadable PluginInfo. Must be setted as PluginInfo class in
 PluginFileLocator.setPluginInfoClass(GripyPluginInfo) 
 It was done in GripyPluginManagerSingleton.get() function.
 """
+
 class GripyPluginInfo(PluginInfo):
     
     def __init__(self, plugin_name, plugin_path):
@@ -46,18 +48,28 @@ class GripyPluginInfo(PluginInfo):
         self.activatePlugin()            
         log.debug('Reloaded plugin: {}'.format(self.name))            
 
+
     def activatePlugin(self):
+        print ('activatePlugin', self.is_activated)
         if self.is_activated:
             return
-        if self.plugin_object._parent_menu:
+        try:
+            #if self.plugin_object._parent_menu:
             menu_name = self.plugin_object._parent_menu
-        else:
+        except Exception as e:
+            print (e)
             menu_name = GripyPlugin._DEFAULT_PARENT_MENU
+            
         found = None    
         _UIM = UIManager()
-        menus = _UIM.list('menu_controller')
+        
+        menus = _UIM.list('menu_item_controller')
+        print ('menus', menus)
         for menu in menus:
             testing_name = menu.model.label
+            
+            print ('testing_name',testing_name)
+            
             if testing_name.startswith('&'):
                 testing_name = testing_name[1:]
             if testing_name == menu_name:

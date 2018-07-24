@@ -1,19 +1,15 @@
 # -*- coding: utf-8 -*-
 
 import gc
-import types
 from collections import OrderedDict
 
 import wx
 
-import app.app_utils
+import app
 from app import log
-from app.pubsub import PublisherMixin
-from om.manager import ObjectManager
-
-
 from app.gripy_base_classes import GripyManager
 from app.gripy_base_classes import GripyObject
+from om.manager import ObjectManager
 
 
 ###############################################################################
@@ -28,12 +24,10 @@ class UI_MODEL_ATTR_CLASS(app.app_utils.GripyEnum):
 
 
 class UIBase(GripyObject):
-    
     tid = None
     
-    def __init__(self):
-        super().__init__()
-        self.check_creator()
+    def __init__(self, **data):
+        super().__init__(**data)
       
     def PostInit(self):
         """To be overrriden"""
@@ -43,48 +37,77 @@ class UIBase(GripyObject):
         """To be overrriden"""
         pass
 
-    def check_creator(self):
-        # Only UIManager can create objects. Checking it!
-        
-        return True
-        
-        callers_stack = app.app_utils.get_callers_stack()
-        ok = False
-        for idx, ci in enumerate(callers_stack):
-            if (isinstance(ci.object_, UIManager) and \
-                    ci.function_name == 'create' and \
-                    isinstance(callers_stack[idx-1].object_, UIControllerBase)): 
-                ok = True
-                break     
-        if not ok:
-            msg = '{} objects must be created only by UIManager.'.format(self.__class__.__name__)
-            log.exception(msg)
-            raise Exception(msg)    
+    def _get_manager_class(self):
+        return UIManager
 
 
 ###############################################################################
 ###############################################################################
                                  
 
-class UIControllerBase(UIBase, PublisherMixin):
+class UIControllerBase(UIBase):
     tid = None
     # TODO: verificar se vale a pena manter esses singletons
     _singleton = False
     _singleton_per_parent = False
        
-    
     def __init__(self):
         super(UIControllerBase, self).__init__()  
-        UIM = UIManager()
-        self.oid = UIM._getnewobjectid(self.tid)
-          
-
+        # Two lines below are necessary to add keys 'model' and 'view' to 
+        # object.__dict__ on object.__init__ - DO NOT EXCLUDE THEY
+        # See app.gripy_base_class._do_set
+        self.model = None  
+        self.view = None 
+  
+    """Redirects __setitem__ to model, when needed."""    
+    def __setitem__(self, key, value):
+        try:
+            super().__setitem__(key, value)
+        except:
+            ok = False
+            try:
+                self.model.__setitem__(key, value)
+                ok = True
+            except:
+                pass
+            if not ok:
+                raise
+                
+    """Redirects __setattr__ to model, when needed."""   
+    def __setattr__(self, key, value):
+        try:
+#            print ('__setattr__', key, value)
+            super().__setattr__(key, value)
+        except:
+#            print ('erro')
+            ok = False
+            try:
+                self.model.__setattr__(key, value)
+                ok = True
+            except:
+#                print ('erro 2')
+                pass
+            if not ok:
+                raise     
+        
+        
+    """Redirect model messages as controller messages."""    
+    def _model_changed(self, old_value, new_value, topic=app.pubsub.AUTO_TOPIC):
+        key = topic.getName().split('.')[2]
+        topic = 'change.' + key
+        self.send_message(topic, old_value=old_value, new_value=new_value)
+ 
+    
     def _create_model_view(self, **base_state): 
         UIM = UIManager()           
         model_class, view_class = UIM.get_model_view_classes(self.tid)
         if model_class is not None:
             try:
                 self.model = model_class(self.uid, **base_state)
+                #
+                for attr_name, attr_props in self.model._ATTRIBUTES.items():
+                    self.model.subscribe(self._model_changed, 'change.' + attr_name)
+                #
             except Exception as e:
                 msg = 'ERROR on creating MVC model {} object: {}'.format(model_class.__name__, e)
                 log.exception(msg)
@@ -92,7 +115,7 @@ class UIControllerBase(UIBase, PublisherMixin):
                 raise
         else:
             self.model = None
-            
+   
         if view_class is not None:     
             try:
                 self.view = view_class(self.uid)
@@ -103,8 +126,8 @@ class UIControllerBase(UIBase, PublisherMixin):
                 raise e             
         else:
             self.view = None  
-
-        
+    
+    
     def _PostInit(self):
         try:
             if self.model:
@@ -130,14 +153,12 @@ class UIControllerBase(UIBase, PublisherMixin):
             print ('\n', msg)
             raise
         
-
     def _call_self_remove(self):
         UIM = UIManager()
         wx.CallAfter(UIM.remove, self.uid)
-  
-    
+   
     def attach(self, OM_objuid):
-        print ('attach:', OM_objuid)
+#        print ('attach:', OM_objuid)
         OM = ObjectManager()
         obj = OM.get(OM_objuid)
         try:
@@ -147,7 +168,7 @@ class UIControllerBase(UIBase, PublisherMixin):
             pass
            
     def detach(self, OM_objuid):
-        print ('detach:', OM_objuid)
+#        print ('detach:', OM_objuid)
         OM = ObjectManager()
         obj = OM.get(OM_objuid)
         try:
@@ -182,8 +203,6 @@ class UIControllerBase(UIBase, PublisherMixin):
         return obj
         
 
-           
-            
 ###############################################################################
 ###############################################################################    
     
@@ -194,48 +213,28 @@ class UIModelBase(UIBase):
         
     """
     tid = None
-    # Special keys bypasses the checking made in __setattr__ or __setitem__
-    _SPECIALS_KEYS = ['_controller_uid', 
-                      '_UIModelBase__initialised',
-                      '_processing_value_from_event'#,
-                      #'_redirects_to'
-    ]
+    _IMMUTABLES_KEYS = ['_controller_uid']
+
 
     def __init__(self, controller_uid, **state):
-        # TODO: REVER NECESSIDADE DE 'attr_class' e DE 'base_attr'
-        #print ('\nUIModelBase.init')
+
         try:
-            super(UIModelBase, self).__init__()
-             
-           # temp = [for class_ in self.__class__.__mro__]
-            
+            super().__init__(**state)
             self._controller_uid = controller_uid
-            self.__initialised = False       
-            self._processing_value_from_event = False
-            UIM = UIManager()
-            
-            self.oid = UIM._getnewobjectid(self.tid) 
-            
             # We are considering that only Controller class objects 
             # can create Model class objects. Then, we must verify it
+            UIM = UIManager()
+            #
+ 
             model_class = UIM.get_model_view_classes(controller_uid[0])[0]
             if self.__class__ != model_class:
                 msg = 'Error! Only the controller can create the model.'
                 raise Exception(msg)    
-            for attr_name, attr_props in self._ATTRIBUTES.items():
-                #if attr_props.get('attr_class') not in UI_MODEL_ATTR_CLASS.__members__.values():
-                #    msg = '{}.{} has not a valid ''attr_class'' value: {}. Valid values are UI.uimanager.UI_MODEL_ATTR_CLASS members.'.format( \
-                #        self.__class__.__name__, attr_name, 
-                #        attr_props.get('attr_class')
-                #    )
-                #    print ('\n', msg)
-                #if attr_props.get('attr_class') == UI_MODEL_ATTR_CLASS.APPLICATION \
-                if attr_name in state:
-                    self[attr_name] = state.get(attr_name)
-                else:    
-                    self[attr_name] = attr_props.get('default_value')                       
-            self.__initialised = True
-
+#            for attr_name, attr_props in self._ATTRIBUTES.items():
+#                if attr_name in state:
+#                    self[attr_name] = state.get(attr_name)
+#                else:    
+#                    self[attr_name] = attr_props.get('default_value')                       
         except Exception as e:
             try:
                 UIM = UIManager()
@@ -243,185 +242,9 @@ class UIModelBase(UIBase):
             except:
                 pass
             raise 
-          
-        #print ('UIModelBase.init ended')
-        
-        
-    def PostInit(self):
-        pass
 
 
-    def initialised(self):
-        return self.__dict__.get('UIModelBase__initialised', False)
-
-
-    def set_value_from_event(self, key, value):
-        self._processing_value_from_event = True
-        try:
-            self._do_set(key, value)
-        except: 
-            raise
-        finally:    
-            self._processing_value_from_event = False
-            
-            
-                
-    def __getattribute__(self, key):
-        return object.__getattribute__(self, key)
-
-
-    def __getitem__(self, key):
-        # http://docs.python.org/2/reference/datamodel.html#object.__getitem__
-        try:
-            return self.__dict__.get(key)
-        except:
-            raise
-
-
-    # TODO: atencao ao '_redirects_to'
-    '''
-    def __getattr__(self, key):
-        # http://docs.python.org/2/library/functions.html#getattr
-        if '_redirects_to' in self.__dict__:
-            return self._redirects_to[key]
-        raise AttributeError(key)
-    '''  
-     
-
-
-
-
-
-
-
-    def __setitem__(self, key, value):
-#        print ('\nsetitem:', key, value)
-        self._do_set(key, value)
-
-
-    def __setattr__(self, key, value):
-#        print ('\nsetattr:', self.__class__.__name__, key, value)
-        if key in self._SPECIALS_KEYS:
-            self.__dict__[key] = value
-            return
-        self._do_set(key, value)
-        
-        
-    def _do_set(self, key, value):
-        
-#        print ('_do_set:', key, value)
-
-        # Checking if key is a Data Descriptor, e.g. property
-        if (key not in self._ATTRIBUTES) and (key not in self.__dict__):
-            prop = None
-            for cls in self.__class__.__mro__[:-2]:
-                if key in cls.__dict__ and isinstance(cls.__dict__[key], property):
-                    prop = cls.__dict__[key]                 
-            if prop:
-                # Key was a property
-                try:
-#                    print ('Key was a property')
-                    prop.__set__(self, value)
-                    return
-                except:
-                    raise
-            elif self.initialised():
-                # If object was inited and key not in _ATTRIBUTES nor __dict__
-                msg = 'Cannot set attribute {} after initialization.'
-                raise AttributeError(msg)
-            
-            
-#        print ('\nOPCAO 001:', self.__dict__)
-#        print (key not in self._ATTRIBUTES)  
-#        print (not self.initialised())
-        
-        
-        if (not self.initialised()) and (key not in self._ATTRIBUTES): 
-            # Inserting or editing a non-monitorated attribute.
-#            print ('non-monitorated attribute')
-            object.__setattr__(self, key, value)
-            return
-            
-        '''    
-        print ('\nOPCAO 002:')
-        
-        if (self.initialised() and not key in self.__dict__):
-            msg = '{} does not have attribute {}.'.format(\
-                                             self.__class__.__name__, str(key))
-            #if '_redirects_to' in self.__dict__:
-            #    print ('2 - _redirects_to:', self._redirects_to, key, value)
-            #    self._redirects_to._do_set(key, value)
-            #    return
-            log.warning(msg)
-            print (msg)
-            raise Exception(msg, self.initialised())
-        '''
-        
-        # Okay,we have a monitorated attribute
-#        print ('monitorated-attribute')
-        
-        type_ = self._ATTRIBUTES[key].get('type')
-
-        # Special treatment for functions
-        if type_ == types.FunctionType:
-            if isinstance(value, str):
-                value = app.app_utils.get_function_from_string(value)
-            if value is not None and not callable(value):
-                msg = 'ERROR: Attributes signed as \"types.FunctionType\" can recieve only \"str\" or \"types.FunctionType\" values. '
-                msg += 'Received: {} - Type: {}'.format(value, type(value))
-                log.error(msg)
-                raise AttributeError(msg)
-                
-        elif not isinstance(value, type_):
-            try:
-                if value is not None:    
-                    value = type_(value)
-            except Exception:
-                raise 
-                
-        if not self.initialised():
-#            print (4)
-            self.__dict__[key] = value
-        else:    
-#            print ('4.5 - is initialised!')
-            if self.__dict__[key] == value:
-#                print (5)
-                return      
-            
-            old_value = self[key]    
-            self.__dict__[key] = value
-            
-            if not self._processing_value_from_event:
-                UIM = UIManager()
-                controller = UIM.get(self._controller_uid)
-#                print ('6 - controller:', controller, controller._teste())
-                topic = 'change.' + key
-                
-                controller.send_message(topic, 
-                                  old_value=old_value, 
-                                  new_value=value
-                )
-                
-                
-        k = key.encode('utf-8')            
-        v = self[key]
-        v = str(v)
-        msg = '    {} has setted attribute {} = {}'.format(self.uid, k, v)  
-        
-        log.debug(msg)
- #       print ('8 -', msg)
-    
-    
-    # TODO: VERIFICAR ISSO TUDO 
     """
-    def get_application_state(self):
-        return self.get_state(UI_MODEL_ATTR_CLASS.APPLICATION)
-        
-    def get_user_state(self):
-        return self.get_state(UI_MODEL_ATTR_CLASS.USER)    
-    """
-    
-    
     def _getstate(self, state_type=None):
         try:
             if state_type is not None and state_type not in \
@@ -457,7 +280,7 @@ class UIModelBase(UIBase):
                 msg = '    {} cannot be loaded. [key in _SPECIALS_KEYS]'.format(key)
                 log.error(msg)
         log.debug('{} state has loaded.'.format(self.__class__.__name__))
-     
+     """
      # TODO: FIM - VERIFICAR ISSO TUDO
 
 ###############################################################################
@@ -465,23 +288,21 @@ class UIModelBase(UIBase):
 
 class UIViewBase(UIBase):
     tid = None
-
+    _IMMUTABLES_KEYS = ['_controller_uid']
+    
     def __init__(self, controller_uid):
-        UIBase.__init__(self)
-        self._controller_uid = controller_uid
-        UIM = UIManager()  
-        self.oid = UIM._getnewobjectid(self.tid)
+        super().__init__()
+        self._controller_uid = controller_uid        
         # We are considering that only Controller class objects 
-        # can create View class objects. Then, we must verify it       
+        # can create View class objects. Then, we must verify it      
+        UIM = UIManager() 
         view_class = UIM.get_model_view_classes(controller_uid[0])[1]
         if self.__class__ != view_class:
             msg = 'Error! Only the controller can create the view.'
             log.exception(msg)
             raise Exception(msg)       
 
-    def PostInit(self):
-        pass
-                
+ 
 ###############################################################################
 ###############################################################################
 
@@ -496,7 +317,7 @@ class UIManager(GripyManager):
     _parenttidmap = {}
     _MVC_CLASSES = {}
     _wx_ID = 2000  # for a shortcut do wx.NewId. See self.new_wx_id  
-    _PUB_NAME = 'UIManager'
+#    _PUB_NAME = 'UIManager'
     #_VALID_PUBSUB_TOPICS = ['uim', 'uim.object_removed']
 
 
@@ -511,10 +332,10 @@ class UIManager(GripyManager):
         self._MVC_CLASSES = UIManager._MVC_CLASSES
 
 
-    def get_root_controller(self):
-        main_ctrl_view = wx.App.Get().GetTopWindow()
-        controller_uid = main_ctrl_view._controller_uid
-        return self.get(controller_uid)
+#    def get_root_controller(self):
+#        main_ctrl_view = wx.App.Get().GetTopWindow()
+#        controller_uid = main_ctrl_view._controller_uid
+#        return self.get(controller_uid)
 
 
     #### Remover isso assim que possivel
@@ -528,8 +349,6 @@ class UIManager(GripyManager):
         #print ('UIManager._parenttidmap: ', UIManager._parenttidmap)
         #print ('UIManager._MVC_CLASSES: ', UIManager._MVC_CLASSES)    
     ####
-
-
 
 
     @classmethod
@@ -613,7 +432,6 @@ class UIManager(GripyManager):
         return True
       
         
-
     def get(self, uid):
         if isinstance(uid, str):
             uid = app.app_utils.parse_string_to_uid(uid)
@@ -752,12 +570,15 @@ class UIManager(GripyManager):
         # PreDelete must close (delete) all references from object's parent.    
         obj.PreDelete()
         if obj.view:
+            obj.view.unsubAll() 
             obj.view.PreDelete() 
             msg = 'Deleting UI view object {}.'.format(obj.view.uid)
 #            print (msg)
             log.debug(msg)
             del obj.view
         if obj.model:
+            #
+            obj.model.unsubAll()
             #
             obj.model.PreDelete()  
             msg = 'Deleting UI model object {}.'.format(obj.model.uid)
@@ -791,22 +612,29 @@ class UIManager(GripyManager):
         print ('\nUIManager PreExit')
         for obj in self.list():
             try:
+                #
+                obj.model.unsubAll()
+                #
+                #
                 obj.model.PreDelete() 
             except AttributeError:
                 pass
             except:
                 raise
             try:
+                obj.view.unsubAll() 
                 obj.view.PreDelete() 
             except AttributeError:
                 pass
             except Exception as e:
                 print ('\n\n', obj.uid, e.args, e.message, '\n\n')
-                raise                
+                raise      
+            obj.unsubAll()      
             obj.PreDelete()    
-#            obj.unsubAll()  
+            
+            
 #        self.print_info()
-        print ('UIManager PreExit ended')
+        print ('UIManager PreExit ended\n')
 
 
     # TODO: escolher um melhor nome para este método
@@ -910,67 +738,7 @@ class UIManager(GripyManager):
         self._currentobjectids[object_tid] += 1
         return idx
 
-    def do_query(self, tid, parent_uid=None, *args, **kwargs):
-        objects = self.list(tid, parent_uid)
-        if not objects: return None  
-        comparators = self._create_comparators(*args)  
-        ret_list = []
-        for obj in objects:
-            ok = True
-            for (key, operator, value) in comparators:
-                ok = False
-                type_ = obj.model._ATTRIBUTES.get(key).get('type')
-                value = type_(value)
-                if operator == '>=':
-                    ok = obj.model[key] >= value
-                elif operator == '<=':
-                    ok = obj.model[key] <= value                  
-                elif operator == '>':
-                    ok = obj.model[key] > value
-                elif operator == '<':
-                    ok = obj.model[key] < value     
-                elif operator == '!=':
-                    ok = obj.model[key] != value
-                elif operator == '=':
-                    ok = obj.model[key] == value
-                if not ok:
-                    break
-            if ok:
-                ret_list.append(obj)
-        if kwargs:
-            orderby = kwargs.get('orderby')
-            if orderby and len(ret_list) >= 2:
-                aux_list = []
-                while len(ret_list) > 0:
-                    minor_idx = 0
-                    for idx, obj in enumerate(ret_list):
-                        if obj.model[orderby] < ret_list[minor_idx].model[orderby]:
-                            minor_idx = idx
-                    aux_list.append(ret_list[minor_idx])
-                    del ret_list[minor_idx]
-                ret_list = aux_list
-            reverse = kwargs.get('reverse')
-            if reverse:
-                ret_list.reverse()                     
-        return ret_list
-        
-    def _create_comparators(self, *args):
-        operators = ['>=', '<=', '>', '<', '!=', '=']
-        ret_list = []
-        for arg in args:
-            operator = None
-            for oper in operators:
-                if oper in arg:
-                    operator = oper
-                    break
-            if not operator:
-                raise ValueError('Operator not found. Valid operators are: {}'\
-                                 .format(operators)
-                )
-            ret_list.append((arg.split(operator)[0], operator, 
-                             arg.split(operator)[1])
-            )
-        return ret_list       
+     
 
 
     # TODO:

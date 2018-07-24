@@ -1,29 +1,47 @@
 # -*- coding: utf-8 -*-
 
 import numpy as np
-from scipy import stats
+
 import wx
-from matplotlib.backends.backend_wxagg import FigureCanvasWxAgg as FigureCanvas
-from matplotlib.figure import Figure
-from matplotlib.ticker import MaxNLocator, NullLocator, NullFormatter
+
 from matplotlib.colorbar import ColorbarBase
-from matplotlib.colors import NoNorm, ListedColormap, Normalize
+from matplotlib import style as mstyle 
+from matplotlib import axis
+from matplotlib import rcParams
 
 from ui.mvc_classes.workpage import WorkPageController
 from ui.mvc_classes.workpage import WorkPageModel
 from ui.mvc_classes.workpage import WorkPage
+
+from ui.plotstatusbar import PlotStatusBar
+
 from ui.uimanager import UIManager
-from basic import colors
 from app import log
+
+from app.app_utils import GripyBitmap  
+
+
+#from ui.mvc_classes.mpl_base import PlotFigureCanvas
+
+
+
+
+CP_NORMAL_TOOL = wx.NewId()        
+CP_SELECTION_TOOL = wx.NewId()   
+
+
+
+
 
 
 class CrossPlotController(WorkPageController):
     tid = 'crossplot_controller'
     
     def __init__(self):
-        super(CrossPlotController, self).__init__()
+        super().__init__()
 
-
+        
+        
 
 class CrossPlotModel(WorkPageModel):
     tid = 'crossplot_model'
@@ -33,33 +51,165 @@ class CrossPlotModel(WorkPageModel):
                 'type': int
         }             
     }    
-    _ATTRIBUTES.update(WorkPageModel._ATTRIBUTES)   
+        
+    """    
+        xlim=xlim, ylim=ylim, x_scale=x_scale, scale_lines=10, 
+                     y_scale=y_scale,
+                     x_label= 'X axis', y_label= 'Y axis', title='Title' 
+    )
+    """
     
     def __init__(self, controller_uid, **base_state):   
-        super(CrossPlotModel, self).__init__(controller_uid, **base_state)   
+        super().__init__(controller_uid, **base_state)   
+
         
-    
-    
+        
+        
+        
     
 class CrossPlot(WorkPage):
     tid = 'crossplot'
     _FRIENDLY_NAME = 'Cross Plot'
 
-    def __init__(self, controller_uid, **kwargs):
-        super(CrossPlot, self).__init__(controller_uid)
+
+    def __init__(self, controller_uid):   
+        super().__init__(controller_uid) 
         #
-        self.set_own_name() # da mesma forma que o LogPlot
+        """
+        self.sizer = wx.BoxSizer(wx.VERTICAL)
+        self._tool_bar =  wx.aui.AuiToolBar(self)
+        self.sizer.Add(self._tool_bar, 0, flag=wx.TOP|wx.EXPAND)
+        #     
+        self._main_panel = wx.Panel(self)
+        self.sizer.Add(self._main_panel, 1, flag=wx.EXPAND)
+#        self._main_panel.SetBackgroundColour('green')
         #
-        self.hbox = wx.BoxSizer(wx.HORIZONTAL)                    
-        self.crossplot_panel = CrossPlotPanel(self.center_panel) 
-        self.hbox.Add(self.crossplot_panel, 1, wx.EXPAND)
-        self.center_panel.SetSizer(self.hbox)
-        self.hbox.Layout()
+        self._status_bar =  PlotStatusBar(self)
+        self.sizer.Add(self._status_bar, 0, flag=wx.BOTTOM|wx.EXPAND)
+        self.SetSizer(self.sizer)   
+        #
+        self._build_tool_bar()
+        self.Layout()
+        """
         
-        self.tool_bar.AddSeparator()  
-        self.tool_bar.Realize()  
-             
+    def PostInit(self):
+        print ('CrossPlot.PostInit')
+
+        try:
+
+            self.sizer = wx.BoxSizer(wx.VERTICAL)
+            self._tool_bar =  wx.aui.AuiToolBar(self)
+            self.sizer.Add(self._tool_bar, 0, flag=wx.TOP|wx.EXPAND)
+            #     
+            UIM = UIManager()   
+            canvas_controller = UIM.create('canvas_controller', 
+                    self._controller_uid
+            )
+#                    x_scale=x_scale, scale_lines=10, y_scale=y_scale,
+#                    x_label= 'X axis', y_label= 'Y axis', title='Titulo do Cross Plot'
+#            )
+            self._main_panel = canvas_controller.view
+            self.sizer.Add(self._main_panel, 1, flag=wx.EXPAND)
+            #
+            self._status_bar =  PlotStatusBar(self)
+            self.sizer.Add(self._status_bar, 0, flag=wx.BOTTOM|wx.EXPAND)
+            self.SetSizer(self.sizer)   
+            #
+            self._build_tool_bar()
+            self.Layout()
+    
+
+        except Exception as e:
+            print ('ERROR IN CrossPlot.PostInit:', e)
+            raise
+
+
+    def PreDelete(self):
+        try:
+            self.sizer.Remove(0)
+            del self._tool_bar
+        except Exception as e:
+            msg = 'PreDelete ' + self.__class__.__name__ + \
+                                            ' ended with error: ' + str(e)
+            print (msg)                                
+            raise         
+
+
+    def _on_change_tool(self, event):
+        print 
+        if event.GetId() == CP_NORMAL_TOOL:
+            print ('CP_NORMAL_TOOL')
+        elif event.GetId() == CP_SELECTION_TOOL:  
+            print ('CP_SELECTION_TOOL')
+            
+
+
+    def _build_tool_bar(self):
+
+        self._tool_bar.AddTool(CP_NORMAL_TOOL, 
+                      wx.EmptyString,
+                      GripyBitmap('cursor_24.png'), 
+                      wx.NullBitmap,
+                      wx.ITEM_RADIO,
+                      'Normal Tool', 
+                      'Normal Tool',
+                      None
+        )
+        self._tool_bar.ToggleTool(CP_NORMAL_TOOL, True) 
+        #
+        self._tool_bar.AddTool(CP_SELECTION_TOOL, 
+                      wx.EmptyString,
+                      GripyBitmap('cursor_filled_24.png'), 
+                      wx.NullBitmap,
+                      wx.ITEM_RADIO,
+                      'Selection Tool', 
+                      'Selection Tool',
+                      None
+        )  
+        self._tool_bar.Bind(wx.EVT_TOOL, self._on_change_tool, None,
+                  CP_NORMAL_TOOL, CP_SELECTION_TOOL
+        )
+        #
+        self._tool_bar.AddSeparator()
         
+        '''
+        lib = mstyle.library
+        for k, values in lib.items():
+            print ('\n\nSTYLE: {}'.format(k))
+            
+            for key, value in values.items():
+                print ('{}: {}'.format(key, value))
+        '''        
+   
+
+
+        print ('\n')
+            
+        for key, value in rcParams.items():
+#            for k in ['grid.', 'axes.', 'figure.', 'xtick.', 'ytick.']:
+#                if key.startswith(k):
+            if key not in mstyle.core.STYLE_BLACKLIST:
+                print ('{}: {}'.format(key, value))
+
+        print ('\n')
+        #print ('axis._gridline_param_names:', axis._gridline_param_names)
+        
+        styles = ['default'] + mstyle.available[:]
+        self._tool_bar.choice_Style = wx.Choice(self._tool_bar, choices=styles)
+        self._tool_bar.choice_Style.SetSelection(0)
+        #
+        #controller = UIM.get(self._controller_uid)
+        #idx_index_type = ['MD', 'TVD', 'TVDSS', 'TWT', 'TIME'].index(controller.model.index_type)
+        #self._tool_bar.choice_IT.SetSelection(idx_index_type)
+        self._tool_bar.choice_Style.Bind(wx.EVT_CHOICE , self._on_choice_style) 
+        self._tool_bar.AddControl(self._tool_bar.choice_Style, '')
+        
+        
+        
+        self._tool_bar.Realize()  
+
+
+    
     def set_own_name(self):
         UIM = UIManager()   
         controller = UIM.get(self._controller_uid)
@@ -71,10 +221,28 @@ class CrossPlot(WorkPage):
         
 
 
+
+    def _on_choice_style(self, event):
+        
+        lib_name = event.GetString()
+        print ('\n\nLoading Style:', lib_name)
+
+        UIM = UIManager()  
+        cc = UIM.list('canvas_controller', self._controller_uid)[0]
+        cc.load_style(lib_name)
+
+
+
+                
+            
+       
+
+
 class CrossPlotPanel(wx.Panel):
     
     HORIZONTALMARGIN = 0#.01
     VERTICALMARGIN = 0#.02
+    
     HORIZONTALPAD = 0#.005
     #VERTICALPAD = 0#.01
     VERTICALPAD = 0.03
@@ -87,8 +255,9 @@ class CrossPlotPanel(wx.Panel):
     #XLABELHEIGHT = 0.03
     XLABELHEIGHT = 0.06
     
-    MAIN_AXES_WIDTH = 1.0 - 2*HORIZONTALMARGIN - 3*HORIZONTALPAD - YLABELWIDTH - COLORBARWIDTH - ZLABELWIDTH
-    MAIN_AXES_HEIGHT = 1.0 - 2*VERTICALMARGIN - VERTICALPAD - XLABELHEIGHT
+    MAIN_AXES_WIDTH = 1.0 - (2*HORIZONTALMARGIN + 3*HORIZONTALPAD + \
+                                    YLABELWIDTH + COLORBARWIDTH + ZLABELWIDTH)
+    MAIN_AXES_HEIGHT = 1.0 - (2*VERTICALMARGIN + VERTICALPAD + XLABELHEIGHT)
     
     #MAIN_AXES_BOTTOM = VERTICALMARGIN + XLABELHEIGHT + VERTICALPAD
     MAIN_AXES_BOTTOM = VERTICALMARGIN + XLABELHEIGHT
@@ -103,18 +272,18 @@ class CrossPlotPanel(wx.Panel):
     #TEXTFONTSIZE = 'medium'
     #NUMBERFONTSIZE = 'small'
     
-    TEXTFONTSIZE = 11
+    TEXTFONTSIZE = 14
     NUMBERFONTSIZE = 11
     
     #XLABELTEXTBOTTOM = 0.1
-    XLABELTEXTBOTTOM = 0.4
+    XLABELTEXTBOTTOM = 0.1
     #XLABELTEXTTOP = 0.9
     XLABELTEXTTOP = 0.8
     #XLABELTEXTHMARGIN = 0.001
     XLABELTEXTHMARGIN = 0.005
     
     #YLABELTEXTLEFT = 0.1
-    YLABELTEXTLEFT = 0.4
+    YLABELTEXTLEFT = 0.8
     #YLABELTEXTRIGHT = 0.9
     YLABELTEXTRIGHT = 0.9
     #YLABELTEXTVMARGIN = 0.002
@@ -126,10 +295,112 @@ class CrossPlotPanel(wx.Panel):
     ZLABELTEXTRIGHT = 0.8
     
     
-    def __init__(self, *args, **kwargs):
-        super(CrossPlotPanel, self).__init__(*args, **kwargs)
-        self.figure = Figure()
-        self.canvas = FigureCanvas(self, -1, self.figure)
+    
+    def __init__(self, *args):
+        
+        
+        super().__init__(args[0])
+        
+        
+#        self.figure = Figure()
+#        self.canvas = FigureCanvas(self, -1, self.figure)
+        
+        
+#        self.SetBackgroundColour('green')
+#        self.canvas.SetBackgroundColour('blue')    
+
+        """
+        super().__init__(wx_parent, 
+                 track_view_object, size, **base_axes_properties
+            )
+        
+        TrackFigureCanvas(self, None, size=wx.Size(300, 300),
+                                y_major_grid_lines=controller.model.y_major_grid_lines,
+                                y_minor_grid_lines=controller.model.y_minor_grid_lines,
+                                **track.model._getstate()
+        )        
+        """
+        
+        """
+
+        rect = [self.MAIN_AXES_LEFT, self.MAIN_AXES_BOTTOM, 
+                self.MAIN_AXES_WIDTH, self.MAIN_AXES_HEIGHT
+        ]
+        
+        """
+        _MAIN_AXES_LEFT_RIGHT_SPACE = 0.1
+        _MAIN_AXES_LEFT_BOTTOM_UP = 0.1
+        
+        
+        rect = [_MAIN_AXES_LEFT_RIGHT_SPACE, _MAIN_AXES_LEFT_BOTTOM_UP,
+                1.0-2*_MAIN_AXES_LEFT_RIGHT_SPACE,
+                1.0-2*_MAIN_AXES_LEFT_BOTTOM_UP
+        ]
+#        """
+        props = {#'y_major_grid_lines': 500.0, 'y_minor_grid_lines': 100.0, 
+                 'pos': 0, 'label': '', 'plotgrid': True, 'x_scale': 0, 
+                 'overview': False, 'depth_lines': 0, 'width': 160, 
+                 'minorgrid': True, 'leftscale': 0.2, 'decades': 4, 
+                 'scale_lines': 5, 'selected': False, 
+                 'visible': True, 'name': '', 
+                 'rect': rect, 'xlim': (0.0, 1.0), 'ylim': (0.0, 1.0),
+                 'y_plotgrid': True, 'y_minorgrid': True,
+                 'y_scale_lines': 5
+        }
+        
+        UIM = UIManager()
+        
+        center_panel = self.GetParent()
+        workpage = center_panel.GetParent()
+        controller = UIM.get(workpage._controller_uid)
+        
+#        print ('\n\ncontroller.model._props:', controller.model._props)
+
+
+        self.xlabel_ax = None
+        self.ylabel_ax = None
+        
+        x_label = controller.model._props.pop('x_label', None)
+        y_label = controller.model._props.pop('y_label', None)            
+        title = controller.model._props.pop('title', None)
+
+        for key, value in controller.model._props.items():
+            props[key] = value
+        
+        self.canvas = PlotFigureCanvas(self, None, size=wx.Size(300, 300), 
+                                       share_x=True, **props
+        )
+        
+        self.canvas.base_axes.spines['right'].set_visible(True)
+        self.canvas.base_axes.spines['left'].set_visible(True)
+        self.canvas.base_axes.spines['bottom'].set_visible(True)
+        self.canvas.base_axes.spines['top'].set_visible(True)
+        
+        
+        self._COLOR = 'ivory' #'whitesmoke'#'lightyellow'
+        #'aliceblue'#'paleturquoise' #'lightblue' #'white'
+        
+        if x_label is not None:
+            self.set_xlabel(x_label)
+        if y_label is not None:
+            self.set_ylabel(y_label)
+
+        if self._COLOR:
+            self.canvas.figure.set_facecolor(self._COLOR)
+            
+        if title is not None:    
+            self.canvas.figure.suptitle(title, y=0.95, fontsize=16)    
+
+        '''
+        self.crossplot_ax.xaxis.set_major_locator(MaxNLocator(5))
+        self.crossplot_ax.xaxis.set_major_formatter(NullFormatter())
+        self.crossplot_ax.yaxis.set_major_locator(MaxNLocator(5))
+        self.crossplot_ax.yaxis.set_major_formatter(NullFormatter())
+        self.crossplot_ax.grid(axis='x', which='major', linestyle='-.')
+        self.crossplot_ax.grid(axis='y', which='major', linestyle='-.')        
+        '''
+        
+        """
         
         self.cmap = colors.COLOR_MAP_RAINBOW
         self.colorbar = None
@@ -165,12 +436,14 @@ class CrossPlotPanel(wx.Panel):
         self.crossplot_ax.grid(axis='x', which='major', linestyle='-.')
         self.crossplot_ax.grid(axis='y', which='major', linestyle='-.')
         #        
-        self.xlabel_ax = None
-        self.ylabel_ax = None
+
         self.zlabel_ax = None
         
         #self.colorbar_ax.yaxis.set_major_formatter(NullFormatter())
         self.collectionproperties = dict(linewidths=0.5, s=30)
+        
+        """
+        
         
         sizer = wx.BoxSizer(wx.VERTICAL)
         sizer.Add(self.canvas, 1, wx.LEFT | wx.TOP | wx.GROW)
@@ -182,8 +455,9 @@ class CrossPlotPanel(wx.Panel):
     
     
     def create_xlabel(self):
-        rect = [self.MAIN_AXES_LEFT, self.XLABELBOTTOM, self.MAIN_AXES_WIDTH, self.XLABELHEIGHT]
-        self.xlabel_ax = self.figure.add_axes(rect)
+        rect = [0.1, 0.03, 0.8, 0.04]
+        #
+        self.xlabel_ax = self.canvas.figure.add_axes(rect)
         self.xlabel_ax.xaxis.set_major_locator(NullLocator())
         self.xlabel_ax.yaxis.set_major_locator(NullLocator())
         #
@@ -193,8 +467,54 @@ class CrossPlotPanel(wx.Panel):
         #
         self.xlabel_ax.set_xlim(0.0, 1.0)
         self.xlabel_ax.set_ylim(0.0, 1.0)
+        #
+        self.xlabel_ax.spines['right'].set_visible(False)
+        self.xlabel_ax.spines['top'].set_visible(False)
+        self.xlabel_ax.spines['left'].set_visible(False)
+        self.xlabel_ax.spines['bottom'].set_visible(False)
+        #
+        if self._COLOR:
+            self.xlabel_ax.set_facecolor(self._COLOR)
+        
+    """   
+    def create_xlabel(self):
+        rect = [self.MAIN_AXES_LEFT, self.XLABELBOTTOM, 
+                                    self.MAIN_AXES_WIDTH, self.XLABELHEIGHT]
+        self.xlabel_ax = self.figure.add_axes(rect)
+        self.xlabel_ax.xaxis.set_major_locator(NullLocator())
+        self.xlabel_ax.yaxis.set_major_locator(NullLocator())
+        #
+        self.xlabel_ax.text(0.5, self.XLABELTEXTBOTTOM, '', ha='center', va='bottom', fontsize=self.TEXTFONTSIZE)
+        self.xlabel_ax.text(self.XLABELTEXTHMARGIN, self.XLABELTEXTTOP, '', ha='left', va='top', fontsize=self.NUMBERFONTSIZE)
+        self.xlabel_ax.text(1.0 - self.XLABELTEXTHMARGIN, self.XLABELTEXTTOP, '', ha='right', va='top', fontsize=self.NUMBERFONTSIZE)
+        #
+        self.xlabel_ax.set_xlim(0.0, 1.0)
+        self.xlabel_ax.set_ylim(0.0, 1.0)   
+    """
     
-    
+    def create_ylabel(self):
+        rect = [0.01, 0.1, 0.04, 0.8]
+        #        
+        self.ylabel_ax = self.canvas.figure.add_axes(rect)
+        self.ylabel_ax.xaxis.set_major_locator(NullLocator())
+        self.ylabel_ax.yaxis.set_major_locator(NullLocator())
+        #
+        self.ylabel_ax.text(self.YLABELTEXTLEFT, 0.5, '', ha='left', va='center', fontsize=self.TEXTFONTSIZE, rotation=90)
+        self.ylabel_ax.text(self.YLABELTEXTRIGHT, self.YLABELTEXTVMARGIN, '', ha='right', va='bottom', fontsize=self.NUMBERFONTSIZE)
+        self.ylabel_ax.text(self.YLABELTEXTRIGHT, 1.0 - self.YLABELTEXTVMARGIN, '', ha='right', va='top', fontsize=self.NUMBERFONTSIZE)
+        #
+        self.ylabel_ax.set_xlim(0.0, 1.0)
+        self.ylabel_ax.set_ylim(0.0, 1.0)
+        #
+        self.ylabel_ax.spines['right'].set_visible(False)
+        self.ylabel_ax.spines['top'].set_visible(False)
+        self.ylabel_ax.spines['left'].set_visible(False)
+        self.ylabel_ax.spines['bottom'].set_visible(False) 
+        #
+        if self._COLOR:
+            self.ylabel_ax.set_facecolor(self._COLOR)    
+            
+    """    
     def create_ylabel(self):
         rect = [self.YLABELLEFT, self.MAIN_AXES_BOTTOM, self.YLABELWIDTH, self.MAIN_AXES_HEIGHT]
         self.ylabel_ax = self.figure.add_axes(rect)
@@ -206,8 +526,8 @@ class CrossPlotPanel(wx.Panel):
         self.ylabel_ax.text(self.YLABELTEXTRIGHT, 1.0 - self.YLABELTEXTVMARGIN, '', ha='right', va='top', fontsize=self.NUMBERFONTSIZE)
         #
         self.ylabel_ax.set_xlim(0.0, 1.0)
-        self.ylabel_ax.set_ylim(0.0, 1.0)
-    
+        self.ylabel_ax.set_ylim(0.0, 1.0)    
+    """
     
     def create_zlabel(self):
         rect = [self.ZLABELLEFT, self.MAIN_AXES_BOTTOM, self.ZLABELWIDTH, self.MAIN_AXES_HEIGHT]
@@ -230,13 +550,23 @@ class CrossPlotPanel(wx.Panel):
 
     def set_xdata(self, xdata):
         self.xdata = xdata
-    
+
+
     def set_xlabel(self, xlabel):
         if self.xlabel_ax is None:
             self.create_xlabel()
         self.xlabel_ax.texts[0].set_text(xlabel)
         self.xlabel = xlabel
 
+    
+    """
+    def set_xlabel(self, xlabel):
+        if self.xlabel_ax is None:
+            self.create_xlabel()
+        self.xlabel_ax.texts[0].set_text(xlabel)
+        self.xlabel = xlabel
+    """    
+    
     def set_xlim(self, xlim):
         if self.xlabel_ax is None:
             self.create_xlabel()
@@ -257,7 +587,7 @@ class CrossPlotPanel(wx.Panel):
         self.ylabel_ax.texts[0].set_text(ylabel)
         self.ylabel = ylabel
         
-        
+    """    
     def set_ylim(self, ylim):
         if self.ylabel_ax is None:
             self.create_ylabel()     
@@ -269,6 +599,7 @@ class CrossPlotPanel(wx.Panel):
         self.crossplot_ax.set_ylim(ylim)
         self.ylim = ylim
         #self.draw()    
+    """
     
     def set_zdata(self, zdata):
         self.zdata = zdata
@@ -457,242 +788,9 @@ class CrossPlotPanel(wx.Panel):
         if self.zticks is not None:
             self.colorbar = ColorbarBase(self.colorbar_ax, cmap=self.cmap, norm=norm, ticks=self.zticks)
             
-        #"""    
-        
-        #self.colorbar_ax.yaxis.set_major_formatter(NullFormatter())
-        
-#        print '\n\n'
-    
 
-
-    """
-    def _plot_zsolid(self):
-        collection = self.crossplot_ax.plot(self.xdata, self.ydata, 'bo')
-        self.collections.append(collection)
-    """    
-
-    
-        
-    """
-    def _plot_zclasses(self):
-        if self.parts is None:
-            parts = [np.ones_like(self.xdata, dtype=bool)]
-        else:
-            parts = self.parts
-
-        good = np.sum(parts, axis=0, dtype=bool)
-        good *= np.isfinite(self.xdata)
-        good *= np.isfinite(self.ydata)
-        #good *= np.isfinite(self.zdata)  # TODO: Sem essa linha, onde não houver classificação será plotado de preto 
-
-        classes = np.unique(self.zdata[good])
-        self.classes = classes[classes != self.nullclass]
-        
-        n = self.zdata.shape[0]
-        m = len(self.classes)
-        ncc = len(self.classcolors.values()[0])
-        
-        zdata = np.full((n, ncc), np.nan)
-        for cls in self.classes:
-            zdata[self.zdata == cls] = self.classcolors[cls]
-        zdata[self.zdata == self.nullclass] = self.nullcolor
-        
-        cmap = ListedColormap([self.classcolors[cls] for cls in self.classes])
-        cmap.set_bad(self.nullcolor)
-        self.zticks = range(m)
-        self.zlim = [-0.5, m - 0.5]
-        norm = NoNorm(*self.zlim)
-        
-        for part in parts:
-            x = self.xdata[part*good]
-            y = self.ydata[part*good]
-            c = zdata[part*good]
-            collection = self.crossplot_ax.scatter(x, y, c=c, cmap=cmap, zorder=-len(x), **self.collectionproperties)
-            self.collections.append(collection)
-            
-        xticks = self.xlocator(np.min(self.xdata[good]), np.max(self.xdata[good]))
-        self.set_xlim([xticks[0], xticks[-1]])
-        
-        yticks = self.ylocator(np.min(self.ydata[good]), np.max(self.ydata[good]))
-        self.set_ylim([yticks[0], yticks[-1]])
-        
-        self.colorbar = ColorbarBase(self.colorbar_ax, cmap=cmap, norm=norm, ticks=self.zticks)
-        #self.colorbar_ax.yaxis.set_major_formatter(NullFormatter())
-        
-    """    
-        
     
     def draw(self):
         self.canvas.draw()
         
-    
-    
-    """
-    
-    def on_move(self, event):
-        return # TODO: tirar isso quando voltar a status_bar
-        if event.inaxes == self.crossplot_ax:
-            info = []
-            info.append("{} = {:g}".format(self.xlabel, event.xdata))
-            info.append("{} = {:g}".format(self.ylabel, event.ydata))
-            self.status_bar.SetStatusText("        ".join(info))
-        elif event.inaxes == self.xlabel_ax:
-            pass
-        elif event.inaxes == self.ylabel_ax:
-            pass
-        elif event.inaxes == self.zlabel_ax:
-            pass
-        elif event.inaxes == self.colorbar_ax:
-            pass
-    
-    
-    def on_press(self, event):
-        pass
 
-    """
-
-
-        
-class PdfsMixin(object):
-    _FAC = 0.1
-
-    def __init__(self):
-        self.x_pdfs = []
-        self.y_pdfs = []
-        self.z_pdfs = []
-        self.xy_pdfs = []
-
-
-    def create_x_pdf(self, where=None, color=None):
-        if where is None:
-            where = self.good
-        if color is None:
-            color = '#bbbbbb'
-
-        xmin, xmax = self.xlim
-        ymin, ymax = self.ylim
-
-        x = np.linspace(xmin, xmax, 100)
-
-        x_kde = stats.gaussian_kde(self.x[where])
-        x_pdf = x_kde(x)
-        x_pdf_n = x_pdf/np.nanmax(x_pdf)*(ymax - ymin)*self._FAC + ymin
-        """
-        x_pdf = self.crossplot_ax.fill_between(x, x_pdf_n, ymin,
-                                               color=color, lw=0,
-                                               alpha=alpha, zorder=-1)
-        """
-        x_pdf, = self.crossplot_ax.plot(x, x_pdf_n, color=color[:3],
-                                        alpha=color[-1], zorder=-1)
-        #"""
-        self.x_pdfs.append(x_pdf)
-
-        self.crossplot_ax.set_xlim(*self.xlim)
-        self.crossplot_ax.set_ylim(*self.ylim)
-
-
-    def create_y_pdf(self, where=None, color=None):
-        if where is None:
-            where = self.good
-        if color is None:
-            color = '#bbbbbb'
-
-        xmin, xmax = self.xlim
-        ymin, ymax = self.ylim
-
-        y = np.linspace(ymin, ymax, 100)
-
-        y_kde = stats.gaussian_kde(self.y[where])
-        y_pdf = y_kde(y)
-        y_pdf_n = y_pdf/np.nanmax(y_pdf)*(xmax - xmin)*self._FAC + xmin
-        """
-        y_pdf = self.crossplot_ax.fill_betweenx(y, y_pdf_n, xmin,
-                                                color=color, lw=0,
-                                                alpha=alpha, zorder=-1)
-        """
-        y_pdf, = self.crossplot_ax.plot(y_pdf_n, y, color=color[:3],
-                                        alpha=color[-1], zorder=-1)
-        #"""
-        self.y_pdfs.append(y_pdf)
-
-        self.crossplot_ax.set_xlim(*self.xlim)
-        self.crossplot_ax.set_ylim(*self.ylim)
-
-
-    def create_xy_pdf(self, where=None, color=None):
-        if where is None:
-            where = self.good
-        if color is None:
-            color = '#bbbbbb'
-
-        xmin, xmax = self.xlim
-        ymin, ymax = self.ylim
-
-        X, Y = np.mgrid[xmin:xmax:100j, ymin:ymax:100j]
-
-        positions = np.vstack([X.ravel(), Y.ravel()])
-        values = np.vstack([self.x[where], self.y[where]])
-        xy_kde = stats.gaussian_kde(values)
-        xy_pdf = np.reshape(xy_kde(positions), X.shape)
-
-        """
-        vmin = np.nanmin(xy_pdf)
-        vmax = np.nanmax(xy_pdf)
-        cmap = matplotlib.cm.gray_r
-        xy_pdf = self.crossplot_ax.contourf(X, Y, xy_pdf, 20, cmap=cmap,
-                                            vmin=vmin, vmax=2*vmax, alpha=alpha,
-                                            zorder=-2)
-        """
-        xy_pdf = self.crossplot_ax.contour(X, Y, xy_pdf, 5, colors=color[:3],
-                                           alpha=color[-1], zorder=-2)
-        #"""
-        self.xy_pdfs.append(xy_pdf)
-
-        self.crossplot_ax.set_xlim(*self.xlim)
-        self.crossplot_ax.set_ylim(*self.ylim)
-
-    def show_x_pdf(self, i, visible=True):
-        self.x_pdfs[i].set_visible(visible)
-
-    def show_y_pdf(self, i, visible=True):
-        self.y_pdfs[i].set_visible(visible)
-
-#    def show_z_pdf(self, visible=True):
-#        self.z_pdf.set_visible(visible)
-
-    def show_xy_pdf(self, i, visible=True):
-        #self.xy_pdfs[i].set_visible(visible)
-        for lc in self.xy_pdfs[i].collections:
-            lc.set_visible(visible)
-
-
-
-class FaciesMixin(object):
-    def __init__(self):
-        self.cid_press = self.canvas.mpl_connect('button_press_event', self.on_press)
-
-    def on_press(self, event):
-        if event.inaxes == self.colorbar_ax:# and self.z_is_facies:
-            z = event.ydata
-            i = int(z*len(self.crossplots))
-
-            isVisible = self.crossplots[i].get_visible()
-
-            self.crossplots[i].set_visible(not isVisible)
-
-            if self.x_pdfs:
-                self.x_pdfs[i].set_visible(not isVisible)
-            if self.y_pdfs:
-                self.y_pdfs[i].set_visible(not isVisible)
-            if self.xy_pdfs:
-                for lc in self.xy_pdfs[i].collections:
-                    lc.set_visible(not isVisible)
-
-            self.canvas.draw()
-
-
-class Panel(CrossPlotPanel, PdfsMixin, FaciesMixin):
-    def __init__(self, *args, **kwargs):
-        super(Panel, self).__init__(*args, **kwargs)
-        PdfsMixin.__init__(self)
-        FaciesMixin.__init__(self)

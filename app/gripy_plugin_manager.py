@@ -14,6 +14,7 @@ from plugins import _CATEGORIES_FILTER
 from plugins import GripyPluginInfo
 
 
+
 class GripyPluginManager(PluginManager):
         
         
@@ -134,8 +135,9 @@ class GripyPluginManager(PluginManager):
                 error.append(info)
             else:
                 ok.append(info)
+                        
         for plugin_info in ok:
-            plugin_info.activatePlugin()
+            plugin_info.activatePlugin()    
         return ok, exists_previously, error    
 
 

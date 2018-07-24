@@ -14,6 +14,11 @@ from app.gripy_plugin_manager import GripyPluginManagerSingleton
 wx.SystemOptions.SetOption("msw.remap", '0')
 
 
+#
+from wx.lib.pubsub import pub
+#from pubsub import pub
+#
+
 
 class GripyApp(wx.App):
     __version__ = None
@@ -86,9 +91,9 @@ class GripyApp(wx.App):
         gripy_functions.register_app_functions()
         log.info('Registering Gripy internal functions ended.') 
         #
-        log.info('Starting Gripy plugin system...')
- #       self._init_plugin_system()
-        log.info('Plugin system was initializated.') 
+#        log.info('Starting Gripy plugin system...')
+#        self._init_plugin_system()
+#        log.info('Plugin system was initializated.') 
         #
         
         self.load_app_interface()
@@ -119,9 +124,12 @@ class GripyApp(wx.App):
     def _init_plugin_system(self):
         PM = GripyPluginManagerSingleton.get()
         plugins_places = self._plugins_state.get('plugins_places')
-        PM.setPluginPlaces(plugins_places)
-        #PM.setPluginPlaces(['Plugins'])
-        PM.collectPlugins()       
+        #PM.setPluginPlaces(plugins_places)
+        PM.setPluginPlaces(['Plugins'])
+        ok, exists_previously, error = PM.collectPlugins()   
+        print (ok)
+        print (exists_previously)
+        print (error)
 
 
     #@staticmethod    
@@ -173,9 +181,10 @@ class GripyApp(wx.App):
     def PreExit(self):
         msg = 'GriPy Application is preparing to terminate....'
         log.info(msg)
-        print ('GripyApp.PreExit: ' + msg)
+        print ('\nGripyApp.PreExit: ' + msg)
         
         OM = ObjectManager()
+        """
         if OM.get_changed_flag():
             dial = wx.MessageDialog(self.GetTopWindow(), 
                                     'Do you want to save your project?', 
@@ -184,6 +193,7 @@ class GripyApp(wx.App):
             )
             if dial.ShowModal() == wx.ID_YES:
                 self.on_save()   
+        """        
         #
         OM._reset()
         
@@ -203,8 +213,14 @@ class GripyApp(wx.App):
         
         # As indicated by https://forums.wxwidgets.org/viewtopic.php?t=32138        
         aui_manager = wx.aui.AuiManager.GetManager(self.GetTopWindow())
-        aui_manager.UnInit()        
+        aui_manager.UnInit()   
         
+        #
+        # Removes every topic from PubSub
+        # Used as a pubsub's garbage collector 
+#        pub.unsubAll()  
+
+        #
         #UIM.close()
         
 #        OM.print_info()

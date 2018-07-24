@@ -44,7 +44,9 @@ def debugdecorator(func):
     return wrapper
 
 
+
 class PartitionTable(wx.grid.GridTableBase):
+    
     @debugdecorator
     def __init__(self, partitionuid):
         super(PartitionTable, self).__init__()
@@ -64,6 +66,7 @@ class PartitionTable(wx.grid.GridTableBase):
         else:
             self.N_COLS = 2
         self.N_ROWS = 0
+    
     
     @debugdecorator
     def AppendCols(self, numCols=1):

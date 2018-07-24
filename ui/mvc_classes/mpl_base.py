@@ -166,6 +166,7 @@ class InvertedGripyTransform(Transform):
 # that ``matplotlib`` can find it.
 register_scale(GripyScale)
 
+
 ###############################################################################
 ###############################################################################
 
@@ -176,13 +177,14 @@ class GripyMPLFigure(Figure):
     
     def __init__(self, *args, **kwargs):
         super(GripyMPLFigure, self).__init__(*args, **kwargs)  
-        
+    
+    """    
     def display_to_figure_coordinates(self, display_coordinates):
         return self.transFigure.inverted().transform(display_coordinates) 
         
     def figure_to_display_coordinates(self, figure_coordinates):
         return self.transFigure.transform(figure_coordinates)    
-        
+    """    
 
 """
     Inner class to all Axes used in this Project
@@ -190,7 +192,7 @@ class GripyMPLFigure(Figure):
 class GripyMPLAxes(Axes):
 
     def __init__(self, *args, **kwargs):
-        super(GripyMPLAxes, self).__init__(*args, **kwargs)            
+        super().__init__(*args, **kwargs)            
     
     def data_to_axes_coordinates(self, data_coordinates):
         return self.transLimits.transform(data_coordinates)
@@ -217,14 +219,27 @@ class BaseAxes(GripyMPLAxes):
     _valid_keys = [
         'y_major_grid_lines',
         'y_minor_grid_lines',
+        
         'x_scale',
+        'plotgrid',
+        
+        'leftscale',
         'decades',
         'scale_lines',
-        'plotgrid',
-        'leftscale',
         'minorgrid',
-        'depth_lines',
+        
+        
+        'y_scale',
+        'y_plotgrid',
+        'y_scale_lines',
+        'y_minorgrid',
         'ylim',
+
+
+
+        
+        'depth_lines',
+        
     ]        
     
     _internal_props = {
@@ -242,31 +257,31 @@ class BaseAxes(GripyMPLAxes):
     
 
     def __init__(self, figure, **initial_properties):
+        
+#        print ('\nBaseAxes.__init__:', initial_properties)
 
-        if matplotlib.__version__.startswith('2.'):
-            GripyMPLAxes.__init__(self, figure, 
-                    [0.0, 0.0, 1.0, 1.0]#, 
-                    #facecolor=self._internal_props['facecolor'] # MPL 2.0
-            )
-        else:
-            GripyMPLAxes.__init__(self, figure, 
-                    [0.0, 0.0, 1.0, 1.0]#, 
-                    #axisbg=self._internal_props['facecolor'] # MPL 1.X
-            )
-    
+        rect = initial_properties.get('rect', None)
+        if rect is None:
+            rect = [0.0, 0.0, 1.0, 1.0]
+            
+        
+        super().__init__(figure, rect)
+
         self._properties = {
-            'y_major_grid_lines': 1000.0,
-            'y_minor_grid_lines': 100.0,
-            'decades': None,
+            'y_major_grid_lines': None,
+            'y_minor_grid_lines': None,
+            'xlim': initial_properties.get('xlim', (0.0, 100.0)), # Used only when x_scale is linear
+            'ylim': initial_properties.get('ylim', (0.0, 100.0)),            
             'log_base': 10,
+            'decades': None,
             'scale_lines': None,
             'plotgrid': None,
+            'y_plotgrid': None,
             'leftscale': None,
             'minorgrid': None,
             'depth_lines': None,
-            'xlim': (0.0, 100.0), # Used only when x_scale is linear
-        }
 
+        }
     
 #        self.set_spines_visibility(False)    
         self.spines['right'].set_visible(False)
@@ -283,20 +298,26 @@ class BaseAxes(GripyMPLAxes):
                              'linestyle': self._internal_props['grid_linestyle'], 
                              'linewidth': self._internal_props['minor_tick_width']
         }        
-        self.set_zorder(self._internal_props['dummy_ax_zorder'])        
-        # EIXO Y SEMPRE SERÁ LINEAR
-        self.set_yscale('linear')                
+        self.set_zorder(self._internal_props['dummy_ax_zorder']) 
+        
+
+#        self.set_yscale('linear')        
+
+        
         # EIXOS X e Y NÃO TERÃO LABELS
-        self.xaxis.set_major_formatter(NullFormatter())
-        self.xaxis.set_minor_formatter(NullFormatter())
-        self.yaxis.set_major_formatter(NullFormatter())
-        self.yaxis.set_minor_formatter(NullFormatter())  
+#        self.xaxis.set_major_formatter(NullFormatter())
+#        self.xaxis.set_minor_formatter(NullFormatter())
+#        self.yaxis.set_major_formatter(NullFormatter())
+#        self.yaxis.set_minor_formatter(NullFormatter()) 
+        
         # EIXO X NÃO POSSUI TICKS
         self.xaxis.set_tick_params('major', size=0)
-        self.xaxis.set_tick_params('minor', size=0)     
+        self.xaxis.set_tick_params('minor', size=0)
+        
         # EIXO Y TICKS
         self.yaxis.set_tick_params('major', size=10)
-        self.yaxis.set_tick_params('minor', size=5)           
+        self.yaxis.set_tick_params('minor', size=5)     
+        
         self.tick_params(axis='y', which='major', direction='in',
                 color=self._internal_props['tick_grid_color'],          
                 length=self._internal_props['major_tick_lenght'],
@@ -306,7 +327,8 @@ class BaseAxes(GripyMPLAxes):
                 color=self._internal_props['tick_grid_color'],         
                 length=self._internal_props['minor_tick_lenght'],
                 width=self._internal_props['minor_tick_width'], 
-                zorder=self._internal_props['ticks_zorder'])        
+                zorder=self._internal_props['ticks_zorder'])       
+        
         # PARA NÃO HAVER SOBREPOSIÇÃO DE TICKS E GRIDS SOBRE OS SPINES(EIXO GRÁFICO) 
         self.spines['left'].set_zorder(self._internal_props['spines_zorder'])
         self.spines['right'].set_zorder(self._internal_props['spines_zorder'])
@@ -316,15 +338,35 @@ class BaseAxes(GripyMPLAxes):
 
         self.hide_y_ticks()
 
+#        print ()
+
         for key, value in initial_properties.items():
+#            print ('{} = {}'.format(key, value))
             if key in self._valid_keys:
                 self._properties[key] = value
-        self.update('x_scale', self._properties.get('x_scale'))        
+#                print ('   self._properties[{}] = {}'.format(key, value))
+
+#        print ('\nFIM BaseAxes.__init__\n')        
+                
+        
+        self.update('x_scale', self._properties.get('x_scale'))   
+        self.update('y_scale', self._properties.get('y_scale')) 
+        
         self.update('y_minor_grid_lines', self._properties.get('y_minor_grid_lines'))    
         self.update('y_major_grid_lines', self._properties.get('y_major_grid_lines'))    
-
+        self.update('ylim', self._properties.get('ylim'))
+        
+        
 
     def update(self, key, value):
+        
+
+        
+#        print ('BaseAxes.update({}, {})'.format(key, value))
+        
+        #if value is None:
+        #    return        
+        
         if key == 'ylim':
             if not isinstance(value, tuple):
                 raise ValueError('ylim deve ser uma tupla')
@@ -334,27 +376,51 @@ class BaseAxes(GripyMPLAxes):
                 raise ValueError('ylim deve ser uma tupla de int ou float.')
             elif ymax == ymin:
                 raise ValueError('Os valores de ylim nao podem ser iguais.')
-            elif ymin < 0 or ymax < 0:
-                raise ValueError('Nenhum dos valores de ylim podem ser negativos.')          
+            #elif ymin < 0 or ymax < 0:
+            #    raise ValueError('Nenhum dos valores de ylim podem ser negativos.')          
             self.set_ylim(value)
+        
         elif key == 'x_scale':
             if not isinstance(value, int):
                  raise ValueError('O valor de x_scale deve ser inteiro.')
             if not value in [0, 1, 2, 3]:
                 raise ValueError('A escala deve ser linear ou logaritmica(seno ou cosseno). (x_scale in [0, 1, 2, 3])')     
             if value == 0:
-                self.set_xscale('linear')
-                self.set_xlim(self._properties.get('xlim'))    
+                self.set_xscale('linear')   
             if value == 1:
                 self.set_xscale('log')
                 # leftscale or decades to update xlim
-                self.update('leftscale', self._properties.get('leftscale'))  
+                self.update('leftscale', self._properties.get('leftscale'))               
             if value == 2:
                 raise Exception('There no support yet to Sin scale.')
             if value == 3:    
                 raise Exception('There no support yet to Cosin scale.')  
+            self.set_xlim(self._properties.get('xlim'))    
             self.update('plotgrid', self._properties.get('plotgrid'))           
+
+
+        elif key == 'y_scale':
+            if value is None:
+                return
+            if not isinstance(value, int):
+                raise ValueError('O valor de x_scale deve ser inteiro.')
+            if not value in [0, 1]:
+                raise ValueError('A escala deve ser linear ou logaritmica. (y_scale in [0, 1])')     
+            if value == 0:
+                self.set_yscale('linear')
+                    
+            if value == 1:
+                self.set_yscale('log')
+                # leftscale or decades to update xlim
+               # self.update('yleftscale', self._properties.get('yleftscale'))  
+            self.set_ylim(self._properties.get('ylim'))   
+            self.update('y_plotgrid', self._properties.get('y_plotgrid'))     
+
+
+        
         elif key == 'y_major_grid_lines':
+            if value is None:
+                return
             if not isinstance(value, float):
                 raise ValueError('y_major_grid_lines deve ser float.') 
             elif value <= 0:
@@ -362,13 +428,18 @@ class BaseAxes(GripyMPLAxes):
     #            print 'setting y_major_grid_lines:', value
             self.yaxis.set_major_locator(MultipleLocator(value))
             self._properties['y_major_grid_lines'] = value             
+        
         elif key == 'y_minor_grid_lines':
+            if value is None:
+                return
             if not isinstance(value, float):
                 raise ValueError('y_minor_grid_lines deve ser float.') 
             elif value <= 0:
                 raise ValueError('y_minor_grid_lines deve ser maior que 0.')
             self.yaxis.set_minor_locator(MultipleLocator(value))
             self._properties['y_minor_grid_lines'] = value                 
+        
+        
         elif key == 'decades' or key == 'leftscale':
             if key == 'decades':
                 if not isinstance(value, int):
@@ -387,6 +458,7 @@ class BaseAxes(GripyMPLAxes):
                     self._properties.get('leftscale')*(self._properties.get('log_base')**self._properties.get('decades')))
      #           print 'xlim (log):', xlim
                 self.set_xlim(xlim)       
+        
         elif key == 'minorgrid':  
             if not isinstance(value, bool):  
                 raise ValueError('O valor de minorgrid deve ser True ou False.')  
@@ -397,6 +469,7 @@ class BaseAxes(GripyMPLAxes):
                 else:
                     self.grid(value, which='minor', axis='x')    
             self._properties['minorgrid'] = value
+            
         elif key == 'scale_lines':
             if not isinstance(value, int):
                 raise ValueError('scale_lines deve ser inteiro.') 
@@ -406,7 +479,21 @@ class BaseAxes(GripyMPLAxes):
                 x0, x1 = self.get_xlim()
                 x_major_grid_lines = (x1-x0)/value
                 self.xaxis.set_major_locator(MultipleLocator(x_major_grid_lines))
-            self._properties['scale_lines'] = value       
+            self._properties['scale_lines'] = value
+
+        elif key == 'y_scale_lines':
+            if not isinstance(value, int):
+                raise ValueError('scale_lines deve ser inteiro.') 
+            if value <= 0:
+                raise ValueError('scale_lines deve ser maior que 0.')  
+            if self.get_yscale() == 'linear' and self._properties.get('y_plotgrid'): 
+                y0, y1 = self.get_ylim()
+                y_max = max(y0, y1)
+                y_min = min(y0, y1)
+                y_major_grid_lines = (y_max - y_min)/value
+                self.yaxis.set_major_locator(MultipleLocator(y_major_grid_lines))
+            self._properties['y_scale_lines'] = value
+            
         elif key == 'plotgrid': 
             self._properties['plotgrid'] = value
             if value:
@@ -415,15 +502,30 @@ class BaseAxes(GripyMPLAxes):
                 self.grid(True, axis='x', which='major', **self.default_grid_mapping)            
                 self.update('depth_lines', self._properties.get('depth_lines'))
             else:
-                self.grid(False, axis='both', which='both')
+                self.grid(False, axis='x', which='both')
+                #def grid(self, b=None, which='major', axis='both', **kwargs):
                 self.hide_y_ticks()
+
+        elif key == 'y_plotgrid': 
+            self._properties['y_plotgrid'] = value
+            if value:
+                self.update('y_minorgrid', self._properties.get('y_minorgrid'))
+                self.update('y_scale_lines', self._properties.get('y_scale_lines'))
+                self.grid(True, axis='y', which='major', **self.default_grid_mapping)            
+                #self.update('depth_lines', self._properties.get('depth_lines'))
+            else:
+                self.grid(False, axis='y', which='both')
+                self.hide_y_ticks()
+                
         elif key == 'depth_lines':
             if not isinstance(value, int): 
                 raise ValueError('depth_lines deve ser inteiro.')
             elif value < 0 or value > 5:
                 raise ValueError('depth_lines deve ser entre 0 e 5.')    
+            
             if self._properties.get('plotgrid'):
                 self.ticks = False
+                
                 if value == 0:
                     self.grid(True, axis='y', which='major', **self.major_y_grid_mapping)
                     self.grid(True, axis='y', which='minor', **self.default_grid_mapping)
@@ -463,16 +565,19 @@ class BaseAxes(GripyMPLAxes):
                                      axis='y', direction='in'
                     )
                     self.grid(False, axis='y', which='both')   
+                
                 # DEPTH LINES == NONE
                 elif value == 5:
                     self.spines['left'].set_position(('axes', 0.0))
                     self.spines['right'].set_position(('axes', 1.0))
                     self.yaxis.set_ticks_position('none')
                     self.grid(False, axis='y', which='both')                         
+                
                 if self.ticks:
                     self.show_y_ticks()
                     self.update('y_major_grid_lines', self._properties.get('y_major_grid_lines'))
                     self.update('y_minor_grid_lines', self._properties.get('y_minor_grid_lines'))
+                    
             self._properties['depth_lines'] = value
              
 
@@ -500,24 +605,35 @@ class PlotFigureCanvas(FigureCanvas, SelectPanelMixin):
     _PLOT_XMAX = 1.0
     
     
-    def __init__(self, wx_parent, track_view_object, pos, size, **base_axes_properties):   
+    def __init__(self, wx_parent, track_view_object, size, **base_axes_properties):   
         self.figure = GripyMPLFigure()
         FigureCanvas.__init__(self, wx_parent, -1, self.figure)
         #self.selectedCanvas = []
         self.SetSize(size)
+        #
+        share_x = base_axes_properties.pop('share_x', False)
         #
         self.base_axes = BaseAxes(self.figure, **base_axes_properties)
         self.figure.add_axes(self.base_axes)
         self.base_axes.set_zorder(0)
         #
         # Add 
-        self.plot_axes = GripyMPLAxes(self.figure, 
-                         rect=self.base_axes.get_position(True), 
-                         sharey=self.base_axes, 
-                         frameon=False
-        )
+        if share_x:
+            self.plot_axes = GripyMPLAxes(self.figure, 
+                             rect=self.base_axes.get_position(True), 
+                             sharey=self.base_axes, 
+                             sharex=self.base_axes, 
+                             frameon=False
+            )
+        else:    
+            self.plot_axes = GripyMPLAxes(self.figure, 
+                             rect=self.base_axes.get_position(True), 
+                             sharey=self.base_axes, 
+                             frameon=False
+            )
+            self.plot_axes.set_xlim(self._PLOT_XMIN, self._PLOT_XMAX)
+        
         self.figure.add_axes(self.plot_axes)
-        self.plot_axes.set_xlim(self._PLOT_XMIN, self._PLOT_XMAX)
         self.plot_axes.xaxis.set_visible(False)
         self.plot_axes.yaxis.set_visible(False)        
         self.plot_axes.set_zorder(1)
@@ -530,6 +646,9 @@ class PlotFigureCanvas(FigureCanvas, SelectPanelMixin):
         #
         #print '\nsupports_blit:', self.supports_blit
         #self.create_multicursor()
+        
+        
+
 
     def on_pick(self, event):
         if event.mouseevent.button == 1:
@@ -551,7 +670,8 @@ class PlotFigureCanvas(FigureCanvas, SelectPanelMixin):
         
     def on_press(self, event):
         if event.guiEvent.GetSkipped():
-            self.track_view_object.process_event(event)
+            if self.track_view_object:
+                self.track_view_object.process_event(event)
 
         
     def display_to_figure_coordinates(self, display_coordinates):
@@ -568,7 +688,8 @@ class PlotFigureCanvas(FigureCanvas, SelectPanelMixin):
         self.draw()            
 
     def set_xlim(self, xlim):
-        raise Exception('Cannot use it.')
+        self.base_axes.update('xlim', xlim)
+        self.draw()
                    
     def set_ylim(self, ylim):
         self.base_axes.update('ylim', ylim)
@@ -588,41 +709,47 @@ class PlotFigureCanvas(FigureCanvas, SelectPanelMixin):
             return y_max
         pos = self.GetClientSize().height - ypx
         return self.base_axes.display_to_data_coordinates((0, pos))[1]
-
-
-    def wx_position_to_depth(self, wx_pos):
-        y_max, y_min = self.dummy_ax.get_ylim()
-        if wx_pos <= 0:
-            return y_min
-        elif wx_pos >= self.GetClientSize()[1]:   
-            return y_max
-        mpl_y_pos = self.transform_display_position(wx_pos)
-        return self.dummy_ax.transData.inverted().transform((0, mpl_y_pos))[1] 
     
     
     # TODO: separar create e add
+
     def append_artist(self, artist_type, *args, **kwargs):
+        
         if artist_type == 'Line2D':
             line = matplotlib.lines.Line2D(*args, **kwargs)
             return self.plot_axes.add_line(line)
+        
         elif artist_type == 'Text':
             return self.plot_axes.text(*args, **kwargs)
+        
         elif artist_type == 'AxesImage':
             image = matplotlib.image.AxesImage(self.plot_axes, *args, **kwargs)
             self.plot_axes.add_image(image)
             return image
+        
         elif artist_type == 'Rectangle':
             rect = matplotlib.patches.Rectangle(*args, **kwargs)
             return rect
+        
         elif artist_type == 'PatchCollection':
             collection = matplotlib.collections.PatchCollection(*args, **kwargs)
             return self.plot_axes.add_collection(collection)
+        
         elif artist_type == 'contourf':
             #contours = mcontour.QuadContourSet(self.plot_axes, *args, **kwargs)
             #self.plot_axes.autoscale_view()
             image = self.plot_axes.contourf(*args, **kwargs)
             #self.plot_axes.add_image(image)
             return image
+        
+        elif artist_type == 'scatter':
+            # TODO: rever linha abaixo, colocando de forma similar as de cima
+            return self.plot_axes.scatter(*args, **kwargs)
+            #def scatter(self, x, y, s=None, c=None, marker=None, cmap=None, norm=None,
+            #    vmin=None, vmax=None, alpha=None, linewidths=None,
+            #    verts=None, edgecolors=None,
+            #    **kwargs):
+        
         else:
             raise Exception('artist_type not known.')
             
@@ -633,43 +760,25 @@ class TrackFigureCanvas(PlotFigureCanvas, SelectPanelMixin):
     _PLOT_XMAX = 1.0
     
     
-    def __init__(self, wx_parent, track_view_object, pos, size, **base_axes_properties): 
-        super(TrackFigureCanvas, self).__init__(wx_parent, track_view_object, pos, size, **base_axes_properties)
-        self.selectedCanvas = []
-        self._selected = False
-        self.create_multicursor()
+    def __init__(self, wx_parent, track_view_object, size, **base_axes_properties): 
         
-        """
-        self.figure = GripyMPLFigure()
-        FigureCanvas.__init__(self, wx_parent, -1, self.figure)
+        try:
+            super().__init__(wx_parent, 
+                 track_view_object, size, **base_axes_properties
+            )
+            self.selectedCanvas = []
+            self._selected = False
+            self.create_multicursor()
+        except Exception as e:
+            print ('ERROR TrackFigureCanvas.__init__:', e)
+            raise
+            
+                   
         
-        self.SetSize(size)
-        #
-        self.base_axes = BaseAxes(self.figure, **base_axes_properties)
-        self.figure.add_axes(self.base_axes)
-        self.base_axes.set_zorder(0)
-        #
-        self.plot_axes = GripyMPLAxes(self.figure, 
-                         rect=self.base_axes.get_position(True), 
-                         sharey=self.base_axes, 
-                         frameon=False
-        )
-        self.figure.add_axes(self.plot_axes)
-        self.plot_axes.set_xlim(self._PLOT_XMIN, self._PLOT_XMAX)
-        self.plot_axes.xaxis.set_visible(False)
-        self.plot_axes.yaxis.set_visible(False)        
-        self.plot_axes.set_zorder(1)
-        #
-        self.track_view_object = track_view_object
-        self._selected = False
-        #
-        self.mpl_connect('button_press_event', self.on_press)
-        self.mpl_connect('pick_event', self.on_pick)
-        #
-        #print '\nsupports_blit:', self.supports_blit
-        self.create_multicursor()
-        """
-        
+    def set_xlim(self, xlim):
+        raise Exception('Cannot use it.')    
+    
+    
     def create_multicursor(self):
         xmin, xmax = self.plot_axes.get_xlim()
         ymin, ymax = self.plot_axes.get_ylim()
@@ -767,105 +876,7 @@ class TrackFigureCanvas(PlotFigureCanvas, SelectPanelMixin):
         self.plot_axes.draw_artist(marked_vert_line)    
         print ('mark_vertical ended')
             
-        
-    """    
-    def on_pick(self, event):
-        if event.mouseevent.button == 1:
-            self._just_picked = True
-            obj_uid = event.artist.get_label()
-            UIM = UIManager()
-            toc_ctrl = UIM.get(obj_uid)
-            track_uid = UIM._getparentuid(toc_ctrl)
-            if not event.mouseevent.guiEvent.ControlDown():
-                selected_tocs = UIM.do_query('track_object_controller', 
-                                               track_uid, 'selected=True'
-                )
-                for sel_toc in selected_tocs:
-                    if sel_toc != toc_ctrl:
-                        sel_toc.model.selected = False
-            toc_ctrl.model.selected = not toc_ctrl.model.selected
-            event.mouseevent.guiEvent.Skip(False)
 
-        
-    def on_press(self, event):
-        if event.guiEvent.GetSkipped():
-            self.track_view_object.process_event(event)
-
-        
-    def display_to_figure_coordinates(self, display_coordinates):
-        return self.figure.display_to_figure_coordinates(display_coordinates) 
-        
-    def figure_to_display_coordinates(self, figure_coordinates):
-        return self.figure.figure_to_display_coordinates(figure_coordinates)
-    
-    def add_axes(self, zorder=None):
-        raise Exception('Cannot use it.')
-             
-    def update(self, key, value):
-        self.base_axes.update(key, value)
-        self.draw()            
-
-    def set_xlim(self, xlim):
-        raise Exception('Cannot use it.')
-                   
-    def set_ylim(self, ylim):
-        self.base_axes.update('ylim', ylim)
-        self.draw()
-        
-        
-    def get_ypixel_from_depth(self, depth):
-        pos = self.base_axes.data_to_display_coordinates((0, depth))[1]
-        return self.GetClientSize().height - pos
-
-
-    def get_depth_from_ypixel(self, ypx):
-        y_max, y_min = self.base_axes.get_ylim()
-        if ypx <= 0:
-            return y_min
-        elif ypx >= self.GetClientSize().height:
-            return y_max
-        pos = self.GetClientSize().height - ypx
-        return self.base_axes.display_to_data_coordinates((0, pos))[1]
-
-
-    def wx_position_to_depth(self, wx_pos):
-        y_max, y_min = self.dummy_ax.get_ylim()
-        if wx_pos <= 0:
-            return y_min
-        elif wx_pos >= self.GetClientSize()[1]:   
-            return y_max
-        mpl_y_pos = self.transform_display_position(wx_pos)
-        return self.dummy_ax.transData.inverted().transform((0, mpl_y_pos))[1] 
-    
-    
-    # TODO: separar create e add
-    def append_artist(self, artist_type, *args, **kwargs):
-        if artist_type == 'Line2D':
-            line = matplotlib.lines.Line2D(*args, **kwargs)
-            return self.plot_axes.add_line(line)
-        elif artist_type == 'Text':
-            return self.plot_axes.text(*args, **kwargs)
-        elif artist_type == 'AxesImage':
-            image = matplotlib.image.AxesImage(self.plot_axes, *args, **kwargs)
-            self.plot_axes.add_image(image)
-            return image
-        elif artist_type == 'Rectangle':
-            rect = matplotlib.patches.Rectangle(*args, **kwargs)
-            return rect
-        elif artist_type == 'PatchCollection':
-            collection = matplotlib.collections.PatchCollection(*args, **kwargs)
-            return self.plot_axes.add_collection(collection)
-        elif artist_type == 'contourf':
-            #contours = mcontour.QuadContourSet(self.plot_axes, *args, **kwargs)
-            #self.plot_axes.autoscale_view()
-            image = self.plot_axes.contourf(*args, **kwargs)
-            #self.plot_axes.add_image(image)
-            return image
-        else:
-            raise Exception('artist_type not known.')
-
-
-    """
 
 
 ###############################################################################  

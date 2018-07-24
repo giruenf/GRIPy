@@ -113,7 +113,9 @@ class EnumProperty(pg.EnumProperty, PropertyMixin):
             raise Exception('No labels values found in: {} - model key: {}'.\
                             format(controller_uid, model_key)
             )   
-        super(EnumProperty, self).__init__(label, name, labels, value=value)
+        super(EnumProperty, self).__init__(label, name, labels, 
+                                                 values, value=value)
+        
         #pg.EnumProperty(label, name, labels, values, value)
         # EnumProperty(label, name, choice, value=0)  choice as wxPGChoices
         #              
@@ -212,7 +214,6 @@ class PropertyGridController(UIControllerBase):
 
 
     def clear(self):
-        #print 'PropertyGridController.clear()'
         UIM = UIManager()
         parent_controller_uid = UIM._getparentuid(self.uid)
         parent_controller =  UIM.get(parent_controller_uid)

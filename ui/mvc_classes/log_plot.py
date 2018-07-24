@@ -1,5 +1,7 @@
 # -*- coding: utf-8 -*-
 
+from collections import OrderedDict
+
 import wx
 
 from om.manager import ObjectManager
@@ -8,6 +10,7 @@ from ui.mvc_classes.workpage import WorkPageController
 from ui.mvc_classes.workpage import WorkPageModel
 from ui.mvc_classes.workpage import WorkPage
 from ui.uimanager import UIManager
+from ui.plotstatusbar import PlotStatusBar
 from ui.logplot_internal import LogPlotInternal
 from app.app_utils import LogPlotState   
 from app.app_utils import GripyBitmap  
@@ -195,7 +198,7 @@ class LogPlotController(WorkPageController):
 
 
     def show_status_message(self, msg):
-        self.view.status_bar.SetStatusText(msg, 0)
+        self.view._status_bar.SetStatusText(msg, 0)
 
 
     
@@ -239,40 +242,6 @@ class LogPlotController(WorkPageController):
                 track.reposition_depth_canvas()
         self.view._reload_z_axis_textctrls()        
          
-        #self.update_adaptative()
-#        self.view.refresh_overview()
-
-
-
-
-    """
-    def update_adaptative(self):
-        UIM = UIManager() 
-        tracks = UIM.list('track_controller', self.uid)
-        if not tracks:
-            return
-        #print '\nupdate_adaptative'
-        NUM_PX = 80
-        SCALES = [1000.0, 500.0, 250.0, 100.0, 50.0, 25.0, 10.0, 
-                  5.0, 2.5, 1.0, 0.5, 0.1
-        ]
-        height = self.view.main_panel.bottom_splitter.GetSize()[1]
-        val = ((self.model.y_max_shown - self.model.y_min_shown) / float(height)) * NUM_PX
-        idx = len(SCALES)-1
-        for i, scale in enumerate(SCALES):
-            if val > scale:
-                if i==0:
-                    idx = 0
-                else:    
-                    idx = i-1
-                break
-           
-        for track in tracks:
-            track.model.y_major_grid_lines = SCALES[idx]
-            track.model.y_minor_grid_lines = SCALES[idx]/5  
-        #print '\nscale chosen', SCALES[idx]    
-    """
-    
 
 
 class LogPlotModel(WorkPageModel):
@@ -314,10 +283,9 @@ class LogPlotModel(WorkPageModel):
                 'type': str
         }   
     }
-    _ATTRIBUTES.update(WorkPageModel._ATTRIBUTES)    
     
     def __init__(self, controller_uid, **base_state):   
-        super(LogPlotModel, self).__init__(controller_uid, **base_state)   
+        super().__init__(controller_uid, **base_state)   
    
                 
      
@@ -328,37 +296,72 @@ class LogPlot(WorkPage):
     tid = 'logplot'
     _FRIENDLY_NAME = 'Well Plot'
     
+ 
+    _ATTRIBUTES = OrderedDict()
+    _ATTRIBUTES['zaxis_uid'] = {
+        'default_value': wx.EmptyString,
+        'type': str    
+    }   
+
     
-    def __init__(self, controller_uid):
-        
-        super(LogPlot, self).__init__(controller_uid) 
-        self.set_own_name()
-        self.create_tool_bar()
+    
+    def __init__(self, controller_uid):   
+        super().__init__(controller_uid) 
+        #
+        self.sizer = wx.BoxSizer(wx.VERTICAL)
+        self._tool_bar =  wx.aui.AuiToolBar(self)
+        self.sizer.Add(self._tool_bar, 0, flag=wx.TOP|wx.EXPAND)
+        #     
+        self._main_panel = wx.Panel(self)
+        self.sizer.Add(self._main_panel, 1, flag=wx.EXPAND)
+        #
+        self._status_bar =  PlotStatusBar(self)
+        self.sizer.Add(self._status_bar, 0, flag=wx.BOTTOM|wx.EXPAND)
+        self.SetSizer(self.sizer)   
+        #
+        self._build_tool_bar()
+        #
         self.hbox = wx.BoxSizer(wx.HORIZONTAL)                    
-        self.tracks_panel = LogPlotInternal(self.center_panel) 
+        self.tracks_panel = LogPlotInternal(self._main_panel) 
         self.hbox.Add(self.tracks_panel, 1, wx.EXPAND) 
-        self.center_panel.SetSizer(self.hbox)      
+        self._main_panel.SetSizer(self.hbox)      
         self.overview = None
         self.overview_border = 1
         self.overview_width = 60
-        self.overview_base_panel = wx.Panel(self.center_panel)
+        self.overview_base_panel = wx.Panel(self._main_panel)
         self.overview_base_panel.SetBackgroundColour('black')
         self.overview_base_panel.SetInitialSize((0, 0))
         self.overview_sizer = wx.BoxSizer(wx.HORIZONTAL) 
         self.overview_base_panel.SetSizer(self.overview_sizer)
         self.hbox.Add(self.overview_base_panel, 0, wx.EXPAND)
         self.hbox.Layout()
+
         self.Layout()
+
         self.tracks_panel.top_splitter.Bind(wx.EVT_SPLITTER_SASH_POS_CHANGED, 
                                           self._on_sash_pos_change
         )    
         self.tracks_panel.bottom_splitter.Bind(wx.EVT_SPLITTER_SASH_POS_CHANGED, 
                                              self._on_sash_pos_change
-        )         
+        )      
+        self.ot_toc = None
 
-        
+
+
+    def PreDelete(self):
+        try:
+            self.sizer.Remove(0)
+            del self._tool_bar
+        except Exception as e:
+            msg = 'PreDelete ' + self.__class__.__name__ + \
+                                            ' ended with error: ' + str(e)
+            print (msg)                                
+            raise         
+            
+            
+            
     def PostInit(self):
-     #   print '\nLogPlot.PostInit'
+#        print ('\n\nLogPlot.PostInit')
                 
         OM = ObjectManager()
         UIM = UIManager()        
@@ -369,28 +372,36 @@ class LogPlot(WorkPage):
         controller.subscribe(self.set_index_type, 'change.index_type')
         
         ###
+        
+#        print (1)
         self._prepare_index_data()
+#        print (2)
         self.overview_track = UIM.create('track_controller', 
                                          self._controller_uid,
                                          overview=True, plotgrid=False                            
         )
         ###
         
-
+#        print (3)
         well = OM.get(('well', controller.model.well_oid))
+        
+#        print (4)
+        
         for z_axis_dt in well.get_z_axis_datatypes().values():
-            self.tool_bar.choice_IT.Append(z_axis_dt)
+            self._tool_bar.choice_IT.Append(z_axis_dt)
         
-
+#        print (5)
         
-        idx_index_type = self.tool_bar.choice_IT.GetItems().index(controller.model.index_type)
-        self.tool_bar.choice_IT.SetSelection(idx_index_type)
+        idx_index_type = self._tool_bar.choice_IT.GetItems().index(controller.model.index_type)
+        self._tool_bar.choice_IT.SetSelection(idx_index_type)
 
-        self.ot_toc = None
         self.set_index_type(controller.model.index_type, None)
-        self.tool_bar.choice_IT.Bind(wx.EVT_CHOICE , self._on_index_type) 
         
-        #ot_toc = self.overview_track.append_object(self._zaxis_uid)
+        self._tool_bar.choice_IT.Bind(wx.EVT_CHOICE , self._on_index_type) 
+        
+#        print (7)
+        
+        #ot_toc = self.overview_track.append_object(self.zaxis_uid)
         #ot_toc_repr_ctrl = ot_toc.get_representation()
         # TODO: Update Adaptative
         #ot_toc_repr_ctrl.model.step = 200
@@ -405,12 +416,16 @@ class LogPlot(WorkPage):
         controller.subscribe(self.on_change_logplot_ylim, 'change.logplot_y_min')
         controller.subscribe(self.on_change_logplot_ylim, 'change.logplot_y_max')   
         
-        #print 'b4 self._reload_z_axis_textctrls'
+#        print ('b4 self._reload_z_axis_textctrls')
         
         self._reload_z_axis_textctrls()
         
         
-      #  print 'LogPlot.PostInit ENDED'
+#        print ('LogPlot.PostInit ENDED')
+        
+
+
+
 
 
     def set_own_name(self):
@@ -426,16 +441,14 @@ class LogPlot(WorkPage):
             if lpc.model.well_oid == controller.model.well_oid:
                 idx += 1
         idx += 1
-        
-        print ('\nset_own_name:', self._FRIENDLY_NAME + ': ' + well.name + \
-                                    ' ['+ str(idx) + ']')
+
         controller.model.title = self._FRIENDLY_NAME + ': ' + well.name + \
                                     ' ['+ str(idx) + ']'    
-                                    #' ['+ str(self._controller_uid[1]+1) + ']'            
+       
     
     
     def _prepare_index_data(self):
-   #     print '\nLogPlot._prepare_index_data'
+#        print ('\nLogPlot._prepare_index_data')
         OM = ObjectManager()
         UIM = UIManager()        
         controller = UIM.get(self._controller_uid)
@@ -447,11 +460,11 @@ class LogPlot(WorkPage):
         min_ = 100000
         max_ = -1
         
-        data_indexes_uid = well.get_friendly_indexes_dict().values()
+        data_indexes = OM.list('data_index', well.uid) #well.get_friendly_indexes_dict().values()
         zaxis = []
         
-        for data_index_uid in data_indexes_uid:
-            data_index = OM.get(data_index_uid)
+        for data_index in data_indexes:
+#            data_index = OM.get(data_index_uid)
             if controller.model.index_type == data_index.datatype:
                 if data_index.start < min_:
                     min_ = data_index.start
@@ -470,10 +483,9 @@ class LogPlot(WorkPage):
             print ('ATENCAO COM Z-AXIS!')
             
 
-        self._zaxis_uid = zaxis[0].uid
-    #    print 'LogPlot._prepare_index_data FIM'
+        self.zaxis_uid = zaxis[0].uid
+#        print ('LogPlot._prepare_index_data FIM')
 
-                
 
     def on_change_logplot_ylim(self, new_value, old_value):
         #raise Exception('Cannot do it!')
@@ -485,9 +497,9 @@ class LogPlot(WorkPage):
         controller = UIM.get(self._controller_uid)
         #self.overview_track.set_ylim(controller.model.y_min_shown, controller.model.logplot_y_max)
         z_start_str = "{0:.2f}".format(controller.model.y_min_shown)
-        self.tool_bar.z_start.SetValue(z_start_str)
+        self._tool_bar.z_start.SetValue(z_start_str)
         z_end_str = "{0:.2f}".format(controller.model.y_max_shown)
-        self.tool_bar.z_end.SetValue(z_end_str)
+        self._tool_bar.z_end.SetValue(z_end_str)
         #print '\n_reload_z_axis_textctrls:', z_start_str, z_end_str
         
 
@@ -497,83 +509,6 @@ class LogPlot(WorkPage):
     def on_change_z_end(self, event):
         print ('on_change_z_end:', event.GetString())
         
-
-    """
-    # Method for Drag and Drop....
-    def append_object(self, obj_uid):
-        UIM = UIManager()
-        #print 111
-        toc = UIM.create('track_object_controller', self.uid)  
-        tid, oid = obj_uid
-        #print 222
-        toc.model.obj_tid = tid
-        #print 333
-        toc.model.obj_oid = oid
-        return toc
-    """
-    
-
-    '''
-    def _set_index_data(self):
-        self.overview_track.set_ylim(min_, max_)
-        self.overview_track.append_object(zaxis[0].uid)
-    '''    
-        
-
-    """    
-    def _get_overview_track(self):
-        UIM = UIManager()
-        overview_tracks = UIM.do_query('track_controller', 
-                                       self._controller_uid,
-                                       'overview=True'
-        )        
-        if not overview_tracks:
-            return None
-        return overview_tracks[0]
-    """
-    
-    """
-    def set_overview_track(self, track_uid):
-        if track_uid[0] != 'track_controller':
-            raise Exception()
-        UIM = UIManager()
-        if self._controller_uid != UIM._getparentuid(track_uid):
-            raise Exception('This LogPLot cannot set an overview Track from another Logplot.')  
-        # First, we need to unset any existing overview track 
-        ot = self._get_overview_track()
-        if ot:
-            self.unset_overview_track()
-        # Then, set the new overview track
-        track = UIM.get(track_uid) 
-        state = track.get_state()[1]
-        UIM.remove(track.uid)
-        state['overview'] = True
-        state['selected'] = False
-        print '\n', state
-        UIControllerBase.load_state(state, 'track_controller',
-                                    parentuid=self._controller_uid
-        )
-    """    
-
-
-    '''
-    def unset_overview_track(self):
-        ot = self._get_overview_track()
-        if not ot:
-            return
-        self._remove_from_overview_panel()
-        #self.overview_sizer.Detach(ot.view.track)
-        state = ot.get_state()[1]
-        UIM = UIManager()
-        UIM.remove(ot.uid)
-        state['overview'] = False
-        UIControllerBase.load_state(state, 'track_controller',
-                                           parentuid=self._controller_uid
-        )        
-        #self.overview_base_panel.SetInitialSize((0, 0))
-        #self.hbox.Layout()          
-    '''
-    
     
     def _remove_from_overview_panel(self):
         self.overview_sizer.Detach(self.overview_track.view.track)
@@ -582,92 +517,120 @@ class LogPlot(WorkPage):
             
     
     def _create_windows(self, track_uid):    
-        UIM = UIManager()
-        controller = UIM.get(self._controller_uid)
-        track = UIM.get(track_uid)
         
-        #self.label, self.track = parent_controller._create_windows(self._controller_uid)
-        if not track.model.overview:
-            track.view.label = PlotLabel(self.tracks_panel.top_splitter, 
-                                         track.view
-            ) 
-            track.view.track = TrackFigureCanvas(self.tracks_panel.bottom_splitter, 
-                                track.view,                      
-                                size=wx.Size(track.model.width, 
-                                    self.tracks_panel.bottom_splitter.GetSize()[1]
-                                ),
-                                y_major_grid_lines=controller.model.y_major_grid_lines,
-                                y_minor_grid_lines=controller.model.y_minor_grid_lines,
-                                **track.model._getstate()
-            )
-        else:
-            track.view.label = None
-            track.view.track = TrackFigureCanvas(self.overview_base_panel, #self.center_panel, 
-                                track.view,                      
-                                size=wx.Size(track.model.width, 
-                                    self.tracks_panel.bottom_splitter.GetSize()[1]
-                                ),
-                                y_major_grid_lines=controller.model.y_major_grid_lines,
-                                y_minor_grid_lines=controller.model.y_minor_grid_lines,
-                                **track.model._getstate()
-            )
-            self.overview_base_panel.SetInitialSize((60, 10))
-            self.overview_sizer.Add(track.view.track, 1, 
-                                    wx.EXPAND|wx.ALL, self.overview_border
-            )     
-            self.hbox.Layout()                
-
-        if not track.model.overview:
-            self.dt1 = DropTarget(controller.is_valid_object,
+#        print ('\n\n_create_windows')
+        
+        try:
+        
+            UIM = UIManager()
+            controller = UIM.get(self._controller_uid)
+            track = UIM.get(track_uid)
+            
+            #self.label, self.track = parent_controller._create_windows(self._controller_uid)
+            
+    #        print (1)
+            
+            if not track.model.overview:
+                track.view.label = PlotLabel(self.tracks_panel.top_splitter, 
+                                             track.view
+                ) 
+    #            print (1.1)
+                track.view.track = TrackFigureCanvas(self.tracks_panel.bottom_splitter, 
+                                    track.view,                      
+                                    size=wx.Size(track.model.width, 
+                                        self.tracks_panel.bottom_splitter.GetSize()[1]
+                                    ),
+                                    y_major_grid_lines=controller.model.y_major_grid_lines,
+                                    y_minor_grid_lines=controller.model.y_minor_grid_lines,
+                                    **track.model._getstate()
+                )
+    #            print (1.2)                    
+            else:
+    #            print (1.3)
+                track.view.label = None
+                
+    #            print ('1.35:', track.model._getstate())
+                
+                track.view.track = TrackFigureCanvas(self.overview_base_panel, #self._main_panel, 
+                                    track.view,
+    #                                0,  # TODO: Rever esse pos 
+                                    size=wx.Size(track.model.width, 
+                                        self.tracks_panel.bottom_splitter.GetSize()[1]
+                                    ),
+                                    y_major_grid_lines=controller.model.y_major_grid_lines,
+                                    y_minor_grid_lines=controller.model.y_minor_grid_lines,
+                                    **track.model._getstate()
+                )
+#                print (1.4)
+                self.overview_base_panel.SetInitialSize((60, 10))
+                self.overview_sizer.Add(track.view.track, 1, 
+                                        wx.EXPAND|wx.ALL, self.overview_border
+                )     
+                self.hbox.Layout() 
+    #            print (1.5)               
+    
+#            print (2)
+    
+            if not track.model.overview:
+                self.dt1 = DropTarget(controller.is_valid_object,
+                                      track.append_object
+                )
+            self.dt2 = DropTarget(controller.is_valid_object,
                                   track.append_object
             )
-        self.dt2 = DropTarget(controller.is_valid_object,
-                              track.append_object
-        )
-
-           
-        if not track.model.overview:    
-            track.view.label.SetDropTarget(self.dt1)        
-        track.view.track.SetDropTarget(self.dt2)
+    
+#            print (3)   
             
-        if track.model.pos == -1:
-            # aqui controller.size jah inclui track
-            track.model.pos = controller.size - 1
-        
-        track.view.track.update_multicursor(controller.model.multicursor)
-
-        pos = track.model.pos
-
-        tracks_affected = UIM.do_query('track_controller',  
-                                            self._controller_uid,
-                                            'pos>='+str(pos)
-        )    
-        
-        self._adjust_up_pos(track.uid, pos)          
-        if not track.model.overview:     
-            self.tracks_panel.insert(pos, track.view.label, 
-                                          track.view.track,
-                                          track.model.width
-            )
-
+            if not track.model.overview:    
+                track.view.label.SetDropTarget(self.dt1)        
+            track.view.track.SetDropTarget(self.dt2)
+                
+            if track.model.pos == -1:
+                # aqui controller.size jah inclui track
+                track.model.pos = controller.size - 1
             
-            for track_affected in tracks_affected:
-                if track_affected.uid != track.uid:
-                    track_affected.reload_track_title() 
-             
+            track.view.track.update_multicursor(controller.model.multicursor)
+    
+            pos = track.model.pos
+    
+#            print (3.5)   
+            tracks_affected = UIM.do_query('track_controller',  
+                                                self._controller_uid,
+                                                'pos>='+str(pos)
+            )    
             
-            track.set_ylim(controller.model.y_min_shown, 
-                           controller.model.y_max_shown
-            )
-
-        else:
+#            print (4)
             
-            track.set_ylim(controller.model.logplot_y_min, 
-                           controller.model.logplot_y_max
-            )
+            self._adjust_up_pos(track.uid, pos)          
+            if not track.model.overview:     
+                self.tracks_panel.insert(pos, track.view.label, 
+                                              track.view.track,
+                                              track.model.width
+                )
+    
+                
+                for track_affected in tracks_affected:
+                    if track_affected.uid != track.uid:
+                        track_affected.reload_track_title() 
+                 
+                
+                track.set_ylim(controller.model.y_min_shown, 
+                               controller.model.y_max_shown
+                )
+    
+            else:
+                
+                track.set_ylim(controller.model.logplot_y_min, 
+                               controller.model.logplot_y_max
+                )
 
-
-        
+        except Exception as e:
+            
+            print ('ERROR in LogPLot._create_windows:', e)
+            raise
+            
+            
+#        print (5)
 
 
     def _adjust_up_pos(self, track_uid, from_pos):
@@ -862,8 +825,8 @@ class LogPlot(WorkPage):
         UIM = UIManager()
         controller = UIM.get(self._controller_uid)
         try:
-            zstart = float(self.tool_bar.z_start.GetValue())
-            zend = float(self.tool_bar.z_end.GetValue())
+            zstart = float(self._tool_bar.z_start.GetValue())
+            zend = float(self._tool_bar.z_end.GetValue())
             if not round(zstart, 2) >= round(controller.model.logplot_y_min, 2):
                 
                 raise Exception('AAA: ', str(zstart) + '   '+ str(controller.model.logplot_y_min))
@@ -917,33 +880,43 @@ class LogPlot(WorkPage):
 
 
     def set_index_type(self, new_value, old_value):     
-      #  print '\n\n\nset_index_type:', new_value, old_value
+#        print ('\n\n\nset_index_type:', new_value, old_value)
 
         UIM = UIManager() 
-        self._prepare_index_data()
         
-        # TODO: Find a more Pythonic way to write aboxe
-        for track_ctrl in UIM.list('track_controller', self._controller_uid):
-            
-            if track_ctrl.model.overview:
-        #        print 'overview'
-                if self.ot_toc:
-                    UIM.remove(self.ot_toc.uid)    
-        #        print self._zaxis_uid    
-                self.ot_toc = self.overview_track.append_object(self._zaxis_uid) 
-                #ot_toc = self.overview_track.append_object(self._zaxis_uid)
-                #ot_toc_repr_ctrl = self.ot_toc.get_representation()
-                # TODO: Update Adaptative
-                #ot_toc_repr_ctrl.model.step = 200
+        try:
+            self._prepare_index_data()
+            # TODO: Find a more Pythonic way to write aboxe
+            for track_ctrl in UIM.list('track_controller', self._controller_uid):
                 
-            else:
-                for toc_ctrl in UIM.list('track_object_controller', track_ctrl.uid):
-                    filter_ = toc_ctrl.get_filter()
-                    filter_.reload_z_dimension_indexes()
-                    toc_ctrl._do_draw() 
-                
-
+                if track_ctrl.model.overview:
+#                    print ('overview')
+                    try:
+                        if self.ot_toc:
+                            UIM.remove(self.ot_toc.uid) 
+                    except Exception as e:
+                        print ('UIM.remove(self.ot_toc.uid):', e)
+#                    print (self.zaxis_uid)    
+                    self.ot_toc = self.overview_track.append_object(self.zaxis_uid) 
+                    
+                    
+                    
+                    #ot_toc = self.overview_track.append_object(self.zaxis_uid)
+                    #ot_toc_repr_ctrl = self.ot_toc.get_representation()
+                    # TODO: Update Adaptative
+                    #ot_toc_repr_ctrl.model.step = 200
+                    
+                else:
+                    for toc_ctrl in UIM.list('track_object_controller', track_ctrl.uid):
+                        filter_ = toc_ctrl.get_filter()
+                        filter_.reload_z_dimension_indexes()
+                        toc_ctrl._do_draw() 
+            print ('FIM set_index_type:', new_value, old_value, '\n\n')                
+        except Exception as e: 
+            print ('ERROR set_index_type:', e)
+            raise
       
+        
     def show_cursor(self, event_on_track_ctrl_uid, xdata, ydata):
         UIM = UIManager() 
         tracks = UIM.list('track_controller', self._controller_uid)
@@ -956,8 +929,9 @@ class LogPlot(WorkPage):
                 track.view.track.show_cursor(xdata, ydata, False)
         
         
-    def create_tool_bar(self):
-        self.tool_bar.AddTool(LP_NORMAL_TOOL, 
+    def _build_tool_bar(self):
+
+        self._tool_bar.AddTool(LP_NORMAL_TOOL, 
                       wx.EmptyString,
                       GripyBitmap('cursor_24.png'), 
                       wx.NullBitmap,
@@ -966,9 +940,9 @@ class LogPlot(WorkPage):
                       'Normal Tool',
                       None
         )
-        self.tool_bar.ToggleTool(LP_NORMAL_TOOL, True) 
+        self._tool_bar.ToggleTool(LP_NORMAL_TOOL, True) 
         #
-        self.tool_bar.AddTool(LP_SELECTION_TOOL, 
+        self._tool_bar.AddTool(LP_SELECTION_TOOL, 
                       wx.EmptyString,
                       GripyBitmap('cursor_filled_24.png'), 
                       wx.NullBitmap,
@@ -977,83 +951,83 @@ class LogPlot(WorkPage):
                       'Selection Tool',
                       None
         )  
-        self.tool_bar.Bind(wx.EVT_TOOL, self._on_change_tool, None,
+        self._tool_bar.Bind(wx.EVT_TOOL, self._on_change_tool, None,
                   LP_NORMAL_TOOL, LP_SELECTION_TOOL
         )
         #
-        self.tool_bar.AddSeparator()
+        self._tool_bar.AddSeparator()
         #
-        tb_item = self.tool_bar.AddTool(-1, u"Insert Track", 
+        tb_item = self._tool_bar.AddTool(-1, u"Insert Track", 
                                   GripyBitmap('table_add_24.png'),
                                   'Insert a new track'
         )
-        self.tool_bar.Bind(wx.EVT_TOOL, self._on_toolbar_insert_track, tb_item)
+        self._tool_bar.Bind(wx.EVT_TOOL, self._on_toolbar_insert_track, tb_item)
         #
-        tb_item = self.tool_bar.AddTool(-1, u"Remove Track", 
+        tb_item = self._tool_bar.AddTool(-1, u"Remove Track", 
                                   GripyBitmap('table_delete_24.png'),
                                  'Remove selected tracks'
         )
-        self.tool_bar.Bind(wx.EVT_TOOL, self._on_toolbar_remove_track, tb_item)
+        self._tool_bar.Bind(wx.EVT_TOOL, self._on_toolbar_remove_track, tb_item)
         #
-        self.tool_bar.AddSeparator()  
+        self._tool_bar.AddSeparator()  
         #
-        button_edit_format = wx.Button(self.tool_bar, label='Edit Plot')
+        button_edit_format = wx.Button(self._tool_bar, label='Edit Plot')
         button_edit_format.Bind(wx.EVT_BUTTON , self._OnEditFormat)
-        self.tool_bar.AddControl(button_edit_format, '')
-        self.tool_bar.AddSeparator()    
+        self._tool_bar.AddControl(button_edit_format, '')
+        self._tool_bar.AddSeparator()    
         #    
-        self.tool_bar.cbFit = wx.CheckBox(self.tool_bar, -1, 'Fit')        
-        self.tool_bar.cbFit.Bind(wx.EVT_CHECKBOX , self._on_fit) 
-        self.tool_bar.AddControl(self.tool_bar.cbFit, '')    
+        self._tool_bar.cbFit = wx.CheckBox(self._tool_bar, -1, 'Fit')        
+        self._tool_bar.cbFit.Bind(wx.EVT_CHECKBOX , self._on_fit) 
+        self._tool_bar.AddControl(self._tool_bar.cbFit, '')    
         #
-        self.tool_bar.AddSeparator() 
-        self.tool_bar.label_MC = wx.StaticText(self.tool_bar, label='Multi cursor:  ')
-        #self.tool_bar.label_MC.SetLabel('Multi cursor:')
-        self.tool_bar.AddControl(self.tool_bar.label_MC, '')
-        self.tool_bar.choice_MC = wx.Choice(self.tool_bar, choices=['None', 'Horizon', 'Vertical', 'Both'])  
+        self._tool_bar.AddSeparator() 
+        self._tool_bar.label_MC = wx.StaticText(self._tool_bar, label='Multi cursor:  ')
+        #self._tool_bar.label_MC.SetLabel('Multi cursor:')
+        self._tool_bar.AddControl(self._tool_bar.label_MC, '')
+        self._tool_bar.choice_MC = wx.Choice(self._tool_bar, choices=['None', 'Horizon', 'Vertical', 'Both'])  
         UIM = UIManager()
         controller = UIM.get(self._controller_uid)
         idx_mc = ['None', 'Horizon', 'Vertical', 'Both'].index(controller.model.multicursor)
-        self.tool_bar.choice_MC.SetSelection(idx_mc)
-        self.tool_bar.choice_MC.Bind(wx.EVT_CHOICE , self._on_multicursor) 
-        self.tool_bar.AddControl(self.tool_bar.choice_MC, '')    
+        self._tool_bar.choice_MC.SetSelection(idx_mc)
+        self._tool_bar.choice_MC.Bind(wx.EVT_CHOICE , self._on_multicursor) 
+        self._tool_bar.AddControl(self._tool_bar.choice_MC, '')    
         #
-        self.tool_bar.AddSeparator() 
+        self._tool_bar.AddSeparator() 
         #
-        self.tool_bar.label_IT = wx.StaticText(self.tool_bar, label='Z Axis:  ')
-        self.tool_bar.AddControl(self.tool_bar.label_IT, '')
+        self._tool_bar.label_IT = wx.StaticText(self._tool_bar, label='Z Axis:  ')
+        self._tool_bar.AddControl(self._tool_bar.label_IT, '')
         
-        self.tool_bar.choice_IT = wx.Choice(self.tool_bar, choices=[])
+        self._tool_bar.choice_IT = wx.Choice(self._tool_bar, choices=[])
         #
         #controller = UIM.get(self._controller_uid)
         #idx_index_type = ['MD', 'TVD', 'TVDSS', 'TWT', 'TIME'].index(controller.model.index_type)
-        #self.tool_bar.choice_IT.SetSelection(idx_index_type)
-        #self.tool_bar.choice_IT.Bind(wx.EVT_CHOICE , self._on_index_type) 
-        self.tool_bar.AddControl(self.tool_bar.choice_IT, '')    
+        #self._tool_bar.choice_IT.SetSelection(idx_index_type)
+        #self._tool_bar.choice_IT.Bind(wx.EVT_CHOICE , self._on_index_type) 
+        self._tool_bar.AddControl(self._tool_bar.choice_IT, '')    
         #
-       # self.tool_bar.AddSeparator()  
-        static_z_start = wx.StaticText(self.tool_bar, label='Start:')
-        self.tool_bar.AddControl(static_z_start, '')
-        self.tool_bar.z_start = wx.TextCtrl(self.tool_bar, size=(60, 23))
-        #self.tool_bar.z_start.Enable(False)
-        #self.tool_bar.z_start.Bind(wx.EVT_TEXT, self.on_change_z_start)
-        self.tool_bar.AddControl(self.tool_bar.z_start, '')
-        static_z_end = wx.StaticText(self.tool_bar, label='End:')
-        self.tool_bar.AddControl(static_z_end, '')    
-        self.tool_bar.z_end = wx.TextCtrl(self.tool_bar, size=(60, 23))
-        #self.tool_bar.z_end.Enable(False)
-        #self.tool_bar.z_end.Bind(wx.EVT_TEXT, self.on_change_z_end)
-        self.tool_bar.AddControl(self.tool_bar.z_end, '')        
+       # self._tool_bar.AddSeparator()  
+        static_z_start = wx.StaticText(self._tool_bar, label='Start:')
+        self._tool_bar.AddControl(static_z_start, '')
+        self._tool_bar.z_start = wx.TextCtrl(self._tool_bar, size=(60, 23))
+        #self._tool_bar.z_start.Enable(False)
+        #self._tool_bar.z_start.Bind(wx.EVT_TEXT, self.on_change_z_start)
+        self._tool_bar.AddControl(self._tool_bar.z_start, '')
+        static_z_end = wx.StaticText(self._tool_bar, label='End:')
+        self._tool_bar.AddControl(static_z_end, '')    
+        self._tool_bar.z_end = wx.TextCtrl(self._tool_bar, size=(60, 23))
+        #self._tool_bar.z_end.Enable(False)
+        #self._tool_bar.z_end.Bind(wx.EVT_TEXT, self.on_change_z_end)
+        self._tool_bar.AddControl(self._tool_bar.z_end, '')        
         #
-        button_set_zaxis = wx.Button(self.tool_bar, label='Set', size=(40, 23))
+        button_set_zaxis = wx.Button(self._tool_bar, label='Set', size=(40, 23))
         button_set_zaxis.Bind(wx.EVT_BUTTON , self._OnSetZAxis)
-        self.tool_bar.AddControl(button_set_zaxis, '')
+        self._tool_bar.AddControl(button_set_zaxis, '')
         #
-        #self.tool_bar.AddSeparator()
-        button_reset_zaxis = wx.Button(self.tool_bar, label='Reset', size=(40, 23))
+        #self._tool_bar.AddSeparator()
+        button_reset_zaxis = wx.Button(self._tool_bar, label='Reset', size=(40, 23))
         button_reset_zaxis.Bind(wx.EVT_BUTTON , self._OnResetZAxis)
-        self.tool_bar.AddControl(button_reset_zaxis, '')
-        self.tool_bar.AddSeparator()
+        self._tool_bar.AddControl(button_reset_zaxis, '')
+        self._tool_bar.AddSeparator()
         #
-        self.tool_bar.Realize()  
+        self._tool_bar.Realize()  
         #

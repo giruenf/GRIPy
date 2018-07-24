@@ -67,7 +67,7 @@ class ObjectManager(GripyManager):
     _NPZIDENTIFIER = "__NPZ;;"
     _changed = False
     _on_load = False
-    _PUB_NAME = 'ObjectManager'
+#    _PUB_NAME = 'ObjectManager'
   
     
     def __init__(self):
@@ -88,7 +88,7 @@ class ObjectManager(GripyManager):
     def print_info(self):
         print ('\nObjectManager.print_info:')
         print (hex(id(ObjectManager)))
-        print ('ObjectManager._data: ', ObjectManager._data)
+        print ('ObjectManager._data: ', str(ObjectManager._data))
         #print ('ObjectManager._types: ', ObjectManager._types)
         #print ('ObjectManager._currentobjectids: ', ObjectManager._currentobjectids)
         print ('ObjectManager._parentuidmap: ', ObjectManager._parentuidmap)
@@ -119,6 +119,8 @@ class ObjectManager(GripyManager):
         #            
         for tid in self._currentobjectids.keys():
             self._currentobjectids[tid] = 0
+            
+            
         self._data = OrderedDict()
         self._parentuidmap = {}
         self._childrenuidmap = {} 
@@ -163,6 +165,7 @@ class ObjectManager(GripyManager):
         self._currentobjectids[typeid] += 1
         return objectid
 
+
     def new(self, typeid, *args, **kwargs):
         """
         Create a new instance of the desired type.
@@ -193,8 +196,8 @@ class ObjectManager(GripyManager):
         """
         #try:
         obj = self._types[typeid](*args, **kwargs)
-        objectid = self._getnewobjectid(typeid)
-        obj.oid = objectid
+#        objectid = self._getnewobjectid(typeid)
+#        obj.oid = objectid
         return obj
         #except Exception as e:
         #    raise Exception('Error on creating object! [tid={}, args={}, kwargs={}, error={}]'.format(typeid, args, kwargs, e))
@@ -241,7 +244,7 @@ class ObjectManager(GripyManager):
                 self._childrenuidmap[parentuid].append(obj.uid)  
         
         except Exception as e:
-            print ('ERROR in adding object [ObjectManager.add]:', obj.uid, e)
+            print ('ERROR in adding object [ObjectManager.add]:', obj.uid, e, type(e))
             raise
             
         # Sending message  
@@ -290,7 +293,7 @@ class ObjectManager(GripyManager):
         >>> obj2 == obj
         True
         """
-#        print ('OM.get:', uid, type(uid))
+#        print ('\n\nOM.get:', uid, type(uid))
         if isinstance(uid, str):
             uid = app_utils.parse_string_to_uid(uid)
         try:    

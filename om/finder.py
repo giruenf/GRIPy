@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-from OM.Manager import ObjectManager
+from om.manager import ObjectManager
 
 class ObjectFinder(object):
 

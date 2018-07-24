@@ -47,65 +47,99 @@ class TreeController(UIControllerBase):
         OM.unsubscribe(self.create_object_node, 'add')
         OM.unsubscribe(self.remove_object_node, 'post_remove')
         
+        
     def create_object_node(self, objuid):
         OM = ObjectManager()
+        tid = objuid[0]
+        obj_class = OM._gettype(tid)
+        
+        ####
         try:
-            parentuid = OM._getparentuid(objuid)
-            # Find location to create tid node
-            if self.is_tid_node_needed(objuid[0]):
-                # Then, tid node will be object node parent
-                obj_parent_node = self.get_object_tree_item(ID_TYPE_TID, objuid[0], parentuid) 
-                if obj_parent_node is None:
-                    # It's necessary to create tid node
-                    if parentuid is None:
-                        # Create tid node as a root child
-                        tid_parent_node = self.view.GetRootItem()
-                    else:
-                        # Create tid node as another object child
-                        tid_parent_node = self.get_object_tree_item(ID_TYPE_OBJECT, parentuid) 
-                    # Create tid node    
-                    class_ = OM._gettype(objuid[0])
-                    try:
-                        tid_label = class_._FRIENDLY_NAME
-                    except AttributeError:
-                        tid_label = class_.tid
-                    obj_parent_node = self.view.AppendItem(tid_parent_node, 
-                                                         tid_label)    
-                    self.view.SetItemData(obj_parent_node, 
-                                          (ID_TYPE_TID, objuid[0], parentuid))
-                    self.view.Expand(tid_parent_node)
-            else:
-                #Create direct link to parent object
-                obj_parent_node = self.get_object_tree_item(ID_TYPE_OBJECT, 
-                                                                    parentuid) 
-            obj_str = self._get_object_label(objuid)    
-            obj_node = self.view.AppendItem(obj_parent_node, obj_str)
-            self.view.SetItemData(obj_node, (ID_TYPE_OBJECT, objuid, None))
-            self.view.Expand(obj_parent_node)
-            # Create item object attributes
-            for attr, attr_label in self._get_object_attributes(objuid).items():
-                attr_node = self.view.AppendItem(obj_node, attr_label)
-                self.view.SetItemData(attr_node, (ID_TYPE_ATTRIBUTE, objuid, attr))            
-            #
-            self.view.Expand(obj_node)
+            show = obj_class._SHOW_ON_TREE
+            if not show:
+                return
         except:
-            raise
+            pass
+        ###
+        
+        
+        try:
+            if not obj_class._tree_node_remover(self):
+                raise Exception('ERROR in {}._tree_node_creator'.format(obj_class))                             
+        except:    
+            try:
+                parentuid = OM._getparentuid(objuid)
+                # Find location to create tid node
+                if obj_class.is_tid_node_needed():
+                    # Then, tid node will be object node parent
+                    obj_parent_node = self.get_object_tree_item(ID_TYPE_TID, objuid[0], parentuid) 
+                    if obj_parent_node is None:
+                        # It's necessary to create tid node
+                        if parentuid is None:
+                            # Create tid node as a root child
+                            tid_parent_node = self.view.GetRootItem()
+                        else:
+                            # Create tid node as another object child
+                            tid_parent_node = self.get_object_tree_item(ID_TYPE_OBJECT, parentuid) 
+                        # Create tid node    
+                        class_ = OM._gettype(objuid[0])
+                        try:
+                            tid_label = class_._FRIENDLY_NAME
+                        except AttributeError:
+                            tid_label = class_.tid
+                        obj_parent_node = self.view.AppendItem(tid_parent_node, 
+                                                             tid_label)    
+                        self.view.SetItemData(obj_parent_node, 
+                                              (ID_TYPE_TID, objuid[0], parentuid))
+                        self.view.Expand(tid_parent_node)
+                else:
+                    #Create direct link to parent object
+                    obj_parent_node = self.get_object_tree_item(ID_TYPE_OBJECT, 
+                                                                        parentuid) 
+                obj_str = self._get_object_label(objuid)    
+                obj_node = self.view.AppendItem(obj_parent_node, obj_str)
+                self.view.SetItemData(obj_node, (ID_TYPE_OBJECT, objuid, None))
+                self.view.Expand(obj_parent_node)
+                # Create item object attributes
+                for attr, attr_label in self._get_object_attributes(objuid).items():
+                    attr_node = self.view.AppendItem(obj_node, attr_label)
+                    self.view.SetItemData(attr_node, (ID_TYPE_ATTRIBUTE, objuid, attr))            
+                #
+                self.view.Expand(obj_node)
+            except Exception as e:
+                print ('\n\nERRO ARVORE:', e)
+                raise
+
 
     def remove_object_node(self, objuid):
-        treeitem = self.get_object_tree_item(ID_TYPE_OBJECT, objuid)
-        if treeitem is None:
-            raise Exception('Removing treeitem for an object not exists.')
-        #        
-        treeitem_parent = self.view.GetItemParent(treeitem)
-        parent_node_type, _, _ = self.view.GetItemData(treeitem_parent)
-        self.view.Delete(treeitem)
-        #
-        if parent_node_type == ID_TYPE_TID and \
-                            not self.view.GetChildrenCount(treeitem_parent):
-            #If parent node is a tid node and there is no other child, del it!
-            self.view.Delete(treeitem_parent)
+        OM = ObjectManager()
+        try:
+            tid = objuid[0]
+            class_ = OM._gettype(tid)
+            if not class_._tree_node_remover(self):
+                raise Exception('ERROR in {}._tree_node_remover'.format(class_))
+        except:
+            try:
+                treeitem = self.get_object_tree_item(ID_TYPE_OBJECT, objuid)
+                if treeitem is None:
+                    raise Exception('Removing treeitem for an object not exists.')
+                #        
+                treeitem_parent = self.view.GetItemParent(treeitem)
+                parent_node_type, _, _ = self.view.GetItemData(treeitem_parent)
+                self.view.Delete(treeitem)
+                #
+                if parent_node_type == ID_TYPE_TID and \
+                                    not self.view.GetChildrenCount(treeitem_parent):
+                    #If parent node is a tid node and there is no other child, del it!
+                    self.view.Delete(treeitem_parent)
+            except:
+                raise        
               
+                
     def _get_object_attributes(self, objuid):
+        
+#        print ('\n_get_object_attributes:', objuid)
+        
         OM = ObjectManager()
         obj = OM.get(objuid)
         ret_od = OrderedDict()
@@ -114,11 +148,22 @@ class TreeController(UIControllerBase):
         except AttributeError:
             return ret_od
         
+
+        
         for attr, attr_label in shown_attribs:
+#            print (attr, attr_label)
             try:
-                value = getattr(obj, attr)
-            except:
-                value = obj.attributes.get(attr)   
+                value = obj[attr] #getattr(obj, attr)
+#                value = obj.__getattribute__(attr)
+#                print ('    ', value)
+            except Exception as e:
+#                print ('     ERRO', e)
+                
+                continue
+                
+                #raise
+                #value = obj.attributes.get(attr)  
+                #value = obj[attr] 
             if isinstance(value, float):
                 value = "{0:.2f}".format(value)
             elif value is None:
@@ -126,8 +171,10 @@ class TreeController(UIControllerBase):
             ret_od[attr]  = attr_label + ': ' + str(value)  
         return ret_od        
 
-    def is_tid_node_needed(self, tid):
-        return True
+
+#    def is_tid_node_needed(self, tid):
+#        return True
+
 
     def get_object_tree_item(self, node_type, node_main_info, 
                              node_extra_info=None, start_node_item=None):
@@ -165,6 +212,8 @@ class TreeController(UIControllerBase):
         self.view.SetItemText(obj_node, self._get_object_label(objuid))
         #self._create_object_attributes(objuid)
  
+    
+    
     def _get_object_label(self, objuid):
         OM = ObjectManager()
         obj = OM.get(objuid)

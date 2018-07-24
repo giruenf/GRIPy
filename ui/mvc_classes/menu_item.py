@@ -83,8 +83,8 @@ class MenuItemView(UIViewBase, wx.MenuItem):
                   controller.model.help, controller.model.kind
             )
         except Exception as e:
-            print (e.message)
-            raise e
+            print (e)
+            raise
 
     def PostInit(self):
         log.debug('{}.PostInit started'.format(self.name))

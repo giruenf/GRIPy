@@ -18,8 +18,9 @@ from ui.uimanager import UIControllerBase
 from ui.uimanager import UIModelBase 
 from ui.uimanager import UIViewBase 
 from datatypes.DataTypes import Density
+
 # TODO: verificar se linhas abaixo devem ser mantidas
-import basic.parms
+from basic.parms import ParametersManager
 from app.app_utils import MPL_COLORS, MPL_COLORMAPS
 
 
@@ -74,20 +75,25 @@ def transform(value, left_scale, right_scale, scale=0):
     invalid_err = np.geterr().get('invalid')
     invalid_err = np.geterr().get('invalid')
     np.seterr(invalid='ignore')    
+    # Linear scale
     if scale == 0:
         range_ = np.absolute(right_scale - left_scale)
         translated_value = np.abs(value - left_scale)    
         ret_val =  (translated_value / range_)
+    # Log scale    
     else:
         if left_scale <= 0.0:
-            raise Exception()
+            raise Exception('left_scale <= 0.0')
         ls = np.log10(left_scale)    
         rs = np.log10(right_scale)
         range_ = rs - ls
-        translated_value = np.log10(value) - ls
+        
+        data = np.copy(value)
+        data[data == 0] = left_scale
+        translated_value = np.log10(data) - ls   
         ret_val =  (translated_value / range_)
     np.seterr(invalid=invalid_err)
-    return ret_val    
+    return ret_val      
         
 
 def inverse_transform(value, left_scale, right_scale, scale=0):
@@ -126,14 +132,22 @@ class DataFilter(GripyObject):
     tid = 'data_filter'
     _TID_FRIENDLY_NAME = 'Data Filter'
     
-    SHOW_ON_TREE = False
+    _SHOW_ON_TREE = False
     
     
     def __init__(self, objuid):
-        super(DataFilter, self).__init__()
-        self.data = []
-        self.track_obj_ctrls_uids = []
-        self.append_objuid(objuid)
+        
+        try:
+            super(DataFilter, self).__init__()
+            self.data = []
+            self.track_obj_ctrls_uids = []
+            self.append_objuid(objuid)
+        except Exception as e:
+            print ('ERROR DataFilter:', e)
+            raise
+
+    def _get_manager_class(self):
+        return ObjectManager
 
     
     def append_objuid(self, track_obj_ctrl_uid):
@@ -161,7 +175,7 @@ class DataFilter(GripyObject):
             #                
             self.track_obj_ctrls_uids.append(track_obj_ctrl_uid) 
         except Exception as e:
-            print ('ERROR:', e)
+            print ('ERROR append_objuid:', e)
             raise e     
 
 
@@ -174,25 +188,31 @@ class DataFilter(GripyObject):
         logplot_ctrl_uid = UIM._getparentuid(track_ctrl_uid)
         logplot_ctrl = UIM.get(logplot_ctrl_uid)
         
-      #  print '\nobj.get_data_indexes() set_Z(181):', obj.uid
-      #  print '\nobj.get_data_indexes():', obj.get_data_indexes(), '\n'
         z_axis_candidate_indexes = obj.get_data_indexes()[0]
         chosen_index = None
         
       #  for candidate_index in z_axis_candidate_indexes:
       #      print candidate_index
         
-      #  print '\nFOIIII\n'
+#        print ('\nFOIIII\n')
         
         for candidate_index in z_axis_candidate_indexes:
             if candidate_index.datatype == logplot_ctrl.model.index_type:
                 chosen_index = candidate_index     
                 break
+#        print (chosen_index)    
         try:    
             if chosen_index is None:
                 self.data[0] = (None, True, True, 0, 0)
-            else:    
-                self.data[0] = (chosen_index.uid, True, True, 0, len(chosen_index.data))     
+            else: 
+#                print ('la')
+#                print (len(chosen_index._data))
+#                print ('lala')
+                self.data[0] = (chosen_index.uid, True, True, 0, len(chosen_index._data))    
+#                print ('lalalalalala')
+                
+#            print ('\nFOIIII 2\n')        
+                
         except IndexError as ie:
             if len(self.data) > 0:
                 raise ie
@@ -201,9 +221,12 @@ class DataFilter(GripyObject):
          #       print 'APPEND NONE'
                 
             else:    
-                self.data.append((chosen_index.uid, True, True, 0, len(chosen_index.data)))   
+                self.data.append((chosen_index.uid, True, True, 0, len(chosen_index._data)))   
         #        print 'APPEND', chosen_index.uid
-
+#        print ('\nFOIIII 3\n')
+        
+        
+        
     def reload_z_dimension_indexes(self):  
         for track_obj_ctrl_uid in self.track_obj_ctrls_uids:
             self.set_z_dimension_index(track_obj_ctrl_uid)
@@ -268,16 +291,34 @@ class TrackObjectController(UIControllerBase):
 
     def on_change_objoid(self, new_value, old_value):
         # Exclude any representation, if exists
-        if old_value is not None:
-            self.detach((self.model.obj_tid, old_value))
-        self.model.plottype = None
-        obj = self.get_object()
-        if obj:
-            #if obj.tid != 'partition':
-            self.set_filter()
-            plottype = _PREFERRED_PLOTTYPES.get(obj.tid)
-            self.model.plottype = plottype       
-            self.attach(obj.uid)
+        
+#        print ('\n\non_change_objoid {}, {}'.format(new_value, old_value))
+        try:
+        
+            if old_value is not None:
+                self.detach((self.model.obj_tid, old_value))
+            self.model.plottype = None
+            
+#            print (111)
+            
+            obj = self.get_object()
+            
+#            print (222)
+            
+            if obj:
+                #if obj.tid != 'partition':
+#                print ('333', obj)
+                self.set_filter()
+#                print (444)
+                plottype = _PREFERRED_PLOTTYPES.get(obj.tid)
+#                print (445)
+                self.model.plottype = plottype    
+#                print (446)
+                self.attach(obj.uid)
+#                print (447)
+        except Exception as e:
+            print ('ERROR on_change_objoid:', e)
+            raise
 
 
     def get_filter(self):
@@ -289,19 +330,28 @@ class TrackObjectController(UIControllerBase):
 
 
     def set_filter(self, filter_oid=None):
-        if filter_oid is None:
-            OM = ObjectManager()
-            filter_ = OM.new('data_filter', self.uid)
-            OM.add(filter_)
-            self.model.data_filter_oid = filter_.oid
-        else:
-            if self.model.data_filter_oid:
-                raise Exception('TRATAR EXCLUSAO FILTER')
-            self.model.data_filter_oid = filter_oid    
+#        print ('\n\nset_filter', filter_oid)
+        try:
+            if filter_oid is None:
+                OM = ObjectManager()
+#                print ('a1')
+                filter_ = OM.new('data_filter', self.uid)
+#                print ('a2')
+                OM.add(filter_)
+#                print ('a3')
+                self.model.data_filter_oid = filter_.oid
+#                print ('a4')
+            else:
+                if self.model.data_filter_oid:
+                    raise Exception('TRATAR EXCLUSAO FILTER')
+                self.model.data_filter_oid = filter_oid    
+        except Exception as e:
+            print ('ERROR set_filter', e)
+            raise
     
     
     def on_change_plottype(self, new_value, old_value):
-        #print 'on_change_plottype', new_value, old_value
+#        print ('on_change_plottype', new_value, old_value)
         UIM = UIManager()
         repr_ctrl = self.get_representation()
         if repr_ctrl:
@@ -309,22 +359,28 @@ class TrackObjectController(UIControllerBase):
         if new_value is not None:
             repr_tid = _PLOTTYPES_REPRESENTATIONS.get(new_value)
             try:
+#                print ('b1')
                 state = self._get_log_state()
+#                print ('b2', state)
                 UIM.create(repr_tid, self.uid, **state)
+#                print ('b3')
                 self._do_draw()
-            except:    
+#                print ('b4')
+            except Exception as e:
+                print ('ERROR on_change_plottype', e)
                 self.model.plottype = None    
                 raise
                             
                 
     def _do_draw(self):
-      #  print '\n\nTrackObjectController._do_draw'
+#        print ('\nTrackObjectController._do_draw')
         repr_ctrl = self.get_representation() 
         if self.get_object().tid != 'partition':
+#            print ('b4 CALL draw')   
             repr_ctrl._prepare_data() 
-      #  print 'CALL draw'    
+#        print ('CALL draw')    
         repr_ctrl.view.draw()       
-      #  print 'CALL end'
+#        print ('CALL end')
 
 
     def _get_log_state(self):
@@ -333,7 +389,7 @@ class TrackObjectController(UIControllerBase):
         obj = self.get_object()
         if obj.tid == 'log':
             # TODO: Rever isso
-            parms = Parms.ParametersManager.get().get_curvetype_visual_props(obj.datatype)     
+            parms = ParametersManager.get().get_curvetype_visual_props(obj.datatype)     
             if parms is not None:
                 state['left_scale'] = parms.get('LeftScale')
                 state['right_scale'] = parms.get('RightScale')
@@ -490,57 +546,67 @@ class RepresentationController(UIControllerBase):
 
     def _prepare_data(self):
         
+#        print ('\n\n_prepare_data')
+        
         UIM = UIManager()
         toc_uid = UIM._getparentuid(self.uid)
         toc = UIM.get(toc_uid)
         #
-        filter_ = toc.get_filter()
-        data_indexes = filter_.data[::-1]
         
-        #print 'data_indexes[-1]:', data_indexes[-1]
-        #
-        if data_indexes[-1][0] is None:
-            self._data = None
-            return            
-        #
-        obj = toc.get_object() 
-        data = obj.data
-        
-        #print '\nRepresentationController._prepare_data:', obj.uid
-        
-        slicer = collections.OrderedDict()
-        for (di_uid, display, is_range, first, last) in data_indexes:
-          #  print di_uid, display, is_range, first, last
-            if not is_range:
-                slicer[di_uid] = first
-            else:
-                slicer[di_uid] = slice(first,last)
-        slicer = tuple(slicer.values())
-        data = data[slicer]
-        new_dim = 1
-        if len(data.shape) == 1 and isinstance(obj, Density):
-            data = data[np.newaxis, :]
-        elif len(data.shape) > 2:
-            for dim_value in data.shape[::-1][1::]:
-                new_dim *= dim_value
-            data = data.reshape(new_dim, data.shape[-1])
-        """    
         try:
-            if self.model.min_density is None:
-                self.model.set_value_from_event('min_density', np.nanmin(data))
-            if self.model.max_density is None:    
-                self.model.set_value_from_event('max_density', np.nanmax(data))
-            if self.model.min_wiggle is None:    
-                self.model.set_value_from_event('min_wiggle', np.nanmin(data))
-            if self.model.max_wiggle is None:     
-                self.model.set_value_from_event('max_wiggle', np.nanmax(data))
-        except:
-            pass
-        """
-        self._data = data
         
-       # print self._data
-       # print
+            filter_ = toc.get_filter()
+            data_indexes = filter_.data[::-1]
+            
+            #print 'data_indexes[-1]:', data_indexes[-1]
+            #
+            if data_indexes[-1][0] is None:
+                self._data = None
+                return            
+            #
+            obj = toc.get_object() 
+            data = obj._data
+            
+            #print '\nRepresentationController._prepare_data:', obj.uid
+            
+            slicer = collections.OrderedDict()
+            for (di_uid, display, is_range, first, last) in data_indexes:
+              #  print di_uid, display, is_range, first, last
+                if not is_range:
+                    slicer[di_uid] = first
+                else:
+                    slicer[di_uid] = slice(first,last)
+            slicer = tuple(slicer.values())
+            data = data[slicer]
+            new_dim = 1
+            if len(data.shape) == 1 and isinstance(obj, Density):
+                data = data[np.newaxis, :]
+            elif len(data.shape) > 2:
+                for dim_value in data.shape[::-1][1::]:
+                    new_dim *= dim_value
+                data = data.reshape(new_dim, data.shape[-1])
+            """    
+            try:
+                if self.model.min_density is None:
+                    self.model.set_value_from_event('min_density', np.nanmin(data))
+                if self.model.max_density is None:    
+                    self.model.set_value_from_event('max_density', np.nanmax(data))
+                if self.model.min_wiggle is None:    
+                    self.model.set_value_from_event('min_wiggle', np.nanmin(data))
+                if self.model.max_wiggle is None:     
+                    self.model.set_value_from_event('max_wiggle', np.nanmax(data))
+            except:
+                pass
+            """
+            self._data = data
+            
+#            print (self._data)
+           # print
+#            print ('FIM _prepare_data\n\n')
+           
+        except Exception as e:
+            print ('ERROR _prepare_data', e)
+            raise
 
 
 
@@ -839,90 +905,105 @@ class LineRepresentationView(RepresentationView):
 
     
     def draw(self):
-      #  print '\nLineRepresentationView.draw()'
+#        print ('\nLineRepresentationView.draw()')
         
-        if len(self._mplot_objects.values()) == 1:
-            self.clear()
-        #     
-        UIM = UIManager()
-        controller = UIM.get(self._controller_uid)
-        #
-        OM = ObjectManager()
-        obj = controller.get_object()
-        #
-        if self.label:
-            self.label.set_plot_type('line')
-            self.label.set_xlim(
-                (controller.model.left_scale, controller.model.right_scale)
-            ) 
-            self.label.set_color(controller.model.color)
-            self.label.set_thickness(controller.model.thickness)    
-        self.set_title(obj.name)
-        self.set_subtitle(obj.unit)          
-        #
-        if controller._data is None:
-            return
-        #
-        toc_uid = UIM._getparentuid(self._controller_uid)
-        toc = UIM.get(toc_uid)
-        track_controller_uid = UIM._getparentuid(toc_uid)
-        track_controller =  UIM.get(track_controller_uid)        
-        #
-        OM = ObjectManager()
-        obj = controller.get_object()
-        
-        filter_ = toc.get_filter()
-        z_data = filter_.data[0]
-        di_uid, display, is_range, z_first, z_last = z_data
-        
-        z_data_index = OM.get(di_uid)
-        z_data = z_data_index.data[z_first:z_last]
-        #
-        transformated_xdata = transform(controller._data, controller.model.left_scale, 
-                    controller.model.right_scale, controller.model.x_scale)
-        #
-        self.interpolate = True
-        if self.interpolate:
-            f1 = interp1d(z_data, transformated_xdata)     
-            depth_list = []
-            for depth_px in range(track_controller.view.track.GetSize()[1]):
-                depth = track_controller.view.track.get_depth_from_ypixel(depth_px)
-                
-                if depth > np.nanmin(z_data) and depth < np.nanmax(z_data): #obj.start and depth < obj.end:
-                    depth_list.append(depth)
+        try:
+            
+            if len(self._mplot_objects.values()) == 1:
+                self.clear()
+            #     
+            UIM = UIManager()
+            controller = UIM.get(self._controller_uid)
+            #
+            
+            
+            OM = ObjectManager()
+            obj = controller.get_object()
+            
+            
+#            print (controller, controller._data)
+#            print (obj)
+            #
+            if self.label:
+                self.label.set_plot_type('line')
+                self.label.set_xlim(
+                    (controller.model.left_scale, controller.model.right_scale)
+                ) 
+                self.label.set_color(controller.model.color)
+                self.label.set_thickness(controller.model.thickness)    
+            self.set_title(obj.name)
+            self.set_subtitle(obj.unit)          
+            #
+            if controller._data is None:
+                return
+            #
+            toc_uid = UIM._getparentuid(self._controller_uid)
+            toc = UIM.get(toc_uid)
+            track_controller_uid = UIM._getparentuid(toc_uid)
+            track_controller =  UIM.get(track_controller_uid)        
+            #
+            OM = ObjectManager()
+            obj = controller.get_object()
+            
+            filter_ = toc.get_filter()
+            z_data = filter_.data[0]
+            
+#            print (777, z_data)
+            
+            di_uid, display, is_range, z_first, z_last = z_data
+            
+            z_data_index = OM.get(di_uid)
+            z_data = z_data_index._data[z_first:z_last]
+            #
+            transformated_xdata = transform(controller._data, controller.model.left_scale, 
+                        controller.model.right_scale, controller.model.x_scale)
+            #
+            self.interpolate = True
+            if self.interpolate:
+                f1 = interp1d(z_data, transformated_xdata)     
+                depth_list = []
+                for depth_px in range(track_controller.view.track.GetSize()[1]):
+                    depth = track_controller.view.track.get_depth_from_ypixel(depth_px)
                     
-            if not self._mplot_objects.get('line'):
-                line = track_controller._append_artist('Line2D', f1(depth_list), 
-                            depth_list, linewidth=controller.model.thickness,
-                            color=controller.model.color
-                )
+                    if depth > np.nanmin(z_data) and depth < np.nanmax(z_data): #obj.start and depth < obj.end:
+                        depth_list.append(depth)
+                        
+                if not self._mplot_objects.get('line'):
+                    line = track_controller._append_artist('Line2D', f1(depth_list), 
+                                depth_list, linewidth=controller.model.thickness,
+                                color=controller.model.color
+                    )
+                else:
+                    line = self._mplot_objects.get('line')   
+                    line.set_data(f1(depth_list), depth_list)
             else:
-                line = self._mplot_objects.get('line')   
-                line.set_data(f1(depth_list), depth_list)
-        else:
-            if not self._mplot_objects.get('line'):
-                line = track_controller._append_artist('Line2D', transformated_xdata, 
-                            z_data, linewidth=controller.model.thickness,
-                            color=controller.model.color
-                )
-            else:
-                line = self._mplot_objects.get('line')   
-                line.set_data(transformated_xdata, z_data)
-        #        
-        line.set_label(toc_uid)
-        # When we set picker to True (to enable line picking) function
-        # Line2D.set_picker sets pickradius to True, 
-        # then we need to set it again.
-        self._set_picking(line)
+                if not self._mplot_objects.get('line'):
+                    line = track_controller._append_artist('Line2D', transformated_xdata, 
+                                z_data, linewidth=controller.model.thickness,
+                                color=controller.model.color
+                    )
+                else:
+                    line = self._mplot_objects.get('line')   
+                    line.set_data(transformated_xdata, z_data)
+            #        
+            line.set_label(toc_uid)
+            # When we set picker to True (to enable line picking) function
+            # Line2D.set_picker sets pickradius to True, 
+            # then we need to set it again.
+            self._set_picking(line)
+            #
+            self._used_scale = controller.model.x_scale
+            self._used_left_scale = controller.model.left_scale
+            self._used_right_scale = controller.model.right_scale
+            #
+            self._mplot_objects['line'] = line
+            self.draw_canvas() 
+#            print ('Ok\n\n')
         #
-        self._used_scale = controller.model.x_scale
-        self._used_left_scale = controller.model.left_scale
-        self._used_right_scale = controller.model.right_scale
-        #
-        self._mplot_objects['line'] = line
-        self.draw_canvas()    
-        #
-
+        except Exception as e:
+            print ('ERROR LineRepresentationView.draw', e)
+        
+        
 ###############################################################################
 ###############################################################################
     
@@ -1073,76 +1154,82 @@ class IndexRepresentationView(RepresentationView):
     
     
     def draw(self):
-       # print '\nIndexRepresentationView.draw'
-        self.clear()
-        self._mplot_objects['text'] = []
-        OM = ObjectManager()
-        UIM = UIManager()
-        controller = UIM.get(self._controller_uid)
-        toc_uid = UIM._getparentuid(self._controller_uid)
-        toc = UIM.get(toc_uid)
-        track_controller_uid = UIM._getparentuid(toc_uid)
-        track_controller =  UIM.get(track_controller_uid)
-                
-        obj = controller.get_object()
+#        print ('\nIndexRepresentationView.draw')
         
-        
-        ### Z axis Conversion 
-        filter_ = toc.get_filter()
-        di_uid, display, is_range, z_first, z_last = filter_.data[0]
-        z_data_index = OM.get(di_uid)
-        position_data = z_data_index.data[z_first:z_last]    
-        ### END - Z axis Conversion 
-        
-        
-        
-        y_min = controller._data[0] 
-        y_max = controller._data[-1]  
-        
-        
-        if y_min%controller.model.step:
-            y_min = (y_min//controller.model.step + 1) * controller.model.step  
-        y_values = np.arange(y_min, y_max, controller.model.step)
-
-
-        for y_value in y_values:
-            
-            y_pos_index = (np.abs(controller._data - y_value)).argmin()
-            
-            #y_pos_index = controller._get_z_index(y_value)
-            
-            #print y_value, y_pos_index
-            y_pos = position_data[y_pos_index]
-            text = track_controller._append_artist('Text', 
-                                    controller.model.pos_x, y_pos,
-                                    "%g"%y_value,
-                                    color=controller.model.color,
-                                    horizontalalignment=controller.model.ha,
-                                    verticalalignment=controller.model.va,
-                                    fontsize=controller.model.fontsize
-            )                        
-            if controller.model.bbox:
-                pad = 0.2
-                boxstyle = controller.model.bbox_style
-                boxstyle += ",pad=%0.2f" % pad
-                text._bbox_patch = FancyBboxPatch(
-                                    (0., 0.),
-                                    1., 1.,
-                                    boxstyle=boxstyle,
-                                    color=controller.model.bbox_color,
-                                    alpha=controller.model.bbox_alpha
-                )                    
-            #text.zorder = controller.model.zorder
-            self._mplot_objects['text'].append(text)
         try:
-            #obj = controller.get_object()
-            self.set_title(obj.name)
-            self.set_subtitle(obj.unit)
-        except:
-            pass
-        self.draw_canvas()   
+        
+            self.clear()
+            self._mplot_objects['text'] = []
+            OM = ObjectManager()
+            UIM = UIManager()
+            controller = UIM.get(self._controller_uid)
+            toc_uid = UIM._getparentuid(self._controller_uid)
+            toc = UIM.get(toc_uid)
+            track_controller_uid = UIM._getparentuid(toc_uid)
+            track_controller =  UIM.get(track_controller_uid)
+                    
+            obj = controller.get_object()
+            
+            
+            ### Z axis Conversion 
+            filter_ = toc.get_filter()
+            di_uid, display, is_range, z_first, z_last = filter_.data[0]
+            z_data_index = OM.get(di_uid)
+            position_data = z_data_index._data[z_first:z_last]    
+            ### END - Z axis Conversion 
+            
+            
+            
+            y_min = controller._data[0] 
+            y_max = controller._data[-1]  
+            
+            
+            if y_min%controller.model.step:
+                y_min = (y_min//controller.model.step + 1) * controller.model.step  
+            y_values = np.arange(y_min, y_max, controller.model.step)
+    
+    
+            for y_value in y_values:
+                
+                y_pos_index = (np.abs(controller._data - y_value)).argmin()
+                
+                #y_pos_index = controller._get_z_index(y_value)
+                
+                #print y_value, y_pos_index
+                y_pos = position_data[y_pos_index]
+                text = track_controller._append_artist('Text', 
+                                        controller.model.pos_x, y_pos,
+                                        "%g"%y_value,
+                                        color=controller.model.color,
+                                        horizontalalignment=controller.model.ha,
+                                        verticalalignment=controller.model.va,
+                                        fontsize=controller.model.fontsize
+                )                        
+                if controller.model.bbox:
+                    pad = 0.2
+                    boxstyle = controller.model.bbox_style
+                    boxstyle += ",pad=%0.2f" % pad
+                    text._bbox_patch = FancyBboxPatch(
+                                        (0., 0.),
+                                        1., 1.,
+                                        boxstyle=boxstyle,
+                                        color=controller.model.bbox_color,
+                                        alpha=controller.model.bbox_alpha
+                    )                    
+                #text.zorder = controller.model.zorder
+                self._mplot_objects['text'].append(text)
+            try:
+                #obj = controller.get_object()
+                self.set_title(obj.name)
+                self.set_subtitle(obj.unit)
+            except:
+                pass
+            self.draw_canvas()   
 
-
+        except Exception as e:
+            print ('ERROR IndexRepresentationView.draw', e)
+            raise
+            
 ###############################################################################
 ###############################################################################
 

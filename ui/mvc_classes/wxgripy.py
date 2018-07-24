@@ -9,6 +9,7 @@ from ui.uimanager import UIManager
 from ui.uimanager import UIControllerBase 
 from ui.uimanager import UIModelBase 
 from ui.uimanager import UIViewBase 
+from app.pubsub import AUTO_TOPIC
 from app.app_utils import GripyIcon
 
 ###############################################################################
@@ -64,8 +65,9 @@ class TopLevel(UIViewBase):
         controller.subscribe(self._set_size, 'change.size')
         controller.subscribe(self._set_position, 'change.pos')
         #
+        # TODO: try to remove _flag using new GripyObject style
         # little hack - on_size
-        self._flag = False
+#        self._flag = False
         
     def on_maximize(self, event):
         UIM = UIManager()
@@ -80,9 +82,10 @@ class TopLevel(UIViewBase):
     def on_size(self, event):
         UIM = UIManager()
         controller = UIM.get(self._controller_uid)
-        self._flag = True
-        controller.model.size = event.GetSize()
-        self._flag = False
+#        self._flag = True
+#        controller.model.size = event.GetSize()
+#        self._flag = False
+        controller.model.set_value_from_event('size', event.GetSize())
         controller.model.set_value_from_event('maximized', self.IsMaximized())
         event.Skip()
   
@@ -92,10 +95,10 @@ class TopLevel(UIViewBase):
         self.Bind(wx.EVT_MAXIMIZE, self.on_maximize)  
     
     def _set_size(self, new_value, old_value):
-        if not self._flag:
-            self.Unbind(wx.EVT_SIZE, handler=self.on_size)
-            self.SetSize(new_value)
-            self.Bind(wx.EVT_SIZE, self.on_size)    
+#        if not self._flag:
+        self.Unbind(wx.EVT_SIZE, handler=self.on_size)
+        self.SetSize(new_value)
+        self.Bind(wx.EVT_SIZE, self.on_size)    
     
     def _set_position(self, new_value, old_value):  
         self.Unbind(wx.EVT_MOVE, handler=self.on_move) 
@@ -547,7 +550,7 @@ class DialogModel(TopLevelModel):
                 'type': int
         }
     }    
-    _ATTRIBUTES.update(TopLevelModel._ATTRIBUTES) 
+#    _ATTRIBUTES.update(TopLevelModel._ATTRIBUTES) 
     _ATTRIBUTES['style'] = {
         'default_value': wx.DEFAULT_DIALOG_STYLE, 
         'type': int        

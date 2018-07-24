@@ -25,13 +25,14 @@ OM.Objects : the base classes for the classes defined in this module.
 from collections import OrderedDict
 
 import numpy as np
+import wx
 
 from om.manager import ObjectManager
-
 from app.gripy_base_classes import GripyObject
 
-from basic.colors import COLOR_CYCLE_RGB
+from app.app_utils import parse_string_to_uid
 
+from basic.colors import COLOR_CYCLE_RGB
 
 
 VALID_Z_AXIS_DATATYPES = [('MD', 'Measured Depth'), 
@@ -43,142 +44,67 @@ VALID_Z_AXIS_DATATYPES = [('MD', 'Measured Depth'),
 
 
 
-
-# TODO: Rever docs
-# TODO: Criar GripyObject._loadstate para nao necessitar de colocar tudo no __init__ dos objetos
 class GenericDataType(GripyObject):
-    """
-    The most basic data type, only has name and data.
+    tid = None
+    _ATTRIBUTES = OrderedDict()
+    _ATTRIBUTES['unit'] = {
+        'default_value': wx.EmptyString,
+        'type': str        
+    }   
+    _ATTRIBUTES['datatype'] = {
+        'default_value': wx.EmptyString,
+        'type': str        
+    }       
     
-    The first argument of the constructor is the data the object is
-    representing. All other arguments must be passed as keyword arguments and
-    will be stored in the `attributes` attribute.
-    
-    Parameters
-    ----------
-    data : any appropriate type
-        The data itself that the object represents.
-        
-    Attributes
-    ----------
-    data : any appropriate type
-        The data itself that the object represents.
-    name : str
-        The name of the object. Obtained from `attributes`. If `attributes`
-        doesn't have a key ``'name'``, a string representation of the object's
-        `uid` will be assigned to it.
-    attributes : dict
-        A dictionary containing all of a `GenericDataType` attributes other
-        than `data`. The keys are the attributes names and the values are the
-        attributes themselves. Some special attributes may have a `property`
-        related to it, e.g. `name`.
-    
-    Examples
-    --------
-    >>> class NamedDataType(GripyObject):
-    >>>     pass
-    >>> x = NamedDataType([23, 42], foo='bar', name='ObjName')
-    >>> x.data
-    [23, 42]
-    >>> x.name
-    'ObjName'
-    >>> x.foo
-    AttributeError: 'NamedDataType' object has no attribute 'foo'
-    >>> x.attributes
-    {'foo': 'bar', 'name': 'ObjName'}
-    >>> x.attributes['foo']
-    'bar'
-    """        
     def __init__(self, *args, **attributes):
-        super(GenericDataType, self).__init__()
+        super().__init__(**attributes)
         if not args:
             self._data = None
-        else:
-            self._data = args[0]
-        self.attributes = attributes
+            return
+        self._data = args[0]
         if isinstance(self._data, np.ndarray):
-            self._data.flags.writeable = False    
+            self._data.flags.writeable = False
+
+    @classmethod
+    def is_tid_node_needed(cls):
+        """For TreeController"""
+        return True
     
-    
-    @property
-    def name(self):
-        if 'name' not in self.attributes:
-            self.attributes['name'] = '{}.{}'.format(*self.uid)
-        return self.attributes['name']
-    
-    @name.setter
-    def name(self, value):
-        self.attributes['name'] = value
-        
-    '''
-    @name.deleter
-    def name(self):
-        del self.attributes['name']
-    '''
+    def _get_manager_class(self):
+        return ObjectManager
     
     def get_friendly_name(self):
         return self.name
+   
     
+    @property
+    def min(self):
+#        print ('ENTROU MIN')
+        if self._data is None:
+#            print ('MIN IS NONE')
+            return None
+#        print (np.nanmin(self._data))
+        return np.nanmin(self._data)
+        
+    @property
+    def max(self):
+#        print ('ENTROU MAX')
+        if self._data is None:
+#            print ('MAX IS NONE')
+            return None
+#        try:
+#            print (np.nanmax(self._data))
+#        except Exception as e:
+#            print ('ERRAO:', e)
+        return np.nanmax(self._data)
+    
+
     @property
     def data(self):
         return self._data
 
     """
-    TODO: Decidir isso
-    
-    @data.setter
-    def data(self, value):
-        msg = "Cannot set object data."
-        raise TypeError(msg)
 
-    @data.deleter
-    def data(self):
-        msg = "Cannot delete object data."
-        raise TypeError(msg)
-
-    """
-
-    @property
-    def min(self):
-        if self.data is None:
-            return None
-        return np.nanmin(self._data)
-        
-    @property
-    def max(self):
-        if self.data is None:
-            return None
-        return np.nanmax(self._data)
-
-    @property
-    def unit(self):
-        if 'unit' not in self.attributes:
-            self.attributes['unit'] = ''
-        return self.attributes['unit']
-    
-    @unit.setter
-    def unit(self, value):
-        self.attributes['unit'] = value
-    
-    @unit.deleter
-    def unit(self):
-        del self.attributes['unit']
-    
-    @property
-    def datatype(self):
-        if 'datatype' not in self.attributes:
-            self.attributes['datatype'] = ''
-        return self.attributes['datatype']
-    
-    @datatype.setter
-    def datatype(self, value):
-        self.attributes['datatype'] = value
-    
-    @datatype.deleter
-    def datatype(self):
-        del self.attributes['datatype']
-           
-        
     def get_indexes_set(self):
         OM = ObjectManager()
         indexes_set = OM.list('index_set', self.uid)
@@ -189,34 +115,7 @@ class GenericDataType(GripyObject):
                 ret[index_set.uid] = None
             else:
                 ret[index_set.uid] = index_set.get_data_indexes()
-                """
-                inner_ord_dict = OrderedDict()
-                for di in dis:
-                    if di.dimension not in inner_ord_dict.keys():
-                        inner_ord_dict[di.dimension] = []    
-                    inner_ord_dict.get(di.dimension).append(di)    
-                ret[index_set.uid] = inner_ord_dict    
-                """
         return ret
-    
-    """
-    def get_indexes_set(self):
-        OM = ObjectManager()
-        indexes_set = OM.list('index_set', self.uid)
-        ret = OrderedDict()
-        for index_set in indexes_set:
-            dis = OM.list('data_index', index_set.uid)
-            if not dis:
-                ret[index_set.name] = None
-            else:
-                inner_ord_dict = OrderedDict()
-                for di in dis:
-                    if di.dimension not in inner_ord_dict.keys():
-                        inner_ord_dict[di.dimension] = []    
-                    inner_ord_dict.get(di.dimension).append(di)    
-                ret[index_set.name] = inner_ord_dict    
-        return ret    
-    """
     
     def get_data_indexes(self, set_name):
         OM = ObjectManager()
@@ -225,16 +124,6 @@ class GenericDataType(GripyObject):
             if set_name == index_set.name:
                 return inner_ord_dict
         return None
-    
-    """
-    def get_data_indexes(self, set_name):
-        #OM = ObjectManager()
-        for index_set_name, inner_ord_dict in self.get_indexes_set().items():
-            #index_set = OM.get(index_set_uid) 
-            if set_name == index_set_name:
-                return inner_ord_dict
-        return None
-    """
 
     def get_z_axis_indexes_by_type(self, datatype):
         ok = False
@@ -252,7 +141,6 @@ class GenericDataType(GripyObject):
                 if data_index.datatype == datatype:
                     ret_vals.append(data_index)
         return ret_vals
-
    
     def get_friendly_indexes_dict(self):
         OM = ObjectManager()
@@ -266,20 +154,6 @@ class GenericDataType(GripyObject):
                     ret_od[di_friendly_name] = data_index.uid       
         return ret_od
     
-    """
-    def get_friendly_indexes_dict(self):
-        #OM = ObjectManager()
-        ret_od = OrderedDict()
-        indexes_set = self.get_indexes_set()
-        for index_set_name, indexes_ord_dict in indexes_set.items():
-            #index_set = OM.get(index_set_uid)
-            for dim_idx, data_indexes in indexes_ord_dict.items():
-                for data_index in data_indexes:
-                    di_friendly_name = data_index.name + '@' + index_set_name
-                    ret_od[di_friendly_name] = data_index.uid       
-        return ret_od
-    """
-    
     def get_z_axis_datatypes(self):
         OM = ObjectManager()
         data_indexes_uid = self.get_friendly_indexes_dict().values()
@@ -291,14 +165,11 @@ class GenericDataType(GripyObject):
                     zaxis[z_axis_dt_desc] = z_axis_dt
         return zaxis
 
-
-    
     def _getstate(self):
         state = super(GenericDataType, self)._getstate()
         state.update(data=self._data)
         state.update(self.attributes)
         return state
-
 
     def _getparent(self):
         OM = ObjectManager()
@@ -307,12 +178,43 @@ class GenericDataType(GripyObject):
             return None
         return OM.get(parent_uid)     
 
+    """
+
+class Well(GenericDataType):
+    tid = "well"
+    _FRIENDLY_NAME = 'Well'
+#    _ACCEPT_MULTIPLE_INDEXES = True # TODO: rever isso
+    
+    def __init__(self, **attributes):
+        # Well does not have data
+        super().__init__(None, **attributes)
+
+
+    def get_z_axis_datatypes(self):
+        OM = ObjectManager()
+        data_indexes = OM.list('data_index', self.uid)
+        zaxis = OrderedDict()
+        for z_axis_dt, z_axis_dt_desc in VALID_Z_AXIS_DATATYPES:
+            for data_index in data_indexes:
+                if data_index.datatype == z_axis_dt and z_axis_dt not in zaxis.values():
+                    zaxis[z_axis_dt_desc] = z_axis_dt
+        return zaxis
+
 
 
 class WellData1D(GenericDataType):                             
     tid = "data1d"
     
+    _ATTRIBUTES = OrderedDict()
+    _ATTRIBUTES['index_uid'] = {
+        'default_value': None,
+        'type': str       
+    }  
+    
+    
     def __init__(self, data, **attributes):
+#        print ('\nattributes:', attributes)
+        """
         index_set_uid = attributes.get('index_set_uid')
         try:    
             tid, oid = index_set_uid 
@@ -321,11 +223,13 @@ class WellData1D(GenericDataType):
             raise Exception('Object attribute \"index_set_uid\" must be a \"uid\" tuple.')    
         if tid != 'index_set':
             raise Exception('Object attribute \"index_set_uid\" must have its first argument as \"index_set\".')
-        super(WellData1D, self).__init__(data, **attributes)
-        OM = ObjectManager()        
-        OM.subscribe(self._on_OM_add, 'add')
+        """
+        super().__init__(data, **attributes)
 
+#        OM = ObjectManager()        
+#        OM.subscribe(self._on_OM_add, 'add')
 
+    """
     def _on_OM_add(self, objuid):
         if objuid != self.uid:
             return
@@ -358,27 +262,30 @@ class WellData1D(GenericDataType):
     @property
     def index_set_uid(self):
         return self.attributes['index_set_uid']
-
+    """
 
     def get_data_indexes(self):
-        OM = ObjectManager()            
+        ret_dict = OrderedDict()
+        OM = ObjectManager()
+#        print (self.__dict__)
+        
+        index_uid = parse_string_to_uid(self.index_uid)
+        index = OM.get(index_uid)
+
+        ret_dict[0] = [index]
+        return ret_dict  
+
+    """
+    def get_data_indexes(self):
+        OM = ObjectManager()    
+        
+        
         try:
             index_set = OM.get(self.index_set_uid)
             return index_set.get_data_indexes()
-            """
-            data_indexes = OM.list('data_index', self.index_set_uid)
-            if not data_indexes:
-                return None
-            ret_dict = OrderedDict()
-            for data_index in data_indexes:
-                if data_index.dimension not in ret_dict.keys():
-                    ret_dict[data_index.dimension] = []    
-                ret_dict.get(data_index.dimension).append(data_index)    
-            return ret_dict
-            """
         except:
             return None
-        
+    """    
         
     def get_indexes(self):
         raise Exception('Invalid METHOD')   
@@ -394,30 +301,6 @@ class WellData1D(GenericDataType):
     
 class Log(WellData1D):
                                   
-    """
-    The values of a particular measurement along a well.
-    
-    In a well log, the `Log` can be viewed as an array of the measurements made
-    by a logging tool. The `Log` is usually associated with a depth, that
-    provides the locations where each measurement was taken.
-    
-    On most of the traditional well log plots, the logs take the x-axis of the
-    different tracks, while the depth is placed in the y-axis.
-    
-    Logs are not necessarily the result of a well loging operation. They can
-    be obtained from operations between existing logs, for example.
-
-    Attributes
-    ----------
-    data : numpy.ndarray
-        An array containing the values of a particular property along a well.
-    
-    See Also
-    --------
-    DataTypes.DataTypes.Depth
-    DataTypes.DataTypes.Well
-    """
-    
     tid = "log"
     _FRIENDLY_NAME = 'Log'
     _SHOWN_ATTRIBUTES = [
@@ -432,10 +315,15 @@ class Log(WellData1D):
     ] 
     
     def __init__(self, data, **attributes):
-        super(Log, self).__init__(data, **attributes)
+        super().__init__(data, **attributes)
 
-
+    @classmethod
+    def is_tid_node_needed(cls):
+        """For TreeController"""
+        return False
         
+    
+    
     
 class Property(GenericDataType):
     """
@@ -479,7 +367,7 @@ class Property(GenericDataType):
     _DEFAULTDATA = None    
     
     def __init__(self, data=None, **attributes):
-        super(Property, self).__init__(data, **attributes)
+        super().__init__(data, **attributes)
         if data is None:
             self._data = {}
     
@@ -576,12 +464,13 @@ class Part(WellData1D):
     def __init__(self, data=None, **attributes):        
         super(Part, self).__init__(data, **attributes)
 
+    """    
     @GenericDataType.name.getter
     def name(self):
         if 'name' not in self.attributes:
             self.attributes['name'] = '{:g}'.format(self.code)
         return self.attributes['name']
-    
+    """  
     @property
     def code(self):
         if 'code' not in self.attributes:
@@ -649,13 +538,13 @@ class Partition(WellData1D):
     tid = "partition"
     _FRIENDLY_NAME = 'Partition'
     _SHOWN_ATTRIBUTES = [
-                            ('_oid', 'Object Id'),
+                            ('oid', 'Object Id'),
                             ('datatype', 'Type')
 													   
     ] 
     
-    def __init__(self, data=None,**attributes):        
-        super(Partition, self).__init__(data,**attributes)
+    def __init__(self, data=None, **attributes):        
+        super(Partition, self).__init__(data, **attributes)
         self.children = OrderedDict()
 #        self.attributes = attributes
     
@@ -774,6 +663,7 @@ class Partition(WellData1D):
         log[~np.sum(data[notnull], axis=0, dtype=bool)] = null
         return log
     
+    
     @staticmethod
     def getfromlog(logdata, null=-1):
         """
@@ -835,6 +725,7 @@ class Partition(WellData1D):
             self.attributes['end'] = float(index_data[np.isfinite(data)][-1])
         return self.attributes['end']
    
+    
 class RockTable(Partition):
     """
     new type
@@ -924,6 +815,7 @@ class RockType(Part):
     def fracmatrix(self):
         del self.attributes['fracmatrix']
         
+        
 class Inference(Partition):
     """
     new type
@@ -939,37 +831,7 @@ class Inference(Partition):
     def __init__(self, data=None,**attributes):        
         super(RockTable, self).__init__(data,**attributes)
         
-class Well(GenericDataType):
-    """
-    A set of data related to a well.
-    
-    During the life-cycle of a oil well, from the drilling to the abandonment,
-    various forms of data acquisition can be performed. For example, multiple
-    logs can be produced in different times with different purposes. The `Well`
-    `DataType` is used to group this data.
-    
-    A `Well` can be associated as 'parent' of other data types present in
-    the `DataType` module, such as `Depth`, `Log` and `Partition`.
-    
-    Attributes
-    ----------
-    name : str
-        The name of the well.
-    
-    See also
-    --------
-    DataTypes.DataTypes.Depth
-    DataTypes.DataTypes.Log
-    DataTypes.DataTypes.Partition
-    """
-    tid = "well"
-    _FRIENDLY_NAME = 'Well'
-    _ACCEPT_MULTIPLE_INDEXES = True
-    
-    
-    def __init__(self, **attributes):
-        # Well does not have data
-        super(Well, self).__init__(None, **attributes)
+
 
 
                        
@@ -990,7 +852,7 @@ class Density(GenericDataType):
     tid = 'density'
 
     def __init__(self, data, **attributes):
-        super(Density, self).__init__(data, **attributes)
+        super().__init__(data, **attributes)
 
     def get_data_indexes(self):
         OM = ObjectManager()            
@@ -1010,7 +872,7 @@ class Seismic(Density):
     ]
 
     def __init__(self, data, **attributes):
-        super(Seismic, self).__init__(data, **attributes)
+        super().__init__(data, **attributes)
                 
 
 class WellGather(Density):
@@ -1021,7 +883,7 @@ class WellGather(Density):
     ]
 
     def __init__(self, data, **attributes):
-        super(WellGather, self).__init__(data, **attributes)
+        super().__init__(data, **attributes)
             
 
 class Scalogram(Density):
@@ -1033,7 +895,7 @@ class Scalogram(Density):
     ] 
 
     def __init__(self, data, **attributes):
-        super(Scalogram, self).__init__(data, **attributes)
+        super().__init__(data, **attributes)
 
 
 
@@ -1041,7 +903,7 @@ class GatherScalogram(Scalogram):
     tid = 'gather_scalogram'
 
     def __init__(self, data, **attributes):
-        super(GatherScalogram, self).__init__(data, **attributes)
+        super().__init__(data, **attributes)
 
 
 
@@ -1061,7 +923,7 @@ class Angle(Density):
     ] 
 
     def __init__(self, data, **attributes):
-        super(Angle, self).__init__(data, **attributes)
+        super().__init__(data, **attributes)
 
 
 
@@ -1080,9 +942,7 @@ class Velocity(Density):
 
   
     def __init__(self, data, **attributes):
-        super(Velocity, self).__init__(data, **attributes)
-
-
+        super().__init__(data, **attributes)
 
 
 class Spectogram(Density):
@@ -1094,7 +954,7 @@ class Spectogram(Density):
     ] 
 
     def __init__(self, data, **attributes):
-        super(Spectogram, self).__init__(data, **attributes)
+        super().__init__(data, **attributes)
 
 
 
@@ -1103,7 +963,7 @@ class GatherSpectogram(Spectogram):
     _FRIENDLY_NAME = 'Spectogram'
     
     def __init__(self, data, **attributes):
-        super(GatherSpectogram, self).__init__(data, **attributes)
+        super().__init__(data, **attributes)
         
         
 ###############################################################################
@@ -1113,10 +973,9 @@ class GatherSpectogram(Spectogram):
 class Inversion(GenericDataType):
     tid = "inversion"
     _FRIENDLY_NAME = 'Inversion'
-    _ACCEPT_MULTIPLE_INDEXES = True
     
     def __init__(self, **attributes):
-        super(Inversion, self).__init__(**attributes)
+        super().__init__(**attributes)
 
 
     
@@ -1136,7 +995,7 @@ class InversionParameter(GenericDataType):
     ] 
     
     def __init__(self, data, **attributes):
-        super(InversionParameter, self).__init__(data, **attributes)
+        super().__init__(data, **attributes)
 
 
 ###############################################################################
@@ -1215,13 +1074,13 @@ def check_data_index(index_type, axis_unit):
     if axis_unit not in index_props.get('units'):
         raise Exception('Invalid index unit.')
 
-
-class IndexSet(GripyObject):
+"""
+class IndexSet(GenericDataType):
     tid = 'index_set'
     _FRIENDLY_NAME = 'Indexes Set'    
     
     def __init__(self, **attrbutes):
-        super(IndexSet, self).__init__()
+        super().__init__(None, **attrbutes)
         self.attributes = {}
         OM = ObjectManager() 
         vinculated = attrbutes.get('vinculated')
@@ -1237,7 +1096,7 @@ class IndexSet(GripyObject):
         else:        
             self.attributes['name'] = attrbutes.get('name')
             self.attributes['vinculated'] = None
-        OM.subscribe(self._on_OM_add, 'add')
+#        OM.subscribe(self._on_OM_add, 'add')
                    
     def _on_OM_add(self, objuid):
         if objuid != self.uid:
@@ -1288,7 +1147,7 @@ class IndexSet(GripyObject):
 
 
     def _getstate(self):
-        state = super(IndexSet, self)._getstate()
+        state = super()._getstate()
         state.update(name=self.name)
         state.update(vinculated=self.vinculated)
         return state
@@ -1304,12 +1163,36 @@ class IndexSet(GripyObject):
             print ('\nERROR:', e, '\n', state)
         return index_set        
 
-
+"""
 
 # Class for discrete dimensions of Data Objects
 class DataIndex(GenericDataType):
     tid = 'data_index'
     _FRIENDLY_NAME = 'Index'
+    _ATTRIBUTES = OrderedDict()
+    _ATTRIBUTES['dimension'] = {
+        'default_value': -1,
+        'type': int       
+    }       
+    """
+    _ATTRIBUTES['start'] = {
+        'default_value': -1,
+        'type': int       
+    }  
+    _ATTRIBUTES['end'] = {
+        'default_value': -1,
+        'type': int       
+    }        
+    _ATTRIBUTES['step'] = {
+        'default_value': None,
+        'type': int       
+    }  
+    _ATTRIBUTES['samples'] = {
+        'default_value': None,
+        'type': int       
+    }   
+    """
+    
     _SHOWN_ATTRIBUTES = [
                             #('_oid', 'Object Id'),
                             ('dimension', 'Dimension'),
@@ -1323,6 +1206,9 @@ class DataIndex(GenericDataType):
     
     
     def __init__(self, dimension_idx, name, datatype=None, unit=None, **kwargs):   
+        
+#        print (kwargs)
+        
         if dimension_idx is None or dimension_idx < 0 or not isinstance(dimension_idx, int):
             raise Exception('Wrong value for dimension_idx [{}]'.format(dimension_idx))
         try:    
@@ -1340,20 +1226,27 @@ class DataIndex(GenericDataType):
                 data = np.arange(start, end, step)
             except:
                 raise Exception('Data values were provided wrongly.')
+#        print (start)        
         if start is None:        
             start = data[0]
         if end is None:
             end = data[-1]
         samples = len(data)
-        super(DataIndex, self).__init__(data, name=name, 
+#        print (name, datatype, unit, start, end, step, samples)
+        super().__init__(data, name=name, 
                          datatype=datatype, unit=unit,
                          start=start, end=end, step=step, samples=samples
         )
-        self.attributes['dimension'] = dimension_idx   
+        self['dimension'] = dimension_idx   
         #
         #OM = ObjectManager()        
         #OM.subscribe(self._on_OM_add, 'add')
 
+
+    @classmethod
+    def is_tid_node_needed(cls):
+        """For TreeController"""
+        return False
 
     def _on_OM_add(self, objuid):
         if objuid != self.uid:
@@ -1363,43 +1256,43 @@ class DataIndex(GenericDataType):
 
     
     def get_data_indexes(self):
-        OM = ObjectManager()            
-        try:
-            index_set_uid = OM._getparentuid(self.uid)
-            index_set = OM.get(index_set_uid)
-            return index_set.get_data_indexes()
-        except:
-            return None
+        ret_dict = OrderedDict()
+        ret_dict[0] = [self]
+        return ret_dict        
+
 
     
-
     @property
     def start(self):
-        #if 'start' not in self.attributes:
-        self.attributes['start'] = self.data[0]
-        return self.attributes['start']
+        try:
+#            print ('\nproperty start:', self.data[0])
+            return self._data[0]
+        except Exception as e:
+            print (e)
+            raise
+#            return None
     
     @property
     def end(self):
-        #if 'end' not in self.attributes:
-        self.attributes['end'] = self.data[-1]
-        return self.attributes['end']
+        try:
+            return self._data[-1]
+        except:
+            return None
 
     @property
-    def step(self):
-        #if 'step' not in self.attributes:
-        #self.attributes['step'] = None             
-        return self.attributes.get('step')        
+    def step(self):           
+        try:
+            return self._data[1] - self._data[0]
+        except:
+            return None     
 
     @property
     def samples(self):
-        #if 'samples' not in self.attributes:
-        #self.attributes['samples'] = None             
-        return len(self.data) #self.attributes.get('samples')      
+        try:
+            return len(self._data)
+        except:
+            return 0  
     
-    @property
-    def dimension(self):
-        return self.attributes['dimension']
     
     @classmethod
     def _loadstate(cls, **state):
@@ -1425,7 +1318,7 @@ class Model1D(Density):
     ]
 
     def __init__(self, data, **attributes):
-        super(Model1D, self).__init__(data, **attributes)
+        super().__init__(data, **attributes)
 
     def get_index(self):
         #print '\nModel1d.get_index'
@@ -1453,7 +1346,7 @@ class ZoneSet(GenericDataType):
     ]
     
     def __init__(self, **attributes):
-        super(ZoneSet, self).__init__(**attributes)
+        super().__init__(**attributes)
 
 
 class Zone(GenericDataType):
@@ -1467,7 +1360,7 @@ class Zone(GenericDataType):
     def __init__(self, **attributes):
         if attributes.get('start') is None or attributes.get('end') is None:
             raise Exception('No start or no end.')
-        super(ZoneSet, self).__init__(**attributes)
+        super().__init__(**attributes)
         
     def get_index(self):
         raise Exception()

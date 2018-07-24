@@ -49,8 +49,8 @@ class LogPlotEditorController(UIControllerBase):
         
     def PreDelete(self):
         UIM = UIManager()
-        UIM.unsubscribe(self.object_created, 'create')
-        UIM.unsubscribe(self.object_removed, 'pre_remove') 
+#        UIM.unsubscribe(self.object_created, 'create')
+#        UIM.unsubscribe(self.object_removed, 'pre_remove') 
         #
         logplot_ctrl_uid = UIM._getparentuid(self.uid)
         for track in UIM.list('track_controller', logplot_ctrl_uid):
@@ -645,9 +645,6 @@ class LPEObjectsPanelController(UIControllerBase):
     def PostInit(self):
         self.view.dvc.AssociateModel(self._real_model)
         self.expand_dvc_all_items()
- 
-    def PreDelete(self):
-        pass
       
     def create_item(self, obj, parent_obj=None):
         if obj.tid != 'track_controller' and \
@@ -866,7 +863,10 @@ class LPEObjectsPanel(UIViewBase, wx.Panel):
     def __init__(self, controller_uid):
         UIViewBase.__init__(self, controller_uid)
         wx.Panel.__init__(self, self._get_lpeview_notebook(), -1, style=wx.SIMPLE_BORDER)       
-
+        self.splitter = None
+        self.dvc = None
+        self.Sizer= None
+        
 
     def PostInit(self):
         self.splitter = wx.SplitterWindow(self, -1)

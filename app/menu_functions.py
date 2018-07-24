@@ -7,9 +7,16 @@ import numpy as np
 from scipy.signal import chirp
 import wx
 
+import matplotlib as mpl
+
 import datatypes
 from basic.uom import uom
-import fileio
+
+
+from fileio import las
+from fileio import odt
+from fileio import segy
+
 
 from app import app_utils
 from app.gripy_debug_console import DebugConsoleFrame
@@ -35,6 +42,7 @@ from  ui import RockTableEditor
 from ui import ReflectivityModel as RM
 from ui.uimanager import UIManager
 
+from  ui import Interface
 
 from app.app_utils import GripyIcon
 
@@ -100,27 +108,7 @@ def calc_well_time_from_depth(event):
 
 
 def on_new_wellplot(event):
-    '''
-    dlg = Dialog(self.get_main_window_controller().view, 
-        [
-            (Dialog.well_selector, 'Well:', 'well_uid'),
-            (Dialog.logplotformat_selector, 'Format: ', 'plt_file_name')
-        ], 
-        'Plot Selector'
-    )
-    if dlg.view.ShowModal() == wx.ID_OK:
-        results = dlg.get_results()
-        plt = ParametersManager.get().getPLT(results['plt_file_name'])
-        if plt is None:
-            lpf = None
-        else:    
-            lpf = logplotformat.LogPlotFormat.create_from_PLTFile(plt)
-        _, well_oid = results['well_uid']
-        UIManager.get().create_log_plot(well_oid, lpf)
-    '''    
-
     try:
-    
         OM = ObjectManager() 
         wells = OrderedDict()
         for well in OM.list('well'):
@@ -171,8 +159,8 @@ def on_new_wellplot(event):
             welluid = results['welluid']
             zaxis_type = results['zaxis_type']
             #
-            root_controller = UIM.get_root_controller()        
-            UIM.create('logplot_controller', root_controller.uid, 
+            mwc = Interface.get_main_window_controller()
+            UIM.create('logplot_controller', mwc.uid, 
                        well_oid=welluid[1], index_type=zaxis_type
             )
             #
@@ -2496,6 +2484,8 @@ def on_fluid(event):
     finally:
         UIM.remove(dlg.uid)
         
+        
+        
 def on_pt(event):
         
         if self.flagRB == 1:        
@@ -2515,10 +2505,108 @@ def on_pt(event):
             
 #        self.dlg.SetSize((610, 860))
     
+    
+    
 def on_new_crossplot(event):
     UIM = UIManager()      
-    root_controller = UIM.get_root_controller() 
-    UIM.create('crossplot_controller', root_controller.uid)  
+    mwc = Interface.get_main_window_controller()
+
+    """
+    # Log-Log
+    xlim = (0.01, 100.0)
+    ylim = (0.01, 100.0)  
+    x_scale = 1
+    y_scale = 1
+
+    cpc = UIM.create('crossplot_controller', mwc.uid, 
+                     xlim=xlim, ylim=ylim, x_scale=x_scale, 
+                     y_scale=y_scale
+    )
+
+    """
+
+    """
+    # Lin-Lin
+    xlim = (0.0, 1000.0)
+    ylim = (0.0, 1000.0)      
+    x_scale = 0
+    y_scale = 0
+    y_major_grid_lines = 250.0
+    y_minor_grid_lines = 50.0
+   
+    cpc = UIM.create('crossplot_controller', mwc.uid, 
+                     xlim=xlim, ylim=ylim, x_scale=x_scale, 
+                     scale_lines=10,
+                     y_scale=y_scale,
+                     y_major_grid_lines=y_major_grid_lines,
+                     y_minor_grid_lines=y_minor_grid_lines,
+                     y_scale_lines=10
+    )
+    """
+    
+    
+    """
+    # Log-Lin
+    xlim = (0.01, 100.0)
+    ylim = (0.0, 1000.0)  
+    x_scale = 1
+    y_scale = 0
+    y_major_grid_lines = 250.0
+    y_minor_grid_lines = 50.0
+    
+    cpc = UIM.create('crossplot_controller', mwc.uid, 
+                     xlim=xlim, ylim=ylim, x_scale=x_scale, 
+                     y_scale=y_scale,
+                     y_major_grid_lines=y_major_grid_lines,
+                     y_minor_grid_lines=y_minor_grid_lines,
+                     y_scale_lines=10
+    )
+
+    """
+    
+#    """
+    # Lin-Log
+#    xlim = (0.0, 1000.0) 
+#    ylim = (0.01, 100.0)
+#    x_scale = 0
+#    y_scale = 1
+
+    UIM.create('crossplot_controller', mwc.uid)
+#                     xlim=xlim, ylim=ylim, x_scale=x_scale, scale_lines=10, 
+#                     y_scale=y_scale,
+#                     x_label= 'X axis', y_label= 'Y axis', title='Title' 
+#    )
+
+#    """    
+    
+    
+#    canvas = cpc.view.crossplot_panel.canvas
+    
+#    base_axes = canvas.base_axes
+    
+#    print ('base_axes.get_xticklabels:', 
+#           base_axes.xaxis.get_ticklabels(minor=False, which=None)
+#    )
+    
+    
+    
+#    base_axes.set_ylim(ylim)
+#    base_axes.set_yscale('log')
+
+#    plot_axes = canvas.plot_axes
+#    plot_axes.set_ylim(ylim)
+#    plot_axes.set_yscale('log')
+#    plot_axes.set_xlim(xlim)
+
+    #def scatter(self, x, y, s=None, c=None, marker=None, cmap=None, norm=None,
+    #    vmin=None, vmax=None, alpha=None, linewidths=None,
+    #    verts=None, edgecolors=None,
+    #    **kwargs):
+
+#    canvas.draw()
+
+
+
     
     """
     OM = ObjectManager() 
@@ -2637,6 +2725,8 @@ def on_debugconsole(event):
     consoleUI.Show()    
     
 
+
+
 def on_import_las(event):
     style = wx.FD_OPEN | wx.FD_FILE_MUST_EXIST
     wildcard="Arquivos LAS (*.las)|*.las"
@@ -2649,7 +2739,7 @@ def on_import_las(event):
     else:
         fdlg.Destroy()
         return
-    las_file = fileio.LAS.open(os.path.join(dir_name, file_name), 'r')
+    las_file = las.open(os.path.join(dir_name, file_name), 'r')
     las_file.read()
     hedlg = HeaderEditor.Dialog(wx.App.Get().GetTopWindow())
     hedlg.set_header(las_file.header)
@@ -2665,7 +2755,7 @@ def on_import_las(event):
         PM = ParametersManager.get()
         
         curvetypes = PM.getcurvetypes()
-        datatypes = PM.getdatatypes()
+        datatypes_ = PM.getdatatypes()
         
         sel_curvetypes = [PM.getcurvetypefrommnem(name) for name in names]
         
@@ -2678,7 +2768,7 @@ def on_import_las(event):
                 sel_datatypes.append(datatype)
 
         isdlg = ImportSelector.Dialog(wx.App.Get().GetTopWindow(),
-                                      names, units, curvetypes, datatypes)
+                                      names, units, curvetypes, datatypes_)
         
         isdlg.set_curvetypes(sel_curvetypes)
         isdlg.set_datatypes(sel_datatypes)
@@ -2698,8 +2788,9 @@ def on_import_las(event):
             indexes = [sel_datatypes[i] for i in range(ncurves) if sel_datatypes[i] == 'Index']
             if len(indexes) == 0:
                 raise Exception('ERROR: len(indexes) == 0')
-            index_set = OM.new('index_set', name='Run 1')
-            OM.add(index_set, well.uid)
+            #    
+#            index_set = OM.new('index_set', name='Run 1')
+#            OM.add(index_set, well.uid)
             ##           
 
             for i in range(ncurves):
@@ -2709,15 +2800,18 @@ def on_import_las(event):
                 if sel_datatypes[i]:
                     PM.votefordatatype(names[i], sel_datatypes[i])
                 
+                
                 if sel_datatypes[i] == 'Index':
+                    #(self, dimension_idx, name, datatype=None, unit=None, **kwargs)
                     index = OM.new('data_index', 0, names[i], 
                                    sel_curvetypes[i].upper(), units[i].lower(), 
                                    data=data[i]
                     )
-                    OM.add(index, index_set.uid)
+                    OM.add(index, well.uid)
+#                    OM.add(index, index_set.uid)
                 
                 elif sel_datatypes[i] == 'Log':
-                    log = OM.new('log', data[i], index_set_uid=index_set.uid, 
+                    log = OM.new('log', data[i], index_uid=index.uid, #index_set_uid=index.uid, 
                                  name=names[i], unit=units[i], 
                                  datatype=sel_curvetypes[i]
                     )
@@ -2732,10 +2826,10 @@ def on_import_las(event):
                         booldata, codes = datatypes.DataTypes.Partition.getfromlog(data[i])
                         
                     except TypeError:
-                        print ('data[{}]: {}'.format(i, data[i]))
+#                        print ('data[{}]: {}'.format(i, data[i]))
                         raise
                     #    
-                    partition = OM.new('partition', index_set_uid=index_set.uid, name=names[i], 
+                    partition = OM.new('partition', index_uid=index.uid, name=names[i], 
                                            datatype=sel_curvetypes[i]
 															   
                     )
@@ -2743,9 +2837,14 @@ def on_import_las(event):
                     OM.add(partition, well.uid)
                     for j in range(len(codes)):
                         
-                        #print 'OM.new(\'part\', {}, code={}, datatype={})'.format(booldata[j], codes[j], sel_curvetypes[i])
+#                        print ('{}, code={}, datatype={}'.format(booldata[j], codes[j], sel_curvetypes[i]))
                         
-                        part = OM.new('part', booldata[j], index_set_uid=partition.index_set_uid, code=int(codes[j]), datatype=sel_curvetypes[i])
+                        part = OM.new('part', booldata[j], 
+                                      name=str(int(codes[j])), 
+                                      index_uid=index.uid, 
+                                      code=int(codes[j]), 
+                                      datatype=sel_curvetypes[i]
+                        )
 																		   
                         OM.add(part, partition.uid)
                         
@@ -2772,7 +2871,7 @@ def on_import_odt(event):
     else:
         fdlg.Destroy()
         return
-    odt_file = fileio.ODT.open(odt_dir_name, file_proj, 'r')
+    odt_file = odt.open(odt_dir_name, file_proj, 'r')
     hedlg = ODTEditor.Dialog()
 #    print odt_file.ndepth
     hedlg.set_header(odt_file.fileheader, odt_file.logheader, odt_file.ndepth)
@@ -2782,8 +2881,8 @@ def on_import_odt(event):
         odt_file.header = hedlg.get_header()
         print ('header 2\n', odt_file.header)
 
-        names = [line['MNEM'] for line in odt_file.header["C"].itervalues()]
-        units = [line['UNIT'] for line in odt_file.header["C"].itervalues()]
+        names = [line['MNEM'] for line in iter(odt_file.header["C"].values())]
+        units = [line['UNIT'] for line in iter(odt_file.header["C"].values())]
         ncurves = len(names)
         
         """
@@ -2819,7 +2918,7 @@ def on_import_odt(event):
         PM = ParametersManager.get()
         
         curvetypes = PM.getcurvetypes()
-        datatypes = PM.getdatatypes()
+        datatypes_ = PM.getdatatypes()
         
         sel_curvetypes = [PM.getcurvetypefrommnem(name) for name in names]
         
@@ -2833,7 +2932,7 @@ def on_import_odt(event):
         
         # """
 
-        isdlg = ImportSelector.Dialog(wx.App.Get().GetTopWindow(), names, units, curvetypes, datatypes)
+        isdlg = ImportSelector.Dialog(wx.App.Get().GetTopWindow(), names, units, curvetypes, datatypes_)
         
         isdlg.set_curvetypes(sel_curvetypes)
         isdlg.set_datatypes(sel_datatypes)
@@ -3024,7 +3123,7 @@ def on_import_segy_vel(event):
         fdlg.Destroy()
         return
     
-    segy_file = fileio.SEGY.SEGYFile(os.path.join(dir_name, file_name))
+    segy_file = segy.SEGYFile(os.path.join(dir_name, file_name))
     segy_file.read()
     name = segy_file.filename.rsplit('\\')[-1]
     name = name.split('.')[0]
@@ -3046,7 +3145,7 @@ def on_import_segy_vel(event):
 def on_export_las(event):
 
     esdlg = ExportSelector.Dialog(wx.App.Get().GetTopWindow())
-    if esdlg.view.ShowModal() == wx.ID_OK:
+    if esdlg.ShowModal() == wx.ID_OK:
         OM = ObjectManager()   
         ###
         # TODO: Colocar isso em outro lugar
@@ -3068,7 +3167,7 @@ def on_export_las(event):
             names.append(partition.name)
             units.append('')
             data.append(partition.getaslog())
-        for partitionuid, propselection in esdlg.get_property_selection().iteritems():
+        for partitionuid, propselection in iter(esdlg.get_property_selection().items()):
             partition = OM.get(partitionuid)
             for propertyuid in propselection:
                 prop = OM.get(propertyuid)
@@ -3080,12 +3179,12 @@ def on_export_las(event):
         
         welluid = esdlg.get_welluid()
         well = OM.get(welluid)
-        header = well.attributes.get("LASheader", None)
+        header = None #well.attributes.get("LASheader", None)
         if header is None:
-            header = fileio.LAS.LASWriter.getdefaultheader()
+            header = las.LASWriter.getdefaultheader()
         
-        header = fileio.LAS.LASWriter.rebuildwellsection(header, data[0], units[0])
-        header = fileio.LAS.LASWriter.rebuildcurvesection(header, names, units)
+        header = las.LASWriter.rebuildwellsection(header, data[0], units[0])
+        header = las.LASWriter.rebuildcurvesection(header, names, units)
         
         hedlg = HeaderEditor.Dialog(wx.App.Get().GetTopWindow())
         hedlg.set_header(header)
@@ -3101,10 +3200,10 @@ def on_export_las(event):
                 file_name = fdlg.GetFilename()
                 las_dir_name = fdlg.GetDirectory()
                 header = hedlg.get_header()
-                las_file = fileio.LAS.open(os.path.join(las_dir_name, file_name), 'w')
+                las_file = las.open(os.path.join(las_dir_name, file_name), 'w')
                 las_file.header = header
                 las_file.data = data
-                las_file.headerlayout = fileio.LAS.LASWriter.getprettyheaderlayout(header)
+                las_file.headerlayout = las.LASWriter.getprettyheaderlayout(header)
                 las_file.write()
             fdlg.Destroy()
         hedlg.Destroy()
@@ -3253,9 +3352,9 @@ def on_create_well(event):
     ctn_index = dlg.view.AddCreateContainer('StaticBox', label='Index', orient=wx.VERTICAL, proportion=0, flag=wx.EXPAND|wx.TOP, border=5)
     ctn_index_base = dlg.view.AddCreateContainer('BoxSizer', ctn_index, orient=wx.VERTICAL, proportion=0, flag=wx.EXPAND|wx.TOP, border=5)
     #
-    datatypes = OrderedDict()
-    datatypes['Time'] = 'TIME'
-    datatypes['MD'] = 'MD'
+    datatypes_ = OrderedDict()
+    datatypes_['Time'] = 'TIME'
+    datatypes_['MD'] = 'MD'
     #
     def on_change_datatype(name, old_value, new_value, **kwargs):
         textctrl_name = dlg.view.get_object('index_name')
@@ -3276,7 +3375,7 @@ def on_create_well(event):
     #    
     c1 = dlg.view.AddCreateContainer('BoxSizer', ctn_index_base, orient=wx.HORIZONTAL, proportion=1, flag=wx.EXPAND|wx.ALL, border=5)
     dlg.view.AddStaticText(c1, label='Type:', proportion=1, flag=wx.ALIGN_RIGHT)
-    dlg.view.AddChoice(c1, proportion=1, flag=wx.ALIGN_LEFT, widget_name='datatype', options=datatypes)
+    dlg.view.AddChoice(c1, proportion=1, flag=wx.ALIGN_LEFT, widget_name='datatype', options=datatypes_)
     choice_datatype = dlg.view.get_object('datatype')
     choice_datatype.set_trigger(on_change_datatype)
     #
@@ -3328,14 +3427,15 @@ def on_create_well(event):
             OM.add(well)
             samples = ((end-start)/ts)+1
             #
-            index_set = OM.new('index_set', name='Set')
-            OM.add(index_set, well.uid)
+#            index_set = OM.new('index_set', name='Set')
+#            OM.add(index_set, well.uid)
             #
             index = OM.new('data_index', 0, index_name, datatype, unit, 
                    start=start, samples=samples, step=ts
             )
-            OM.add(index, index_set.uid)
-            ret_val = True
+#            OM.add(index, index_set.uid)
+            ret_val = OM.add(index, well.uid)
+#            ret_val = True
     except Exception as e:
         print ('ERROR [on_create_well]:', str(e))
         raise
@@ -4058,7 +4158,320 @@ def on_load_wilson(event):
         
 
 
+##############################################################################################
+##############################################################################################
+##############################################################################################
+#    
+# Trabalho da Roseane - Abaixo 
+# 07/07/2018    
+#
+
+def _get_phi_K_objects(well_uid):
+    OM = ObjectManager()    
+    #well_uid = ('well', 0) 
+
+    phi_log_objects = OM.do_query('log', well_uid, 'name=Phi')       
+    phi_log_obj = phi_log_objects[0]
+
+    K_log_objects = OM.do_query('log', well_uid, 'name=K')       
+    K_log_obj = K_log_objects[0]
+                 
+    #phi_data = uom.convert(phi_log_obj.data, phi_log_obj.unit, new_unit_name)
+    return (phi_log_obj, K_log_obj)
+
+
+
+
+def create_winland_xplot(event):
+    UIM = UIManager()      
+    mwc = Interface.get_main_window_controller()
+
+    well_uid = ('well', 0)
+
+    # Lin-Log
+    xlim = (0, 40.0)
+    ylim = (0.0001, 10000.0)
+    x_scale = 0
+    y_scale = 1
+
+    cpc = UIM.create('crossplot_controller', mwc.uid, 
+                     xlim=xlim, ylim=ylim, x_scale=x_scale, scale_lines=8, 
+                     y_scale=y_scale,
+                     x_label= 'Porosity (Phie %)', 
+                     y_label= 'Permeability (md)', 
+                     title='Winland Crossplot' 
+    )
+  
+    canvas = cpc.view.crossplot_panel.canvas
+    
+    
+    logK = {}
+    
+    r = [(0.1, 'olive'),
+         (0.5, 'blue'),
+         (1.0, 'black'),
+         (2.0, 'green'),
+         (5.0, 'yellow'),
+         (10.0, 'red')
+    ]
+    max_val = 40
+    
+    x_data = [idx+1 for idx in range(max_val)]
+ 
+    for raio, _ in r:
+        values = []
+        for idx in range(max_val):
+            val = 2.433 * np.log10(raio) - 0.664 + 0.869 * np.log10(idx+1)  
+            values.append(val)
+        logK[raio] = np.array(values)
+        
+    for raio, color in r:
+        canvas.append_artist('Line2D', x_data, np.power(10, logK[raio]), 
+                         linewidth=2, color=color
+        )
+    
+    phi_log_obj, K_log_obj = _get_phi_K_objects(well_uid)
+
+    canvas.append_artist('scatter', phi_log_obj.data*100, K_log_obj.data,
+                         marker='^')   
+    
+    canvas.base_axes.set_xlim(xlim)
+    canvas.base_axes.set_ylim(ylim)
+    
+    canvas.draw()    
+
+
+
+def create_poro_perm_xplot(event):
+    UIM = UIManager()      
+    mwc = Interface.get_main_window_controller()
+
+    well_uid = ('well', 0)
+
+    # Lin-Log
+    xlim = (0, 40.0)
+    ylim = (0.0001, 10000.0)
+    x_scale = 0
+    y_scale = 1
+
+    cpc = UIM.create('crossplot_controller', mwc.uid, 
+                     xlim=xlim, ylim=ylim, x_scale=x_scale, scale_lines=8, 
+                     y_scale=y_scale,
+                     x_label= 'Porosity (%)', 
+                     y_label= 'Permeability (md)', title='Porosity-Permeability Crossplot' 
+    )
+  
+    canvas = cpc.view.crossplot_panel.canvas
+    
+    phi_log_obj, K_log_obj = _get_phi_K_objects(well_uid)
+
+
+    x = phi_log_obj.data*100
+    y = K_log_obj.data
+
+ 
+
+
+    def exponenial_func(x, a, b, c):
+        return a*np.exp(-b*x)+c
+
+    from scipy.optimize import curve_fit
+    popt, pcov = curve_fit(exponenial_func, x, y, p0=(1, 1e-6, 1))
+    
+    xfit = np.linspace(xlim[0], xlim[1], 100)
+    yfit = exponenial_func(xfit, *popt)
+    
+    canvas.append_artist('scatter', x, y)         
+
+    canvas.append_artist('Line2D', xfit, yfit, 
+                         linewidth=2, color='red'
+    )   
+
+    canvas.base_axes.set_xlim(xlim)
+    canvas.base_axes.set_ylim(ylim)
+    canvas.draw() 
+
+
+    """
+    from sklearn.linear_model import LinearRegression
+
+    model = LinearRegression(fit_intercept=True)
+    model.fit(x[:, np.newaxis], y)
+
+    xfit = np.linspace(xlim[0], xlim[1])
+    yfit = model.predict(xfit[:, np.newaxis])
+    
+    canvas.append_artist('Line2D', xfit, yfit, 
+                         linewidth=2, color='red'
+    )                     
+    """
+    
+
+def create_SMLP_xplot(event):
+    
+    UIM = UIManager()      
+    mwc = Interface.get_main_window_controller()   
+    
+    well_uid = ('well', 0)
+    
+    # Lin-Lin
+    xlim = (0.0, 1.0)
+    ylim = (0.0, 1.0)      
+    x_scale = 0
+    y_scale = 0
    
+    cpc = UIM.create('crossplot_controller', mwc.uid, 
+                     xlim=xlim, ylim=ylim, x_scale=x_scale, 
+                     scale_lines=10,
+                     y_scale=y_scale,
+                     y_scale_lines=10,
+                     title='Stratigraphic Modified Lorenz Plot (SMLP)',
+                     x_label='Percent Storage Capacity (%PHIH)',
+                     y_label='Percent Flow Capacity (%KH)'
+    )
+    
+    canvas = cpc.view.crossplot_panel.canvas
+    phi_log_obj, K_log_obj = _get_phi_K_objects(well_uid)
+    
+    phiH = phi_log_obj.data * 10
+    phiH_perc = phiH / 3.4
+    
+    kH = K_log_obj.data * 0.1
+    kH_perc = kH / 90.09
+    
+    canvas.append_artist('scatter', phiH_perc, kH_perc) 
+ 
+    canvas.base_axes.set_xlim(xlim)
+    canvas.base_axes.set_ylim(ylim)
+    canvas.draw()    
+
+
+def create_MLP_xplot(event):
+    
+    UIM = UIManager()      
+    mwc = Interface.get_main_window_controller()   
+    
+    well_uid = ('well', 0)
+    
+    # Lin-Lin
+    xlim = (0.0, 1.0)
+    ylim = (0.0, 1.0)      
+    x_scale = 0
+    y_scale = 0
+   
+    cpc = UIM.create('crossplot_controller', mwc.uid, 
+                     xlim=xlim, ylim=ylim, x_scale=x_scale, 
+                     scale_lines=10,
+                     y_scale=y_scale,
+                     y_scale_lines=10,
+                     title='Modified Lorenz Plot (MLP)',
+                     x_label='Phi PAD',
+                     y_label='K PAD'
+    )
+    
+    canvas = cpc.view.crossplot_panel.canvas
+    phi_log_obj, K_log_obj = _get_phi_K_objects(well_uid)
+    
+    phiH = phi_log_obj.data * 10
+    
+    phiH_acum = [phiH[0]]
+    for idx in range(1, len(phiH)):
+        phiH_acum.append(phiH[idx]+phiH_acum[idx-1])
+        print ('phiH_acum[{}] = {}'.format(str(idx), str(phiH[idx]+phiH_acum[idx-1])))
+        
+    kH = K_log_obj.data * 0.1
+    kH_acum = [kH[0]]
+    for idx in range(1, len(kH)):
+        kH_acum.append(kH[idx]+kH_acum[idx-1])
+        print ('phiH_acum[{}] = {}'.format(str(idx), str(kH[idx]+kH_acum[idx-1])))
+        
+    print ('\n')
+    print ('', type(phiH_acum))    
+        
+    phiH_acum = np.asarray(phiH_acum)    
+    kH_acum = np.asarray(kH_acum)
+    
+    phiH_PAD = phiH_acum/493.02
+    kH_PAD = kH_acum/2274.41
+    
+    canvas.append_artist('scatter', phiH_PAD, kH_PAD) 
+ 
+    canvas.base_axes.set_xlim(xlim)
+    canvas.base_axes.set_ylim(ylim)
+    canvas.draw()    
+  
+
+def create_Depth_vs_kHAcum_xplot(event):
+    OM = ObjectManager()
+    UIM = UIManager()      
+    mwc = Interface.get_main_window_controller()   
+    
+    well_uid = ('well', 0)
+
+    data_index = OM.list('data_index', well_uid)[0]
+    
+    # Lin-Lin
+    xlim = (0.0, 2500.0)
+    ylim = (2290.0, 2235.0)      
+    x_scale = 0
+    y_scale = 0
+   
+    cpc = UIM.create('crossplot_controller', mwc.uid, 
+                     xlim=xlim, ylim=ylim, x_scale=x_scale, 
+                     scale_lines=5,
+                     y_scale=y_scale,
+                     y_scale_lines=11,
+                     title='Flow capacity (KH) accumulated X Depth',
+                     x_label= 'KH Accumulated', y_label= 'Depth', 
+    )
+    
+    canvas = cpc.view.crossplot_panel.canvas
+    phi_log_obj, K_log_obj = _get_phi_K_objects(well_uid)
+      
+    kH = K_log_obj.data * 0.1
+    kH_acum = [kH[0]]
+    for idx in range(1, len(kH)):
+        kH_acum.append(kH[idx]+kH_acum[idx-1])
+
+    kH_acum = np.asarray(kH_acum)
+
+    canvas.append_artist('scatter', kH_acum, data_index.data) 
+
+  
+    canvas.base_axes.set_xlim(xlim)
+    canvas.base_axes.set_ylim(ylim)
+    canvas.draw()    
+
+
+
+
+def calc_logs(event):
+    
+    well_uid = ('well', 0)
+    
+    phi_log_obj, K_log_obj = _get_phi_K_objects(well_uid)
+    phiH = phi_log_obj.data * 10
+    
+    phiH_acum = [phiH[0]]
+    for idx in range(1, len(phiH)):
+        phiH_acum.append(phiH[idx]+phiH_acum[idx-1])
+    phiH_acum = np.asarray(phiH_acum)  
+        
+    kH = K_log_obj.data * 0.1
+    kH_acum = [kH[0]]
+    for idx in range(1, len(kH)):
+        kH_acum.append(kH[idx]+kH_acum[idx-1]) 
+    kH_acum = np.asarray(kH_acum)
+    
+    
+    phiH_PAD = phiH_acum/493.02
+    kH_PAD = kH_acum/2274.41
+    
+
+
+
+
+
 '''
 
 def on_test_partition(self, event):

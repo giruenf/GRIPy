@@ -13,7 +13,7 @@ from ui.uimanager import UIModelBase
 from ui.uimanager import UIViewBase 
 from ui.mvc_classes.mpl_base import TrackFigureCanvas
 from ui.mvc_classes.mpl_base import VisDataLabel
-from app.app_utils import LogPlotState  
+from app.app_utils import LogPlotState, parse_string_to_uid  
 from app.gripy_function_manager import FunctionManager
 from app import log
 
@@ -40,15 +40,23 @@ class TrackController(UIControllerBase):
     # Method for Drag and Drop....
     def append_object(self, obj_uid):
         UIM = UIManager()
-        #print 111
-        toc = UIM.create('track_object_controller', self.uid)  
-        tid, oid = obj_uid
-        #print 222
-        toc.model.obj_tid = tid
-        #print 333
-        toc.model.obj_oid = oid
-        return toc
-
+        try:
+#            print (111, obj_uid, type(obj_uid))
+            toc = UIM.create('track_object_controller', self.uid)  
+#            print (222)
+            if isinstance(obj_uid, str):
+                obj_uid = parse_string_to_uid(obj_uid)
+            tid, oid = obj_uid
+#            print (333)
+            toc.model.obj_tid = tid
+#            print (444)
+            toc.model.obj_oid = oid
+#            print (555)
+            return toc
+        except Exception as e:
+            print ('ERRO TrackController.append_object', e)
+            raise
+            
     def reload_track_title(self):
         self.view.update_title(None, None)
         
@@ -99,6 +107,7 @@ class TrackController(UIControllerBase):
         return self.view.label, self.view.track
 
 
+
 class TrackModel(UIModelBase):
     tid = 'track_model'
     
@@ -141,11 +150,21 @@ class TrackModel(UIModelBase):
         },
         'visible': {'default_value': True, 
                      'type': bool
-        }            
+        }#,
+        
+#        Moved to LogPlot
+#        'y_major_grid_lines': {'default_value': 1000.0, 
+#                      'type': float
+#        },
+#        'y_minor_grid_lines': {'default_value': 100.0, 
+#                      'type': float
+#        }
+          
     }        
     
     def __init__(self, controller_uid, **base_state): 
         super(TrackModel, self).__init__(controller_uid, **base_state) 
+
 
 
 ShowGridId = wx.NewId()
@@ -183,17 +202,23 @@ class TrackView(UIViewBase):
 
     def __init__(self, controller_uid):
         UIViewBase.__init__(self, controller_uid)
-            
+
+        
         
     def PostInit(self):  
         UIM = UIManager()
         controller = UIM.get(self._controller_uid)
         parent_controller_uid = UIM._getparentuid(self._controller_uid)
         parent_controller =  UIM.get(parent_controller_uid)
+#        print ('000')
         parent_controller._create_windows(self._controller_uid)
         #
+#        print ('111')
+        
         if controller.model.overview:
+#            print ('222')
             self.create_depth_canvas()
+#            print ('333')
             self.reposition_depth_canvas()
             self.track.Bind(wx.EVT_SIZE, self.on_track_size)
             self.track.Bind(wx.EVT_MOUSE_EVENTS, self.on_mouse)            
@@ -398,19 +423,7 @@ class TrackView(UIViewBase):
         #d1, d2 = self.get_depth()           
         self.track.SetToolTip(wx.ToolTip('{0:.2f} - {1:.2f}'.format(d1, d2)))
         print ('END of end_dragging')
-
-
-    """
-    def _reload_depths_from_canvas_positions(self):
-        y1 = self.d1_canvas.GetPosition()[1]
-        y2 = self.d2_canvas.GetPosition()[1]
-        if y1 <= y2:
-            self.d1 = self.wx_position_to_depth(y1)
-            self.d2 = self.wx_position_to_depth(y2+self.canvas_width)
-        else:
-            self.d1 = self.wx_position_to_depth(y1+self.canvas_width)
-            self.d2 = self.wx_position_to_depth(y2)
-    """      
+   
 
 
     def _adjust_canvas_position(self, inc):

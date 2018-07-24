@@ -279,7 +279,7 @@ class NavigatorModel(FrameModel):
             'default_value': None,
             'type': int
     }  
-    _ATTRIBUTES.update(FrameModel._ATTRIBUTES) 
+#    _ATTRIBUTES.update(FrameModel._ATTRIBUTES) 
      
     def __init__(self, controller_uid, **base_state): 
         super(NavigatorModel, self).__init__(controller_uid, **base_state) 
@@ -289,7 +289,7 @@ class Navigator(Frame):
     tid = 'navigator'
 
     def __init__(self, controller_uid):
-        super(Navigator, self).__init__(controller_uid)
+        super().__init__(controller_uid)
         self.basepanel = wx.Panel(self)
         self.sizer = wx.BoxSizer(wx.VERTICAL)
         self.basepanel.SetSizer(self.sizer)

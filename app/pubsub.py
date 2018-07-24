@@ -10,6 +10,7 @@
 from wx.lib.pubsub import pub
 #from pubsub import pub
 
+
 """
 
                     Gripy messaging pattern module
@@ -60,7 +61,7 @@ def uid_to_pubuid(value):
         tid, oid = value
         return tid + '&' + str(oid)
     except:
-        return value
+        raise
     
 '''
 def decode_topic(topic):
@@ -126,7 +127,7 @@ class PublisherMixin(object):
             >>> listener, ok = b.subscribe(func_on_change, 'attr_changed', 
                                                                        'width')
             * Actual topic would be "on_change@ObjectManager.width"
-        """    
+        """
         # TODO: Refazer docs
         if not callable(listener):
             return None, False
@@ -143,16 +144,28 @@ class PublisherMixin(object):
     def unsubscribe(self, listener, topic):
         try:
             topic = self.get_publisher_name() + '.' + topic
-#            print ('Unsubscribing', topic, listener)
             return pub.unsubscribe(listener, topic)   
-        except Exception as e:
-#            print ('ERROR unsubscribing topic', topic, listener, e)
+        except:
             raise
     
     
     def unsubAll(self):
 #        print ('Unsubscribing ALL', self._topic_filter)
+        #
+        # topicName – if none given, unsub from all topics
+        # listenerFilter – filter function to apply to listeners, 
+        #   unsubscribe only the listeners that satisfy 
+        #   listenerFilter(listener: Listener) == True
+        # topicFilter - topic name, or a filter function to apply to topics;
+        #   in latter case, only topics that satisfy 
+        #   topicFilter(topic name) == True will be affected
+        #
+        # pubsub.pub.unsubAll(topicName=None, listenerFilter=None, 
+        #                                                     topicFilter=None)
+        #
         return pub.unsubAll(topicFilter=self._topic_filter)  
+
+
     
     def _topic_filter(self, topic_name):
         return topic_name.startswith(self.get_publisher_name())
@@ -191,28 +204,17 @@ class PublisherMixin(object):
         # TODO: Refazer docs
         # print ('publisher: {} - topic: {} - data: {}'.format(self.get_publisher_name(), topic, data))
         try:
-#            print ('\nPublisherMixin.send_message:')
             topic = self.get_publisher_name() + '.' + topic
-#            print ('topic:', topic, data, '\n')
+#            print ('\nPublisherMixin.send_message - topic:', topic, data)
             pub.sendMessage(topic, **data)
-#            print ('OK send message')
-            
-        except Exception as e:
+        except:
 #            print ('ERROR [PublisherMixin.send_message]:', self)
 #            print ('At:', topic, data)
 #            print ('Expection was:', e, '\n')
             raise
 
-
-
-
+    
     def get_publisher_name(self):
-        try:
-            # For managers
-            return self._PUB_NAME
-        except AttributeError:
-            try:
-#                print ('get_publisher_name:', self.uid)
-                return uid_to_pubuid(self.uid)
-            except:
-                raise     
+        raise NotImplementedError()
+
+      

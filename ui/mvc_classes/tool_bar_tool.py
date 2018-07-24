@@ -1,17 +1,14 @@
 # -*- coding: utf-8 -*-
 
 import logging
-import types
-import os
+from types import FunctionType
 
 import wx
 
 from ui.uimanager import UIManager
 from ui.uimanager import UIControllerBase 
 from ui.uimanager import UIModelBase 
-#from ui.uimanager import UI_MODEL_ATTR_CLASS
 from ui.mvc_classes.main_window import MainWindowController
-import app
 from app import log
 from app.app_utils import GripyBitmap
 
@@ -23,12 +20,13 @@ class ToolBarToolController(UIControllerBase):
         super(ToolBarToolController, self).__init__()
       
     def PostInit(self):
-        logging.debug('{}.AfterInit started'.format(self.name))
+        log.debug('{}.AfterInit started'.format(self.name))
         UIM = UIManager()
-        root_ctrl = UIM.get_root_controller()
         
-        if not isinstance(root_ctrl, MainWindowController):
-            raise Exception()
+        main_window = wx.App.Get().GetTopWindow()
+#        root_ctrl = UIM.get_root_controller() 
+#        if not isinstance(root_ctrl, MainWindowController):
+#            raise Exception()
             
         # DetachPane if granpa object has a AuiManager...    
         parent_uid = UIM._getparentuid(self.uid)
@@ -36,7 +34,7 @@ class ToolBarToolController(UIControllerBase):
         parent = UIM.get(parent_uid)
         grampa =  UIM.get(grampa_uid)
         if isinstance(grampa, MainWindowController):  
-            mgr = wx.aui.AuiManager.GetManager(root_ctrl.view)
+            mgr = wx.aui.AuiManager.GetManager(main_window)
             if mgr is not None:
                 mgr.DetachPane(parent.view)
             
@@ -49,10 +47,8 @@ class ToolBarToolController(UIControllerBase):
             logging.warning(msg)
             self.model.pos = parent.view.GetToolsCount() 
        
-
         bitmap = GripyBitmap(self.model.bitmap)
 
-                                  
         # TODO: Rever isso
         try:
             tool = parent.view.InsertTool(self.model.pos, self.model.id,
@@ -66,7 +62,7 @@ class ToolBarToolController(UIControllerBase):
             logging.exception(msg)
             raise
         if self.model.callback and tool:
-            root_ctrl.view.Bind(wx.EVT_TOOL, self.model.callback, tool)
+            main_window.Bind(wx.EVT_TOOL, self.model.callback, tool)
             parent.view.Realize()
             
         # AtachPane again if granpa object had it detached...    
@@ -82,43 +78,31 @@ class ToolBarToolModel(UIModelBase):
     tid = 'toolbartool_model'
     _ATTRIBUTES = {
         'pos': {'default_value': -1, 
-                'type': int#, 
-                #'attr_class': UI_MODEL_ATTR_CLASS.APPLICATION
+                'type': int
         },
         'id': {'default_value': wx.ID_ANY, 
-               'type': int#,
-               #'attr_class': UI_MODEL_ATTR_CLASS.APPLICATION
+               'type': int
         },
         'bitmap': {'default_value': wx.EmptyString, 
-                   'type': str#,
-                   #'attr_class': UI_MODEL_ATTR_CLASS.APPLICATION
+                   'type': str
         },
         'kind': {'default_value': wx.ITEM_NORMAL, 
-                 'type': int#,
-                 #'attr_class': UI_MODEL_ATTR_CLASS.APPLICATION
+                 'type': int
         },
         'label': {'default_value': wx.EmptyString, 
-                  'type': str#,
-                  #'attr_class': UI_MODEL_ATTR_CLASS.APPLICATION
+                  'type': str
         },
         'help': {'default_value': wx.EmptyString, 
-                 'type': str#,
-                 #'attr_class': UI_MODEL_ATTR_CLASS.APPLICATION
+                 'type': str
         },
         'long_help': {'default_value': wx.EmptyString, 
-                      'type': str#,
-                      #'attr_class': UI_MODEL_ATTR_CLASS.APPLICATION
+                      'type': str
         },
         'callback': {'default_value': None, 
-                     'type': types.FunctionType#,
-                     #'attr_class': UI_MODEL_ATTR_CLASS.APPLICATION
+                     'type': FunctionType
         }
     }    
     
-    def __init__(self, controller_uid, **base_state):    
-        super(ToolBarToolModel, self).__init__(controller_uid, **base_state)  
-
-
-
-
+    def __init__(self, controller_uid, **state):    
+        super(ToolBarToolModel, self).__init__(controller_uid, **state)  
 
