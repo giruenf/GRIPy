@@ -8,8 +8,9 @@ import wx
 import matplotlib
 
 # TODO: REVER LINHA ABAIXO
-#_APP_PATH = os.path.abspath(os.path.curdir)
-_APP_PATH = os.path.abspath('E:\\repo\\GRIPy')
+_APP_PATH = os.path.abspath(os.path.curdir)
+
+#_APP_PATH = os.path.abspath('E:\\repo\\GRIPy')
 _APP_INIT_FILE = '.gripy_app_config.json'
 _APP_ICONS_REL_PATH = 'basic\\icons'
 _APP_ICONS_PATH = os.path.join(_APP_PATH, _APP_ICONS_REL_PATH)
