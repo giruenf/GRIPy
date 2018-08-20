@@ -7,8 +7,8 @@ from matplotlib.backends.backend_wxagg import FigureCanvasWxAgg as FigureCanvas
 
 from matplotlib.ticker import MultipleLocator
 from matplotlib import style as mstyle 
+import matplotlib.ticker as mticker
 from matplotlib import rcParams
-
 
 from ui.uimanager import UIManager
 from ui.uimanager import UIControllerBase 
@@ -20,59 +20,6 @@ from app import log
 
 # From matplotlib.axes._base.set_xscale
 CANVAS_SCALES = ["linear", "log", "symlog", "logit"]
-
-
-
-class BaseAxes(Axes):    
-    
-    _valid_keys = [
-        'y_major_grid_lines',
-        'y_minor_grid_lines',
-        
-        'x_scale',
-        'plotgrid',
-        
-        'leftscale',
-        'decades',
-        'scale_lines',
-        'minorgrid',
-        'y_scale',
-        'y_plotgrid',
-        'y_scale_lines',
-        'y_minorgrid',
-        'ylim',
-        'depth_lines',
-        
-    ]        
-    
-    _internal_props = {
-        'major_tick_width': 1.4,        
-        'minor_tick_width': 0.7,
-        'major_tick_lenght': 10,
-        'minor_tick_lenght': 5,
-        'dummy_ax_zorder': 0,
-        'ticks_zorder': 8,
-        'spines_zorder': 10,
-        'grid_linestyle': '-',
-        'spines_color': 'black',
-        'tick_grid_color': '#A9A9A9'    #'#DFDFDF'#
-    }  
-    
-
-    def __init__(self, figure, **initial_properties):
-        
-        print ('\nBaseAxes.__init__:', initial_properties)
-
-        rect = initial_properties.get('rect', None)
-        if rect is None:
-            rect = [0.0, 0.0, 1.0, 1.0]
-            
-        
-        super().__init__(figure, rect)
-
-
-
-
 
 
 
@@ -97,22 +44,16 @@ class CanvasController(UIControllerBase):
         
         
     def PostInit(self):
-        self.subscribe(self.on_change_suptitle, 'change.figure_title')
-        self.subscribe(self.on_change_suptitle, 'change.figure_title_x')
-        self.subscribe(self.on_change_suptitle, 'change.figure_title_y')
-        self.subscribe(self.on_change_suptitle, 'change.figure_title_fontsize')
-        self.subscribe(self.on_change_suptitle, 'change.figure_title_weight')
-        self.subscribe(self.on_change_suptitle, 'change.figure_title_ha')
-        self.subscribe(self.on_change_suptitle, 'change.figure_title_va')
+        self.subscribe(self.on_change_figure_facecolor, 'change.figure_facecolor')
         #
         self.subscribe(self.on_change_spine_visibility, 
-                                           'change.spine_right_visibility')
+                                           'change.axes_spines_right')
         self.subscribe(self.on_change_spine_visibility, 
-                                           'change.spine_left_visibility')
+                                           'change.axes_spines_left')
         self.subscribe(self.on_change_spine_visibility, 
-                                           'change.spine_bottom_visibility')
+                                           'change.axes_spines_bottom')
         self.subscribe(self.on_change_spine_visibility, 
-                                           'change.spine_top_visibility')
+                                           'change.axes_spines_top')
         #
         self.subscribe(self.on_change_axis_visibility, 
                                            'change.xaxis_visibility')
@@ -126,30 +67,6 @@ class CanvasController(UIControllerBase):
         #
         self.subscribe(self.on_change_scale, 'change.xscale')
         self.subscribe(self.on_change_scale, 'change.yscale')        
-        #
-        self.subscribe(self.on_change_tick_params, 'change.xgrid_major_visible')
-        self.subscribe(self.on_change_tick_params, 'change.xgrid_major_color')
-        self.subscribe(self.on_change_tick_params, 'change.xgrid_major_alpha')
-        self.subscribe(self.on_change_tick_params, 'change.xgrid_major_linestyle')
-        self.subscribe(self.on_change_tick_params, 'change.xgrid_major_linewidth')
-        #
-        self.subscribe(self.on_change_tick_params, 'change.xgrid_minor_visible')  
-        self.subscribe(self.on_change_tick_params, 'change.xgrid_minor_color')
-        self.subscribe(self.on_change_tick_params, 'change.xgrid_minor_alpha')
-        self.subscribe(self.on_change_tick_params, 'change.xgrid_minor_linestyle')
-        self.subscribe(self.on_change_tick_params, 'change.xgrid_minor_linewidth')  
-        #
-        self.subscribe(self.on_change_tick_params, 'change.ygrid_major_visible')
-        self.subscribe(self.on_change_tick_params, 'change.ygrid_major_color')
-        self.subscribe(self.on_change_tick_params, 'change.ygrid_major_alpha')
-        self.subscribe(self.on_change_tick_params, 'change.ygrid_major_linestyle')
-        self.subscribe(self.on_change_tick_params, 'change.ygrid_major_linewidth')
-        #
-        self.subscribe(self.on_change_tick_params, 'change.ygrid_minor_visible') 
-        self.subscribe(self.on_change_tick_params, 'change.ygrid_minor_color')
-        self.subscribe(self.on_change_tick_params, 'change.ygrid_minor_alpha')
-        self.subscribe(self.on_change_tick_params, 'change.ygrid_minor_linestyle')
-        self.subscribe(self.on_change_tick_params, 'change.ygrid_minor_linewidth')           
         #
         self.subscribe(self.on_change_locator, 'change.xgrid_major_locator')
         self.subscribe(self.on_change_locator, 'change.xgrid_minor_locator')
@@ -211,8 +128,48 @@ class CanvasController(UIControllerBase):
         self.subscribe(self.on_change_axes_properties, 'change.axes_facecolor')
         self.subscribe(self.on_change_axes_properties, 'change.axes_edgecolor')
         self.subscribe(self.on_change_axes_properties, 'change.axes_axisbelow')
-
-
+        self.subscribe(self.on_change_axes_properties, 'change.axes_linewidth')
+        #
+        self.subscribe(self.on_change_grid_parameters, 'change.axes_grid')
+        self.subscribe(self.on_change_grid_parameters, 'change.axes_grid_axis')
+        self.subscribe(self.on_change_grid_parameters, 'change.axes_grid_which')
+        self.subscribe(self.on_change_grid_parameters, 'change.grid_color')
+        self.subscribe(self.on_change_grid_parameters, 'change.grid_alpha')
+        self.subscribe(self.on_change_grid_parameters, 'change.grid_linestyle')
+        self.subscribe(self.on_change_grid_parameters, 'change.grid_linewidth')    
+        
+        #
+        self.subscribe(self.on_change_text_properties, 'change.xaxis_labeltext')
+        self.subscribe(self.on_change_text_properties, 'change.yaxis_labeltext')
+        #        
+        self.subscribe(self.on_change_text_properties, 'change.axes_labelcolor')
+        self.subscribe(self.on_change_text_properties, 'change.axes_labelpad')
+        self.subscribe(self.on_change_text_properties, 'change.axes_labelsize')
+        self.subscribe(self.on_change_text_properties, 'change.axes_labelweight')
+        #
+        self.subscribe(self.on_change_text_properties, 'change.axes_titletextleft')
+        self.subscribe(self.on_change_text_properties, 'change.axes_titletextcenter')
+        self.subscribe(self.on_change_text_properties, 'change.axes_titletextright')
+        self.subscribe(self.on_change_text_properties, 'change.axes_titlecolor')
+        self.subscribe(self.on_change_text_properties, 'change.axes_titlepad')
+        self.subscribe(self.on_change_text_properties, 'change.axes_titlesize')
+        self.subscribe(self.on_change_text_properties, 'change.axes_titleweight')    
+        #
+        self.subscribe(self.on_change_text_properties, 'change.figure_titletext')
+        self.subscribe(self.on_change_text_properties, 'change.figure_titlex')
+        self.subscribe(self.on_change_text_properties, 'change.figure_titley')
+        self.subscribe(self.on_change_text_properties, 'change.figure_titlesize')
+        self.subscribe(self.on_change_text_properties, 'change.figure_titleweight')
+        self.subscribe(self.on_change_text_properties, 'change.figure_titleha')
+        self.subscribe(self.on_change_text_properties, 'change.figure_titleva')
+        #        
+        self.subscribe(self.on_change_minor_tick_visibility, 
+                                               'change.xtick_minor_visible')
+        self.subscribe(self.on_change_minor_tick_visibility, 
+                                               'change.ytick_minor_visible')
+        #
+        
+        
 
     def on_change_axes_properties(self, old_value, new_value, 
                                                       topic=pubsub.AUTO_TOPIC):
@@ -220,74 +177,119 @@ class CanvasController(UIControllerBase):
         prop = key.split('_')[1]
     
         if prop == 'facecolor':
-            self.view.set_facecolor(new_value)
+            self.view.set_axes_facecolor(new_value)
         elif prop == 'edgecolor':
-            self.view.set_edgecolor(new_value)            
+            self.view.set_axes_edgecolor(new_value)            
         elif prop == 'axisbelow':
-            self.view.set_axisbelow(new_value)      
-            
+            self.view.set_axes_axisbelow(new_value)      
+        elif prop == 'linewidth':   
+            self.view.set_axes_axislinewidth(new_value)
         self.view.draw()  
+
+
+    def on_change_grid_parameters(self, old_value, new_value, 
+                                                      topic=pubsub.AUTO_TOPIC):
+        param_key = topic.getName().split('.')[2]
+        keys = param_key.split('_')
+        if keys[0] == 'axes':
+            self.view.set_grid_parameters( 
+                                          self.model.axes_grid_axis, 
+                                          self.model.axes_grid_which,
+                                          gridOn=self.model.axes_grid
+            )
+        else:  # keys[0] == 'grid'
+            kw = {param_key: new_value} 
+            self.view.set_grid_parameters(self.model.axes_grid_axis, 
+                                          self.model.axes_grid_which,
+                                          **kw
+            )
+        self.view.draw()
         
+
         
         
     def load_style(self, style_name):
-        
-        if style_name == 'default':
-            lib_dict = rcParams
-        else:    
-            lib_dict = mstyle.library.get(style_name)
-        
-        self.view._postpone_draw = True
-        
+        self.view._postpone_draw = True   
+        print ('\nReseting style...')
+        self._load_dict(rcParams)
+        print ('Style Reseted.\n')
+        if style_name != 'default':
+            print ('\nSetting new style [{}]...'.format(style_name))
+            lib_dict = mstyle.library.get(style_name)        
+            self._load_dict(lib_dict)
+            print ('Style {} Setted.\n'.format(style_name))
+        self.view._postpone_draw = False
+        self.view.draw()
+
+
+    def _load_dict(self, lib_dict):
+
         for key, value in lib_dict.items():
             if key not in mstyle.core.STYLE_BLACKLIST:
                 keys = key.split('.')
                 new_key = '_'.join(keys)
+                # TODO: Check verbose.fileo for app.log
+                if keys[0] in ['keymap', 'pdf', 'ps', 'svg', 'polaraxes', 
+                               'pgf', 'verbose', 'mathtext', 'date', 'backend',
+                               'animation', 'agg', 'examples', 'savefig']:
+                    # Do not load
+                    continue 
+                elif new_key == 'axes_prop_cycle':
+                    # Do not load
+                    continue     
+                elif new_key == '_internal_classic_mode':
+                    # Do not load
+                    continue           
                 
-                if keys[0] in ['xtick', 'ytick', 'grid']:
+                
+                elif keys[0] in ['xtick', 'ytick', 'grid']:
                     print ('Loading: {} = {}'.format(new_key, value))
+                    """
                     if new_key.startswith('grid'):
                         new_key = new_key.split('_')[1]
                         self.model['xgrid_major_'+new_key] = value
                         self.model['xgrid_minor_'+new_key] = value
                         self.model['ygrid_major_'+new_key] = value
                         self.model['ygrid_minor_'+new_key] = value
-                    else:    
-                        self.model[new_key] = value
+                    else: 
+                    """    
+                    self.model[new_key] = value
                         
                 elif keys[0] == 'axes' and keys[1] in ['facecolor', 
-                         'edgecolor', 'axisbelow']:
+                         'edgecolor', 'axisbelow', 'grid', 'labelpad', 
+                         'labelcolor', 'labelsize', 'labelweight',
+                         'spines', 'titlepad', 'titlesize', 'titleweight']:
+                    print ('Loading: {} = {}'.format(new_key, value))
+                    self.model[new_key] = value
+                  
+                elif keys[0] == 'figure' and keys[1] in ['facecolor']:    
                     print ('Loading: {} = {}'.format(new_key, value))
                     self.model[new_key] = value
                     
-                elif new_key == 'axes_prop_cycle':
-                    continue
+
                 else:
                     print ('NOT LOADED: {} = {}'.format(new_key, value))
                     
-        self.view._postpone_draw = False
-        self.view.draw()
-        
-        
-    def on_change_suptitle(self, old_value, new_value, 
+
+
+    def on_change_figure_facecolor(self, old_value, new_value, 
                                                       topic=pubsub.AUTO_TOPIC):
-        key = topic.getName().split('.')[2]
         try:
-            self.view.suptitle(self.model.figure_title, x=self.model.figure_title_x, 
-                y=self.model.figure_title_y, ha=self.model.figure_title_ha, 
-                va=self.model.figure_title_va, size=self.model.figure_title_fontsize, 
-                weight=self.model.figure_title_weight
-            )
+            self.view.set_figure_facecolor(new_value)
         except:
+            key = topic.getName().split('.')[2]
             self.model.set_value_from_event(key, old_value)
         finally:
-            self.view.draw()       
-
+            self.view.draw()         
+            
+  
 
     def on_change_spine_visibility(self, old_value, new_value, 
                                                       topic=pubsub.AUTO_TOPIC):   
         key = topic.getName().split('.')[2]
-        spine = key.split('_')[1]
+        spine = key.split('_')[2]
+        
+        
         try:
             self.view.set_spine_visibility(spine, new_value)
         except Exception as e:
@@ -347,8 +349,10 @@ class CanvasController(UIControllerBase):
         axis, which, _ =  key.split('_')
         axis = axis[0] # x or y  (e.g. xgrid -> x)        
         
-        self.view.set_locator(axis, which, new_value)
-        self.view.draw()
+        print ('\non_change_locator:', topic, new_value)
+        
+        #self.view.set_locator(axis, which, new_value)
+        #self.view.draw()
     
     
 
@@ -365,23 +369,16 @@ class CanvasController(UIControllerBase):
             elif len(keys) == 2:
                 axis_type_obj, param_key = keys
                 which = 'both'
-            type_obj = axis_type_obj[1:]
+
             axis = axis_type_obj[0] # x or y  (e.g. xgrid -> x)  
-            #
-#            print ('Loading: ', axis, type_obj, which, param_key)
-            
-            if type_obj == 'grid':
-                kw = {'grid_' + param_key: new_value} 
-                self.view.set_tick_params(axis, which, **kw)
-            
-            elif param_key in ['top', 'bottom', 'left', 'right']:
+
+            if param_key in ['top', 'bottom', 'left', 'right']:
                 if param_key.startswith('label'):
                     param_key_2 = param_key[5:]
                     
                 else:
                     param_key_2 = param_key
                 
-#                print ('param_key_2:', param_key_2)
                 
                 if which == 'major' or which == 'both':
                     kw = {param_key: (self.model[axis+'tick_'+param_key] and 
@@ -402,159 +399,56 @@ class CanvasController(UIControllerBase):
             raise            
         #
         self.view.draw()        
- 
-        """
-        self.base_axes.tick_params(
-            top=(controller.model.xtick_top and controller.model.xtick_major_top),
-            bottom=(controller.model.xtick_bottom and controller.model.xtick_major_bottom),
-            left=(controller.model.ytick_left and controller.model.ytick_major_left),
-            right=(controller.model.ytick_right and controller.model.ytick_major_right),
-            
-            labeltop=(controller.model.xtick_labeltop and controller.model.xtick_major_top),
-            labelbottom=(controller.model.xtick_labelbottom and controller.model.xtick_major_bottom),
-            labelleft=(controller.model.ytick_labelleft and controller.model.ytick_major_left),
-            labelright=(controller.model.ytick_labelright and controller.model.ytick_major_right),
-            
-            which='major'
-        )
-        self.base_axes.tick_params(
-            top=(controller.model.xtick_top and controller.model.xtick_minor_top),
-            bottom=(controller.model.xtick_bottom and controller.model.xtick_minor_bottom),
-            labeltop=(controller.model.xtick_labeltop and controller.model.xtick_minor_top),
-            labelbottom=(controller.model.xtick_labelbottom and controller.model.xtick_minor_bottom),
-            
-            left=(controller.model.ytick_left and controller.model.ytick_minor_left),
-            right=(controller.model.ytick_right and controller.model.ytick_minor_right),
-            labelleft=(controller.model.ytick_labelleft and controller.model.ytick_minor_left),
-            labelright=(controller.model.ytick_labelright and controller.model.ytick_minor_right),
-            
-            which='minor'
-        )  
-        """
 
-
-       
-        
+   
     def on_change_tick_size(self, old_value, new_value, topic=pubsub.AUTO_TOPIC):     
         key = topic.getName().split('.')[2]
         axis, which, _ =  key.split('_')
         axis = axis[0] # x or y  (e.g. xgrid -> x)    
         
-        #self.yaxis.set_tick_params('major', size=10)
-        #self.yaxis.set_tick_params('minor', size=5)
         
-        '''
-        gridOn', 'tick1On', 'tick2On', 'label1On', 'label2On']
-        switches = [k for k in kw if k in switchkw]
-        for k in switches:
-            setattr(self, k, kw.pop(k))
-        newmarker = [k for k in kw if k in ['size', 'width', 'pad', 'tickdir']
-        '''
+
+    def on_change_text_properties(self, old_value, new_value, topic=pubsub.AUTO_TOPIC): 
+        attr_name = topic.getName().split('.')[2]
+        who, param_key = attr_name.split('_') 
+        axis = 'both'
+        if who[0] == 'x' or who[0] == 'y':
+            axis = who[0]
+            who = who[1:]
+        param = param_key[:5]
+        key = param_key[5:]
+        kw = {key: new_value}
+        if who == 'axes':
+            if param == 'label':
+                who = 'axis'        # axes_label refers to Axis label
+            elif key.startswith('text'):
+                kw['loc'] = key[4:]
+                kw.pop(key)         # key == textcenter, textleft or textright
+                kw['text'] = new_value
+        if who == 'axis':
+            kw['axis'] = axis
+        self.view.set_label_properties(who, **kw)
+        self.view.draw()     
 
 
 
-        #def tick_params(self, axis='both', **kwargs):
-        """Change the appearance of ticks, tick labels, and gridlines.
-
-        color : color
-            Tick color; accepts any mpl color spec.
-
-        pad : float
-            Distance in points between tick and label.
-
-        labelsize : float or str
-            Tick label font size in points or as a string (e.g., 'large').
-
-        labelcolor : color
-            Tick label color; mpl color spec.
-
-        zorder : float
-            Tick and label zorder.
-
-        labelbottom, labeltop, labelleft, labelright : bool
-            Whether to draw the respective tick labels.
-
-        labelrotation : float
-            Tick label rotation
-
-
-
-        Examples
-        --------
-
-        Usage ::
-
-            ax.tick_params(direction='out', length=6, width=2, colors='r',
-                           grid_color='r', grid_alpha=0.5)
-
-        This will make all major ticks be red, pointing out of the box,
-        and with dimensions 6 points by 2 points.  Tick labels will
-        also be red.  Gridlines will be red and translucent.
-
-        """
-
-
+    def on_change_minor_tick_visibility(self, old_value, new_value, 
+                                                    topic=pubsub.AUTO_TOPIC): 
+        attr_name = topic.getName().split('.')[2]
+        who, _, _ = attr_name.split('_') 
+        axis = who[0]
         
-        
+        self.view.set_minor_tick_visibility(axis, new_value)
+        self.view.draw() 
+
+
+
         
 class CanvasModel(UIModelBase):
     tid = 'canvas_model'
 
     _ATTRIBUTES = {
-
-        'figure_title': {
-                'default_value': wx.EmptyString, 
-                'type': str
-        },
-        'figure_title_x': {
-                'default_value': 0.5, 
-                'type': float
-        },        
-        'figure_title_y': {
-                'default_value': 0.95, 
-                'type': float
-        },
-        'figure_title_fontsize': {
-                'default_value': 16, 
-                'type': int
-        },
-        'figure_title_weight': {
-                'default_value': 'normal', 
-                'type': str
-        },                
-        'figure_title_ha': {
-                'default_value': 'center', 
-                'type': str
-        },                  
-        'figure_title_va': {
-                'default_value': 'center', 
-                'type': str
-        },                   
-        'spine_right_visibility': {
-                'default_value': True, 
-                'type': bool
-        },  
-        'spine_left_visibility': {
-                'default_value': True, 
-                'type': bool
-        },  
-        'spine_bottom_visibility': {
-                'default_value': True, 
-                'type': bool
-        },  
-        'spine_top_visibility': {
-                'default_value': True, 
-                'type': bool
-        },        
-               
-        'xaxis_visibility': {
-                'default_value': True, 
-                'type': bool
-        },          
-        'yaxis_visibility': {
-                'default_value': True, 
-                'type': bool
-        },                 
+        # Top level properties    
         'rect': {
                 #'default_value': (0.0, 0.0, 1.0, 1.0), 
                 'default_value': (0.1, 0.1, 0.8, 0.8), 
@@ -576,87 +470,183 @@ class CanvasModel(UIModelBase):
                 'default_value': (0.001, 1000.0), 
                 'type': (tuple, float, 2)  
         },
-        # Grid Properties
-        'xgrid_major_visible': {
-                'default_value': True, 
-                'type': bool
-        },     
-        'xgrid_major_color': {
-                'default_value': '#A9A9A9',
-                'type': str
-        },  
-        'xgrid_major_alpha': {
-                'default_value': 1.0, 
-                'type': float
-        },  
-        'xgrid_major_linestyle': {
-                'default_value': '-', 
-                'type': str
-        }, 
-        'xgrid_major_linewidth': {
-                'default_value': 1.4, 
-                'type': float
-        },     
-        'xgrid_minor_visible': {
-                'default_value': True, 
-                'type': bool
-        },                  
-        'xgrid_minor_color': {
-                'default_value': '#A9A9A9',
+        'xaxis_labeltext': {
+                'default_value': 'X Axis label', 
+                'type': str                
+        },
+        'yaxis_labeltext': {
+                'default_value': 'Y Axis label', 
+                'type': str                
+        },       
+                
+        # Figure properties
+        'figure_facecolor': {
+                'default_value': 'lightyellow',
                 'type': str
         },
-        'xgrid_minor_alpha': {
-                'default_value': 1.0, 
-                'type': float
-        },  
-        'xgrid_minor_linestyle': {
-                'default_value': '-', 
+
+
+        'figure_titletext': {
+                'default_value': 'Figure Title', #wx.EmptyString, 
                 'type': str
-        }, 
-        'xgrid_minor_linewidth': {
-                'default_value': 0.7, 
+        },
+        'figure_titlex': {
+                'default_value': 0.5, 
                 'type': float
+        },        
+        'figure_titley': {
+                'default_value': 0.95, 
+                'type': float
+        },
+        'figure_titlesize': {
+                'default_value': '15.0', 
+                'type': str
+        },
+        'figure_titleweight': {
+                'default_value': 'normal', 
+                'type': str
+        },                
+        'figure_titleha': {
+                'default_value': 'center', 
+                'type': str
+        },                  
+        'figure_titleva': {
+                'default_value': 'center', 
+                'type': str
+        },    
+        
+                
+        # Axes properties
+        'axes_facecolor': {
+                'default_value': 'white', 
+                'type': str
         },   
-        'ygrid_major_visible': {
+        'axes_edgecolor': {
+                'default_value': 'black', 
+                'type': str
+        },        
+        'axes_axisbelow': {
+                'default_value': 'line', # 'line', True, False
+                'type': str
+        },  
+        'axes_linewidth': {
+                'default_value': 0.8, 
+                'type': float
+        },                
+                
+                
+                
+        'axes_grid': {
                 'default_value': True, 
                 'type': bool
         },                   
-        'ygrid_major_color': {
-                'default_value': '#A9A9A9',
+        'axes_grid_axis': {
+                'default_value': 'both', 
                 'type': str
-        }, 
-        'ygrid_major_alpha': {
-                'default_value': 1.0, 
-                'type': float
-        },          
-        'ygrid_major_linestyle': {
-                'default_value': '-', 
+        },
+        'axes_grid_which': {
+                'default_value': 'major', 
                 'type': str
-        }, 
-        'ygrid_major_linewidth': {
-                'default_value': 1.4, 
+        },
+
+
+
+        'axes_labelcolor': {
+                'default_value': 'black', 
+                'type': str
+        },   
+        'axes_labelpad': {        
+                'default_value': 4.0, 
                 'type': float
-        },                     
-        'ygrid_minor_visible': {
+        },  
+        'axes_labelsize': {
+                'default_value': '12.0', 
+                'type': str
+        },                 
+        'axes_labelweight': {        
+                'default_value': 'normal',
+                'type': str
+        },  
+
+
+        'axes_titletextcenter': {
+                'default_value': 'Axes title (center)',
+                'type': str
+        },
+        'axes_titletextleft': {
+                'default_value': 'Axes title (left)', 
+                'type': str
+        },
+        'axes_titletextright': {
+                'default_value': 'Axes title (right)', 
+                'type': str
+        },
+                
+        'axes_titlecolor': {
+                'default_value': 'black', 
+                'type': str
+        },         
+        'axes_titlepad': {        
+                'default_value': 6.0, 
+                'type': float
+        },  
+        'axes_titlesize': {
+                'default_value': 'large', 
+                'type': str
+        },                 
+        'axes_titleweight': {        
+                'default_value': 'normal',
+                'type': str
+        },  
+         
+                
+        'axes_spines_right': {
                 'default_value': True, 
                 'type': bool
         },  
-        'ygrid_minor_color': {
+        'axes_spines_left': {
+                'default_value': True, 
+                'type': bool
+        },  
+        'axes_spines_bottom': {
+                'default_value': True, 
+                'type': bool
+        },  
+        'axes_spines_top': {
+                'default_value': True, 
+                'type': bool
+        },        
+               
+                
+        'xaxis_visibility': {
+                'default_value': True, 
+                'type': bool
+        },          
+        'yaxis_visibility': {
+                'default_value': True, 
+                'type': bool
+        },                 
+
+        
+        # Grid Properties
+        'grid_color': {
                 'default_value': '#A9A9A9',
                 'type': str
-        },
-        'ygrid_minor_alpha': {
+        },  
+        'grid_alpha': {
                 'default_value': 1.0, 
                 'type': float
-        },                  
-        'ygrid_minor_linestyle': {
+        },  
+        'grid_linestyle': {
                 'default_value': '-', 
                 'type': str
         }, 
-        'ygrid_minor_linewidth': {
-                'default_value': 0.7, 
+        'grid_linewidth': {
+                'default_value': 1.4, 
                 'type': float
         },
+                
+                
         # Tick locator        
         'xgrid_major_locator': {
                 'default_value': 5, 
@@ -674,7 +664,8 @@ class CanvasModel(UIModelBase):
                 'default_value': 20, 
                 'type': int
         },
-        # Tick visibility   
+                
+        # Tick label visibility   
         'xtick_labelbottom': {
                 'default_value': True, 
                 'type': bool
@@ -690,7 +681,8 @@ class CanvasModel(UIModelBase):
         'ytick_labelright': {
                 'default_value': False, 
                 'type': bool
-        },                   
+        },                 
+                
         # Tick visibility (detailed)   
         'xtick_major_bottom': {
                 'default_value': True, 
@@ -724,6 +716,19 @@ class CanvasModel(UIModelBase):
                 'default_value': True, 
                 'type': bool
         },  
+         
+                
+        # Tick visibility   
+        'xtick_minor_visible': {
+                'default_value': True, 
+                'type': bool
+        },        
+        'ytick_minor_visible': {
+                'default_value': True, 
+                'type': bool
+        },                   
+            
+                
         # Tick visibility   
         'xtick_bottom': {
                 'default_value': True, 
@@ -740,7 +745,9 @@ class CanvasModel(UIModelBase):
         'ytick_right': {
                 'default_value': False, 
                 'type': bool
-        },                   
+        },       
+                
+                
         # Tick direction        
         'xtick_direction': {
                 'default_value': 'out', 
@@ -750,41 +757,44 @@ class CanvasModel(UIModelBase):
         'ytick_direction': {
                 'default_value': 'out',
                 'type': str
-        },                
+        },           
+                
         # Tick length   
         'xtick_major_size': {
-                'default_value': 10.0, 
+                'default_value': 3.5, #10.0, 
                 'type': float
         },  
         'xtick_minor_size': {
-                'default_value': 5.0, 
+                'default_value': 2.0, #5.0, 
                 'type': float
         },           
         'ytick_major_size': {
-                'default_value': 10.0, 
+                'default_value': 3.5, #10.0,
                 'type': float
         }, 
         'ytick_minor_size': {
-                'default_value': 5.0, 
+                'default_value': 2.0, #5.0, 
                 'type': float
         },     
+                
         # Tick width                 
         'xtick_major_width': {
-                'default_value': 1.4, 
+                'default_value': 0.8, #1.4, 
                 'type': float
         },          
         'xtick_minor_width': {
-                'default_value': 5, 
+                'default_value': 0.6, #5, 
                 'type': float
         },           
         'ytick_major_width': {
-                'default_value': 10, 
+                'default_value': 0.8, #1.4,  
                 'type': float
         }, 
         'ytick_minor_width': {
-                'default_value': 5, 
+                'default_value': 0.6, #5, 
                 'type': float
-        },                  
+        },    
+                
         # Tick pad                 
         'xtick_major_pad': {
                 'default_value': 3.5, 
@@ -802,6 +812,7 @@ class CanvasModel(UIModelBase):
                 'default_value': 3.4, 
                 'type': float
         },
+                
         # Tick label size       
         'xtick_labelsize': {
                 'default_value': '10.0', 
@@ -811,6 +822,7 @@ class CanvasModel(UIModelBase):
                 'default_value': '10.0',
                 'type': str
         },
+                
         # Tick color    
         'xtick_color': {
                 'default_value': 'black', 
@@ -820,6 +832,7 @@ class CanvasModel(UIModelBase):
                 'default_value': 'black', 
                 'type': str
         }, 
+                
         # Tick label color     
         'xtick_labelcolor': {
                 'default_value': 'black', 
@@ -828,7 +841,8 @@ class CanvasModel(UIModelBase):
         'ytick_labelcolor': {
                 'default_value': 'black', 
                 'type': str
-        },    
+        },   
+                
         # Tick label rotation   
         'xtick_labelrotation': {
                 'default_value': 0.0, 
@@ -838,19 +852,9 @@ class CanvasModel(UIModelBase):
                 'default_value': 0.0,
                 'type': float
         },
-        # Axes
-        'axes_facecolor': {
-                'default_value': 'white', 
-                'type': str
-        },   
-        'axes_edgecolor': {
-                'default_value': 'black', 
-                'type': str
-        },        
-        'axes_axisbelow': {
-                'default_value': 'line', 
-                'type': str
-        },                 
+ 
+                
+                
     }  
         
     def __init__(self, controller_uid, **base_state):      
@@ -864,9 +868,7 @@ class Canvas(UIViewBase, FigureCanvas):
 
 
     def __init__(self, controller_uid):
-        
-        print ('\nCanvas.__init__')
-        
+
         try:
             UIViewBase.__init__(self, controller_uid)
             UIM = UIManager()
@@ -874,9 +876,6 @@ class Canvas(UIViewBase, FigureCanvas):
             #
             parent_uid = UIM._getparentuid(self._controller_uid)
             parent_obj = UIM.get(parent_uid)
-            
-            print (self._controller_uid, parent_obj.view, 
-                   controller.model.name) #TODO: self.model.name
             #
             self._postpone_draw = False
             #
@@ -884,16 +883,12 @@ class Canvas(UIViewBase, FigureCanvas):
             #
             self.figure = Figure()    
             
-            self.figure.set_facecolor('lightblue')
+            self.figure.set_facecolor(controller.model.figure_facecolor)
             
             FigureCanvas.__init__(self, wx_parent, -1, self.figure)
-
-            
-            controller.model.figure_title = 'Titulo'
             
             share_x = True
 
-        
             self.base_axes = Axes(self.figure, controller.model.rect,
                                       facecolor=None,
                                       frameon=True,
@@ -905,7 +900,6 @@ class Canvas(UIViewBase, FigureCanvas):
                                       xlim=controller.model.xlim,
                                       ylim=controller.model.ylim
             )
-                                      #**base_axes_properties)
             self.figure.add_axes(self.base_axes)
             self.base_axes.set_zorder(0)
             #
@@ -933,34 +927,71 @@ class Canvas(UIViewBase, FigureCanvas):
             self.plot_axes.yaxis.set_visible(False)        
             self.plot_axes.set_zorder(1)
             #
-            #
-            #
-            #
             self.set_axis_visibility('x', controller.model.xaxis_visibility)
             self.set_axis_visibility('y', controller.model.yaxis_visibility)
             #
             self.set_spine_visibility('right', 
-                                      controller.model.spine_right_visibility) 
+                                      controller.model.axes_spines_right) 
             self.set_spine_visibility('left', 
-                                      controller.model.spine_left_visibility) 
+                                      controller.model.axes_spines_left) 
             self.set_spine_visibility('bottom', 
-                                      controller.model.spine_bottom_visibility) 
+                                      controller.model.axes_spines_bottom) 
             self.set_spine_visibility('top', 
-                                      controller.model.spine_top_visibility) 
-            #
-            if controller.model.figure_title:
-                self.suptitle(controller.model.figure_title, 
-                    x=controller.model.figure_title_x, y=controller.model.figure_title_y, 
-                    ha=controller.model.figure_title_ha, va=controller.model.figure_title_va,
-                    size=controller.model.figure_title_fontsize, 
-                    weight=controller.model.figure_title_weight
-                )
-                
-            #grid_color, grid_alpha, grid_linewidth, grid_linestyle
+                                      controller.model.axes_spines_top) 
             #
             self._load_locator_properties()
             self._load_ticks_properties()
             self._load_grids_properties()
+            #
+            self.set_label_properties('figure', 
+                            text=controller.model.figure_titletext, 
+                            x=controller.model.figure_titlex, 
+                            y=controller.model.figure_titley, 
+                            ha=controller.model.figure_titleha, 
+                            va=controller.model.figure_titleva,
+                            size=controller.model.figure_titlesize, 
+                            weight=controller.model.figure_titleweight
+            )
+            #
+            self.set_label_properties('axes', 
+                                      loc='left',
+                                      text=controller.model.axes_titletextleft,
+                                      color=controller.model.axes_titlecolor,
+                                      pad=controller.model.axes_titlepad,
+                                      size=controller.model.axes_titlesize,
+                                      weight=controller.model.axes_titleweight
+            ) 
+            self.set_label_properties('axes', 
+                                      loc='center',
+                                      text=controller.model.axes_titletextcenter,
+                                      color=controller.model.axes_titlecolor,
+                                      pad=controller.model.axes_titlepad,
+                                      size=controller.model.axes_titlesize,
+                                      weight=controller.model.axes_titleweight
+            ) 
+            self.set_label_properties('axes', 
+                                      loc='right',
+                                      text=controller.model.axes_titletextright,
+                                      color=controller.model.axes_titlecolor,
+                                      pad=controller.model.axes_titlepad,
+                                      size=controller.model.axes_titlesize,
+                                      weight=controller.model.axes_titleweight
+            )                               
+            #
+            self.set_label_properties('axis', axis='x', 
+                                    text=controller.model.xaxis_labeltext, 
+                                    color=controller.model.axes_labelcolor, 
+                                    pad=controller.model.axes_labelpad,
+                                    size=controller.model.axes_labelsize,
+                                    weight=controller.model.axes_labelweight
+            )
+            self.set_label_properties('axis', axis='y', 
+                                    text=controller.model.yaxis_labeltext,
+                                    color=controller.model.axes_labelcolor, 
+                                    pad=controller.model.axes_labelpad,
+                                    size=controller.model.axes_labelsize,
+                                    weight=controller.model.axes_labelweight
+            )                                           
             #
             self.mpl_connect('motion_notify_event', self.on_track_move)
             #
@@ -969,9 +1000,7 @@ class Canvas(UIViewBase, FigureCanvas):
         except Exception as e:        
             print ('ERROR IN Canvas.PostInit:', e)
             raise
-        # matplotlib.axis line 1439
-        # gridkw = {'grid_' + item[0]: item[1] for item in kwargs.items()}
-        
+
 
     def _load_locator_properties(self):
         UIM = UIManager()
@@ -984,6 +1013,7 @@ class Canvas(UIViewBase, FigureCanvas):
                                      controller.model.ygrid_major_locator)
         self.set_locator('y', 'minor', 
                                      controller.model.ygrid_minor_locator)        
+
 
     def _load_ticks_properties(self):
         UIM = UIManager()
@@ -1012,6 +1042,8 @@ class Canvas(UIViewBase, FigureCanvas):
             which='minor'
         )  
         
+#        print ('XTick minor:', (controller.model.xtick_labelbottom and controller.model.xtick_minor_bottom))
+        
         self.base_axes.tick_params(axis='x', which='major', size=controller.model.xtick_major_size)
         self.base_axes.tick_params(axis='x', which='minor', size=controller.model.xtick_minor_size)
         self.base_axes.tick_params(axis='y', which='major', size=controller.model.ytick_major_size)
@@ -1022,45 +1054,29 @@ class Canvas(UIViewBase, FigureCanvas):
     def _load_grids_properties(self):
         UIM = UIManager()
         controller = UIM.get(self._controller_uid)
-        self.base_axes.grid(controller.model.xgrid_major_visible, 
-                        axis='x', which='major', 
-                        color=controller.model.xgrid_major_color,
-                        linestyle=controller.model.xgrid_major_linestyle, 
-                        linewidth=controller.model.xgrid_major_linewidth
-        )
-        self.base_axes.grid(controller.model.xgrid_minor_visible, 
-                        axis='x', which='minor', 
-                        color=controller.model.xgrid_minor_color,
-                        linestyle=controller.model.xgrid_minor_linestyle, 
-                        linewidth=controller.model.xgrid_minor_linewidth
-        )
-        self.base_axes.grid(controller.model.ygrid_major_visible, 
-                        axis='y', which='major', 
-                        color=controller.model.ygrid_major_color,
-                        linestyle=controller.model.ygrid_major_linestyle, 
-                        linewidth=controller.model.ygrid_major_linewidth
-        )
-        self.base_axes.grid(controller.model.ygrid_minor_visible, 
-                        axis='y', which='minor', 
-                        color=controller.model.ygrid_minor_color,
-                        linestyle=controller.model.ygrid_minor_linestyle, 
-                        linewidth=controller.model.ygrid_minor_linewidth
-        )
 
+        self.set_grid_parameters(controller.model.axes_grid_axis,  
+                                 controller.model.axes_grid_which,
+                                 gridOn=controller.model.axes_grid,
+                                 grid_color=controller.model.grid_color,
+                                 grid_alpha=controller.model.grid_alpha,
+                                 grid_linestyle=controller.model.grid_linestyle,
+                                 grid_linewidth=controller.model.grid_linewidth
+        )
+        
 
     def draw(self, drawDC=None):
         if not self._postpone_draw:
             super().draw(drawDC)
 
 
-    def suptitle(self, text, **kwargs):
-        print ('suptitle:', text, kwargs)
+    def set_figure_facecolor(self, color):
         try:
-            suptitle_text = self.figure.suptitle(text, **kwargs)
-            return suptitle_text
+            self.figure.set_facecolor(color)
         except:
             raise
-
+        
+        
     def set_axis_visibility(self, axis, visibility):
         if axis == 'x':
             ax = self.base_axes.xaxis
@@ -1110,6 +1126,10 @@ class Canvas(UIViewBase, FigureCanvas):
   
 
     def set_tick_params(self, axis, which, **kwargs):  
+        
+        
+#        print ('canvas.set_tick_params(axis={}, which={}, kwargs={}'.format(axis, which, kwargs))
+        
         if axis not in ['x', 'y', 'both']:
             raise Exception('Invalid axis.')
         #    
@@ -1117,77 +1137,74 @@ class Canvas(UIViewBase, FigureCanvas):
             raise Exception('Invalid which.') 
         #
         
-        b = kwargs.pop('grid_visible', None)
-        if b is None:
-            if axis in ['x', 'both']:
-                axis_ = self.base_axes.xaxis
-                try:
-                    axis_.set_tick_params(which=which, **kwargs)
-                except:
-                    raise
-                finally:
-                    axis_.stale = True 
-            if axis in ['y', 'both']:
-                axis_ = self.base_axes.yaxis
-                try:
-                    axis_.set_tick_params(which=which, **kwargs)
-                except:
-                    raise
-                finally:
-                    axis_.stale = True                    
+#        b = kwargs.pop('grid_visible', None)
+#        if b is None:
             
-        else:    
-            kwargs['gridOn'] = b
-            if axis in ['x', 'both']:
-                axis_ = self.base_axes.xaxis
-                if which in ['major', 'both']:
-                    try:
-                        old_b = axis_._gridOnMajor
-                        axis_._gridOnMajor = b
-                        axis_.set_tick_params(which='major', **kwargs)
-                    except:
-                        axis_._gridOnMajor = old_b
-                        raise
-                    finally:
-                        axis_.stale = True 
-                    
-                if which in ['minor', 'both']:
-                    try:
-                        old_b = axis_._gridOnMinor
-                        axis_._gridOnMinor = b
-                        axis_.set_tick_params(which='minor', **kwargs)
-                    except:
-                        axis_._gridOnMinor = old_b
-                        raise
-                    finally:
-                        axis_.stale = True 
-
-            if axis in ['y', 'both']:
-                axis_ = self.base_axes.yaxis
-                if which in ['major', 'both']:
-                    try:
-                        old_b = axis_._gridOnMajor
-                        axis_._gridOnMajor = b
-                        axis_.set_tick_params(which='major', **kwargs)
-                    except:
-                        axis_._gridOnMajor = old_b
-                        raise
-                    finally:
-                        axis_.stale = True 
-                    
-                if which in ['minor', 'both']:
-                    try:
-                        old_b = axis_._gridOnMinor
-                        axis_._gridOnMinor = b
-                        axis_.set_tick_params(which='minor', **kwargs)
-                    except:
-                        axis_._gridOnMinor = old_b
-                        raise
-                    finally:
-                        axis_.stale = True                     
+        if axis in ['x', 'both']:
+            axis_ = self.base_axes.xaxis
+            try:
+                axis_.set_tick_params(which=which, **kwargs)
+            except:
+                raise
+            finally:
+                axis_.stale = True 
                 
-                    
+        if axis in ['y', 'both']:
+            axis_ = self.base_axes.yaxis
+            try:
+                axis_.set_tick_params(which=which, **kwargs)
+            except:
+                raise
+            finally:
+                axis_.stale = True                    
 
+        
+        
+    def set_grid_parameters(self, axis, which, **kwargs):
+        
+#        print ('\n\nset_grid_parameters({}, {}, {})'.format(axis, which, kwargs))
+
+        gridOn = kwargs.pop('gridOn', None)
+        
+        
+        if gridOn is None:
+            if axis == 'x' or axis == 'both':
+#                print ('xaxis.set_tick_params({})'.format(kwargs))
+                self.base_axes.xaxis.set_tick_params(**kwargs)
+            if axis == 'y' or axis == 'both':
+#                print ('yaxis.set_tick_params({})'.format(kwargs))
+                self.base_axes.yaxis.set_tick_params(**kwargs)                               
+        
+        
+        else:    
+#            print ('\nX-axis gridOn')
+            ax = self.base_axes.xaxis
+            if axis == 'x' or axis == 'both':
+                ax._gridOnMajor = (gridOn and which in ('both', 'major'))
+                ax._gridOnMinor = (gridOn and which in ('both', 'minor')) 
+            else:
+                ax._gridOnMajor = False
+                ax._gridOnMinor = False
+            ax.set_tick_params(which='minor', gridOn=ax._gridOnMinor, **kwargs) 
+            ax.set_tick_params(which='major', gridOn=ax._gridOnMajor, **kwargs)
+#            print ('ax._gridOnMajor:', ax._gridOnMajor, kwargs)
+#            print ('ax._gridOnMinor:', ax._gridOnMinor, kwargs)            
+            
+#            print ('\nY-axis gridOn')    
+            ax = self.base_axes.yaxis
+            if axis == 'y' or axis == 'both':
+                ax._gridOnMajor = (gridOn and which in ('both', 'major'))
+                ax._gridOnMinor = (gridOn and which in ('both', 'minor')) 
+            else:
+                ax._gridOnMajor = False
+                ax._gridOnMinor = False    
+            ax.set_tick_params(which='minor', gridOn=ax._gridOnMinor, **kwargs) 
+            ax.set_tick_params(which='major', gridOn=ax._gridOnMajor, **kwargs)
+#            print ('ax._gridOnMajor:', ax._gridOnMajor, kwargs)
+#            print ('ax._gridOnMinor:', ax._gridOnMinor, kwargs)   
+            
+            
+        
 
     def set_locator(self, axis, which, value):
         try: 
@@ -1215,243 +1232,115 @@ class Canvas(UIViewBase, FigureCanvas):
             raise
         
 
-    def set_axisbelow(self, b):
-        self.base_axes.set_axisbelow(b)
-        
-    def set_facecolor(self, color):
-        self.base_axes.set_facecolor(color)
-        
-    def set_edgecolor(self, color):
-        self.base_axes.patch.set_edgecolor(color)
-
-
-        '''
-        grid_color, grid_alpha, grid_linewidth, grid_linestyle
-        
-        grid_color : color
-        Changes the gridline color to the given mpl color spec.
-        grid_alpha : float
-        Transparency of gridlines: 0 (transparent) to 1 (opaque).
-        grid_linewidth : float
-        Width of gridlines in points.
-        grid_linestyle : string
-
-        #gridkw = {'grid_' + item[0]: item[1] for item in kwargs.items()}
-        self.base_axes.xaxis._gridOnMajor = value
-        self.base_axes.xaxis.set_tick_params(which='major', 
-                                             gridOn=self._gridOnMajor,
-                                 **gridkw
-        )
-        self.base_axes.xaxis.stale = True
-        '''
-
+    def set_axes_axisbelow(self, b):
         """
-        def set_ticks_locator(self, value, axis, which):  
-            
-            if axis == 'x':
-                self.base_axes.xaxisset_xscale(scale)
-            elif axis == 'y':
-                return self.base_axes.set_yscale(scale)
-            else:
-                raise Exception('Invalid axis [{}].'.format(axis))   
-            
-            self.base_axes.yaxis.set_minor_locator(MultipleLocator(value))
-    
-    
-        """
+        Set whether axis ticks and gridlines are above or below most artists.
 
-        #xax.grid(color='r', linestyle='-', linewidth=2)
-
-
-        # self._gridOnMajor = True
-        # self._gridOnMinor = True
-        
-#        self.base_axes.xaxis.set_tick_params(which='minor', 
-#                                    gridOn=self._gridOnMinor, **gridkw
-#        )
-
-
-    
-#       # matplotlib.axes._base line 2848
-#       def tick_params(self, axis='both', **kwargs):
-        """Change the appearance of ticks, tick labels, and gridlines.
+        .. ACCEPTS: [ bool | 'line' ]
 
         Parameters
         ----------
-        axis : {'x', 'y', 'both'}, optional
-            Which axis to apply the parameters to.
-
-        Other Parameters
-        ----------------
-
-        axis : {'x', 'y', 'both'}
-            Axis on which to operate; default is 'both'.
-
-        reset : bool
-            If *True*, set all parameters to defaults
-            before processing other keyword arguments.  Default is
-            *False*.
-
-        which : {'major', 'minor', 'both'}
-            Default is 'major'; apply arguments to *which* ticks.
-
-        direction : {'in', 'out', 'inout'}
-            Puts ticks inside the axes, outside the axes, or both.
-
-        length : float
-            Tick length in points.
-
-        width : float
-            Tick width in points.
-
-        color : color
-            Tick color; accepts any mpl color spec.
-
-        pad : float
-            Distance in points between tick and label.
-
-        labelsize : float or str
-            Tick label font size in points or as a string (e.g., 'large').
-
-        labelcolor : color
-            Tick label color; mpl color spec.
-
-        colors : color
-            Changes the tick color and the label color to the same value:
-            mpl color spec.
-
-        zorder : float
-            Tick and label zorder.
-
-        bottom, top, left, right : bool
-            Whether to draw the respective ticks.
-
-        labelbottom, labeltop, labelleft, labelright : bool
-            Whether to draw the respective tick labels.
-
-        labelrotation : float
-            Tick label rotation
-
-        grid_color : color
-            Changes the gridline color to the given mpl color spec.
-
-        grid_alpha : float
-            Transparency of gridlines: 0 (transparent) to 1 (opaque).
-
-        grid_linewidth : float
-            Width of gridlines in points.
-
-        grid_linestyle : string
-            Any valid :class:`~matplotlib.lines.Line2D` line style spec.
-
-        Examples
-        --------
-
-        Usage ::
-
-            ax.tick_params(direction='out', length=6, width=2, colors='r',
-                           grid_color='r', grid_alpha=0.5)
-
-        This will make all major ticks be red, pointing out of the box,
-        and with dimensions 6 points by 2 points.  Tick labels will
-        also be red.  Gridlines will be red and translucent.
-
-        """
-
-
-
+        b : bool or 'line'
             
-        """
-        x = kwargs.pop('x', 0.5)
-        y = kwargs.pop('y', 0.98)
-
-        if ('horizontalalignment' not in kwargs) and ('ha' not in kwargs):
-            kwargs['horizontalalignment'] = 'center'
-        if ('verticalalignment' not in kwargs) and ('va' not in kwargs):
-            kwargs['verticalalignment'] = 'top'
-
-        if 'fontproperties' not in kwargs:
-            if 'fontsize' not in kwargs and 'size' not in kwargs:
-                kwargs['size'] = rcParams['figure.titlesize']
-            if 'fontweight' not in kwargs and 'weight' not in kwargs:
-                kwargs['weight'] = rcParams['figure.titleweight']
-
-        sup = self.text(x, y, t, **kwargs)
-        if self._suptitle is not None:
-            self._suptitle.set_text(t)
-            self._suptitle.set_position((x, y))
-            self._suptitle.update_from(sup)
-            sup.remove()
-        else:
-            self._suptitle = sup
-        if self._layoutbox is not None:
-            # assign a layout box to the suptitle...
-            figlb = self._layoutbox
-            self._suptitle._layoutbox = layoutbox.LayoutBox(
-                                            parent=figlb,
-                                            name=figlb.name+'.suptitle')
-            for child in figlb.children:
-                if not (child == self._suptitle._layoutbox):
-                    w_pad, h_pad, wspace, hspace =  \
-                            self.get_constrained_layout_pads(
-                                    relative=True)
-                    layoutbox.vstack([self._suptitle._layoutbox, child],
-                                     padding=h_pad*2., strength='required')
-        self.stale = True
-        return self._suptitle
-    
-        """
-        
-        
-        """
-        
-        class _AxesBase(martist.Artist):
-        
-        
-        Build an :class:`Axes` instance in
-        :class:`~matplotlib.figure.Figure` *fig* with
-        *rect=[left, bottom, width, height]* in
-        :class:`~matplotlib.figure.Figure` coordinates
-
-        Optional keyword arguments:
-
-          ================   =========================================
-          Keyword            Description
-          ================   =========================================
-          *adjustable*       [ 'box' | 'datalim' ]
-          *alpha*            float: the alpha transparency (can be None)
-          *anchor*           [ 'C', 'SW', 'S', 'SE', 'E', 'NE', 'N',
-                               'NW', 'W' ]
-          *aspect*           [ 'auto' | 'equal' | aspect_ratio ]
-          *autoscale_on*     bool; whether to autoscale the *viewlim*
-          *axisbelow*        [ bool | 'line' ] draw the grids
+        *axisbelow*        [ bool | 'line' ] draw the grids
                              and ticks below or above most other artists,
                              or below lines but above patches
-          *cursor_props*     a (*float*, *color*) tuple
-          *figure*           a :class:`~matplotlib.figure.Figure`
-                             instance
-          *frame_on*         bool; whether to draw the axes frame
-          *label*            the axes label
-          *navigate*         bool
-          *navigate_mode*    [ 'PAN' | 'ZOOM' | None ] the navigation
-                             toolbar button status
-          *position*         [left, bottom, width, height] in
-                             class:`~matplotlib.figure.Figure` coords
-          *sharex*           an class:`~matplotlib.axes.Axes` instance
-                             to share the x-axis with
-          *sharey*           an class:`~matplotlib.axes.Axes` instance
-                             to share the y-axis with
-          *title*            the title string
-          *visible*          bool, whether the axes is visible
-          *xlabel*           the xlabel
-          *xlim*             (*xmin*, *xmax*) view limits
-          *xscale*           [%(scale)s]
-          *xticklabels*      sequence of strings
-          *xticks*           sequence of floats
-          *ylabel*           the ylabel strings
-          *ylim*             (*ymin*, *ymax*) view limits
-          *yscale*           [%(scale)s]
-          *yticklabels*      sequence of strings
-          *yticks*           sequence of floats
-          ================   =========================================
-        """
+        """  
+        self.base_axes.set_axisbelow(b)
+        
+        
+    def set_axes_facecolor(self, color):
+        self.base_axes.set_facecolor(color)
+        
+        
+    def set_axes_edgecolor(self, color):
+        self.base_axes.spines['left'].set_edgecolor(color)
+        self.base_axes.spines['right'].set_edgecolor(color)
+        self.base_axes.spines['bottom'].set_edgecolor(color)
+        self.base_axes.spines['top'].set_edgecolor(color)
+        
+
+    def set_axes_linewidth(self, value):
+        self.base_axes.spines['left'].set_linewidth(value)
+        self.base_axes.spines['right'].set_linewidth(value)
+        self.base_axes.spines['bottom'].set_linewidth(value)
+        self.base_axes.spines['top'].set_linewidth(value)     
+
+    
+    def set_label_properties(self, who, **kwargs):
+        #
+#        print ('set_label_properties(who={}, kwargs{})'.format(who, kwargs))
+        #
+        text = kwargs.pop('text', None)
+        pad = kwargs.pop('pad', None)
+        #
+        axis = kwargs.pop('axis', None)
+        loc = kwargs.pop('loc', 'all')
+        #
+        text_objs = []
+          
+        if who == 'axes':
+            if loc == 'left' or loc == 'all':
+                text_objs.append(self.base_axes._left_title)
+            if loc == 'center' or loc == 'all':
+                text_objs.append(self.base_axes.title)    
+            if loc == 'right' or loc == 'all':
+                text_objs.append(self.base_axes._right_title)       
+  
+        elif who == 'axis':
+            if pad is not None:
+                if axis == 'x' or axis == 'both':
+                    self.base_axes.xaxis.labelpad = pad 
+                    self.base_axes.xaxis.stale = True
+                if axis == 'y' or axis == 'both':
+                    self.base_axes.yaxis.labelpad = pad
+                    self.base_axes.yaxis.stale = True
+                #return    
+            if axis == 'x' or axis == 'both':
+                 text_objs.append(self.base_axes.xaxis.label)
+            if axis == 'y' or axis == 'both':     
+                 text_objs.append(self.base_axes.yaxis.label)
+                 
+        elif who == 'figure':  
+            if self.figure._suptitle is None:
+                x = kwargs.pop('x', 0.5)
+                y = kwargs.pop('y', 0.98)
+                if text is None:
+                    text = ''
+                self.figure._suptitle = self.figure.text(x, y, text) 
+            text_objs.append(self.figure._suptitle)
+            
+            
+        for text_obj in text_objs:
+            if text is not None:
+                text_obj.set_text(text)
+            text_obj.update(kwargs) 
+            
+            
+    
+    def set_minor_tick_visibility(self, axis, b):
+        axis_list = []
+        if axis == 'x' or axis == 'both':
+            axis_list.append(self.base_axes.xaxis)
+        if axis == 'y' or axis == 'both':
+            axis_list.append(self.base_axes.yaxis)
+        if b:
+            for ax in axis_list:
+                scale = ax.get_scale()    
+                if scale == 'log':
+                    s = ax._scale
+                    ax.set_minor_locator(mticker.LogLocator(s.base, s.subs))
+                elif scale == 'symlog':
+                    s = ax._scale
+                    ax.set_minor_locator(
+                        mticker.SymmetricalLogLocator(s._transform, s.subs))
+                else:
+                    ax.set_minor_locator(mticker.AutoMinorLocator())
+        else:
+            for ax in axis_list:
+                ax.set_minor_locator(mticker.NullLocator()) 
+
+
+
+
+

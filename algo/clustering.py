@@ -7,8 +7,10 @@ from sklearn.mixture import GMM
 from sklearn.preprocessing import scale
 from sklearn import metrics
 
+
 def locate_nans(data):
     return np.sum(np.isnan(data), axis=1, dtype=bool)
+
 
 def reorder_clusters(clusters, centers, covars=None):
     nc = centers.shape[0]
@@ -31,6 +33,7 @@ def reorder_clusters(clusters, centers, covars=None):
         new_clusters[clusters == argsort[i]] = i
     
     return new_clusters, argsort
+
 
 def k_means(data, nc, req_info=None):
     means = np.mean(data, axis=0)
@@ -56,6 +59,7 @@ def k_means(data, nc, req_info=None):
         info['centers'] = km.cluster_centers_*stds + means
     
     return km.labels_, info
+
 
 def expectation_maximization(data, nc, cv_type='full', req_info=None):
     gmm = GMM(n_components=nc, covariance_type=cv_type, thresh=1.0E-4, n_init=10)

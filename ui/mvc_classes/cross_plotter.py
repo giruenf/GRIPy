@@ -93,7 +93,7 @@ class CrossPlot(WorkPage):
         """
         
     def PostInit(self):
-        print ('CrossPlot.PostInit')
+#        print ('CrossPlot.PostInit')
 
         try:
 
@@ -132,7 +132,7 @@ class CrossPlot(WorkPage):
             msg = 'PreDelete ' + self.__class__.__name__ + \
                                             ' ended with error: ' + str(e)
             print (msg)                                
-            raise         
+            pass       
 
 
     def _on_change_tool(self, event):
@@ -182,7 +182,7 @@ class CrossPlot(WorkPage):
         '''        
    
 
-
+        '''
         print ('\n')
             
         for key, value in rcParams.items():
@@ -192,7 +192,17 @@ class CrossPlot(WorkPage):
                 print ('{}: {}'.format(key, value))
 
         print ('\n')
+        '''
+        
+        
         #print ('axis._gridline_param_names:', axis._gridline_param_names)
+
+        self._tool_bar.label_MC = wx.StaticText(self._tool_bar, 
+                                                label='MPL Theme:  '
+        )
+        #self._tool_bar.label_MC.SetLabel('Multi cursor:')
+        self._tool_bar.AddControl(self._tool_bar.label_MC, '')
+
         
         styles = ['default'] + mstyle.available[:]
         self._tool_bar.choice_Style = wx.Choice(self._tool_bar, choices=styles)
@@ -204,7 +214,7 @@ class CrossPlot(WorkPage):
         self._tool_bar.choice_Style.Bind(wx.EVT_CHOICE , self._on_choice_style) 
         self._tool_bar.AddControl(self._tool_bar.choice_Style, '')
         
-        
+        self._tool_bar.AddSeparator()
         
         self._tool_bar.Realize()  
 

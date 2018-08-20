@@ -210,11 +210,9 @@ class GripyApp(wx.App):
         #UIM.close()
         UIM = UIManager()  
         UIM.PreExit()
-        
-        # As indicated by https://forums.wxwidgets.org/viewtopic.php?t=32138        
-        aui_manager = wx.aui.AuiManager.GetManager(self.GetTopWindow())
-        aui_manager.UnInit()   
-        
+    
+#        mwc = Interface.get_main_window_controller()
+#        UIM.remove(mwc.uid)
         #
         # Removes every topic from PubSub
         # Used as a pubsub's garbage collector 
@@ -232,15 +230,6 @@ class GripyApp(wx.App):
         msg = 'GriPy Application has finished.'
         log.info(msg)
         print (msg)
-        
-        '''
-        try:
-            ret_val = super().OnExit()
-        except:
-            raise
-        print (msg, ret_val, '\n')
-        '''
-        
         return super().OnExit()
         
     

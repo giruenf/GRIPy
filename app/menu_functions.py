@@ -2042,12 +2042,8 @@ def on_hilbert_attributes(event):
 
 
 def on_exit(*args, **kwargs):
-    gripy_app = wx.GetApp() 
-    event = args[0]
-    event.Skip()
-    gripy_app.PreExit()
-    main_window = gripy_app.GetTopWindow()
-    main_window.Destroy()
+    mwc = Interface.get_main_window_controller()
+    mwc.close()
 
     
 
@@ -2505,6 +2501,16 @@ def on_pt(event):
             
 #        self.dlg.SetSize((610, 860))
     
+    
+
+
+def on_teste_container(event):
+    print ('b4 on_teste_container')
+    print (wx.SysErrorCode())
+    UIM = UIManager()      
+    mwc = Interface.get_main_window_controller()
+    UIM.create('workpage_controller', mwc.uid)
+    print ('a5 on_teste_container')
     
     
 def on_new_crossplot(event):

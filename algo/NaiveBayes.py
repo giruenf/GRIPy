@@ -17,8 +17,7 @@ class NaiveBayes(object):
             self.featurepm_kwargs = {}
         else:
             self.featurepm_kwargs = featurepm_kwargs
-        self.classpm = None
-        self.featurepm = {}
+
 
     def train(self, data, target):
         self.classpm = PM.get_probabilistic_model(self.classpm_key)(**self.classpm_kwargs)

@@ -56,7 +56,9 @@ from ui.mvc_classes.track_object import TrackObjectController, \
 from ui.mvc_classes.frame_nav import NavigatorController, \
     NavigatorModel, Navigator
 from ui.mvc_classes.cross_plotter import CrossPlotController, CrossPlotModel, CrossPlot
+
 from ui.mvc_classes.workpage import WorkPageController, WorkPageModel, WorkPage
+
 from ui.mvc_classes.track_object import \
     LineRepresentationController, LineRepresentationModel, LineRepresentationView, \
     IndexRepresentationController, IndexRepresentationModel, IndexRepresentationView, \
@@ -181,7 +183,14 @@ def register_UIManager_classes():
     UIManager.register_class(ContourfRepresentationController, ContourfRepresentationModel,     
                               ContourfRepresentationView, TrackObjectController
     )
-    
-#    UIManager.register_class(WorkPageController, WorkPageModel, WorkPage, MainWindowController)
-    
+    #
+    # 
+    UIManager.register_class(WorkPageController, WorkPageModel, WorkPage, MainWindowController)
+    UIManager.register_class(WorkPageController, WorkPageModel, WorkPage, FrameController)
+    #
     UIManager.register_class(CanvasController, CanvasModel, Canvas, CrossPlotController)  
+    #
+    UIManager.register_class(FrameController, FrameModel, Frame, MainWindowController)
+    
+    
+    

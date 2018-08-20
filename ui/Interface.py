@@ -277,24 +277,24 @@ def load():
         )
         
         UIM.create('menu_item_controller', mc_well.uid, 
-                label='PoroPerm Cross-Plot',
+                label=u'PoroPerm Cross-Plot',
                 callback='app.menu_functions.create_poro_perm_xplot'
         )           
         
         UIM.create('menu_item_controller', mc_well.uid, 
-                label='Winland Cross-Plot',
+                label=u'Winland Cross-Plot',
                 callback='app.menu_functions.create_winland_xplot'
         )        
         UIM.create('menu_item_controller', mc_well.uid, 
-                label='Stratigraphic Modified lorenz Plot (SMLP)',
+                label=u'Stratigraphic Modified lorenz Plot (SMLP)',
                 callback='app.menu_functions.create_SMLP_xplot'
         )        
         UIM.create('menu_item_controller', mc_well.uid, 
-                label='Modified lorenz Plot (MLP)',
+                label=u'Modified lorenz Plot (MLP)',
                 callback='app.menu_functions.create_MLP_xplot'
         )          
         UIM.create('menu_item_controller', mc_well.uid, 
-                label='Depth vs Acumulated KH',
+                label=u'Depth vs Acumulated KH',
                 callback='app.menu_functions.create_Depth_vs_kHAcum_xplot'
         )      
 
@@ -435,11 +435,22 @@ def load():
                        help='Crossplot', 
                        long_help='Crossplot',
                        callback='app.menu_functions.on_new_crossplot'
-        )         
+        )               
+
+        UIM.create('toolbartool_controller', tbc.uid,
+                       label=u"Crossplot", 
+                       bitmap='crossplot_24.png',
+                       help=u'Crossplot', 
+                       long_help=u'Crossplot',
+                       callback='app.menu_functions.on_teste_container'
+        )   
+
+
 
         # StatusBar
         UIM.create('statusbar_controller', mwc.uid, 
-            label='Bem vindo ao ' + app.gripy_app.GripyApp.Get()._gripy_app_state.get('app_display_name')
+            label='Bem vindo ao ' + \
+            app.gripy_app.GripyApp.Get()._gripy_app_state.get('app_display_name')
         )  
         
         

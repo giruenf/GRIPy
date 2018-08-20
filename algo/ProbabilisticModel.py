@@ -341,7 +341,6 @@ class KeysXuPM(ProbabilisticModel):
         self.rho_std_factor = rho_std_factor
         self.vp_std_factor = vp_std_factor
         
-        self.otherspm = None
     
     def rho_residual(self, x):
         return np.mean((self.rho - RP.rho(self.phi, x[0], x[1]))**2)

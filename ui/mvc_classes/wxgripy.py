@@ -148,9 +148,22 @@ class Frame(TopLevel, wx.Frame):
             self.SetIcon(self.icon)     
         if controller.model.maximized:
             self.Maximize()   
+            
+        # TODO: Bind para a super class???    
         self.Bind(wx.EVT_MAXIMIZE, self.on_maximize)       
         self.Bind(wx.EVT_SIZE, self.on_size)    
         self.Bind(wx.EVT_MOVE, self.on_move)    
+        self.Bind(wx.EVT_CLOSE, self.on_close)  
+        
+
+    def on_close(self, event):
+        print ('\n\n\nFrame on_close')
+#        event.Skip()
+        self._call_self_remove()
+        wx.CallAfter(self.Destroy)
+        
+
+
 
 
 ###############################################################################

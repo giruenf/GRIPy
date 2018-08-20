@@ -16,7 +16,6 @@ class ProbabilisticClassifier(Classifier):
             self.featurepm_kwargs = {}
         else:
             self.featurepm_kwargs = featurepm_kwargs
-        self.classpm = None
         self.featurepm = {}
     
     def train(self, data, target):

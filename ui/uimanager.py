@@ -40,6 +40,19 @@ class UIBase(GripyObject):
     def _get_manager_class(self):
         return UIManager
 
+    def _call_self_remove(self):
+        print ('\n_call_self_remove ')
+        try:
+            if isinstance(self, UIControllerBase):
+                uid = self.uid
+            else:
+                uid = self._controller_uid
+            UIM = UIManager()
+            wx.CallAfter(UIM.remove, uid)
+
+        except Exception as e:
+            print ('ERROR: _call_self_remove ', e)
+
 
 ###############################################################################
 ###############################################################################
@@ -153,9 +166,9 @@ class UIControllerBase(UIBase):
             print ('\n', msg)
             raise
         
-    def _call_self_remove(self):
-        UIM = UIManager()
-        wx.CallAfter(UIM.remove, self.uid)
+#    def _call_self_remove(self):
+#        UIM = UIManager()
+#        wx.CallAfter(UIM.remove, self.uid)
    
     def attach(self, OM_objuid):
 #        print ('attach:', OM_objuid)
@@ -242,6 +255,8 @@ class UIModelBase(UIBase):
             except:
                 pass
             raise 
+
+
 
 
     """
@@ -346,7 +361,7 @@ class UIManager(GripyManager):
         #print ('UIManager._currentobjectids: ', UIManager._currentobjectids)
         print ('UIManager._parentuidmap: ', UIManager._parentuidmap)
         print ('UIManager._childrenuidmap: ', UIManager._childrenuidmap)
-        #print ('UIManager._parenttidmap: ', UIManager._parenttidmap)
+        print ('UIManager._parenttidmap: ', UIManager._parenttidmap)
         #print ('UIManager._MVC_CLASSES: ', UIManager._MVC_CLASSES)    
     ####
 
@@ -565,17 +580,25 @@ class UIManager(GripyManager):
             return False
         for childuid in self._childrenuidmap.get(uid)[::-1]:
             self.remove(childuid) 
+        
         # Unsubscribing listeners from controller
         obj.unsubAll()    
         # PreDelete must close (delete) all references from object's parent.    
         obj.PreDelete()
+
         if obj.view:
             obj.view.unsubAll() 
             obj.view.PreDelete() 
             msg = 'Deleting UI view object {}.'.format(obj.view.uid)
 #            print (msg)
             log.debug(msg)
-            del obj.view
+            
+            # TODO: rever se este eh o melhor caminho....
+            if isinstance(obj.view, wx.Window):
+                obj.view.Destroy()
+            else:
+                del obj.view
+
         if obj.model:
             #
             obj.model.unsubAll()
@@ -585,6 +608,7 @@ class UIManager(GripyManager):
 #            print (msg)
             log.debug(msg)
             del obj.model    
+
         # Removing from _childrenuidmap    
         parent_uid = self._parentuidmap.get(uid)
         if parent_uid:
@@ -602,10 +626,32 @@ class UIManager(GripyManager):
         gc.collect()
         self.send_message('post_remove', objuid=uid)
         msg = 'UI Manager removed sucessfully {}.'.format(uid) 
-#        print (msg + '\n')
         log.debug(msg)    
         return True
-    
+
+
+    def reparent(self, uid, new_parent_uid):
+        print ('UIM.reparent:', uid, new_parent_uid)
+        if uid not in self._data:
+            raise Exception('uid={} is not a UIManager object.'.format(uid))
+        if new_parent_uid not in self._data:
+            raise Exception('New parent uid={} is not a UIManager object.'.format(new_parent_uid))   
+        obj = self._data[uid]
+        
+        if new_parent_uid[0] not in self._parenttidmap.get(uid[0], None):
+            raise Exception('New parent tid={} not registered as {} parent.'.format(new_parent_uid.tid,
+                            obj.__class__.__name__)
+        )
+         
+        #
+        old_parent_uid = self._parentuidmap[uid]
+        self._parentuidmap[uid] = new_parent_uid
+        #
+        self._childrenuidmap[old_parent_uid].remove(uid)
+        self._childrenuidmap[new_parent_uid].append(uid)
+        # Make obj.view do the wx reparent
+        obj.view.reparent(old_parent_uid, new_parent_uid)
+
 
     # Before exit application
     def PreExit(self):
@@ -627,7 +673,7 @@ class UIManager(GripyManager):
             except AttributeError:
                 pass
             except Exception as e:
-                print ('\n\n', obj.uid, e.args, e.message, '\n\n')
+                print ('\n\nERROR with object {}: {} \n\n'.format(obj.uid, e))
                 raise      
             obj.unsubAll()      
             obj.PreDelete()    
