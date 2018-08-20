@@ -7,6 +7,7 @@ from ui.mvc_classes.wxgripy import FrameController
 from ui.mvc_classes.wxgripy import FrameModel
 from ui.mvc_classes.wxgripy import Frame
 
+from app.app_utils import GripyBitmap
 from app import log
 
 
@@ -50,8 +51,9 @@ class MainWindow(Frame):
         #
         self.main_area_panel = wx.Panel(self)
         # TODO: mudar chamada direta e usar GripyBitmap
-        bmp_filename = "E:\\repo\\GRIPy\\basic\\icons\\gripy_logo.jpg"
-        bmp = wx.Bitmap(bmp_filename)
+        
+        bmp_filename = "gripy_logo.jpg"
+        bmp = GripyBitmap(bmp_filename)
         self._static_bmp = wx.StaticBitmap(self.main_area_panel, wx.ID_ANY, 
                                     bmp, wx.Point(0, 0), 
                                     bmp.GetSize()
