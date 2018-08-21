@@ -50,7 +50,6 @@ class MainWindow(Frame):
                wx.SystemSettings.GetColour(wx.SYS_COLOUR_3DFACE)) 
         #
         self.main_area_panel = wx.Panel(self)
-        # TODO: mudar chamada direta e usar GripyBitmap
         
         bmp_filename = "gripy_logo.jpg"
         bmp = GripyBitmap(bmp_filename)

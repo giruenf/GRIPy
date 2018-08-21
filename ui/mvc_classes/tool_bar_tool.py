@@ -21,12 +21,8 @@ class ToolBarToolController(UIControllerBase):
       
     def PostInit(self):
         log.debug('{}.AfterInit started'.format(self.name))
-        UIM = UIManager()
-        
+        UIM = UIManager()        
         main_window = wx.App.Get().GetTopWindow()
-#        root_ctrl = UIM.get_root_controller() 
-#        if not isinstance(root_ctrl, MainWindowController):
-#            raise Exception()
             
         # DetachPane if granpa object has a AuiManager...    
         parent_uid = UIM._getparentuid(self.uid)
@@ -57,10 +53,12 @@ class ToolBarToolController(UIControllerBase):
                                             self.model.help, 
                                             self.model.long_help, None
             )
-        except Exception:
-            msg = 'Error in creating ToolBarTool.'
+        except Exception as e:
+            msg = 'Error in creating ToolBarTool: ' + e
             logging.exception(msg)
+            print ('\n\n', msg)
             raise
+            
         if self.model.callback and tool:
             main_window.Bind(wx.EVT_TOOL, self.model.callback, tool)
             parent.view.Realize()

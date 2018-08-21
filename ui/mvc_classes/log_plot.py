@@ -429,22 +429,24 @@ class LogPlot(WorkPage):
 
 
     def set_own_name(self):
-        OM = ObjectManager()
-        UIM = UIManager()   
-        controller = UIM.get(self._controller_uid)
-        idx = 0
-        well = OM.get(('well', controller.model.well_oid))
-        lpcs = UIM.list('logplot_controller')
-        for lpc in lpcs:
-            if lpc == controller:
-                break
-            if lpc.model.well_oid == controller.model.well_oid:
-                idx += 1
-        idx += 1
-
-        controller.model.title = self._FRIENDLY_NAME + ': ' + well.name + \
-                                    ' ['+ str(idx) + ']'    
-       
+        try:
+            OM = ObjectManager()
+            UIM = UIManager()   
+            controller = UIM.get(self._controller_uid)
+            idx = 0
+            well = OM.get(('well', controller.model.well_oid))
+            lpcs = UIM.list('logplot_controller')
+            for lpc in lpcs:
+                if lpc == controller:
+                    break
+                if lpc.model.well_oid == controller.model.well_oid:
+                    idx += 1
+            idx += 1
+    
+            controller.model.title = self._FRIENDLY_NAME + ': ' + well.name + \
+                                        ' ['+ str(idx) + ']'    
+        except Exception as e:
+            print ('ERROR set_own_name:', e)
     
     
     def _prepare_index_data(self):

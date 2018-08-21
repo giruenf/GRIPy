@@ -403,35 +403,35 @@ def load():
         tbc = UIM.create('toolbar_controller', mwc.uid)
         UIM.create('toolbartool_controller', tbc.uid,
                        label=u"New project", 
-                       bitmap='aqua_new_file_24.png',
+                       bitmap='new_file-30.png',
                        help='New project', 
                        long_help='Start a new Gripy project, closes existing',
                        callback='app.menu_functions.on_open'
         )            
         UIM.create('toolbartool_controller', tbc.uid,
                        label=u"Abrir projeto", 
-                       bitmap='folder_opened_24.png',
+                       bitmap='open_folder-30.png',
                        help='Abrir projeto', 
                        long_help='Abrir projeto GriPy',
                        callback='app.menu_functions.on_open'
         )
         UIM.create('toolbartool_controller', tbc.uid,
                        label=u"Salvar projeto", 
-                       bitmap='floppy_24.png',
+                       bitmap='save_close-30.png',
                        help='Salvar projeto', 
                        long_help='Salvar projeto GriPy',
                        callback='app.menu_functions.on_save'
         )
         UIM.create('toolbartool_controller', tbc.uid,
                        label=u"Well Plot", 
-                       bitmap='log_plot_24.png',
+                       bitmap='oil_rig-30.png',
                        help='Well Plot', 
                        long_help='Well Plot',
                        callback='app.menu_functions.on_new_wellplot'
         )
         UIM.create('toolbartool_controller', tbc.uid,
                        label=u"Crossplot", 
-                       bitmap='crossplot_24.png',
+                       bitmap='scatter_plot-30.png',
                        help='Crossplot', 
                        long_help='Crossplot',
                        callback='app.menu_functions.on_new_crossplot'

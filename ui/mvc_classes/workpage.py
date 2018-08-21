@@ -72,7 +72,7 @@ class WorkPage(UIViewBase, wx.Panel):
         controller.subscribe(self._set_title, 'change.title')            
         controller.subscribe(self._set_pos, 'change.pos')
         controller.subscribe(self._set_float_mode, 'change.float_mode')                
-#        self.set_own_name()
+        self.set_own_name()
    
 
     def PreDelete(self):

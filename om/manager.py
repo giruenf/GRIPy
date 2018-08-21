@@ -293,16 +293,18 @@ class ObjectManager(GripyManager):
         >>> obj2 == obj
         True
         """
-#        print ('\n\nOM.get:', uid, type(uid))
+        print ('\n\nOM.get:', uid, type(uid))
         if isinstance(uid, str):
             uid = app_utils.parse_string_to_uid(uid)
         try:    
 #            print ('OM.get [2]:', uid, type(uid))
 #            print (self._data)
             obj = self._data[uid]
+            return obj
         except Exception as e:
             print ('ERROR OM.get:', uid, e)
-        return obj
+            raise
+        
 
 
     def remove(self, uid):
