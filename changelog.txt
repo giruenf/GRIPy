@@ -5,6 +5,8 @@ Versão 0.8.beta:
 ================
 - Pypubsub 4.0 como dependencia
 - Python 3.6
+- Sistema de janelas de trabalho flutuantes (com inserção da logo dp Gripy como background)
+- Reescrita total do CrossPlot
 
 Versão 0.7:
 ===========

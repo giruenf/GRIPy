@@ -19,7 +19,7 @@ from app.app_utils import DropTarget
 from datatypes.DataTypes import VALID_Z_AXIS_DATATYPES
 from app import log  
 
-
+LP_FLOAT_PANEL = wx.NewId() 
 LP_NORMAL_TOOL = wx.NewId()        
 LP_SELECTION_TOOL = wx.NewId()     
 LP_ADD_TRACK = wx.NewId()     
@@ -928,9 +928,35 @@ class LogPlot(WorkPage):
             else:
                 track.view.track.show_cursor(xdata, ydata, False)
         
+
+
+    def _on_change_float_panel(self, event):
+        # TODO: Integrar binds de toggle buttons...
+        if event.GetId() == LP_FLOAT_PANEL:
+            UIM = UIManager()   
+            controller = UIM.get(self._controller_uid)
+            controller.model.float_mode = event.IsChecked()    
+
+
         
     def _build_tool_bar(self):
 
+        self.fp_item = self._tool_bar.AddTool(LP_FLOAT_PANEL, 
+                      wx.EmptyString,
+                      GripyBitmap('restore_window-25.png'), 
+                      wx.NullBitmap,
+                      wx.ITEM_CHECK,
+                      'Float Panel', 
+                      'Float Panel',
+                      None
+        )
+        self._tool_bar.ToggleTool(LP_FLOAT_PANEL, False)
+        self._tool_bar.Bind(wx.EVT_TOOL, self._on_change_float_panel, None,
+                  LP_FLOAT_PANEL
+        )                
+        self._tool_bar.AddSeparator()
+        
+        
         self._tool_bar.AddTool(LP_NORMAL_TOOL, 
                       wx.EmptyString,
                       GripyBitmap('cursor_24.png'), 

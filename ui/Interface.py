@@ -437,15 +437,6 @@ def load():
                        callback='app.menu_functions.on_new_crossplot'
         )               
 
-        UIM.create('toolbartool_controller', tbc.uid,
-                       label=u"Crossplot", 
-                       bitmap='crossplot_24.png',
-                       help=u'Crossplot', 
-                       long_help=u'Crossplot',
-                       callback='app.menu_functions.on_teste_container'
-        )   
-
-
 
         # StatusBar
         UIM.create('statusbar_controller', mwc.uid, 

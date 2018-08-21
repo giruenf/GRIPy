@@ -151,8 +151,16 @@ def register_UIManager_classes():
     UIManager.register_class(ToolBarToolController, ToolBarToolModel, None, ToolBarController)  
     UIManager.register_class(TreeController, None, TreeView, MainWindowController)
     UIManager.register_class(StatusBarController, StatusBarModel, StatusBar, MainWindowController)
+    # 
+    UIManager.register_class(WorkPageController, WorkPageModel, WorkPage, MainWindowController)
+    UIManager.register_class(WorkPageController, WorkPageModel, WorkPage, FrameController)
+    #
     UIManager.register_class(LogPlotController, LogPlotModel, LogPlot, MainWindowController)
+    UIManager.register_class(LogPlotController, LogPlotModel, LogPlot, FrameController)
+    #
     UIManager.register_class(CrossPlotController, CrossPlotModel, CrossPlot, MainWindowController)
+    UIManager.register_class(CrossPlotController, CrossPlotModel, CrossPlot, FrameController)
+    #    
     UIManager.register_class(TrackController, TrackModel, TrackView, LogPlotController)
     UIManager.register_class(TrackObjectController, TrackObjectModel, None,
                               TrackController
@@ -184,11 +192,9 @@ def register_UIManager_classes():
                               ContourfRepresentationView, TrackObjectController
     )
     #
-    # 
-    UIManager.register_class(WorkPageController, WorkPageModel, WorkPage, MainWindowController)
-    UIManager.register_class(WorkPageController, WorkPageModel, WorkPage, FrameController)
-    #
-    UIManager.register_class(CanvasController, CanvasModel, Canvas, CrossPlotController)  
+
+    UIManager.register_class(CanvasController, CanvasModel, Canvas, CrossPlotController) 
+    
     #
     UIManager.register_class(FrameController, FrameModel, Frame, MainWindowController)
     

@@ -30,7 +30,7 @@ CP_NORMAL_TOOL = wx.NewId()
 CP_SELECTION_TOOL = wx.NewId()   
 
 
-
+CP_FLOAT_PANEL = wx.NewId()  
 
 
 
@@ -74,24 +74,8 @@ class CrossPlot(WorkPage):
 
     def __init__(self, controller_uid):   
         super().__init__(controller_uid) 
-        #
-        """
-        self.sizer = wx.BoxSizer(wx.VERTICAL)
-        self._tool_bar =  wx.aui.AuiToolBar(self)
-        self.sizer.Add(self._tool_bar, 0, flag=wx.TOP|wx.EXPAND)
-        #     
-        self._main_panel = wx.Panel(self)
-        self.sizer.Add(self._main_panel, 1, flag=wx.EXPAND)
-#        self._main_panel.SetBackgroundColour('green')
-        #
-        self._status_bar =  PlotStatusBar(self)
-        self.sizer.Add(self._status_bar, 0, flag=wx.BOTTOM|wx.EXPAND)
-        self.SetSizer(self.sizer)   
-        #
-        self._build_tool_bar()
-        self.Layout()
-        """
-        
+
+  
     def PostInit(self):
 #        print ('CrossPlot.PostInit')
 
@@ -141,11 +125,35 @@ class CrossPlot(WorkPage):
             print ('CP_NORMAL_TOOL')
         elif event.GetId() == CP_SELECTION_TOOL:  
             print ('CP_SELECTION_TOOL')
-            
+
+
+
+    def _on_change_float_panel(self, event):
+        # TODO: Integrar binds de toggle buttons...
+        if event.GetId() == CP_FLOAT_PANEL:
+            UIM = UIManager()   
+            controller = UIM.get(self._controller_uid)
+            controller.model.float_mode = event.IsChecked()            
 
 
     def _build_tool_bar(self):
 
+        self.fp_item = self._tool_bar.AddTool(CP_FLOAT_PANEL, 
+                      wx.EmptyString,
+                      GripyBitmap('restore_window-25.png'), 
+                      wx.NullBitmap,
+                      wx.ITEM_CHECK,
+                      'Float Panel', 
+                      'Float Panel',
+                      None
+        )
+        self._tool_bar.ToggleTool(CP_FLOAT_PANEL, False)
+        self._tool_bar.Bind(wx.EVT_TOOL, self._on_change_float_panel, None,
+                  CP_FLOAT_PANEL
+        )        
+        self._tool_bar.AddSeparator()
+        
+        #
         self._tool_bar.AddTool(CP_NORMAL_TOOL, 
                       wx.EmptyString,
                       GripyBitmap('cursor_24.png'), 

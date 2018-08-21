@@ -87,21 +87,14 @@ class MainWindow(Frame):
 
 
     def adjust_background_panel(self):
-        
-        print ('\nadjust_background_panel')
-        print ('n pages:', self.get_notebook_page_count())
-        print ('self._notebook.IsShown():', self._notebook.IsShown())
-        print ('self._static_bmp.IsShown():', self._static_bmp.IsShown())
-        
         if ((self.get_notebook_page_count() == 0) and 
                                                 (self._notebook.IsShown())): 
             # Last page was removed
-            print ('MOSTRA LOGO')
             self.show_main_area_panel()
 
         if ((self.get_notebook_page_count() == 1) and 
                                             (not self._notebook.IsShown())):
-            print ('ESCONDE LOGO')
+            # Fist page was shown
             self.show_main_area_panel(False)
 
 

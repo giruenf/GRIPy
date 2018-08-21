@@ -56,7 +56,7 @@ class WorkPage(UIViewBase, wx.Panel):
         parent_view = parent_controller.view.main_area_panel
 
         wx.Panel.__init__(self, parent_view)
-        self.SetBackgroundColour('green')
+#        self.SetBackgroundColour('green')
 
         #
         if controller.model.pos == -1:
@@ -79,25 +79,11 @@ class WorkPage(UIViewBase, wx.Panel):
         UIM = UIManager()
         controller = UIM.get(self._controller_uid)        
         if controller.model.float_mode:
-            #raise Exception('FLOAT MODE')
-            print ('\n\nTRATAR FLOAT MODE')
-            return
+            raise Exception('TRATAR DELETE ON FLOAT MODE')
         mwc = Interface.get_main_window_controller()
         mwc.remove_notebook_page(self)
         
-    """    
-    def remove_notebook_page(self, page_window):
-        # Remove page without destruct
-        page_idx = self._notebook.GetPageIndex(page_window)
-        ret_val =  self._notebook.RemovePage(page_idx)
-        # Line below must exist in order to prevent SystemError
-        wx.CallAfter(self.adjust_background_panel)
-        return ret_val        
-    """  
-        
-    
-    
-                                     
+                              
     def _set_title(self, new_value, old_value):
         UIM = UIManager()
         controller = UIM.get(self._controller_uid)
