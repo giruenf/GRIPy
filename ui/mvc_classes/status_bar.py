@@ -23,8 +23,10 @@ class StatusBarController(UIControllerBase):
 class StatusBarModel(UIModelBase):
     tid = 'statusbar_model'
 
+    # TODO: Corrigir atributo abaixo
     _ATTRIBUTES = {
-        'label': {'default_value': wx.EmptyString, 'type': str}
+        'label': {'default_value': wx.EmptyString, 
+                  'type': str}
     }    
     
     def __init__(self, controller_uid, **base_state):
@@ -40,20 +42,7 @@ class StatusBar(UIViewBase, wx.StatusBar):
         parent_controller_uid = _UIM._getparentuid(self._controller_uid)
         parent_controller =  _UIM.get(parent_controller_uid)
         wx.StatusBar.__init__(self, parent_controller.view)
-        
-        """
-        self.paneinfo = wx.aui.AuiPaneInfo().Name(self.tid).Bottom()
-        
-        mgr = wx.aui.AuiManager_GetManager(self.parent)
-        mgr.AddPane(self, self.paneinfo)
-        mgr.Update()
-        """
         parent_controller.view.SetStatusBar(self)
-        #if isinstance(self.parent, MainWindow):
-        #    self.parent.SetStatusBar(self)        
-        #else:
-        #    raise Exception('')
-
 
     def PostInit(self):
         _UIM = UIManager()

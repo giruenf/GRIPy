@@ -293,7 +293,7 @@ class ObjectManager(GripyManager):
         >>> obj2 == obj
         True
         """
-        print ('\n\nOM.get:', uid, type(uid))
+#        print ('\n\nOM.get:', uid, type(uid))
         if isinstance(uid, str):
             uid = app_utils.parse_string_to_uid(uid)
         try:    

@@ -146,7 +146,7 @@ class MainWindow(Frame):
 #        aui_manager = wx.aui.AuiManager.GetManager(self)
 #        aui_manager.UnInit()   
         
-        self._mgr.UnInit() 
+        self._mgr.UnInit()
         
         
     def on_page_changed(self, event):
@@ -162,9 +162,6 @@ class MainWindow(Frame):
     def on_page_close(self, event):
         
         panel = self._notebook.GetPage(event.GetSelection())
-    
-        print ('\n\non_page_close:', panel._controller_uid)
-        
         # Remove page without destruct
         self.remove_notebook_page(panel)
         # Remove from UIManager with Window destruction
@@ -177,7 +174,6 @@ class MainWindow(Frame):
      
         
     def insert_notebook_page(self, *args, **kwargs):
-        print ('\n\ninsert_notebook_page')
         try:
             page = None
             if kwargs:

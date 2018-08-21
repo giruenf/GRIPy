@@ -6,7 +6,7 @@ from ui.uimanager import UIManager
 from ui.uimanager import UIControllerBase 
 from ui.uimanager import UIModelBase 
 from ui.uimanager import UIViewBase 
-from  ui import Interface
+from ui import Interface
 
 from app import log
 
@@ -114,42 +114,36 @@ class WorkPage(UIViewBase, wx.Panel):
         
 
     def _set_float_mode(self, new_value, old_value):
-        print ('\n_set_float_mode:', new_value, old_value)
-        
         UIM = UIManager()
         controller = UIM.get(self._controller_uid)
         parent_uid = UIM._getparentuid(controller.uid)
-
         if new_value:
             controller.unsubscribe(self._set_title, 'change.title')            
             controller.unsubscribe(self._set_pos, 'change.pos')
-            fc = UIM.create('frame_controller', parent_uid)
+            fc = UIM.create('frame_controller', parent_uid, 
+                            title=controller.model.title
+            )
             UIM.reparent(self._controller_uid, fc.uid)
             fc.view.Show()
         else:
             mwc_uid = UIM._getparentuid(parent_uid)
             mwc = UIM.get(mwc_uid)
             UIM.reparent(self._controller_uid, mwc.uid)
-            print ('UIM.remove:', parent_uid)
-            ret_val = UIM.remove(parent_uid)
-            print ('UIM.remove:', ret_val)
+            UIM.remove(parent_uid)
             controller.subscribe(self._set_title, 'change.title')            
             controller.subscribe(self._set_pos, 'change.pos')
 
 
-
+    """
+    """
     def reparent(self, old_parent_uid, new_parent_uid):
         UIM = UIManager()
         old_parent_controller = UIM.get(old_parent_uid)
         new_parent_controller = UIM.get(new_parent_uid)
-#        parent_wx = self.GetParent()
-        
-        print ('Reparent:', old_parent_uid, new_parent_uid)
-        
+
         if old_parent_controller.tid == 'main_window_controller':
             try:
                 ret_val = old_parent_controller.remove_notebook_page(self)     
-                print (ret_val)
                 self.Reparent(new_parent_controller.view)
             except Exception as e:
                 print ('ERROR:', e)
@@ -161,7 +155,7 @@ class WorkPage(UIViewBase, wx.Panel):
                     controller.model.pos, self, 
                     controller.model.title, True
             )     
-            print (ret_val)        
+        return ret_val          
         
         
         

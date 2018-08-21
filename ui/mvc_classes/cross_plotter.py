@@ -61,6 +61,8 @@ class CrossPlot(WorkPage):
                     self._controller_uid
             )
             self._main_panel = canvas_controller.view
+            self._main_panel.mpl_connect('motion_notify_event', 
+                                                     self.on_canvas_mouse_move)
             self.sizer.Add(self._main_panel, 1, flag=wx.EXPAND)
             #
             self._status_bar =  PlotStatusBar(self)
@@ -79,11 +81,26 @@ class CrossPlot(WorkPage):
         try:
             self.sizer.Remove(0)
             del self._tool_bar
+#            self._main_panel.mp
         except Exception as e:
             msg = 'PreDelete ' + self.__class__.__name__ + \
                                             ' ended with error: ' + str(e)
             print (msg)                                
             pass       
+
+
+    def on_canvas_mouse_move(self, event):
+        axes = event.inaxes
+        if axes is None:
+            return
+        x_axis_label = 'X'
+        y_axis_label = 'Y'
+        msg = '{}: {:0.2f}, {}: {:0.2f}'.format(x_axis_label, event.xdata, 
+                                                   y_axis_label, event.ydata
+        )
+        self._status_bar.SetStatusText(msg)
+    
+
 
 
     def _on_change_tool(self, event):

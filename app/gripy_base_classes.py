@@ -169,11 +169,11 @@ class GripyObject(pubsub.PublisherMixin, metaclass=GripyWxMeta):
                     prop = cls.__dict__[key]      
                     break
             if not prop:
-                raise Exception ('ERROR __getitem__({}, {}): property not found.', self, key)  
+                raise Exception ('ERROR __getitem__({}, {}): property not found.'.format(self, key)) 
             try:
                 return prop.__get__(self, key)
             except Exception:
-                raise Exception ('ERROR __getitem__({}, {}): property cannot be obtained.', self, key)
+                raise Exception ('ERROR __getitem__({}, {}): property cannot be obtained.'.format(self, key)) 
                     
                 
     def __delitem__(self, key):
@@ -511,11 +511,6 @@ class GripyManager(pubsub.PublisherMixin, metaclass=GripyManagerMeta):
    
         
     def do_query(self, tid, parent_uid=None, *args, **kwargs):
-
-#        print ('\n{}.do_query({}, {}, {}, {})'.format( \
-#                   self.__class__.__name__,tid, parent_uid, args, kwargs)
-#        )                
-
         try:
             objects = self.list(tid, parent_uid)
             if not objects: return None  
@@ -581,7 +576,7 @@ class GripyManager(pubsub.PublisherMixin, metaclass=GripyManagerMeta):
                     while len(ret_list) > 0:
                         minor_idx = 0
                         for idx, obj in enumerate(ret_list):
-                            if obj[orderby] < ret_list[minor_idx].model[orderby]:
+                            if obj.model[orderby] < ret_list[minor_idx].model[orderby]:
                                 minor_idx = idx
                         aux_list.append(ret_list[minor_idx])
                         del ret_list[minor_idx]
