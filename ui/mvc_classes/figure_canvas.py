@@ -1,6 +1,5 @@
 # -*- coding: utf-8 -*-
 
-import wx
 from matplotlib.axes import Axes
 from matplotlib.figure import Figure
 from matplotlib.backends.backend_wxagg import FigureCanvasWxAgg as FigureCanvas
@@ -137,7 +136,6 @@ class CanvasController(UIControllerBase):
         self.subscribe(self.on_change_grid_parameters, 'change.grid_alpha')
         self.subscribe(self.on_change_grid_parameters, 'change.grid_linestyle')
         self.subscribe(self.on_change_grid_parameters, 'change.grid_linewidth')    
-        
         #
         self.subscribe(self.on_change_text_properties, 'change.xaxis_labeltext')
         self.subscribe(self.on_change_text_properties, 'change.yaxis_labeltext')
@@ -244,15 +242,6 @@ class CanvasController(UIControllerBase):
                 
                 elif keys[0] in ['xtick', 'ytick', 'grid']:
                     print ('Loading: {} = {}'.format(new_key, value))
-                    """
-                    if new_key.startswith('grid'):
-                        new_key = new_key.split('_')[1]
-                        self.model['xgrid_major_'+new_key] = value
-                        self.model['xgrid_minor_'+new_key] = value
-                        self.model['ygrid_major_'+new_key] = value
-                        self.model['ygrid_minor_'+new_key] = value
-                    else: 
-                    """    
                     self.model[new_key] = value
                         
                 elif keys[0] == 'axes' and keys[1] in ['facecolor', 
@@ -266,7 +255,6 @@ class CanvasController(UIControllerBase):
                     print ('Loading: {} = {}'.format(new_key, value))
                     self.model[new_key] = value
                     
-
                 else:
                     print ('NOT LOADED: {} = {}'.format(new_key, value))
                     
@@ -349,18 +337,13 @@ class CanvasController(UIControllerBase):
         axis, which, _ =  key.split('_')
         axis = axis[0] # x or y  (e.g. xgrid -> x)        
         
-        print ('\non_change_locator:', topic, new_value)
-        
-        #self.view.set_locator(axis, which, new_value)
-        #self.view.draw()
+
     
     
 
     def on_change_tick_params(self, old_value, new_value, 
                                                       topic=pubsub.AUTO_TOPIC):      
-        
-#        print ('\nEntrou on_change_tick_params')
-        
+
         try:
             key = topic.getName().split('.')[2]
             keys = key.split('_')
@@ -1042,8 +1025,6 @@ class Canvas(UIViewBase, FigureCanvas):
             which='minor'
         )  
         
-#        print ('XTick minor:', (controller.model.xtick_labelbottom and controller.model.xtick_minor_bottom))
-        
         self.base_axes.tick_params(axis='x', which='major', size=controller.model.xtick_major_size)
         self.base_axes.tick_params(axis='x', which='minor', size=controller.model.xtick_minor_size)
         self.base_axes.tick_params(axis='y', which='major', size=controller.model.ytick_major_size)
@@ -1126,20 +1107,12 @@ class Canvas(UIViewBase, FigureCanvas):
   
 
     def set_tick_params(self, axis, which, **kwargs):  
-        
-        
-#        print ('canvas.set_tick_params(axis={}, which={}, kwargs={}'.format(axis, which, kwargs))
-        
         if axis not in ['x', 'y', 'both']:
             raise Exception('Invalid axis.')
         #    
         if which not in ['minor', 'major', 'both']:
             raise Exception('Invalid which.') 
         #
-        
-#        b = kwargs.pop('grid_visible', None)
-#        if b is None:
-            
         if axis in ['x', 'both']:
             axis_ = self.base_axes.xaxis
             try:
@@ -1159,25 +1132,14 @@ class Canvas(UIViewBase, FigureCanvas):
                 axis_.stale = True                    
 
         
-        
     def set_grid_parameters(self, axis, which, **kwargs):
-        
-#        print ('\n\nset_grid_parameters({}, {}, {})'.format(axis, which, kwargs))
-
         gridOn = kwargs.pop('gridOn', None)
-        
-        
         if gridOn is None:
             if axis == 'x' or axis == 'both':
-#                print ('xaxis.set_tick_params({})'.format(kwargs))
                 self.base_axes.xaxis.set_tick_params(**kwargs)
             if axis == 'y' or axis == 'both':
-#                print ('yaxis.set_tick_params({})'.format(kwargs))
                 self.base_axes.yaxis.set_tick_params(**kwargs)                               
-        
-        
         else:    
-#            print ('\nX-axis gridOn')
             ax = self.base_axes.xaxis
             if axis == 'x' or axis == 'both':
                 ax._gridOnMajor = (gridOn and which in ('both', 'major'))
@@ -1186,11 +1148,7 @@ class Canvas(UIViewBase, FigureCanvas):
                 ax._gridOnMajor = False
                 ax._gridOnMinor = False
             ax.set_tick_params(which='minor', gridOn=ax._gridOnMinor, **kwargs) 
-            ax.set_tick_params(which='major', gridOn=ax._gridOnMajor, **kwargs)
-#            print ('ax._gridOnMajor:', ax._gridOnMajor, kwargs)
-#            print ('ax._gridOnMinor:', ax._gridOnMinor, kwargs)            
-            
-#            print ('\nY-axis gridOn')    
+            ax.set_tick_params(which='major', gridOn=ax._gridOnMajor, **kwargs)   
             ax = self.base_axes.yaxis
             if axis == 'y' or axis == 'both':
                 ax._gridOnMajor = (gridOn and which in ('both', 'major'))
@@ -1200,11 +1158,7 @@ class Canvas(UIViewBase, FigureCanvas):
                 ax._gridOnMinor = False    
             ax.set_tick_params(which='minor', gridOn=ax._gridOnMinor, **kwargs) 
             ax.set_tick_params(which='major', gridOn=ax._gridOnMajor, **kwargs)
-#            print ('ax._gridOnMajor:', ax._gridOnMajor, kwargs)
-#            print ('ax._gridOnMinor:', ax._gridOnMinor, kwargs)   
-            
-            
-        
+
 
     def set_locator(self, axis, which, value):
         try: 
@@ -1268,9 +1222,6 @@ class Canvas(UIViewBase, FigureCanvas):
 
     
     def set_label_properties(self, who, **kwargs):
-        #
-#        print ('set_label_properties(who={}, kwargs{})'.format(who, kwargs))
-        #
         text = kwargs.pop('text', None)
         pad = kwargs.pop('pad', None)
         #
@@ -1294,8 +1245,7 @@ class Canvas(UIViewBase, FigureCanvas):
                     self.base_axes.xaxis.stale = True
                 if axis == 'y' or axis == 'both':
                     self.base_axes.yaxis.labelpad = pad
-                    self.base_axes.yaxis.stale = True
-                #return    
+                    self.base_axes.yaxis.stale = True 
             if axis == 'x' or axis == 'both':
                  text_objs.append(self.base_axes.xaxis.label)
             if axis == 'y' or axis == 'both':     

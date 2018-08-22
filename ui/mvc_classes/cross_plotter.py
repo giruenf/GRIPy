@@ -20,6 +20,7 @@ from app import log
 from app.app_utils import GripyBitmap  
 
 
+
 CP_NORMAL_TOOL = wx.NewId()        
 CP_SELECTION_TOOL = wx.NewId()   
 CP_FLOAT_PANEL = wx.NewId()  
@@ -222,13 +223,9 @@ class CrossPlot(WorkPage):
         controller.model.title = self._FRIENDLY_NAME + ' ['+ str(idx) + ']'    
         
 
-
-
     def _on_choice_style(self, event):
-        
         lib_name = event.GetString()
         print ('\n\nLoading Style:', lib_name)
-
         UIM = UIManager()  
         cc = UIM.list('canvas_controller', self._controller_uid)[0]
         cc.load_style(lib_name)
