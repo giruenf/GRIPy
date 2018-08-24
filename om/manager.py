@@ -646,10 +646,18 @@ class ObjectManager(GripyManager):
                 picklefilename = filename.rsplit('.', 1)[0] + ".pkl"
                 npzfilename = filename.rsplit('.', 1)[0] + ".npz"
                 
-                archivefile = zipfile.ZipFile(archivepath, mode='r')
-                archivefile.extract(picklefilename, path=dirname)
-                archivefile.extract(npzfilename, path=dirname)
-                archivefile.close()
+                try:
+                    archivefile = zipfile.ZipFile(archivepath, mode='r')
+                    print ('A')
+                    archivefile.extract(picklefilename, path=dirname)
+                    print ('B')
+                    archivefile.extract(npzfilename, path=dirname)
+                    print ('C')
+                except Exception as e:    
+                    print ('Error 000:', e)  
+                    raise
+                finally:
+                    archivefile.close()
                 
                 picklefile = open(os.path.join(dirname, picklefilename), 'rb')
                 pickledict = pickle.load(picklefile)
@@ -665,9 +673,9 @@ class ObjectManager(GripyManager):
                 
                 print ('parte 001 OK')   
                 
-            except:
-                print ('Error 001')   
-                return
+            except Exception as e:
+                print ('Error 001:', e)   
+                raise
             
             print ()
             

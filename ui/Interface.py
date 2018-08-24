@@ -406,7 +406,7 @@ def load():
                        bitmap='new_file-30.png',
                        help='New project', 
                        long_help='Start a new Gripy project, closes existing',
-                       callback='app.menu_functions.on_open'
+                       callback='app.menu_functions.on_new'
         )            
         UIM.create('toolbartool_controller', tbc.uid,
                        label=u"Abrir projeto", 
