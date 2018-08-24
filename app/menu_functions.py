@@ -2048,8 +2048,9 @@ def on_exit(*args, **kwargs):
     
 
 def on_new(*args, **kwargs):
-    gripy_app = wx.App.Get() 
-    gripy_app.reset_ObjectManager()
+    OM = ObjectManager()
+    OM._reset()
+
 
 
 

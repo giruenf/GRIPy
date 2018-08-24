@@ -72,7 +72,8 @@ def RockPhysicsCalibration(agd, OM):
                                 #    coefVS
                                 #    fluidProp 
                                 #    fluidPars
-    print "CHAMANDO A FUNCAO EM ALGO"
+                                
+    print ("CHAMANDO A FUNCAO EM ALGO")
     #Parametros de entrada
     inputPars = agd.get_input() 
     well_uid = agd.get_well_uid()
@@ -235,7 +236,7 @@ def RockPhysicsCalibration(agd, OM):
         phiEe = np.fmax(0.01, phi - claye*phiNsh)
         modPhiC =2
     elif (modPhiC == 2 and np.size(phiCore) == 0):
-        print "Nao existe a funcao chamada aqui dentro"
+        print ("Nao existe a funcao chamada aqui dentro")
         #phiEe = phiSd2phiE (zR, claye, phiSand, secHoriz)   
     elif (modPhiC == 2 and useCore == 1 ):
         phiEe = phiCore
@@ -364,7 +365,7 @@ def RockPhysicsCalibration(agd, OM):
     r2Rho = rsquared (rhoComp, rho)
     r2Res = rsquared (resComp, res)
     
-    print "Fim da calibracao, com seguintes ajustes R2:\n Phi = %7.2f\n RHO = %7.2f\n RES = %7.2f\n" % (r2Phi, r2Rho, r2Res)
+    print ("Fim da calibracao, com seguintes ajustes R2:\n Phi = %7.2f\n RHO = %7.2f\n RES = %7.2f\n" % (r2Phi, r2Rho, r2Res))
     
     #Saida de Dados
     
@@ -562,7 +563,7 @@ def calibClayPhiRhoRes2(phi, rho, Rt, vsh, phiE, rhoWater, RtCoef, mode):
     rhoPar[1] = xRho[1]
     rhoComp = np.dot(B, xRho) + rhoCte
     xRes = scipy.optimize.leastsq(ofSimandouxPhiChiSw100, x0, args=(Rt, cRes, phiE, vsh))[0]  
-    print "VALORES DE xRES", xRes
+    print ("VALORES DE xRES", xRes)
     RtPar = np.concatenate([cRes, xRes])
     RtPar = np.reshape(RtPar,(1,np.size(RtPar)))
     facies = np.ones((n,1))
@@ -660,6 +661,8 @@ def fitNorm1(A, d, maxIt):
     
     return xN1
     
+
+
 def seismicPropFluids(fluidPars):
     """ II - CONSTRUTOR DE FLUIDO (PROPRIEDADES SISMICAS DA AGUA DE FORMACAO, OLEO E GAS, BEM COMO MISTURA)
              * OBS: atentar para as unidades, dens = g/cm3, 
@@ -778,6 +781,7 @@ def seismicPropFluids(fluidPars):
     bulkNden = np.array([[bulk_salmoura, bulk_oleo, bulk_gas], [dens_salmoura, dens_oleo, dens_gas]])   
     
     return bulkNden
+ 
     
 def vshGRcalc(gr, grmin, grmax):
     # Finalidade:
@@ -802,6 +806,7 @@ def vshGRcalc(gr, grmin, grmax):
     
     return arg
     
+
 def ofSimandouxPhiChiSw100(x, resObs, coef, phi, chi):
     # FINALIDADE:
     # calcular o residuo do perfil de resistividade modelado usando a equacao
@@ -831,6 +836,7 @@ def ofSimandouxPhiChiSw100(x, resObs, coef, phi, chi):
     res = resObs - dComp
     
     return res
+
 
 def dCompSimandouxPhiChiSw100(phi,chi,facies,coef):
     
@@ -881,6 +887,8 @@ def dCompSimandouxPhiChiSw100(phi,chi,facies,coef):
             
    return dComp
     
+
+
 def ismember (A, B):
 
     nA = np.size(A)
@@ -891,6 +899,8 @@ def ismember (A, B):
         
     return C    
     
+
+
 def rsquared(dataComp, dataObs):
     # FINALIDADE:
     # Funcao para medir a qualidade do ajuste entre o modelo e as observacoes,
@@ -921,6 +931,8 @@ def rsquared(dataComp, dataObs):
     
     return R2
     
+
+
 def percentileMatlab (x,p):
     
     xx = np.sort(x)
@@ -949,6 +961,8 @@ def percentileMatlab (x,p):
     
     return y
     
+
+
 def logInterp (log, z):
 
     if (np.size(log) != np.size(z)):
