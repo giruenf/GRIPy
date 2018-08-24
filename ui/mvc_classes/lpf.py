@@ -13,9 +13,9 @@ import wx.lib.colourdb
 from om.manager import ObjectManager
 from ui.mvc_classes.log_plot import LogPlotController
 from ui.uimanager import UIManager
-from ui.uimanager import UIControllerBase  
-from ui.uimanager import UIModelBase
-from ui.uimanager import UIViewBase 
+from ui.uimanager import UIControllerObject  
+from ui.uimanager import UIModelObject
+from ui.uimanager import UIViewObject 
 from ui.mvc_classes.track import TrackController    
 from ui.mvc_classes.track_object import TrackObjectController  
 import app.pubsub as pub   
@@ -23,7 +23,7 @@ from app.app_utils import parse_string_to_uid
 from app import log
 
 
-class LogPlotEditorController(UIControllerBase):
+class LogPlotEditorController(UIControllerObject):
     tid = 'log_plot_editor_controller'
      
     def __init__(self):
@@ -161,11 +161,11 @@ class LogPlotEditorController(UIControllerBase):
           
 
 
-class LogPlotEditor(UIViewBase, wx.Frame):
+class LogPlotEditor(UIViewObject, wx.Frame):
     tid = 'log_plot_editor'
 
     def __init__(self, controller_uid):
-        UIViewBase.__init__(self, controller_uid)
+        UIViewObject.__init__(self, controller_uid)
         wx.Frame.__init__(self, None, -1, title='LogPlotEditor',
                                           size=(950, 600),
                                           style=wx.DEFAULT_FRAME_STYLE & 
@@ -229,12 +229,12 @@ class LogPlotEditor(UIViewBase, wx.Frame):
 
 
 
-class LPETrackPanelController(UIControllerBase):
+class LPETrackPanelController(UIControllerObject):
     tid = 'lpe_track_panel_controller'
     
     def __init__(self):
         super(LPETrackPanelController, self).__init__()
-        # LPETrackPanelModel is not a UIModelBase object
+        # LPETrackPanelModel is not a UIModelObject object
         self._real_model = LPETrackPanelModel(self.uid)
 
     def PostInit(self):
@@ -417,11 +417,11 @@ class LPETrackPanelModel(dv.PyDataViewModel):
 
         
         
-class LPETrackPanel(UIViewBase, wx.Panel):
+class LPETrackPanel(UIViewObject, wx.Panel):
     tid = 'lpe_track_panel'
 
     def __init__(self, controller_uid):
-        UIViewBase.__init__(self, controller_uid)
+        UIViewObject.__init__(self, controller_uid)
         wx.Panel.__init__(self, self._get_lpeview_notebook(), -1, style=wx.SIMPLE_BORDER)       
 
 
@@ -634,12 +634,12 @@ class VarNodeDropData(wx.CustomDataObject):
 ###############################################################################
 
 
-class LPEObjectsPanelController(UIControllerBase):
+class LPEObjectsPanelController(UIControllerObject):
     tid = 'lpe_objects_panel_controller'
     
     def __init__(self):
         super(LPEObjectsPanelController, self).__init__()
-        # LPEObjectsPanelModel is not a UIModelBase object
+        # LPEObjectsPanelModel is not a UIModelObject object
         self._real_model = LPEObjectsPanelModel(self.uid)
         
     def PostInit(self):
@@ -855,13 +855,13 @@ class LPEObjectsPanelModel(dv.PyDataViewModel):
 
 
 
-class LPEObjectsPanel(UIViewBase, wx.Panel):
+class LPEObjectsPanel(UIViewObject, wx.Panel):
     tid = 'lpe_objects_panel'
     DEPTH_LINES_CHOICE = ['Full', 'Left', 'Right', 'Center', 'Left & Right', 'None']   
     
     
     def __init__(self, controller_uid):
-        UIViewBase.__init__(self, controller_uid)
+        UIViewObject.__init__(self, controller_uid)
         wx.Panel.__init__(self, self._get_lpeview_notebook(), -1, style=wx.SIMPLE_BORDER)       
         self.splitter = None
         self.dvc = None

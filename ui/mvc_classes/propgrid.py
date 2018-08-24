@@ -8,9 +8,9 @@ from wx.adv import OwnerDrawnComboBox
 
 from om.manager import ObjectManager
 from ui.uimanager import UIManager
-from ui.uimanager import UIControllerBase 
-from ui.uimanager import UIModelBase 
-from ui.uimanager import UIViewBase                                  
+from ui.uimanager import UIControllerObject 
+from ui.uimanager import UIModelObject 
+from ui.uimanager import UIViewObject                                  
 import app.pubsub as pub
 
 
@@ -204,7 +204,7 @@ def _get_pg_property(uid, model_key, model_key_props):
 
 
 
-class PropertyGridController(UIControllerBase):
+class PropertyGridController(UIControllerObject):
     tid = 'property_grid_controller'
     
     def __init__(self):
@@ -302,11 +302,11 @@ class PropertyGridController(UIControllerBase):
 
 
 
-class PropertyGridView(UIViewBase, pg.PropertyGrid):
+class PropertyGridView(UIViewObject, pg.PropertyGrid):
     tid = 'property_grid_view'
 
     def __init__(self, controller_uid):
-        UIViewBase.__init__(self, controller_uid)      
+        UIViewObject.__init__(self, controller_uid)      
         UIM = UIManager()
         parent_controller_uid = UIM._getparentuid(self._controller_uid)
         parent_controller =  UIM.get(parent_controller_uid)

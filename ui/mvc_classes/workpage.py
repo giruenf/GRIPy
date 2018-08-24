@@ -3,22 +3,22 @@
 import wx
 
 from ui.uimanager import UIManager
-from ui.uimanager import UIControllerBase 
-from ui.uimanager import UIModelBase 
-from ui.uimanager import UIViewBase 
+from ui.uimanager import UIControllerObject 
+from ui.uimanager import UIModelObject 
+from ui.uimanager import UIViewObject 
 from ui import Interface
 
 from app import log
 
 
-class WorkPageController(UIControllerBase):
+class WorkPageController(UIControllerObject):
     tid = 'workpage_controller'
     
     def __init__(self):
         super().__init__()
         
        
-class WorkPageModel(UIModelBase):
+class WorkPageModel(UIModelObject):
     tid = 'workpage_model'
 
     _ATTRIBUTES = {
@@ -41,11 +41,11 @@ class WorkPageModel(UIModelBase):
     
     
     
-class WorkPage(UIViewBase, wx.Panel):  
+class WorkPage(UIViewObject, wx.Panel):  
     tid = 'workpage'
        
     def __init__(self, controller_uid):
-        UIViewBase.__init__(self, controller_uid)
+        UIViewObject.__init__(self, controller_uid)
         UIM = UIManager()
         controller = UIM.get(controller_uid)
         parent_uid = UIM._getparentuid(controller.uid)

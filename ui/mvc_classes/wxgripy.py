@@ -6,9 +6,9 @@ import wx
 from pubsub import pub
 
 from ui.uimanager import UIManager
-from ui.uimanager import UIControllerBase 
-from ui.uimanager import UIModelBase 
-from ui.uimanager import UIViewBase 
+from ui.uimanager import UIControllerObject 
+from ui.uimanager import UIModelObject 
+from ui.uimanager import UIViewObject 
 from app.pubsub import AUTO_TOPIC
 from app.app_utils import GripyIcon
 
@@ -16,14 +16,14 @@ from app.app_utils import GripyIcon
 ###############################################################################
 
 
-class TopLevelController(UIControllerBase):
+class TopLevelController(UIControllerObject):
     tid = 'toplevel_controller'
          
     def __init__(self):
         super().__init__()
 
 
-class TopLevelModel(UIModelBase):
+class TopLevelModel(UIModelObject):
     tid = 'toplevel_model'
     
     _ATTRIBUTES = {
@@ -52,11 +52,11 @@ class TopLevelModel(UIModelBase):
         super().__init__(controller_uid, **state)
 
 
-class TopLevel(UIViewBase):
+class TopLevel(UIViewObject):
     tid = 'toplevel'
 
     def __init__(self, controller_uid):
-        UIViewBase.__init__(self, controller_uid)
+        UIViewObject.__init__(self, controller_uid)
         UIM = UIManager()
         controller = UIM.get(self._controller_uid)
         

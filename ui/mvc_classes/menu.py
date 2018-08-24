@@ -3,14 +3,14 @@
 import wx
 
 from ui.uimanager import UIManager
-from ui.uimanager import UIControllerBase 
-from ui.uimanager import UIModelBase 
-from ui.uimanager import UIViewBase 
+from ui.uimanager import UIControllerObject 
+from ui.uimanager import UIModelObject 
+from ui.uimanager import UIViewObject 
 from ui.mvc_classes.menu_bar import MenuBarController
 from app import log
 
 
-class MenuController(UIControllerBase):
+class MenuController(UIControllerObject):
     tid = 'menu_controller'
 
     def __init__(self):
@@ -35,7 +35,7 @@ class MenuController(UIControllerBase):
         self.view._RemoveItem(menu_item_ctrl.view)
         
         
-class MenuModel(UIModelBase):
+class MenuModel(UIModelObject):
     tid = 'menu_model'
 
     _ATTRIBUTES = {
@@ -57,11 +57,11 @@ class MenuModel(UIModelBase):
         super().__init__(controller_uid, **state)   
       
           
-class MenuView(UIViewBase, wx.Menu):
+class MenuView(UIViewObject, wx.Menu):
     tid = 'menu_view'
  
     def __init__(self, controller_uid):
-        UIViewBase.__init__(self, controller_uid)
+        UIViewObject.__init__(self, controller_uid)
         UIM = UIManager()
         controller = UIM.get(self._controller_uid)
         if controller.model.id == wx.ID_ANY: 

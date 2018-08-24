@@ -8,8 +8,8 @@ import wx
 from basic.uom import uom
 from om.manager import ObjectManager
 from ui.uimanager import UIManager
-from ui.uimanager import UIControllerBase 
-from ui.uimanager import UIViewBase 
+from ui.uimanager import UIControllerObject 
+from ui.uimanager import UIViewObject 
 from app import log 
 
 #
@@ -30,7 +30,7 @@ ID_TYPE_TID = 1
 ID_TYPE_ATTRIBUTE = 2
 
 
-class TreeController(UIControllerBase):
+class TreeController(UIControllerObject):
     tid = 'tree_controller'
     _DEFAULT_ROOT_NAME = u"GRIPy Project"
     
@@ -221,11 +221,11 @@ class TreeController(UIControllerBase):
     
 
 
-class TreeView(UIViewBase, wx.TreeCtrl):
+class TreeView(UIViewObject, wx.TreeCtrl):
     tid = 'tree'
     
     def __init__(self, controller_uid):
-        UIViewBase.__init__(self, controller_uid)
+        UIViewObject.__init__(self, controller_uid)
         UIM = UIManager()
 #        controller = UIM.get(self._controller_uid)
         parent_controller_uid = UIM._getparentuid(self._controller_uid)

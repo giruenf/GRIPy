@@ -6,14 +6,14 @@ from types import FunctionType
 import wx
 
 from ui.uimanager import UIManager
-from ui.uimanager import UIControllerBase 
-from ui.uimanager import UIModelBase 
+from ui.uimanager import UIControllerObject 
+from ui.uimanager import UIModelObject 
 from ui.mvc_classes.main_window import MainWindowController
 from app import log
 from app.app_utils import GripyBitmap
 
 
-class ToolBarToolController(UIControllerBase):
+class ToolBarToolController(UIControllerObject):
     tid = 'toolbartool_controller'
     
     def __init__(self): 
@@ -72,7 +72,7 @@ class ToolBarToolController(UIControllerBase):
 
       
     
-class ToolBarToolModel(UIModelBase):
+class ToolBarToolModel(UIModelObject):
     tid = 'toolbartool_model'
     _ATTRIBUTES = {
         'pos': {'default_value': -1, 

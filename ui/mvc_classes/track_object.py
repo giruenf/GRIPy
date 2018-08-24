@@ -14,9 +14,9 @@ from matplotlib.patches import FancyBboxPatch
 from om.manager import ObjectManager
 from app.gripy_base_classes import GripyObject
 from ui.uimanager import UIManager
-from ui.uimanager import UIControllerBase 
-from ui.uimanager import UIModelBase 
-from ui.uimanager import UIViewBase 
+from ui.uimanager import UIControllerObject 
+from ui.uimanager import UIModelObject 
+from ui.uimanager import UIViewObject 
 from datatypes.DataTypes import Density
 
 # TODO: verificar se linhas abaixo devem ser mantidas
@@ -246,7 +246,7 @@ class DataFilter(GripyObject):
 
 
 
-class TrackObjectController(UIControllerBase):
+class TrackObjectController(UIControllerObject):
     tid = 'track_object_controller'
     
     def __init__(self):
@@ -465,7 +465,7 @@ class TrackObjectController(UIControllerBase):
 
 
 
-class TrackObjectModel(UIModelBase):
+class TrackObjectModel(UIModelObject):
     tid = 'track_object_model'
 
     _ATTRIBUTES = collections.OrderedDict()
@@ -509,8 +509,8 @@ class TrackObjectModel(UIModelBase):
   
     
     def get_state(self, state_type=None):
-        # This overrides UIModelBase.get_state
-        # TODO: manter alinhado com o UIModelBase.get_state
+        # This overrides UIModelObject.get_state
+        # TODO: manter alinhado com o UIModelObject.get_state
         UIM = UIManager()
         controller = UIM.get(self._controller_uid)
         if not controller.is_valid():
@@ -527,7 +527,7 @@ class TrackObjectModel(UIModelBase):
 ###############################################################################
 
 
-class RepresentationController(UIControllerBase):
+class RepresentationController(UIControllerObject):
     tid = 'representation_controller'
     
     def __init__(self):
@@ -666,11 +666,11 @@ class RepresentationController(UIControllerBase):
     ''' 
        
     
-class RepresentationView(UIViewBase):
+class RepresentationView(UIViewObject):
     tid = 'representation_view'
 
     def __init__(self, controller_uid):
-        UIViewBase.__init__(self, controller_uid) 
+        UIViewObject.__init__(self, controller_uid) 
         self._mplot_objects = {}
         UIM = UIManager()
         toc_uid = UIM._getparentuid(self._controller_uid)
@@ -763,7 +763,7 @@ class LineRepresentationController(RepresentationController):
         super(LineRepresentationController, self).__init__()
 
 
-class LineRepresentationModel(UIModelBase):
+class LineRepresentationModel(UIModelObject):
     tid = 'line_representation_model'
 
     _ATTRIBUTES = collections.OrderedDict()
@@ -1015,7 +1015,7 @@ class IndexRepresentationController(RepresentationController):
         super(IndexRepresentationController, self).__init__()
     
         
-class IndexRepresentationModel(UIModelBase):
+class IndexRepresentationModel(UIModelObject):
     tid = 'index_representation_model' 
     _ATTRIBUTES = collections.OrderedDict()
     _ATTRIBUTES['step'] = {
@@ -1270,7 +1270,7 @@ class DensityRepresentationController(RepresentationController):
             self.view.set_colormap(new_value)     
             
                 
-class DensityRepresentationModel(UIModelBase):
+class DensityRepresentationModel(UIModelObject):
     tid = 'density_representation_model'
 
     _ATTRIBUTES = collections.OrderedDict()
@@ -1840,7 +1840,7 @@ class PatchesRepresentationController(RepresentationController):
         super(PatchesRepresentationController, self).__init__()
 
         
-class PatchesRepresentationModel(UIModelBase):
+class PatchesRepresentationModel(UIModelObject):
     tid = 'patches_representation_model'
     
     _ATTRIBUTES = {}        
@@ -1962,7 +1962,7 @@ class ContourfRepresentationController(RepresentationController):
 
 
     
-class ContourfRepresentationModel(UIModelBase):
+class ContourfRepresentationModel(UIModelObject):
     tid = 'contourf_representation_model'
 
     _ATTRIBUTES = collections.OrderedDict() 
@@ -2109,7 +2109,7 @@ class DensityRepresentationController(RepresentationController):
         pass
     
     
-class DensityRepresentationModel(UIModelBase):
+class DensityRepresentationModel(UIModelObject):
     tid = 'density_representation_model'
 
     _ATTRIBUTES = {               

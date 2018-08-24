@@ -10,9 +10,9 @@ import matplotlib.ticker as mticker
 from matplotlib import rcParams
 
 from ui.uimanager import UIManager
-from ui.uimanager import UIControllerBase 
-from ui.uimanager import UIModelBase 
-from ui.uimanager import UIViewBase 
+from ui.uimanager import UIControllerObject 
+from ui.uimanager import UIModelObject 
+from ui.uimanager import UIViewObject 
 from app import pubsub 
 from app import log
 
@@ -35,7 +35,7 @@ CANVAS_SCALES = ["linear", "log", "symlog", "logit"]
 
 
 
-class CanvasController(UIControllerBase):
+class CanvasController(UIControllerObject):
     tid = 'canvas_controller'
     
     def __init__(self):
@@ -427,7 +427,7 @@ class CanvasController(UIControllerBase):
 
 
         
-class CanvasModel(UIModelBase):
+class CanvasModel(UIModelObject):
     tid = 'canvas_model'
 
     _ATTRIBUTES = {
@@ -846,14 +846,14 @@ class CanvasModel(UIModelBase):
     
     
     
-class Canvas(UIViewBase, FigureCanvas):  
+class Canvas(UIViewObject, FigureCanvas):  
     tid = 'canvas'
 
 
     def __init__(self, controller_uid):
 
         try:
-            UIViewBase.__init__(self, controller_uid)
+            UIViewObject.__init__(self, controller_uid)
             UIM = UIManager()
             controller = UIM.get(self._controller_uid)
             #

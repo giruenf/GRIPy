@@ -74,8 +74,7 @@ class GripyObject(pubsub.PublisherMixin, metaclass=GripyWxMeta):
     tid = None
     # _BYPASSES_KEYS bypasses the checking made in __setattr__ or __setitem__
     _BYPASSES_KEYS = ['_processing_value_from_event']
-    # _IMMUTABLES_KEYS must be setted only during __init__. 
-    # They cannot be deleted.
+    # _IMMUTABLES_KEYS must be setted only during __init__. Cannot be deleted.
     _IMMUTABLES_KEYS = ['oid']
     #
     _ATTRIBUTES = OrderedDict()
@@ -84,18 +83,24 @@ class GripyObject(pubsub.PublisherMixin, metaclass=GripyWxMeta):
         'type': str        
     }   
     
-    def __init__(self, **data): 
+    def __init__(self, **kwargs): 
         _manager_class = self._get_manager_class()
         _manager = _manager_class()
-        self.oid = _manager._getnewobjectid(self.tid)
+        #
+        if _manager.is_loading_state():
+            self.oid = kwargs.pop['oid']
+        else:    
+            self.oid = _manager._getnewobjectid(self.tid)     
+        #    
         self._processing_value_from_event = True
         self.name = '{}.{}'.format(*self.uid)
         for attr_name, attr_props in self._ATTRIBUTES.items():
-            self[attr_name] = data.get(attr_name, 
+            self[attr_name] = kwargs.get(attr_name, 
                                             attr_props.get('default_value')
             )    
         self._processing_value_from_event = False
-       
+
+            
     def __str__(self):
         return '{}.{}'.format(*self.uid)
 
@@ -117,7 +122,7 @@ class GripyObject(pubsub.PublisherMixin, metaclass=GripyWxMeta):
         for idx, ci in enumerate(callers_stack):
             if (isinstance(ci.object_, UIManager) and \
                     ci.function_name == 'create' and \
-                    isinstance(callers_stack[idx-1].object_, UIControllerBase)): 
+                    isinstance(callers_stack[idx-1].object_, UIControllerObject)): 
                 ok = True
                 break     
         if not ok:
@@ -306,16 +311,17 @@ class GripyObject(pubsub.PublisherMixin, metaclass=GripyWxMeta):
         log.debug(msg)
 
 
+
     def _getstate(self):
-#        print ('\n_getstate:', self.uid)
         state = OrderedDict()  
         for attr_name in self._ATTRIBUTES.keys():
-#            print (attr_name)
             state[attr_name] = self[attr_name]
-            
-#        print ('\n\n\n\nstate:', state)    
-        return state            
-
+        for attr_name in self._BYPASSES_KEYS:
+            state[attr_name] = self[attr_name]                 
+        for attr_name in self._IMMUTABLES_KEYS:
+            state[attr_name] = self[attr_name]         
+        return state  
+          
 
     """ 
     def _loadstate(self, **state):
@@ -371,6 +377,16 @@ class GripyObject(pubsub.PublisherMixin, metaclass=GripyWxMeta):
     '''
 
 
+
+
+
+
+
+
+
+
+
+
 class GripyManagerMeta(type):
     
     def __new__(cls, clsname, superclasses, attributedict):
@@ -382,6 +398,9 @@ class GripyManager(pubsub.PublisherMixin, metaclass=GripyManagerMeta):
     """
     Parent class for Managers
     """
+
+    _LOADING_STATE = False
+    
 
     def __init__(self):
         #super().__init__()
@@ -505,6 +524,8 @@ class GripyManager(pubsub.PublisherMixin, metaclass=GripyManagerMeta):
         
         '''
 
+    def is_loading_state(self):
+        return self.__class__._LOADING_STATE 
 
     def get_publisher_name(self):
         return self.__class__.__name__

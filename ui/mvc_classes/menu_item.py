@@ -5,14 +5,14 @@ import types
 import wx
 
 from ui.uimanager import UIManager
-from ui.uimanager import UIControllerBase 
-from ui.uimanager import UIModelBase 
-from ui.uimanager import UIViewBase 
+from ui.uimanager import UIControllerObject 
+from ui.uimanager import UIModelObject 
+from ui.uimanager import UIViewObject 
 #from ui.uimanager import UI_MODEL_ATTR_CLASS
 from app import log
 
 
-class MenuItemController(UIControllerBase):
+class MenuItemController(UIControllerObject):
     tid = 'menu_item_controller'
 
     def __init__(self):
@@ -32,7 +32,7 @@ class MenuItemController(UIControllerBase):
 
 
         
-class MenuItemModel(UIModelBase):
+class MenuItemModel(UIModelObject):
     tid = 'menu_item_model'
 
     _ATTRIBUTES = {
@@ -69,11 +69,11 @@ class MenuItemModel(UIModelBase):
     
             
           
-class MenuItemView(UIViewBase, wx.MenuItem):
+class MenuItemView(UIViewObject, wx.MenuItem):
     tid = 'menu_item_view'
      
     def __init__(self, controller_uid):
-        UIViewBase.__init__(self, controller_uid)
+        UIViewObject.__init__(self, controller_uid)
         _UIM = UIManager()
         controller = _UIM.get(self._controller_uid)
         if controller.model.id == wx.ID_ANY: 

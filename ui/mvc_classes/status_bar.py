@@ -3,13 +3,13 @@
 import wx
 
 from ui.uimanager import UIManager
-from ui.uimanager import UIControllerBase 
-from ui.uimanager import UIModelBase 
-from ui.uimanager import UIViewBase 
+from ui.uimanager import UIControllerObject 
+from ui.uimanager import UIModelObject 
+from ui.uimanager import UIViewObject 
 from app import log
  
      
-class StatusBarController(UIControllerBase):
+class StatusBarController(UIControllerObject):
     tid = 'statusbar_controller'
     _singleton_per_parent = True
     
@@ -20,7 +20,7 @@ class StatusBarController(UIControllerBase):
         self.view.SetStatusText(text, i)
         
         
-class StatusBarModel(UIModelBase):
+class StatusBarModel(UIModelObject):
     tid = 'statusbar_model'
 
     # TODO: Corrigir atributo abaixo
@@ -33,11 +33,11 @@ class StatusBarModel(UIModelBase):
         super(StatusBarModel, self).__init__(controller_uid, **base_state)  
 
 
-class StatusBar(UIViewBase, wx.StatusBar):
+class StatusBar(UIViewObject, wx.StatusBar):
     tid = 'statusbar'
  
     def __init__(self, controller_uid):
-        UIViewBase.__init__(self, controller_uid)
+        UIViewObject.__init__(self, controller_uid)
         _UIM = UIManager()
         parent_controller_uid = _UIM._getparentuid(self._controller_uid)
         parent_controller =  _UIM.get(parent_controller_uid)

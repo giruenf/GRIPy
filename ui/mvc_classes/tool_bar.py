@@ -3,15 +3,15 @@
 import wx
 
 from ui.uimanager import UIManager
-from ui.uimanager import UIControllerBase 
-from ui.uimanager import UIModelBase 
-from ui.uimanager import UIViewBase 
+from ui.uimanager import UIControllerObject 
+from ui.uimanager import UIModelObject 
+from ui.uimanager import UIViewObject 
 #from ui.uimanager import UI_MODEL_ATTR_CLASS
 from ui.mvc_classes.main_window import MainWindowController
 from app import log
 
 
-class ToolBarController(UIControllerBase):
+class ToolBarController(UIControllerObject):
     tid = 'toolbar_controller'
     _singleton_per_parent = True
     
@@ -19,7 +19,7 @@ class ToolBarController(UIControllerBase):
         super(ToolBarController, self).__init__()
       
   
-class ToolBarModel(UIModelBase):
+class ToolBarModel(UIModelObject):
     tid = 'toolbar_model'
     _ATTRIBUTES = {
         'id': {'default_value': wx.ID_ANY, 
@@ -45,12 +45,12 @@ class ToolBarModel(UIModelBase):
                
         
         
-class ToolBar(UIViewBase, wx.ToolBar):
+class ToolBar(UIViewObject, wx.ToolBar):
     tid = 'toolbar'
     paneinfo = wx.aui.AuiPaneInfo().Name(tid).ToolbarPane().Top()
                           
     def __init__(self, controller_uid):
-        UIViewBase.__init__(self, controller_uid)
+        UIViewObject.__init__(self, controller_uid)
         _UIM = UIManager()
         controller = _UIM.get(self._controller_uid)
         parent_controller_uid = _UIM._getparentuid(self._controller_uid)

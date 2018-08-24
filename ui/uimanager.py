@@ -23,7 +23,7 @@ class UI_MODEL_ATTR_CLASS(app.app_utils.GripyEnum):
 ###############################################################################
 
 
-class UIBase(GripyObject):
+class UIBaseObject(GripyObject):
     tid = None
     
     def __init__(self, **data):
@@ -43,7 +43,7 @@ class UIBase(GripyObject):
     def _call_self_remove(self):
         print ('\n_call_self_remove ')
         try:
-            if isinstance(self, UIControllerBase):
+            if isinstance(self, UIControllerObject):
                 uid = self.uid
             else:
                 uid = self._controller_uid
@@ -58,14 +58,14 @@ class UIBase(GripyObject):
 ###############################################################################
                                  
 
-class UIControllerBase(UIBase):
+class UIControllerObject(UIBaseObject):
     tid = None
     # TODO: verificar se vale a pena manter esses singletons
     _singleton = False
     _singleton_per_parent = False
        
     def __init__(self):
-        super(UIControllerBase, self).__init__()  
+        super(UIControllerObject, self).__init__()  
         # Two lines below are necessary to add keys 'model' and 'view' to 
         # object.__dict__ on object.__init__ - DO NOT EXCLUDE THEY
         # See app.gripy_base_class._do_set
@@ -212,7 +212,7 @@ class UIControllerBase(UIBase):
         obj = UIM.create(tid, parentuid, **state)
         if children:
             for child_tid, child_state in children:
-                UIControllerBase.load_state(child_state, child_tid, obj.uid)
+                UIControllerObject.load_state(child_state, child_tid, obj.uid)
         return obj
         
 
@@ -220,7 +220,7 @@ class UIControllerBase(UIBase):
 ###############################################################################    
     
 
-class UIModelBase(UIBase):
+class UIModelObject(UIBaseObject):
     """
     The base class for all Model classes (MVC software architectural pattern).
         
@@ -301,7 +301,8 @@ class UIModelBase(UIBase):
 ###############################################################################
 ###############################################################################
 
-class UIViewBase(UIBase):
+
+class UIViewObject(UIBaseObject):
     tid = None
     _IMMUTABLES_KEYS = ['_controller_uid']
     
@@ -375,8 +376,8 @@ class UIManager(GripyManager):
             log.exception(msg)
             raise TypeError(msg)
         #    
-        if not issubclass(controller_class, UIControllerBase):
-            msg = "Controller class must inherit from UIControllerBase."
+        if not issubclass(controller_class, UIControllerObject):
+            msg = "Controller class must inherit from UIControllerObject."
             log.exception(msg)
             raise TypeError(msg)           
         #    
@@ -384,8 +385,8 @@ class UIManager(GripyManager):
         cls._currentobjectids[controller_class.tid] = 0    
         #
         if model_class is not None:
-            if not issubclass(model_class, UIModelBase):
-                msg = "Model class must inherit from UIModelBase."
+            if not issubclass(model_class, UIModelObject):
+                msg = "Model class must inherit from UIModelObject."
                 log.exception(msg)
                 raise TypeError(msg)     
             model_class_tid = model_class.tid
@@ -421,8 +422,8 @@ class UIManager(GripyManager):
                     log.exception(msg)
                     raise TypeError(msg)
                 parent_class = cls._types.get(controller_parent_class.tid)
-                if not issubclass(parent_class, UIControllerBase):
-                    msg = "Type {} is not instance of UIControllerBase.".format(controller_parent_class)
+                if not issubclass(parent_class, UIControllerObject):
+                    msg = "Type {} is not instance of UIControllerObject.".format(controller_parent_class)
                     log.exception(msg)                    
                     raise TypeError(msg)                  
             except Exception:
@@ -576,7 +577,7 @@ class UIManager(GripyManager):
 #        print ('\n' + msg)
         self.send_message('pre_remove', objuid=uid)
         obj = self.get(uid)
-        if not isinstance(obj, UIControllerBase):
+        if not isinstance(obj, UIControllerObject):
             return False
         for childuid in self._childrenuidmap.get(uid)[::-1]:
             self.remove(childuid) 
@@ -761,8 +762,8 @@ class UIManager(GripyManager):
             msg = "Type {} is not registered".format(controller_tid)
             raise TypeError(msg)
         class_ = self._gettype(controller_tid)  
-        if not issubclass(class_, UIControllerBase):
-            msg = "Type {} is not instance of UIControllerBase.".format(controller_tid)
+        if not issubclass(class_, UIControllerObject):
+            msg = "Type {} is not instance of UIControllerObject.".format(controller_tid)
             raise TypeError(msg)  
         return class_
           

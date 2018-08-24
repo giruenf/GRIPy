@@ -8,9 +8,9 @@ import matplotlib.pyplot as plt
 
 from om.manager import ObjectManager
 from ui.uimanager import UIManager
-from ui.uimanager import UIControllerBase 
-from ui.uimanager import UIModelBase 
-from ui.uimanager import UIViewBase 
+from ui.uimanager import UIControllerObject 
+from ui.uimanager import UIModelObject 
+from ui.uimanager import UIViewObject 
 from ui.mvc_classes.mpl_base import TrackFigureCanvas
 from ui.mvc_classes.mpl_base import VisDataLabel
 from app.app_utils import LogPlotState, parse_string_to_uid  
@@ -18,7 +18,7 @@ from app.gripy_function_manager import FunctionManager
 from app import log
 
 
-class TrackController(UIControllerBase):
+class TrackController(UIControllerObject):
     tid = 'track_controller'
     
     def __init__(self):
@@ -108,7 +108,7 @@ class TrackController(UIControllerBase):
 
 
 
-class TrackModel(UIModelBase):
+class TrackModel(UIModelObject):
     tid = 'track_model'
     
     _ATTRIBUTES = {
@@ -197,11 +197,11 @@ SASH_DRAG_DRAGGING = 1
 
 
 
-class TrackView(UIViewBase):
+class TrackView(UIViewObject):
     tid = 'track_view'
 
     def __init__(self, controller_uid):
-        UIViewBase.__init__(self, controller_uid)
+        UIViewObject.__init__(self, controller_uid)
 
         
         

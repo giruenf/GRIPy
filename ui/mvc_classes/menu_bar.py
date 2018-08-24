@@ -3,13 +3,13 @@
 import wx
 
 from ui.uimanager import UIManager
-from ui.uimanager import UIControllerBase 
-from ui.uimanager import UIModelBase 
-from ui.uimanager import UIViewBase 
+from ui.uimanager import UIControllerObject 
+from ui.uimanager import UIModelObject 
+from ui.uimanager import UIViewObject 
 from app import log
 
 
-class MenuBarController(UIControllerBase):
+class MenuBarController(UIControllerObject):
     tid = 'menubar_controller'
     _singleton_per_parent = True
     
@@ -19,7 +19,7 @@ class MenuBarController(UIControllerBase):
         log.debug('Successfully created Controller object from class: {}.'.format(class_full_name))
         
 
-class MenuBarModel(UIModelBase):
+class MenuBarModel(UIModelObject):
     tid = 'menubar_model'
     
     _ATTRIBUTES = {}
@@ -30,11 +30,11 @@ class MenuBarModel(UIModelBase):
         log.debug('Successfully created Model object from class: {}.'.format(class_full_name))
 
     
-class MenuBarView(UIViewBase, wx.MenuBar):
+class MenuBarView(UIViewObject, wx.MenuBar):
     tid = 'menubar_view'
  
     def __init__(self, controller_uid):
-        UIViewBase.__init__(self, controller_uid)
+        UIViewObject.__init__(self, controller_uid)
         wx.MenuBar.__init__(self)
         UIM = UIManager()
         parent_uid = UIM._getparentuid(controller_uid)

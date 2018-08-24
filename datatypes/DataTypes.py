@@ -22,6 +22,8 @@ See Also
 OM.Objects : the base classes for the classes defined in this module.
 """
 
+
+
 from collections import OrderedDict
 
 import numpy as np
@@ -44,7 +46,25 @@ VALID_Z_AXIS_DATATYPES = [('MD', 'Measured Depth'),
 
 
 
-class GenericDataType(GripyObject):
+# TODO: Ver melhor lugar para esta Classe
+class OMBaseObject(GripyObject):
+    tid = None
+
+    def _get_manager_class(self):
+        return ObjectManager
+
+    @classmethod
+    def is_tid_node_needed(cls):
+        """For TreeController"""
+        return True
+
+    def get_friendly_name(self):
+        return self.name
+
+
+
+
+class GenericDataType(OMBaseObject):
     tid = None
     _ATTRIBUTES = OrderedDict()
     _ATTRIBUTES['unit'] = {
@@ -65,18 +85,7 @@ class GenericDataType(GripyObject):
         if isinstance(self._data, np.ndarray):
             self._data.flags.writeable = False
 
-    @classmethod
-    def is_tid_node_needed(cls):
-        """For TreeController"""
-        return True
-    
-    def _get_manager_class(self):
-        return ObjectManager
-    
-    def get_friendly_name(self):
-        return self.name
-   
-    
+
     @property
     def min(self):
 #        print ('ENTROU MIN')
@@ -180,15 +189,170 @@ class GenericDataType(GripyObject):
 
     """
 
-class Well(GenericDataType):
+
+
+# Class for discrete dimensions of Data Objects
+class DataIndex(GenericDataType):
+    tid = 'data_index'
+    _FRIENDLY_NAME = 'Index'
+    _ATTRIBUTES = OrderedDict()
+    _ATTRIBUTES['dimension'] = {
+        'default_value': -1,
+        'type': int       
+    }       
+    """
+    _ATTRIBUTES['start'] = {
+        'default_value': -1,
+        'type': int       
+    }  
+    _ATTRIBUTES['end'] = {
+        'default_value': -1,
+        'type': int       
+    }        
+    _ATTRIBUTES['step'] = {
+        'default_value': None,
+        'type': int       
+    }  
+    _ATTRIBUTES['samples'] = {
+        'default_value': None,
+        'type': int       
+    }   
+    """
+    
+    _SHOWN_ATTRIBUTES = [
+                            #('_oid', 'Object Id'),
+                            ('dimension', 'Dimension'),
+                            ('datatype', 'Type'),
+                            ('unit', 'Unit'),
+                            ('start', 'Start'),
+                            ('end', 'End'),
+                            ('step', 'Step'),
+                            ('samples', 'Samples')
+    ]   
+    
+    
+    def __init__(self, dimension_idx, name, datatype=None, unit=None, **kwargs):   
+        
+#        print (kwargs)
+        
+        if dimension_idx is None or dimension_idx < 0 or not isinstance(dimension_idx, int):
+            raise Exception('Wrong value for dimension_idx [{}]'.format(dimension_idx))
+        try:    
+            check_data_index(datatype, unit)
+        except:
+            raise        
+        data = kwargs.get('data') 
+        start = kwargs.get('start') 
+        end = kwargs.get('end') 
+        step = kwargs.get('step')
+        samples = kwargs.get('samples')
+        if data is None or not isinstance(data, np.ndarray):
+            try:
+                end = start + step * samples
+                data = np.arange(start, end, step)
+            except:
+                raise Exception('Data values were provided wrongly.')
+#        print (start)        
+        if start is None:        
+            start = data[0]
+        if end is None:
+            end = data[-1]
+        samples = len(data)
+#        print (name, datatype, unit, start, end, step, samples)
+        super().__init__(data, name=name, 
+                         datatype=datatype, unit=unit,
+                         start=start, end=end, step=step, samples=samples
+        )
+        self['dimension'] = dimension_idx   
+        #
+        #OM = ObjectManager()        
+        #OM.subscribe(self._on_OM_add, 'add')
+
+
+    @classmethod
+    def is_tid_node_needed(cls):
+        """For TreeController"""
+        return False
+
+    def _on_OM_add(self, objuid):
+        if objuid != self.uid:
+            return
+        OM = ObjectManager()        
+        OM.unsubscribe(self._on_OM_add, 'add')
+
+    
+    def get_data_indexes(self):
+        ret_dict = OrderedDict()
+        ret_dict[0] = [self]
+        return ret_dict        
+
+
+    
+    @property
+    def start(self):
+        try:
+#            print ('\nproperty start:', self.data[0])
+            return self._data[0]
+        except Exception as e:
+            print (e)
+            raise
+#            return None
+    
+    @property
+    def end(self):
+        try:
+            return self._data[-1]
+        except:
+            return None
+
+    @property
+    def step(self):           
+        try:
+            return self._data[1] - self._data[0]
+        except:
+            return None     
+
+    @property
+    def samples(self):
+        try:
+            return len(self._data)
+        except:
+            return 0  
+    
+    
+    @classmethod
+    def _loadstate(cls, **state):
+        OM = ObjectManager()
+        try:
+            dimension = state.pop('dimension')
+            name = state.pop('name')
+            datatype = state.pop('datatype')
+            unit = state.pop('unit')
+            index = OM.new(cls.tid, dimension, name, datatype, unit, **state)
+        except Exception as e:
+            print ('\nERROR:', e, '\n', state)
+        return index
+
+
+
+
+
+
+
+class Well(OMBaseObject):
     tid = "well"
     _FRIENDLY_NAME = 'Well'
 #    _ACCEPT_MULTIPLE_INDEXES = True # TODO: rever isso
     
-    def __init__(self, **attributes):
-        # Well does not have data
-        super().__init__(None, **attributes)
-
+    
+    def __init__(self, *args, **kwargs):
+        print ('\n\n\nWell:')
+        print (args, kwargs)
+        try:
+            super().__init__(**kwargs)
+        except Exception as e:
+            print (e)
+            raise
 
     def get_z_axis_datatypes(self):
         OM = ObjectManager()
@@ -1165,147 +1329,6 @@ class IndexSet(GenericDataType):
 
 """
 
-# Class for discrete dimensions of Data Objects
-class DataIndex(GenericDataType):
-    tid = 'data_index'
-    _FRIENDLY_NAME = 'Index'
-    _ATTRIBUTES = OrderedDict()
-    _ATTRIBUTES['dimension'] = {
-        'default_value': -1,
-        'type': int       
-    }       
-    """
-    _ATTRIBUTES['start'] = {
-        'default_value': -1,
-        'type': int       
-    }  
-    _ATTRIBUTES['end'] = {
-        'default_value': -1,
-        'type': int       
-    }        
-    _ATTRIBUTES['step'] = {
-        'default_value': None,
-        'type': int       
-    }  
-    _ATTRIBUTES['samples'] = {
-        'default_value': None,
-        'type': int       
-    }   
-    """
-    
-    _SHOWN_ATTRIBUTES = [
-                            #('_oid', 'Object Id'),
-                            ('dimension', 'Dimension'),
-                            ('datatype', 'Type'),
-                            ('unit', 'Unit'),
-                            ('start', 'Start'),
-                            ('end', 'End'),
-                            ('step', 'Step'),
-                            ('samples', 'Samples')
-    ]   
-    
-    
-    def __init__(self, dimension_idx, name, datatype=None, unit=None, **kwargs):   
-        
-#        print (kwargs)
-        
-        if dimension_idx is None or dimension_idx < 0 or not isinstance(dimension_idx, int):
-            raise Exception('Wrong value for dimension_idx [{}]'.format(dimension_idx))
-        try:    
-            check_data_index(datatype, unit)
-        except:
-            raise        
-        data = kwargs.get('data') 
-        start = kwargs.get('start') 
-        end = kwargs.get('end') 
-        step = kwargs.get('step')
-        samples = kwargs.get('samples')
-        if data is None or not isinstance(data, np.ndarray):
-            try:
-                end = start + step * samples
-                data = np.arange(start, end, step)
-            except:
-                raise Exception('Data values were provided wrongly.')
-#        print (start)        
-        if start is None:        
-            start = data[0]
-        if end is None:
-            end = data[-1]
-        samples = len(data)
-#        print (name, datatype, unit, start, end, step, samples)
-        super().__init__(data, name=name, 
-                         datatype=datatype, unit=unit,
-                         start=start, end=end, step=step, samples=samples
-        )
-        self['dimension'] = dimension_idx   
-        #
-        #OM = ObjectManager()        
-        #OM.subscribe(self._on_OM_add, 'add')
-
-
-    @classmethod
-    def is_tid_node_needed(cls):
-        """For TreeController"""
-        return False
-
-    def _on_OM_add(self, objuid):
-        if objuid != self.uid:
-            return
-        OM = ObjectManager()        
-        OM.unsubscribe(self._on_OM_add, 'add')
-
-    
-    def get_data_indexes(self):
-        ret_dict = OrderedDict()
-        ret_dict[0] = [self]
-        return ret_dict        
-
-
-    
-    @property
-    def start(self):
-        try:
-#            print ('\nproperty start:', self.data[0])
-            return self._data[0]
-        except Exception as e:
-            print (e)
-            raise
-#            return None
-    
-    @property
-    def end(self):
-        try:
-            return self._data[-1]
-        except:
-            return None
-
-    @property
-    def step(self):           
-        try:
-            return self._data[1] - self._data[0]
-        except:
-            return None     
-
-    @property
-    def samples(self):
-        try:
-            return len(self._data)
-        except:
-            return 0  
-    
-    
-    @classmethod
-    def _loadstate(cls, **state):
-        OM = ObjectManager()
-        try:
-            dimension = state.pop('dimension')
-            name = state.pop('name')
-            datatype = state.pop('datatype')
-            unit = state.pop('unit')
-            index = OM.new(cls.tid, dimension, name, datatype, unit, **state)
-        except Exception as e:
-            print ('\nERROR:', e, '\n', state)
-        return index
         
 
 
