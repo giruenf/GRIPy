@@ -65,7 +65,7 @@ class OMBaseObject(GripyObject):
 
 
 
-class GenericDataType(OMBaseObject):
+class DataTypeObject(OMBaseObject):
     tid = None
     _ATTRIBUTES = OrderedDict()
     _ATTRIBUTES['unit'] = {
@@ -178,7 +178,7 @@ class GenericDataType(OMBaseObject):
         return zaxis
 
     def _getstate(self):
-        state = super(GenericDataType, self)._getstate()
+        state = super(DataTypeObject, self)._getstate()
         state.update(data=self._data)
         state.update(self.attributes)
         return state
@@ -195,7 +195,7 @@ class GenericDataType(OMBaseObject):
 
 
 # Class for discrete dimensions of Data Objects
-class DataIndex(GenericDataType):
+class DataIndex(DataTypeObject):
     tid = 'data_index'
     _FRIENDLY_NAME = 'Index'
     _ATTRIBUTES = OrderedDict()
@@ -376,7 +376,7 @@ class Well(OMBaseObject):
 
 
 
-class WellData1D(GenericDataType):                             
+class WellData1D(DataTypeObject):                             
     tid = "data1d"
     
     _ATTRIBUTES = OrderedDict()
@@ -499,7 +499,7 @@ class Log(WellData1D):
     
     
     
-class Property(GenericDataType):
+class Property(DataTypeObject):
     """
     A property that can be associated with geological layers.
     
@@ -639,7 +639,7 @@ class Part(WellData1D):
         super(Part, self).__init__(data, **attributes)
 
     """    
-    @GenericDataType.name.getter
+    @DataTypeObject.name.getter
     def name(self):
         if 'name' not in self.attributes:
             self.attributes['name'] = '{:g}'.format(self.code)
@@ -1009,7 +1009,7 @@ class Inference(Partition):
 
 
                        
-class Core(GenericDataType):
+class Core(DataTypeObject):
     tid = "core"
     
     def __init__(self, data, **attributes):
@@ -1022,7 +1022,7 @@ class Core(GenericDataType):
 ###############################################################################
                 
 
-class Density(GenericDataType):
+class Density(DataTypeObject):
     tid = 'density'
 
     def __init__(self, data, **attributes):
@@ -1144,7 +1144,7 @@ class GatherSpectogram(Spectogram):
 ###############################################################################
 
 
-class Inversion(GenericDataType):
+class Inversion(DataTypeObject):
     tid = "inversion"
     _FRIENDLY_NAME = 'Inversion'
     
@@ -1153,7 +1153,7 @@ class Inversion(GenericDataType):
 
 
     
-class InversionParameter(GenericDataType):
+class InversionParameter(DataTypeObject):
                                  
     tid = "inversion_parameter"
     _FRIENDLY_NAME = 'Parameter'
@@ -1249,7 +1249,7 @@ def check_data_index(index_type, axis_unit):
         raise Exception('Invalid index unit.')
 
 """
-class IndexSet(GenericDataType):
+class IndexSet(DataTypeObject):
     tid = 'index_set'
     _FRIENDLY_NAME = 'Indexes Set'    
     
@@ -1370,7 +1370,7 @@ class Model1D(Density):
 
 
 
-class ZoneSet(GenericDataType):
+class ZoneSet(DataTypeObject):
     tid = 'zone_set'
     _FRIENDLY_NAME = 'Zone Sets'
     _SHOWN_ATTRIBUTES = [
@@ -1382,7 +1382,7 @@ class ZoneSet(GenericDataType):
         super().__init__(**attributes)
 
 
-class Zone(GenericDataType):
+class Zone(DataTypeObject):
     tid = 'zone'
     _FRIENDLY_NAME = 'Zones'
     _SHOWN_ATTRIBUTES = [

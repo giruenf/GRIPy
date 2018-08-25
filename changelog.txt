@@ -1,15 +1,16 @@
 ﻿Gripy Change log - (pt-br only)
-Atualizado em 24/8/2018 por Adriano (@adrianopls)
+Atualizado em 25/8/2018 por Adriano (@adrianopls)
 
 
 Versão 0.8.beta:
 ================
 - Adoção de Python 3.6
 - Utilização de Pypubsub 4.0 como dependencia
-- Reescrita do modelo de classes básicas com a utilização de metaclasses e de sistema de atributos similar ao que jah existia nos objetos da UI. 
+- Significativa mudança (from scratch) do modelo de classes básicas com a utilização de metaclasses e de sistema de atributos similar ao que jah existia nos objetos da UI. 
 - Mudança de nome das classes UIControllerBase, UIModelBase, UIViewBase  para UIControllerObject, UIModelObject, UIViewObject.
+- Mudança de nome das classes GenericDataType para DataTypeObject.
 - Reescrita dos métodos save e load do ObjectManager em função da mudança para Python 3 (afetava o método np.load).
-- Sistema de janelas de trabalho flutuantes (com inserção da logo dp Gripy como background)
+- Sistema de janelas de trabalho flutuantes (com inserção da logo dp Gripy como background).
 - Reescrita total do CrossPlot no modelo MVC.
 
 
