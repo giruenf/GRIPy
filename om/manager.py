@@ -603,19 +603,26 @@ class ObjectManager(GripyManager):
                 else:
                     objdict[key] = value
             
+#            for key in obj._IMMUTABLES_KEYS:
+#                objdict[key] = obj[key]
+
+                        
+            objdict ['__children'] = self._childrenuidmap[uid]
             pickledata[uid] = objdict  
         
-        print ()
-        print ()
+        print ('\nsave')
         print ()
         print ('pickledata:', pickledata)
-        print () 
+        print ()
+#        print ('parentuidmap:', self._parentuidmap)
+#        print () 
         print ('npzdata:', npzdata)
         print ()
         
 
         picklefile = open(os.path.join(tempfile.gettempdir(), picklefilename), 'wb')
-        pickle.dump(dict(data=pickledata, parentmap=self._parentuidmap), picklefile, protocol=2)
+#        pickle.dump(dict(data=pickledata, parentmap=self._parentuidmap), picklefile, protocol=2)
+        pickle.dump(pickledata, picklefile, protocol=2)
         picklefile.close()
 
         npzfile = open(os.path.join(tempfile.gettempdir(), npzfilename), 'wb')
@@ -629,13 +636,11 @@ class ObjectManager(GripyManager):
         
         npzfile.close()
         
-
         with zipfile.ZipFile(archivepath, mode='w', 
                                  compression=zipfile.ZIP_DEFLATED) as pgg_zip:
             pgg_zip.write(os.path.join(tempfile.gettempdir(), picklefilename), arcname=picklefilename)
             pgg_zip.write(os.path.join(tempfile.gettempdir(), npzfilename), arcname=npzfilename) 
                                               
-
         os.remove(os.path.join(tempfile.gettempdir(), picklefilename))
         os.remove(os.path.join(tempfile.gettempdir(), npzfilename))    
         
@@ -670,7 +675,8 @@ class ObjectManager(GripyManager):
         
         # Load pickle dict
         picklefile = open(os.path.join(tempfile.gettempdir(), picklefilename), 'rb')
-        pickledict = pickle.load(picklefile)
+#        pickledict = pickle.load(picklefile)
+        pickledata = pickle.load(picklefile)
         picklefile.close()
         
         # Load NumPy's NpzFile object
@@ -678,12 +684,28 @@ class ObjectManager(GripyManager):
         npzdata = np.lib.npyio.NpzFile(npzfile, allow_pickle=False)
         npzfile.close()
         
-        pickledata = pickledict['data']
-        parentuidmap = pickledict['parentmap']
+#        pickledata = pickledict['data']
+#        parentuidmap = pickledict['parentmap']
+
+        print ('\n\n\nload')
+        print ()
+        print ('pickledata:', pickledata)
+        print ()
+#        print ('parentuidmap:', parentuidmap)
+#        print () 
+        print ('npzdata:', npzdata)
+        print ()
+
+
+        self._load_object(pickledata)
         
-        newuidsmap = {}
-        for olduid, objdict in pickledata.items():
-            tid = olduid[0]
+        """
+#        newuidsmap = {}
+        for uid, objdict in pickledata.items():
+            
+            print ('\n{}: {}'.format(uid, objdict))
+            
+            tid = uid[0]
             for key, value in objdict.items():
                 if isinstance(value, str) and value.startswith(self._NPZIDENTIFIER):
                     objdict[key] = npzdata[value.lstrip(self._NPZIDENTIFIER)]
@@ -692,20 +714,78 @@ class ObjectManager(GripyManager):
             print (tid, objdict)
             
             try:
-                obj = self.new(tid, **objdict)
-                newuidsmap[olduid] = obj.uid
-                self.add(obj, newuidsmap.get(parentuidmap[olduid]))
-            except:
-                pass
-            
+                obj = self.new(tid, oid=uid[1], **objdict)
+#                newuidsmap[olduid] = obj.uid
+#                self.add(obj, newuidsmap.get(parentuidmap[olduid]))
+            except Exception as e:
+                print (e)
+                raise 
+        """    
         
-#        os.remove(os.path.join(dirname, picklefilename))
-#        os.remove(os.path.join(dirname, npzfilename))
+#        os.remove(os.path.join(tempfile.gettempdir(), picklefilename))
+#        os.remove(os.path.join(tempfile.gettempdir(), npzfilename))  
         
         self._LOADING_STATE = False
         
         return True        
         
+    
+    # for recursion
+    def _load_object(self, pickledata, **kwargs):
+        if not pickledata:
+            return
+        
+        parent_uid = kwargs.get('parent_uid', None)
+        starts_with_uid = kwargs.get('starts_with_uid', None)
+        
+        if starts_with_uid is None:
+            starts_with_uid = next(iter(pickledata))
+            parent_uid = None
+        
+        
+        objattr = pickledata.pop(starts_with_uid)
+        objchildrenuid = objattr.pop('__children')
+        
+        print ()
+        print ('_load_object:')
+        print (starts_with_uid, parent_uid)
+        print (objattr, objchildrenuid)
+        
+        try:
+            obj = self.new(starts_with_uid[0], oid=starts_with_uid[1], **objattr)
+            self.add(obj, parent_uid)
+        except Exception as e:
+            print (e)
+            raise         
+        
+        for objchilduid in objchildrenuid:
+            self._load_object(pickledata, starts_with_uid=objchilduid, parent_uid=obj.uid)
+        
+        
+        
+        """
+                for uid, objdict in pickledata.items():
+            
+            print ('\n{}: {}'.format(uid, objdict))
+            
+            tid = uid[0]
+            for key, value in objdict.items():
+                if isinstance(value, str) and value.startswith(self._NPZIDENTIFIER):
+                    objdict[key] = npzdata[value.lstrip(self._NPZIDENTIFIER)]
+                    
+            print ()
+            print (tid, objdict)
+            
+            try:
+                obj = self.new(tid, oid=uid[1], **objdict)
+#                newuidsmap[olduid] = obj.uid
+#                self.add(obj, newuidsmap.get(parentuidmap[olduid]))
+            except Exception as e:
+                print (e)
+                raise 
+        """        
+    
+    
         """
         try:
             

@@ -46,6 +46,7 @@ VALID_Z_AXIS_DATATYPES = [('MD', 'Measured Depth'),
 
 
 
+
 # TODO: Ver melhor lugar para esta Classe
 class OMBaseObject(GripyObject):
     tid = None
@@ -78,10 +79,12 @@ class GenericDataType(OMBaseObject):
     
     def __init__(self, *args, **attributes):
         super().__init__(**attributes)
+        
         if not args:
             self._data = None
             return
         self._data = args[0]
+        
         if isinstance(self._data, np.ndarray):
             self._data.flags.writeable = False
 
@@ -231,8 +234,15 @@ class DataIndex(GenericDataType):
     ]   
     
     
-    def __init__(self, dimension_idx, name, datatype=None, unit=None, **kwargs):   
+    #def __init__(self, dimension_idx, name, datatype=None, unit=None, **kwargs):   
+    def __init__(self, *args, **kwargs):  
+
+        print ('\nDataIndex:', args, kwargs)        
+        super().__init__(**kwargs)
         
+        
+        
+        """
 #        print (kwargs)
         
         if dimension_idx is None or dimension_idx < 0 or not isinstance(dimension_idx, int):
@@ -267,7 +277,7 @@ class DataIndex(GenericDataType):
         #
         #OM = ObjectManager()        
         #OM.subscribe(self._on_OM_add, 'add')
-
+        """
 
     @classmethod
     def is_tid_node_needed(cls):

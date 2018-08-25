@@ -316,10 +316,10 @@ class GripyObject(pubsub.PublisherMixin, metaclass=GripyWxMeta):
         state = OrderedDict()  
         for attr_name in self._ATTRIBUTES.keys():
             state[attr_name] = self[attr_name]
-        for attr_name in self._BYPASSES_KEYS:
-            state[attr_name] = self[attr_name]                 
-        for attr_name in self._IMMUTABLES_KEYS:
-            state[attr_name] = self[attr_name]         
+#        for attr_name in self._BYPASSES_KEYS:
+#            state[attr_name] = self[attr_name]                 
+#        for attr_name in self._IMMUTABLES_KEYS:
+#            state[attr_name] = self[attr_name]         
         return state  
           
 
