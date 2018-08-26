@@ -131,8 +131,6 @@ class MainWindow(Frame):
 
         
     def on_close(self, event):
-        print ('\n\n\nMainWindow on_close')
- 
 #       TODO: Coloar exibir mensagem de saida aqui...       
 #        if event.CanVeto():
 #            print ('') 

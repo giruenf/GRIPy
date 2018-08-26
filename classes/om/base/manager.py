@@ -92,7 +92,7 @@ class ObjectManager(GripyManager):
     #### Remover isso assim que possivel
     def print_info(self):
         print ('\nObjectManager.print_info:')
-        print (hex(id(ObjectManager)))
+        #print (hex(id(ObjectManager)))
         print ('ObjectManager._data: ', str(ObjectManager._data))
         #print ('ObjectManager._types: ', ObjectManager._types)
         #print ('ObjectManager._currentobjectids: ', ObjectManager._currentobjectids)
@@ -107,9 +107,6 @@ class ObjectManager(GripyManager):
     def _reset(self):
         # TODO: Resolver DataFilter tid 'data_filter'
     
-        print ('\n\nOM._reset')
-        self.print_info()
-        
         temp_parentuidmap = copy.deepcopy(self._parentuidmap)
         
         for uid, parentuid in temp_parentuidmap.items():
@@ -131,6 +128,7 @@ class ObjectManager(GripyManager):
         self._childrenuidmap = {} 
         ObjectManager._changed = False         
     
+
     
     def get_changed_flag(self):
         """

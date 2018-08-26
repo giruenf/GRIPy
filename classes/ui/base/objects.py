@@ -29,13 +29,11 @@ class UIBaseObject(GripyObject):
         pass
 
     def _call_self_remove(self):
-#        print ('\n_call_self_remove ')
         try:
             if isinstance(self, UIControllerObject):
                 uid = self.uid
             else:
                 uid = self._controller_uid
-                
             UIM_class = self._get_manager_class()
             UIM = UIM_class()   
             wx.CallAfter(UIM.remove, uid)

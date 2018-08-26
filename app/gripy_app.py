@@ -200,20 +200,35 @@ class GripyApp(wx.App):
                 self.on_save()   
         """        
         #
+        
+        """
+        print ('\n\nOM._reset')
+        OM.print_info()
+        print ('\n')
+        """
+        
         OM._reset()
         
+        """
+        print ('\n\nAfter OM._reset')
+        OM.print_info()
+        print ('\n')
+        """
+        
         #
+        """
         app_UI_filename = self._gripy_app_state.get('app_UI_file')
         Interface.save_UI_application_data(app_UI_filename)
 
         user_UI_filename = self._gripy_app_state.get('user_UI_file')
         Interface.save_UI_user_data(user_UI_filename)
+        """
         
         # This time I choose not use the line below because there was a little
         # freeze on exiting (1-2 seconds). Then I opted delegate it do compiler.
         #UIM = UIManager()      
         #UIM.close()
-        UIM = UIManager()  
+        UIM = UIManager()
         UIM.PreExit()
     
 #        mwc = Interface.get_main_window_controller()
@@ -321,8 +336,8 @@ class GripyApp(wx.App):
             return ObjectManager
         elif isinstance(obj, UIBaseObject):
             return UIManager    
-        raise Exception('App.gripy_app._get_manager_class: Object has a '+\
-                        'unknown manager.'
+        raise Exception('App.gripy_app._get_manager_class: Class {} has a '+\
+                        'unknown manager.'.format(obj.tid)
         )
     
     

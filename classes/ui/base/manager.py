@@ -352,7 +352,7 @@ class UIManager(GripyManager):
 
     # Before exit application
     def PreExit(self):
-        print ('\nUIManager PreExit')
+#        print ('\nUIManager PreExit')
         for obj in self.list():
             try:
                 #
@@ -377,7 +377,7 @@ class UIManager(GripyManager):
             
             
 #        self.print_info()
-        print ('UIManager PreExit ended\n')
+#        print ('UIManager PreExit ended\n')
 
 
     # TODO: escolher um melhor nome para este método
