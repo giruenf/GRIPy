@@ -4,11 +4,10 @@ import types
 
 import wx
 
-from ui.uimanager import UIManager
-from ui.uimanager import UIControllerObject 
-from ui.uimanager import UIModelObject 
-from ui.uimanager import UIViewObject 
-#from ui.uimanager import UI_MODEL_ATTR_CLASS
+from classes.ui import UIManager
+from classes.ui import UIControllerObject 
+from classes.ui import UIModelObject 
+from classes.ui import UIViewObject 
 from app import log
 
 
@@ -37,32 +36,25 @@ class MenuItemModel(UIModelObject):
 
     _ATTRIBUTES = {
         'pos': {'default_value': -1, 
-                'type': int#,
-        #        'attr_class': UI_MODEL_ATTR_CLASS.APPLICATION
+                'type': int
         },
         'id': {'default_value': wx.ID_ANY, 
-               'type': int#,
-               #'attr_class': UI_MODEL_ATTR_CLASS.APPLICATION
+               'type': int
         },
         'label': {'default_value': wx.EmptyString, 
-                  'type': str#,
-                  #'attr_class': UI_MODEL_ATTR_CLASS.APPLICATION
+                  'type': str
         },
         'help': {'default_value': wx.EmptyString, 
-                 'type': str#,
-                 #'attr_class': UI_MODEL_ATTR_CLASS.APPLICATION
+                 'type': str
         },
         'kind': {'default_value': wx.ITEM_NORMAL, 
-                 'type': int#,
-                 #'attr_class': UI_MODEL_ATTR_CLASS.APPLICATION
+                 'type': int
         },
         'callback': {'default_value': None, 
-                     'type': types.FunctionType#,
-                     #'attr_class': UI_MODEL_ATTR_CLASS.APPLICATION,
+                     'type': types.FunctionType
                      
         }
     }    
-    
     
     def __init__(self, controller_uid, **base_state):  
         super(MenuItemModel, self).__init__(controller_uid, **base_state) 

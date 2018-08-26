@@ -15,7 +15,7 @@ from ui.mvc_classes.workpage import WorkPage
 
 from ui.plotstatusbar import PlotStatusBar
 
-from ui.uimanager import UIManager
+from classes.ui import UIManager
 from app import log
 from app.app_utils import GripyBitmap  
 

@@ -1,44 +1,52 @@
 # -*- coding: utf-8 -*-
 
-from om.manager import ObjectManager
-from ui.uimanager import UIManager
+from classes.om import ObjectManager
+from classes.ui import UIManager
 #
-from datatypes.DataTypes import Well
-from datatypes.DataTypes import Core
-from datatypes.DataTypes import Log
-from datatypes.DataTypes import Partition
-from datatypes.DataTypes import RockTable
-from datatypes.DataTypes import Inference
-from datatypes.DataTypes import RockType
-from datatypes.DataTypes import Part
-from datatypes.DataTypes import Property
+from classes.om import Well
+from classes.om import DataIndex
+from classes.om import Log
 
-from datatypes.DataTypes import Seismic
-#from datatypes.DataTypes import Velocity
-
-
-from datatypes.DataTypes import Scalogram
-from datatypes.DataTypes import GatherScalogram
-from datatypes.DataTypes import Spectogram
-from datatypes.DataTypes import GatherSpectogram
-
-
-#from datatypes.DataTypes import Angle
-#from datatypes.DataTypes import Inversion
-#from datatypes.DataTypes import InversionParameter
-from datatypes.DataTypes import WellGather
-#from datatypes.DataTypes import IndexSet
-from datatypes.DataTypes import DataIndex
-
-from datatypes.DataTypes import Model1D
-from datatypes.DataTypes import Zone
-from datatypes.DataTypes import ZoneSet
-#
 from ui.mvc_classes.track_object import DataFilter
+
+"""
+from classes.dt.datatypes import Core
+from classes.dt.datatypes import Partition
+from classes.dt.datatypes import RockTable
+from classes.dt.datatypes import Inference
+from classes.dt.datatypes import RockType
+from classes.dt.datatypes import Part
+from classes.dt.datatypes import Property
+
+from classes.dt.datatypes import Seismic
+#from classes.dt.datatypes import Velocity
+
+
+from classes.dt.datatypes import Scalogram
+from classes.dt.datatypes import GatherScalogram
+from classes.dt.datatypes import Spectogram
+from classes.dt.datatypes import GatherSpectogram
+
+
+#from classes.dt.datatypes import Angle
+#from classes.dt.datatypes import Inversion
+#from classes.dt.datatypes import InversionParameter
+from classes.dt.datatypes import WellGather
+#from classes.dt.datatypes import IndexSet
+
+
+from classes.dt.datatypes import Model1D
+from classes.dt.datatypes import Zone
+from classes.dt.datatypes import ZoneSet
 #
-from datatypes.DTRock import Rock
-from datatypes.DTRock import Fluid
+from classes.inference.dtrock import Rock
+from classes.inference.dtrock import Fluid
 #
+"""
+#
+
+#
+
 from ui.mvc_classes.wxgripy import FrameController, FrameModel, Frame
 from ui.mvc_classes.wxgripy import DialogController, DialogModel, Dialog
 from ui.mvc_classes.main_window import MainWindowController, MainWindowModel, MainWindow
@@ -82,10 +90,15 @@ def register_app_classes():
 def register_OM_classes():
     ObjectManager.register_class(Well)
     ObjectManager.register_class(DataIndex, Well)
+    ObjectManager.register_class(Log, Well)
+    #
+    ObjectManager.register_class(DataFilter)
+    #
+    """
 #    ObjectManager.register_class(IndexSet, Well)
     ObjectManager.register_class(Core, Well)
     #
-    ObjectManager.register_class(Log, Well)
+    
     #
     ObjectManager.register_class(Partition, Well)
     ObjectManager.register_class(Part, Partition)
@@ -112,9 +125,7 @@ def register_OM_classes():
     ObjectManager.register_class(WellGather, Well)
     ObjectManager.register_class(DataIndex, WellGather)  
 #    ObjectManager.register_class(IndexSet, WellGather)
-    #
-    ObjectManager.register_class(DataFilter)
-    #
+
     ObjectManager.register_class(GatherSpectogram, Well)
     ObjectManager.register_class(DataIndex, GatherSpectogram)
 #    ObjectManager.register_class(IndexSet, GatherSpectogram)
@@ -137,7 +148,7 @@ def register_OM_classes():
     ObjectManager.register_class(Zone, ZoneSet)
     ObjectManager.register_class(Property, Zone)
     #
-    
+    """
     
 def register_UIManager_classes():
     UIManager.register_class(FrameController, FrameModel, Frame)

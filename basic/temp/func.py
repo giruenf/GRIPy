@@ -5,8 +5,10 @@ from collections import OrderedDict
 import numpy as np
 import wx
 
-from om.manager import ObjectManager
-from ui.uimanager import UIManager
+#from om.manager import ObjectManager
+#from ui.uimanager import UIManager
+from classes.om import ObjectManager
+from classes.ui import UIManager
 from algo.spectral.Spectral import STFT, WaveletTransform, MorletWavelet, PaulWavelet, DOGWavelet, RickerWavelet
 
 

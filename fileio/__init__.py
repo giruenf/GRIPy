@@ -1,9 +1,11 @@
-# -*- coding: utf-8 -*-
+#
 """
-IO
-==
+GRIPy fileIO package
+====================
 
-This module is responsible for reading and writing data to the disk.
+This package contains modules created for reading and writing data to the disk.
+
+
 """
 
 '''

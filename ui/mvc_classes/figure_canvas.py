@@ -9,10 +9,10 @@ from matplotlib import style as mstyle
 import matplotlib.ticker as mticker
 from matplotlib import rcParams
 
-from ui.uimanager import UIManager
-from ui.uimanager import UIControllerObject 
-from ui.uimanager import UIModelObject 
-from ui.uimanager import UIViewObject 
+from classes.ui import UIManager
+from classes.ui import UIControllerObject 
+from classes.ui import UIModelObject 
+from classes.ui import UIViewObject 
 from app import pubsub 
 from app import log
 

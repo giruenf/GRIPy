@@ -10,7 +10,7 @@ from matplotlib.transforms import Transform
 from matplotlib.figure import Figure
 from matplotlib.ticker import NullFormatter, NullLocator, MultipleLocator
 
-from ui.uimanager import UIManager
+from classes.ui import UIManager
 
 
 ###############################################################################

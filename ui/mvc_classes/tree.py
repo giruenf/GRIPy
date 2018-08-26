@@ -6,10 +6,10 @@ from collections import OrderedDict
 import wx
 
 from basic.uom import uom
-from om.manager import ObjectManager
-from ui.uimanager import UIManager
-from ui.uimanager import UIControllerObject 
-from ui.uimanager import UIViewObject 
+from classes.om import ObjectManager
+from classes.ui import UIManager
+from classes.ui import UIControllerObject 
+from classes.ui import UIViewObject 
 from app import log 
 
 #

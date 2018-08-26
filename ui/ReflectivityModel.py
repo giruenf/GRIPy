@@ -4,7 +4,7 @@ from collections import OrderedDict
 
 import wx
 
-from om.manager import ObjectManager
+from classes.om import ObjectManager
 from algo.modeling.reflectivity import Reflectivity
 
 from app.app_utils import GripyIcon

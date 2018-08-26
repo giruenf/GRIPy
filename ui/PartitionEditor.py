@@ -5,7 +5,7 @@ import wx.grid
 
 import numpy as np
 
-from om.manager import ObjectManager
+from classes.om import ObjectManager
 
 from app import app_utils
 

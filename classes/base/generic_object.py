@@ -1,82 +1,67 @@
 # -*- coding: utf-8 -*-
 """
-Base Objects
-=======
+Gripy Base Classes
+==================
 
 This file defines the base classes for all GRIPy objects.
+
+Here we have 2 main Metaclasses: GripyMeta and GripyManagerMeta. They are
+responsible for create all classes inherits from GripyObject or GripyManager.
+Another Metaclass in this file is GripyWxMeta is a convinience one for creating 
+object inherits from GripyObject and wx.Object.
+
+All GripyObjects have GripyWxMeta as metaclass as well as GripyManagers have
+GripyManagerMeta. 
+
+Our flavor of Metaclasses was bluit based on the references below.
+
+    https://www.python-course.eu/python3_metaclasses.php and
+    https://blog.ionelmc.ro/2015/02/09/understanding-python-metaclasses/
+
+
+
+    _ATTRIBUTES 
+        default_value:      As the name says 
+        type:               Valid type (e.g. int, str)
+        label:              Friendly name for attribute (used in a pg_property or Tree)
+        pg_property:        Kind of pg_property which deals with this attribute 
+        options_labels:     Options shown as valid for attribute (as shown in a wx.ComboBox).
+        options_values:     The truly options valid for attribute (returned from wx.ComboBox selection event).
+
+        * 25/8/2018: The least 4 above occours only in ui/mvc_classes/track_object.py and ui/mvc_classes/propgrid.py.
+        
+    _IMMUTABLES_KEYS
+        Attributes that must be setted only during object initialization. 
+        They cannot be deleted or changed. (e.g. oid)
+        
+    _BYPASSES_KEYS
+        Attributes that bypasses the checkage made in __setattr__ or 
+        __setitem__ for default ones. This type was created for flags like
+        "_processing_value_from_event" seen in GripyObject.
+
+
+
 """
 
-import os
 import types
 from collections import OrderedDict
 from collections import Sequence
+
 import wx
 
-import app
-import app.pubsub as pubsub
+#from app.gripy_app import GripyApp
+from app import app_utils
+from app import pubsub
+from classes.base.metaclasses import GripyWxMeta
 from app import log
 
-#
-# Based on https://www.python-course.eu/python3_metaclasses.php
-#      and https://blog.ionelmc.ro/2015/02/09/understanding-python-metaclasses/
-#
-class GripyMeta(type):
-    
-    def __new__(cls, clsname, superclasses, attributedict):
-        if '_ATTRIBUTES' not in attributedict:
-            attributedict['_ATTRIBUTES'] = OrderedDict()
-        if '_BYPASSES_KEYS' not in attributedict:
-            attributedict['_BYPASSES_KEYS'] = []
-        if '_IMMUTABLES_KEYS' not in attributedict:
-            attributedict['_IMMUTABLES_KEYS'] = []            
-        ret_class = super().__new__(cls, clsname, superclasses, attributedict)
-        for superclass in superclasses:
-            if '_ATTRIBUTES' in superclass.__dict__:
-                for key, value in superclass.__dict__['_ATTRIBUTES'].items():
-                    if key not in ret_class.__dict__['_ATTRIBUTES']:
-                        ret_class.__dict__['_ATTRIBUTES'][key] = value
-            if '_BYPASSES_KEYS' in superclass.__dict__:
-                for item in superclass.__dict__['_BYPASSES_KEYS']:
-                    if item not in ret_class.__dict__['_BYPASSES_KEYS']:
-                        ret_class.__dict__['_BYPASSES_KEYS'].append(item)
-            if '_IMMUTABLES_KEYS' in superclass.__dict__:
-                for item in superclass.__dict__['_IMMUTABLES_KEYS']:
-                    if item not in ret_class.__dict__['_IMMUTABLES_KEYS']:
-                        ret_class.__dict__['_IMMUTABLES_KEYS'].append(item)                      
-        log.debug('Successfully created class: {}.'.format(clsname))                         
-        return ret_class
 
-
-    def __call__(cls, *args, **kwargs):
-        obj = super().__call__(*args, **kwargs)
-        obj.__initialised = True 
-        log.debug('Successfully created object from class: {}.'.format(obj.__class__))
-        return obj
-
-
-class GripyWxMeta(GripyMeta, wx.siplib.wrappertype):
-    pass
-
-  
-
-#
-# Opcao com metaclass:    
-#   class GripyObject(PublisherMixin, metaclass=GripyWxMeta):
-# Opcao sem metaclass:    
-#   class GripyObject(PublisherMixin): 
-#
-# Usando metaclass é possível instanciar um GripyObject 
-# em uma forma diferenciada. 
-#    
-#    
 
 class GripyObject(pubsub.PublisherMixin, metaclass=GripyWxMeta):  
     tid = None
-    # _BYPASSES_KEYS bypasses the checking made in __setattr__ or __setitem__
     _BYPASSES_KEYS = ['_processing_value_from_event']
-    # _IMMUTABLES_KEYS must be setted only during __init__. Cannot be deleted.
     _IMMUTABLES_KEYS = ['oid']
-    #
+
     _ATTRIBUTES = OrderedDict()
     _ATTRIBUTES['name'] = {
         'default_value': wx.EmptyString,
@@ -85,12 +70,12 @@ class GripyObject(pubsub.PublisherMixin, metaclass=GripyWxMeta):
     
     def __init__(self, **kwargs): 
         _manager_class = self._get_manager_class()
-        _manager = _manager_class()
+        _manager_obj = _manager_class()
         #
-        if _manager.is_loading_state():
+        if _manager_obj.is_loading_state():
             self.oid = kwargs.pop['oid']
         else:    
-            self.oid = _manager._getnewobjectid(self.tid)     
+            self.oid = _manager_obj._getnewobjectid(self.tid)     
         #    
         self._processing_value_from_event = True
         self.name = '{}.{}'.format(*self.uid)
@@ -104,9 +89,13 @@ class GripyObject(pubsub.PublisherMixin, metaclass=GripyWxMeta):
     def __str__(self):
         return '{}.{}'.format(*self.uid)
 
+#    def _get_manager_class(self):
+#        raise NotImplementedError()
+ 
     def _get_manager_class(self):
-        raise NotImplementedError()
-        
+        return wx.App.Get()._get_manager_class(self)
+
+       
     def get_publisher_name(self):
         return pubsub.uid_to_pubuid(self.uid)    
         
@@ -275,7 +264,7 @@ class GripyObject(pubsub.PublisherMixin, metaclass=GripyWxMeta):
         # Special treatment for functions
         elif type_ == types.FunctionType:
             if isinstance(value, str):
-                value = app.app_utils.get_function_from_string(value)
+                value = app_utils.get_function_from_string(value)
             if value is not None and not callable(value):
                 msg = 'ERROR: Attributes signed as \"types.FunctionType\" can recieve only \"str\" or \"types.FunctionType\" values. '
                 msg += 'Received: {} - Type: {}'.format(value, type(value))
@@ -379,259 +368,3 @@ class GripyObject(pubsub.PublisherMixin, metaclass=GripyWxMeta):
 
 
 
-
-
-
-
-
-
-
-
-class GripyManagerMeta(type):
-    
-    def __new__(cls, clsname, superclasses, attributedict):
-        return super().__new__(cls, clsname, superclasses, attributedict)                   
-
-
-
-class GripyManager(pubsub.PublisherMixin, metaclass=GripyManagerMeta):  
-    """
-    Parent class for Managers
-    """
-
-    _LOADING_STATE = False
-    
-
-    def __init__(self):
-        #super().__init__()
-        self._ownerref = None
-        
-        return
-    
-        print ('\nGripyManager.init')
-     
-        '''
-        print ('\nGripyManager.init')
-        
-        #owner = app.gripy_app.GripyApp.Get()
-        
-        
-        owner = wx.App.Get() 
-        if owner is not None:
-            print ('OK')
-        else:
-            print ('DEU RUIM')
-        self._ownerref = weakref.ref(owner)
-        '''
-        
-        """
-        try:
-            callers_stack = app.app_utils.get_callers_stack()     
-        except Exception as e:
-            print (e)
-            raise
-            
-        """    
-
-        '''
-        owner = wx.App.Get() 
-        if owner is not None:
-            print ('OK')
-        else:
-            print ('DEU RUIM')
-        self._ownerref = weakref.ref(owner)   
-        
-        '''
-        
-        
-        '''
-        for ci in callers_stack:
-            print ('\nGripyManager:', ci)
-        print ('\n')         
-        '''
-      
-        '''
-        
-        owner = wx.App.Get() 
-        if owner is not None:
-            print ('OK')
-        else:
-            print ('DEU RUIM')
-        self._ownerref = weakref.ref(owner)        
-        
-        '''
-        
-        owner = callers_stack[2].object_
-        
-        #print ('owner:', owner, type(owner))
-        
-        
-        
-        if owner is None: 
-            #print ('NOT OWNER')
-            full_filename = os.path.normpath(callers_stack[2].filename)
-            function_name = callers_stack[2].function_name
-            
-            
-            '''
-            function_ = get_function_from_filename(fi.filename, fi.function)
-            if function_:
-                module_ = function_.__module__  
-            '''
-            
-            
-            function_ = app.app_utils.get_function_from_filename(full_filename, function_name)
-            if function_:
-                #owner = function_
-                # TODO: Armengue feito para as funcoes dos menus.. tentar corrigir isso
-                owner = app.gripy_app.GripyApp.Get()
-            else:    
-                msg = 'ERROR: ' + str(owner)
-                print (msg)
-                raise Exception(msg)
-        
-        """
-            
-        # TODO: Armengue feito para as funcoes dos menus.. tentar corrigir isso
-        #if not owner:
-        #    owner = app.gripy_app.GripyApp.Get()
-        
-        """
-        try:
-            #print ('A')
-            owner_name = owner.uid
-        except AttributeError:
-            #print ('B')
-            owner_name = owner.__class__.__name__
-        msg = 'A new instance of ' + self.__class__.__name__ + \
-                                ' was solicited by {}'.format(owner_name)
-                                
-        log.debug(msg)       
-        
-        
-        #self._ownerref = weakref.ref(owner)
-        self._ownerref = None
-        
-        '''
-        owner = wx.App.Get() 
-        if owner is not None:
-            print ('OK')
-        else:
-            print ('DEU RUIM')
-        self._ownerref = weakref.ref(owner)
-        
-        print ('GripyManager.init ended')
-        
-        '''
-
-    def is_loading_state(self):
-        return self.__class__._LOADING_STATE 
-
-    def get_publisher_name(self):
-        return self.__class__.__name__
-   
-        
-    def do_query(self, tid, parent_uid=None, *args, **kwargs):
-        try:
-            objects = self.list(tid, parent_uid)
-            if not objects: return None  
-            comparators = self._create_comparators(*args)  
-            ret_list = []
-            for obj in objects:
-                ok = True
-                for (key, operator, value) in comparators:
-                    ok = False
-                   
-                    
-                    attr = obj._ATTRIBUTES.get(key)
-                    # TODO: acertar isso, pois a linha de cima deve servir de atalho
-                    # para obj.model de forma transparente
-                    obj_model = False
-                    if attr is None:
-                        attr = obj.model._ATTRIBUTES.get(key)
-                        obj_model = True
-
-                    type_ = attr.get('type')
-                    value = type_(value)
-                    
-#                    print ('type_(value)', type_, value)
-                    
-                    if obj_model:
-                        if operator == '>=':
-                            ok = obj.model[key] >= value
-                        elif operator == '<=':
-                            ok = obj.model[key] <= value                  
-                        elif operator == '>':
-                            ok = obj.model[key] > value
-                        elif operator == '<':
-                            ok = obj.model[key] < value     
-                        elif operator == '!=':
-                            ok = obj.model[key] != value
-                        elif operator == '=':
-                            ok = obj.model[key] == value
-                        
-                    else:
-                        if operator == '>=':
-                            ok = obj[key] >= value
-                        elif operator == '<=':
-                            ok = obj[key] <= value                  
-                        elif operator == '>':
-                            ok = obj[key] > value
-                        elif operator == '<':
-                            ok = obj[key] < value     
-                        elif operator == '!=':
-                            ok = obj[key] != value
-                        elif operator == '=':
-                            ok = obj[key] == value
-                            
-#                    print ('{} ok: {}'.format(obj.name, ok))
-                    
-                    if not ok:
-                        break
-                if ok:
-                    ret_list.append(obj)
-            if kwargs:
-                orderby = kwargs.get('orderby')
-                if orderby and len(ret_list) >= 2:
-                    aux_list = []
-                    while len(ret_list) > 0:
-                        minor_idx = 0
-                        for idx, obj in enumerate(ret_list):
-                            if obj.model[orderby] < ret_list[minor_idx].model[orderby]:
-                                minor_idx = idx
-                        aux_list.append(ret_list[minor_idx])
-                        del ret_list[minor_idx]
-                    ret_list = aux_list
-                reverse = kwargs.get('reverse')
-                if reverse:
-                    ret_list.reverse()
-#            print ('\nret_list:', ret_list)                         
-            return ret_list
-        except Exception as e:
-            print ('\nERROR in {}.do_query({}, {}, {}, {})'.format( \
-                   self.__class__.__name__,tid, parent_uid, args, kwargs)
-            )
-            raise
-            
-            
-    def _create_comparators(self, *args):
-        operators = ['>=', '<=', '>', '<', '!=', '=']
-        ret_list = []
-        for arg in args:
-            operator = None
-            for oper in operators:
-                if oper in arg:
-                    operator = oper
-                    break
-            if not operator:
-                raise ValueError('Operator not found. Valid operators are: {}'\
-                                 .format(operators)
-                )
-            ret_list.append((arg.split(operator)[0], operator, 
-                             arg.split(operator)[1])
-            )
-        return ret_list          
-        
-    
-    
-    

@@ -2,10 +2,10 @@
 
 import wx
 
-from ui.uimanager import UIManager
-from ui.uimanager import UIControllerObject 
-from ui.uimanager import UIModelObject 
-from ui.uimanager import UIViewObject 
+from classes.ui import UIManager
+from classes.ui import UIControllerObject 
+from classes.ui import UIModelObject 
+from classes.ui import UIViewObject 
 from app import log
 
 
@@ -21,9 +21,7 @@ class MenuBarController(UIControllerObject):
 
 class MenuBarModel(UIModelObject):
     tid = 'menubar_model'
-    
-    _ATTRIBUTES = {}
-        
+
     def __init__(self, controller_uid, **base_state): 
         super(MenuBarModel, self).__init__(controller_uid, **base_state)
         class_full_name = str(self.__class__.__module__) + '.' + str(self.__class__.__name__)    

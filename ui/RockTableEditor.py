@@ -6,8 +6,8 @@ import numpy as np
 import wx
 import wx.grid
 
-from ui.uimanager import UIManager
-from om.manager import ObjectManager
+from classes.ui import UIManager
+from classes.om import ObjectManager
 from algo import rockphysics as RP
 import app.app_utils
 from basic.colors import COLOR_CYCLE_RGB

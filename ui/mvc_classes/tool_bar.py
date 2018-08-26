@@ -2,11 +2,10 @@
 
 import wx
 
-from ui.uimanager import UIManager
-from ui.uimanager import UIControllerObject 
-from ui.uimanager import UIModelObject 
-from ui.uimanager import UIViewObject 
-#from ui.uimanager import UI_MODEL_ATTR_CLASS
+from classes.ui import UIManager
+from classes.ui import UIControllerObject 
+from classes.ui import UIModelObject 
+from classes.ui import UIViewObject 
 from ui.mvc_classes.main_window import MainWindowController
 from app import log
 
@@ -23,20 +22,16 @@ class ToolBarModel(UIModelObject):
     tid = 'toolbar_model'
     _ATTRIBUTES = {
         'id': {'default_value': wx.ID_ANY, 
-               'type': int#,
-               #'attr_class': UI_MODEL_ATTR_CLASS.APPLICATION
+               'type': int
         },
         'pos': {'default_value': wx.DefaultPosition, 
-                'type': wx.Point#,
-                #'attr_class': UI_MODEL_ATTR_CLASS.APPLICATION
+                'type': wx.Point
         },
         'size': {'default_value': wx.DefaultSize, 
-                 'type': wx.Size#,
-                 #'attr_class': UI_MODEL_ATTR_CLASS.APPLICATION
+                 'type': wx.Size
         },
         'style': {'default_value': wx.TB_FLAT|wx.TB_NODIVIDER, 
-                  'type': int#,
-                  #'attr_class': UI_MODEL_ATTR_CLASS.APPLICATION
+                  'type': int
         }
     }    
     
@@ -61,24 +56,10 @@ class ToolBar(UIViewObject, wx.ToolBar):
                             controller.model.size, controller.model.style
         )
         self.Realize()  
-
         if isinstance(parent_controller, MainWindowController):
             mgr = wx.aui.AuiManager.GetManager(parent_controller.view)
             mgr.AddPane(self, self.paneinfo)
             mgr.Update()
-    '''        
-    # TESTES
-        self.counter = 1
-        self.Bind(wx.EVT_PAINT, self.teste)    
-    
 
-    def teste(self, event):
-        print 'teste', self.counter
-        self.counter += 1
-        event.Skip()
-    
-    # FIM TESTES        
-    '''
-    
     
     

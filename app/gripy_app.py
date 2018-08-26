@@ -1,23 +1,28 @@
 # -*- coding: utf-8 -*-
+
 import os
-import wx
 from collections import OrderedDict
+
+import wx
+
 from app import app_utils
-from app import gripy_classes
 from app import gripy_functions
-from om.manager import ObjectManager
-from ui.uimanager import UIManager
+
+from classes import class_register
+from classes.om import OMBaseObject
+from classes.om import ObjectManager
+from classes.ui import UIBaseObject
+from classes.ui import UIManager
+
 from ui import Interface
 from app import DEFS 
 from app import log
 from app.gripy_plugin_manager import GripyPluginManagerSingleton
-wx.SystemOptions.SetOption("msw.remap", '0')
+#from wx.lib.pubsub import pub
 
 
-#
-from wx.lib.pubsub import pub
-#from pubsub import pub
-#
+#wx.SystemOptions.SetOption("msw.remap", '0')
+
 
 
 class GripyApp(wx.App):
@@ -84,7 +89,7 @@ class GripyApp(wx.App):
         self._init_has_ended_message()
         #
         log.info('Starting to register Gripy internal classes...')
-        gripy_classes.register_app_classes()
+        class_register.register_app_classes()
         log.info('Registering Gripy internal classes ended.')   
         #
         log.info('Starting to register Gripy internal functions...')
@@ -310,3 +315,14 @@ class GripyApp(wx.App):
         fdlg.Destroy()   
 
 
+
+    def _get_manager_class(self, obj):
+        if isinstance(obj, OMBaseObject):
+            return ObjectManager
+        elif isinstance(obj, UIBaseObject):
+            return UIManager    
+        raise Exception('App.gripy_app._get_manager_class: Object has a '+\
+                        'unknown manager.'
+        )
+    
+    

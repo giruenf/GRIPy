@@ -1,9 +1,9 @@
 # -*- coding: utf-8 -*-
 
-from datatypes.DataTypes import GenericDataType
+from classes.dt.datatypes import DataTypeObject
         
 
-class Rock (GenericDataType):
+class Rock (DataTypeObject):
     tid = 'rock'
     _FRIENDLY_NAME = 'Rock'
     _SHOWN_ATTRIBUTES = [
@@ -24,7 +24,7 @@ class Rock (GenericDataType):
         super(Rock, self).__init__(None, **attributes)
 
 
-class Fluid (GenericDataType):
+class Fluid (DataTypeObject):
     tid = 'fluid'
     _FRIENDLY_NAME = 'Fluid'
     _SHOWN_ATTRIBUTES = [

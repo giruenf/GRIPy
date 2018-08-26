@@ -6,11 +6,11 @@ import numpy as np
 import wx
 import matplotlib.pyplot as plt
 
-from om.manager import ObjectManager
-from ui.uimanager import UIManager
-from ui.uimanager import UIControllerObject 
-from ui.uimanager import UIModelObject 
-from ui.uimanager import UIViewObject 
+from classes.om import ObjectManager
+from classes.ui import UIManager
+from classes.ui import UIControllerObject 
+from classes.ui import UIModelObject 
+from classes.ui import UIViewObject 
 from ui.mvc_classes.mpl_base import TrackFigureCanvas
 from ui.mvc_classes.mpl_base import VisDataLabel
 from app.app_utils import LogPlotState, parse_string_to_uid  
@@ -370,7 +370,7 @@ class TrackView(UIViewObject):
 
     def end_dragging(self):
         #print 'Release button of canvas', self._in_canvas
-        print ('\nSTART of end_dragging')
+#        print ('\nSTART of end_dragging')
         if self._in_canvas == -1:
             return 
         if self._drag_mode != SASH_DRAG_DRAGGING:
@@ -422,7 +422,7 @@ class TrackView(UIViewObject):
         #           
         #d1, d2 = self.get_depth()           
         self.track.SetToolTip(wx.ToolTip('{0:.2f} - {1:.2f}'.format(d1, d2)))
-        print ('END of end_dragging')
+#        print ('END of end_dragging')
    
 
 

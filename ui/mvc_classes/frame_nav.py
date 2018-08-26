@@ -4,8 +4,8 @@ from collections import OrderedDict
 
 import wx
 
-from om.manager import ObjectManager
-from ui.uimanager import UIManager
+from classes.om import ObjectManager
+from classes.ui import UIManager
 from ui.mvc_classes.wxgripy import FrameController
 from ui.mvc_classes.wxgripy import FrameModel
 from ui.mvc_classes.wxgripy import Frame
@@ -279,7 +279,6 @@ class NavigatorModel(FrameModel):
             'default_value': None,
             'type': int
     }  
-#    _ATTRIBUTES.update(FrameModel._ATTRIBUTES) 
      
     def __init__(self, controller_uid, **base_state): 
         super(NavigatorModel, self).__init__(controller_uid, **base_state) 

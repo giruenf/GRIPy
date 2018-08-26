@@ -9,7 +9,7 @@ import wx
 
 import matplotlib as mpl
 
-import datatypes
+#import classes.dt.datatypes
 from basic.uom import uom
 
 
@@ -28,7 +28,7 @@ from algo import RockPhysics as RP
 from algo import avo
 
 from algo.modeling.reflectivity import Reflectivity
-from om.manager import ObjectManager
+from classes.om import ObjectManager
 from basic.parms import ParametersManager
 from  ui import HeaderEditor
 from  ui import ImportSelector
@@ -40,7 +40,7 @@ from  ui import PartitionEditor
 from  ui import PartEditor
 from  ui import RockTableEditor
 from ui import ReflectivityModel as RM
-from ui.uimanager import UIManager
+from classes.ui import UIManager
 
 from  ui import Interface
 

@@ -27,14 +27,20 @@ OM.Objects : the base classes for the classes defined in this module.
 from collections import OrderedDict
 
 import numpy as np
-import wx
+#import wx
 
-from om.manager import ObjectManager
-from app.gripy_base_classes import GripyObject
+from classes.om import DataObject
+from classes.om import ObjectManager
+#from classes.om import OMBaseObject
 
-from app.app_utils import parse_string_to_uid
+#from classes.base import GripyObject
+
+#from app.app_utils import parse_string_to_uid
 
 from basic.colors import COLOR_CYCLE_RGB
+
+
+from classes.om.welldata_1d import WellData1D
 
 
 VALID_Z_AXIS_DATATYPES = [('MD', 'Measured Depth'), 
@@ -47,459 +53,11 @@ VALID_Z_AXIS_DATATYPES = [('MD', 'Measured Depth'),
 
 
 
-# TODO: Ver melhor lugar para esta Classe
-class OMBaseObject(GripyObject):
-    tid = None
-
-    def _get_manager_class(self):
-        return ObjectManager
-
-    @classmethod
-    def is_tid_node_needed(cls):
-        """For TreeController"""
-        return True
-
-    def get_friendly_name(self):
-        return self.name
-
-
-
-
-class DataTypeObject(OMBaseObject):
-    tid = None
-    _ATTRIBUTES = OrderedDict()
-    _ATTRIBUTES['unit'] = {
-        'default_value': wx.EmptyString,
-        'type': str        
-    }   
-    _ATTRIBUTES['datatype'] = {
-        'default_value': wx.EmptyString,
-        'type': str        
-    }       
-    
-    def __init__(self, *args, **attributes):
-        super().__init__(**attributes)
-        
-        if not args:
-            self._data = None
-            return
-        self._data = args[0]
-        
-        if isinstance(self._data, np.ndarray):
-            self._data.flags.writeable = False
-
-
-    @property
-    def min(self):
-#        print ('ENTROU MIN')
-        if self._data is None:
-#            print ('MIN IS NONE')
-            return None
-#        print (np.nanmin(self._data))
-        return np.nanmin(self._data)
-        
-    @property
-    def max(self):
-#        print ('ENTROU MAX')
-        if self._data is None:
-#            print ('MAX IS NONE')
-            return None
-#        try:
-#            print (np.nanmax(self._data))
-#        except Exception as e:
-#            print ('ERRAO:', e)
-        return np.nanmax(self._data)
-    
-
-    @property
-    def data(self):
-        return self._data
-
-    """
-
-    def get_indexes_set(self):
-        OM = ObjectManager()
-        indexes_set = OM.list('index_set', self.uid)
-        ret = OrderedDict()
-        for index_set in indexes_set:
-            dis = OM.list('data_index', index_set.uid)
-            if not dis:
-                ret[index_set.uid] = None
-            else:
-                ret[index_set.uid] = index_set.get_data_indexes()
-        return ret
-    
-    def get_data_indexes(self, set_name):
-        OM = ObjectManager()
-        for index_set_uid, inner_ord_dict in self.get_indexes_set().items():
-            index_set = OM.get(index_set_uid) 
-            if set_name == index_set.name:
-                return inner_ord_dict
-        return None
-
-    def get_z_axis_indexes_by_type(self, datatype):
-        ok = False
-        for z_axis_dt, z_axis_dt_desc in VALID_Z_AXIS_DATATYPES:
-            if datatype == z_axis_dt:
-                ok = True
-                break
-        if not ok:    
-            raise Exception('Invalid datatype={}. Valid values are: {}'.format(datatype, VALID_Z_AXIS_DATATYPES))
-        ret_vals = []
-        all_data_indexes = self.get_indexes_set().values()   
-        for data_indexes in all_data_indexes:
-            z_axis_indexes = data_indexes[0]
-            for data_index in z_axis_indexes:
-                if data_index.datatype == datatype:
-                    ret_vals.append(data_index)
-        return ret_vals
-   
-    def get_friendly_indexes_dict(self):
-        OM = ObjectManager()
-        ret_od = OrderedDict()
-        indexes_set = self.get_indexes_set()
-        for index_set_uid, indexes_ord_dict in indexes_set.items():
-            index_set = OM.get(index_set_uid)
-            for dim_idx, data_indexes in indexes_ord_dict.items():
-                for data_index in data_indexes:
-                    di_friendly_name = data_index.name + '@' + index_set.name
-                    ret_od[di_friendly_name] = data_index.uid       
-        return ret_od
-    
-    def get_z_axis_datatypes(self):
-        OM = ObjectManager()
-        data_indexes_uid = self.get_friendly_indexes_dict().values()
-        zaxis = OrderedDict()
-        for z_axis_dt, z_axis_dt_desc in VALID_Z_AXIS_DATATYPES:
-            for data_index_uid in data_indexes_uid:
-                data_index = OM.get(data_index_uid)
-                if data_index.datatype == z_axis_dt and z_axis_dt not in zaxis.values():
-                    zaxis[z_axis_dt_desc] = z_axis_dt
-        return zaxis
-
-    def _getstate(self):
-        state = super(DataTypeObject, self)._getstate()
-        state.update(data=self._data)
-        state.update(self.attributes)
-        return state
-
-    def _getparent(self):
-        OM = ObjectManager()
-        parent_uid = OM._getparentuid(self.uid)
-        if not parent_uid:
-            return None
-        return OM.get(parent_uid)     
-
-    """
-
-
-
-# Class for discrete dimensions of Data Objects
-class DataIndex(DataTypeObject):
-    tid = 'data_index'
-    _FRIENDLY_NAME = 'Index'
-    _ATTRIBUTES = OrderedDict()
-    _ATTRIBUTES['dimension'] = {
-        'default_value': -1,
-        'type': int       
-    }       
-    """
-    _ATTRIBUTES['start'] = {
-        'default_value': -1,
-        'type': int       
-    }  
-    _ATTRIBUTES['end'] = {
-        'default_value': -1,
-        'type': int       
-    }        
-    _ATTRIBUTES['step'] = {
-        'default_value': None,
-        'type': int       
-    }  
-    _ATTRIBUTES['samples'] = {
-        'default_value': None,
-        'type': int       
-    }   
-    """
-    
-    _SHOWN_ATTRIBUTES = [
-                            #('_oid', 'Object Id'),
-                            ('dimension', 'Dimension'),
-                            ('datatype', 'Type'),
-                            ('unit', 'Unit'),
-                            ('start', 'Start'),
-                            ('end', 'End'),
-                            ('step', 'Step'),
-                            ('samples', 'Samples')
-    ]   
-    
-    
-    #def __init__(self, dimension_idx, name, datatype=None, unit=None, **kwargs):   
-    def __init__(self, *args, **kwargs):  
-
-        print ('\nDataIndex:', args, kwargs)        
-        super().__init__(**kwargs)
-        
-        
-        
-        """
-#        print (kwargs)
-        
-        if dimension_idx is None or dimension_idx < 0 or not isinstance(dimension_idx, int):
-            raise Exception('Wrong value for dimension_idx [{}]'.format(dimension_idx))
-        try:    
-            check_data_index(datatype, unit)
-        except:
-            raise        
-        data = kwargs.get('data') 
-        start = kwargs.get('start') 
-        end = kwargs.get('end') 
-        step = kwargs.get('step')
-        samples = kwargs.get('samples')
-        if data is None or not isinstance(data, np.ndarray):
-            try:
-                end = start + step * samples
-                data = np.arange(start, end, step)
-            except:
-                raise Exception('Data values were provided wrongly.')
-#        print (start)        
-        if start is None:        
-            start = data[0]
-        if end is None:
-            end = data[-1]
-        samples = len(data)
-#        print (name, datatype, unit, start, end, step, samples)
-        super().__init__(data, name=name, 
-                         datatype=datatype, unit=unit,
-                         start=start, end=end, step=step, samples=samples
-        )
-        self['dimension'] = dimension_idx   
-        #
-        #OM = ObjectManager()        
-        #OM.subscribe(self._on_OM_add, 'add')
-        """
-
-    @classmethod
-    def is_tid_node_needed(cls):
-        """For TreeController"""
-        return False
-
-    def _on_OM_add(self, objuid):
-        if objuid != self.uid:
-            return
-        OM = ObjectManager()        
-        OM.unsubscribe(self._on_OM_add, 'add')
-
-    
-    def get_data_indexes(self):
-        ret_dict = OrderedDict()
-        ret_dict[0] = [self]
-        return ret_dict        
-
-
-    
-    @property
-    def start(self):
-        try:
-#            print ('\nproperty start:', self.data[0])
-            return self._data[0]
-        except Exception as e:
-            print (e)
-            raise
-#            return None
-    
-    @property
-    def end(self):
-        try:
-            return self._data[-1]
-        except:
-            return None
-
-    @property
-    def step(self):           
-        try:
-            return self._data[1] - self._data[0]
-        except:
-            return None     
-
-    @property
-    def samples(self):
-        try:
-            return len(self._data)
-        except:
-            return 0  
-    
-    
-    @classmethod
-    def _loadstate(cls, **state):
-        OM = ObjectManager()
-        try:
-            dimension = state.pop('dimension')
-            name = state.pop('name')
-            datatype = state.pop('datatype')
-            unit = state.pop('unit')
-            index = OM.new(cls.tid, dimension, name, datatype, unit, **state)
-        except Exception as e:
-            print ('\nERROR:', e, '\n', state)
-        return index
-
-
-
-
-
-
-
-class Well(OMBaseObject):
-    tid = "well"
-    _FRIENDLY_NAME = 'Well'
-#    _ACCEPT_MULTIPLE_INDEXES = True # TODO: rever isso
-    
-    
-    def __init__(self, *args, **kwargs):
-        print ('\n\n\nWell:')
-        print (args, kwargs)
-        try:
-            super().__init__(**kwargs)
-        except Exception as e:
-            print (e)
-            raise
-
-    def get_z_axis_datatypes(self):
-        OM = ObjectManager()
-        data_indexes = OM.list('data_index', self.uid)
-        zaxis = OrderedDict()
-        for z_axis_dt, z_axis_dt_desc in VALID_Z_AXIS_DATATYPES:
-            for data_index in data_indexes:
-                if data_index.datatype == z_axis_dt and z_axis_dt not in zaxis.values():
-                    zaxis[z_axis_dt_desc] = z_axis_dt
-        return zaxis
-
-
-
-class WellData1D(DataTypeObject):                             
-    tid = "data1d"
-    
-    _ATTRIBUTES = OrderedDict()
-    _ATTRIBUTES['index_uid'] = {
-        'default_value': None,
-        'type': str       
-    }  
-    
-    
-    def __init__(self, data, **attributes):
-#        print ('\nattributes:', attributes)
-        """
-        index_set_uid = attributes.get('index_set_uid')
-        try:    
-            tid, oid = index_set_uid 
-        except:
-            print (index_set_uid, type(index_set_uid))										
-            raise Exception('Object attribute \"index_set_uid\" must be a \"uid\" tuple.')    
-        if tid != 'index_set':
-            raise Exception('Object attribute \"index_set_uid\" must have its first argument as \"index_set\".')
-        """
-        super().__init__(data, **attributes)
-
-#        OM = ObjectManager()        
-#        OM.subscribe(self._on_OM_add, 'add')
-
-    """
-    def _on_OM_add(self, objuid):
-        if objuid != self.uid:
-            return
-        #print 'WellData1D._on_OM_add:', objuid
-        OM = ObjectManager()
-        try:
-            OM.unsubscribe(self._on_OM_add, 'add')     
-        except Exception as e:
-            print ('Deu ruim no unsub:', e)
-        try:
-            parent_uid = OM._getparentuid(self.uid)
-            # TODO: remover esse armengue
-            if self.tid == 'part':
-                parent_well_uid = OM._getparentuid(parent_uid)
-            else:
-                parent_well_uid = parent_uid
-            # FIM - Armengue    
-        #    print 'parent_well_uid:', parent_well_uid
-            my_index_set = OM.get(self.index_set_uid)
-        #    print 'my_index_set:', my_index_set
-        #    print 'list:'
-        #    for obj_is in OM.list('index_set', parent_well_uid):
-        #        print obj_is
-            if my_index_set not in OM.list('index_set', parent_well_uid):
-                print ('DEU RUIM')
-                raise Exception('Invalid attribute \"index_set\"={}'.format(self.index_set_uid))
-        except:
-            raise
-
-    @property
-    def index_set_uid(self):
-        return self.attributes['index_set_uid']
-    """
-
-    def get_data_indexes(self):
-        ret_dict = OrderedDict()
-        OM = ObjectManager()
-#        print (self.__dict__)
-        
-        index_uid = parse_string_to_uid(self.index_uid)
-        index = OM.get(index_uid)
-
-        ret_dict[0] = [index]
-        return ret_dict  
-
-    """
-    def get_data_indexes(self):
-        OM = ObjectManager()    
-        
-        
-        try:
-            index_set = OM.get(self.index_set_uid)
-            return index_set.get_data_indexes()
-        except:
-            return None
-    """    
-        
-    def get_indexes(self):
-        raise Exception('Invalid METHOD')   
-    
-    def get_friendly_name(self):
-        OM = ObjectManager()
-        parent_well_uid = OM._getparentuid(self.uid)
-        parent_well = OM.get(parent_well_uid)         
-        return self.name + '@' + parent_well.name
-
-
-
-    
-class Log(WellData1D):
-                                  
-    tid = "log"
-    _FRIENDLY_NAME = 'Log'
-    _SHOWN_ATTRIBUTES = [
-                            ('datatype', 'Curve Type'),
-                            ('unit', 'Units'),
-                            ('min', 'Min Value'),
-                            ('max', 'Max Value')
-                            #('index_name', 'Index'),
-                            #('start', 'Start'),
-                            #('end', 'End'),
-                            #('step', 'Step'),
-    ] 
-    
-    def __init__(self, data, **attributes):
-        super().__init__(data, **attributes)
-
-    @classmethod
-    def is_tid_node_needed(cls):
-        """For TreeController"""
-        return False
         
     
     
     
-class Property(DataTypeObject):
+class Property(DataObject):
     """
     A property that can be associated with geological layers.
     
@@ -639,7 +197,7 @@ class Part(WellData1D):
         super(Part, self).__init__(data, **attributes)
 
     """    
-    @DataTypeObject.name.getter
+    @DataObject.name.getter
     def name(self):
         if 'name' not in self.attributes:
             self.attributes['name'] = '{:g}'.format(self.code)
@@ -1009,7 +567,7 @@ class Inference(Partition):
 
 
                        
-class Core(DataTypeObject):
+class Core(DataObject):
     tid = "core"
     
     def __init__(self, data, **attributes):
@@ -1022,7 +580,7 @@ class Core(DataTypeObject):
 ###############################################################################
                 
 
-class Density(DataTypeObject):
+class Density(DataObject):
     tid = 'density'
 
     def __init__(self, data, **attributes):
@@ -1144,7 +702,7 @@ class GatherSpectogram(Spectogram):
 ###############################################################################
 
 
-class Inversion(DataTypeObject):
+class Inversion(DataObject):
     tid = "inversion"
     _FRIENDLY_NAME = 'Inversion'
     
@@ -1153,7 +711,7 @@ class Inversion(DataTypeObject):
 
 
     
-class InversionParameter(DataTypeObject):
+class InversionParameter(DataObject):
                                  
     tid = "inversion_parameter"
     _FRIENDLY_NAME = 'Parameter'
@@ -1249,7 +807,7 @@ def check_data_index(index_type, axis_unit):
         raise Exception('Invalid index unit.')
 
 """
-class IndexSet(DataTypeObject):
+class IndexSet(DataObject):
     tid = 'index_set'
     _FRIENDLY_NAME = 'Indexes Set'    
     
@@ -1370,7 +928,7 @@ class Model1D(Density):
 
 
 
-class ZoneSet(DataTypeObject):
+class ZoneSet(DataObject):
     tid = 'zone_set'
     _FRIENDLY_NAME = 'Zone Sets'
     _SHOWN_ATTRIBUTES = [
@@ -1382,7 +940,7 @@ class ZoneSet(DataTypeObject):
         super().__init__(**attributes)
 
 
-class Zone(DataTypeObject):
+class Zone(DataObject):
     tid = 'zone'
     _FRIENDLY_NAME = 'Zones'
     _SHOWN_ATTRIBUTES = [

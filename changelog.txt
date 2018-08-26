@@ -6,13 +6,16 @@ Versão 0.8.beta:
 ================
 - Adoção de Python 3.6
 - Utilização de Pypubsub 4.0 como dependencia
-- Significativa mudança (from scratch) do modelo de classes básicas com a utilização de metaclasses e de sistema de atributos similar ao que jah existia nos objetos da UI. 
-- Mudança de nome das classes UIControllerBase, UIModelBase, UIViewBase  para UIControllerObject, UIModelObject, UIViewObject.
-- Mudança de nome das classes GenericDataType para DataTypeObject.
-- Reescrita dos métodos save e load do ObjectManager em função da mudança para Python 3 (afetava o método np.load).
+- Significativa mudança (from scratch) do modelo de classes que inclui:
+    - Utilização de metaclasses
+    - Sistema de atributos similar ao que jah existia nos objetos da UI. 
+    - Reorganizacao dos modulos contidos nos pacotes om, dt e ui. Os modulos desses pacotes estao no novo pacote classes. 
+    - Mudança de nome das classes UIControllerBase, UIModelBase, UIViewBase  para UIControllerObject, UIModelObject, UIViewObject.
+    - Mudança de nome das classes GenericDataType para DataTypeObject.
+- Reescrita dos métodos save e load do ObjectManager em função da mudança para Python 3 (método np.load não funcionava adequadamente).
 - Sistema de janelas de trabalho flutuantes (com inserção da logo dp Gripy como background).
 - Reescrita total do CrossPlot no modelo MVC.
-
+- Ajustes nos arquivos OSLICENSES.txt 
 
 Versão 0.7:
 ===========

@@ -5,9 +5,9 @@ from types import FunctionType
 
 import wx
 
-from ui.uimanager import UIManager
-from ui.uimanager import UIControllerObject 
-from ui.uimanager import UIModelObject 
+from classes.ui import UIManager
+from classes.ui import UIControllerObject 
+from classes.ui import UIModelObject 
 from ui.mvc_classes.main_window import MainWindowController
 from app import log
 from app.app_utils import GripyBitmap

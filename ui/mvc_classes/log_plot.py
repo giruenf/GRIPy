@@ -4,19 +4,19 @@ from collections import OrderedDict
 
 import wx
 
-from om.manager import ObjectManager
+from classes.om import ObjectManager
 
 from ui.mvc_classes.workpage import WorkPageController
 from ui.mvc_classes.workpage import WorkPageModel
 from ui.mvc_classes.workpage import WorkPage
-from ui.uimanager import UIManager
+from classes.ui import UIManager
 from ui.plotstatusbar import PlotStatusBar
 from ui.logplot_internal import LogPlotInternal
 from app.app_utils import LogPlotState   
 from app.app_utils import GripyBitmap  
 from ui.mvc_classes.mpl_base import TrackFigureCanvas, PlotLabel
 from app.app_utils import DropTarget
-from datatypes.DataTypes import VALID_Z_AXIS_DATATYPES
+#from classes.dt.datatypes import VALID_Z_AXIS_DATATYPES
 from app import log  
 
 LP_FLOAT_PANEL = wx.NewId() 
@@ -913,7 +913,7 @@ class LogPlot(WorkPage):
                         filter_ = toc_ctrl.get_filter()
                         filter_.reload_z_dimension_indexes()
                         toc_ctrl._do_draw() 
-            print ('FIM set_index_type:', new_value, old_value, '\n\n')                
+#            print ('FIM set_index_type:', new_value, old_value, '\n\n')                
         except Exception as e: 
             print ('ERROR set_index_type:', e)
             raise

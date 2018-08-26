@@ -14,7 +14,7 @@ import wx
 
 import app
 import fileio
-from om.manager import ObjectManager
+from classes.om.base.manager import ObjectManager
 from app import log
 
 

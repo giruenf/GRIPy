@@ -1,6 +1,6 @@
 import numpy as np
 import wx
-from om.manager import ObjectManager
+from classes.om import ObjectManager
 #import rfltvPP
 #import rfltvPS
 from algo.modeling import funcs as fn

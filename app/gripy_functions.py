@@ -2,7 +2,9 @@
 
 from app.gripy_function_manager import FunctionManager
 from basic.temp.func import do_STFT, do_CWT
-from datatypes.DataTypes import Log
+
+from classes.om import Log
+#from datatypes.DataTypes import Log
 
 
 """

@@ -5,13 +5,13 @@ import wx.grid
 
 import numpy as np
 
-from om.manager import ObjectManager
+from classes.om import ObjectManager
 
 from app import app_utils
 
 from basic.colors import COLOR_CYCLE_RGB
 
-from ui.uimanager import UIManager
+from classes.ui import UIManager
 
 # TODO: Tirar a necessidade do uso disso
 NAME_UNIT_SEPARATOR = ':::'

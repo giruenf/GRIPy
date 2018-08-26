@@ -8,7 +8,7 @@ import wx
 
 from lib.yapsy.IPlugin import IPlugin
 from lib.yapsy.PluginInfo import PluginInfo
-from ui.uimanager import UIManager
+from classes.ui import UIManager
 from app import log
 
 

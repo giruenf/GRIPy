@@ -5,10 +5,10 @@ from collections import OrderedDict
 import wx
 from pubsub import pub
 
-from ui.uimanager import UIManager
-from ui.uimanager import UIControllerObject 
-from ui.uimanager import UIModelObject 
-from ui.uimanager import UIViewObject 
+from classes.ui import UIManager
+from classes.ui import UIControllerObject 
+from classes.ui import UIModelObject 
+from classes.ui import UIViewObject 
 from app.pubsub import AUTO_TOPIC
 from app.app_utils import GripyIcon
 
@@ -563,7 +563,6 @@ class DialogModel(TopLevelModel):
                 'type': int
         }
     }    
-#    _ATTRIBUTES.update(TopLevelModel._ATTRIBUTES) 
     _ATTRIBUTES['style'] = {
         'default_value': wx.DEFAULT_DIALOG_STYLE, 
         'type': int        

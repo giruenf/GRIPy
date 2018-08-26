@@ -3,7 +3,7 @@
 import wx
 
 import app
-from ui.uimanager import UIManager
+from classes.ui import UIManager
 
 #from Algo.Modeling.Reflectivity import Reflectivity2
 
@@ -1368,7 +1368,7 @@ def _do_initial_tests():
         0.01
     ]    
     
-    from om.manager import ObjectManager
+    from classes.om import ObjectManager
     import numpy as np
     
     OM = ObjectManager()
@@ -1377,7 +1377,11 @@ def _do_initial_tests():
     #
     index = OM.new('data_index', 0, 'Depth', 'MD', 'm', data=np.array(depth)) 
     OM.add(index, well.uid)
-    #           
+    #      
+
+
+    """
+     
     log = OM.new('log', np.array(phi)/100, index_uid=index.uid, name='Phi', unit='dec', 
                  datatype='NMRperm'
     )
@@ -1387,6 +1391,9 @@ def _do_initial_tests():
                  datatype='CorePerm'
     )
     OM.add(log, well.uid)       
+    """
+    
+    
     #
     
 #    mwc.model.pos = (-1300,600)

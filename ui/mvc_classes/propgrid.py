@@ -6,11 +6,11 @@ import wx
 import wx.propgrid as pg 
 from wx.adv import OwnerDrawnComboBox 
 
-from om.manager import ObjectManager
-from ui.uimanager import UIManager
-from ui.uimanager import UIControllerObject 
-from ui.uimanager import UIModelObject 
-from ui.uimanager import UIViewObject                                  
+from classes.om import ObjectManager
+from classes.ui import UIManager
+from classes.ui import UIControllerObject 
+from classes.ui import UIModelObject 
+from classes.ui import UIViewObject                                  
 import app.pubsub as pub
 
 
@@ -195,8 +195,8 @@ def _get_pg_property(uid, model_key, model_key_props):
         return FloatProperty(uid, model_key, label=model_key_props.get('label'))
     if model_key_props.get('pg_property') == 'EnumProperty':
         return EnumProperty(uid, model_key, label=model_key_props.get('label'),
-                            labels=model_key_props.get('labels'),
-                            values=model_key_props.get('values')
+                            labels=model_key_props.get('options_labels'),
+                            values=model_key_props.get('options_values')
         )    
     if model_key_props.get('pg_property') == 'BoolProperty':
         return BoolProperty(uid, model_key, label=model_key_props.get('label'))                

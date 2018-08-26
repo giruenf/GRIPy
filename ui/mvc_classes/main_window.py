@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 import wx
 import wx.aui as aui
-from ui.uimanager import UIManager
+from classes.ui import UIManager
 
 from ui.mvc_classes.wxgripy import FrameController
 from ui.mvc_classes.wxgripy import FrameModel

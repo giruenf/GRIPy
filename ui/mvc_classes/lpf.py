@@ -10,12 +10,12 @@ import wx.propgrid as pg
 from wx.propgrid import PropertyGrid
 import wx.lib.colourdb
 
-from om.manager import ObjectManager
+from classes.om import ObjectManager
 from ui.mvc_classes.log_plot import LogPlotController
-from ui.uimanager import UIManager
-from ui.uimanager import UIControllerObject  
-from ui.uimanager import UIModelObject
-from ui.uimanager import UIViewObject 
+from classes.ui import UIManager
+from classes.ui import UIControllerObject  
+from classes.ui import UIModelObject
+from classes.ui import UIViewObject 
 from ui.mvc_classes.track import TrackController    
 from ui.mvc_classes.track_object import TrackObjectController  
 import app.pubsub as pub   

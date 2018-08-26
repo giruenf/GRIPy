@@ -12,14 +12,12 @@ import zipfile
 import os
 
 import tempfile
-from tempfile import TemporaryFile as TF
-
 
 from app import app_utils
 
 
 from app import log
-from app.gripy_base_classes import GripyManager
+from classes.base.generic_manager import GripyManager
 
 import copy
 
@@ -203,12 +201,16 @@ class ObjectManager(GripyManager):
         """
         try:
             class_ = self._types[typeid]
+#            print ('\n\n{}'.format(class_))
+#            print (typeid, args, kwargs)
             obj = class_(*args, **kwargs)
     #        objectid = self._getnewobjectid(typeid)
     #        obj.oid = objectid
             return obj
         except Exception as e:
-            raise Exception('Error on creating object! [tid={}, args={}, kwargs={}, error={}]'.format(typeid, args, kwargs, e))
+            raise Exception('Error on creating object! [tid={}, args={}, ' + \
+                        'kwargs={}, error={}]'.format(typeid, args, kwargs, e)
+            )
 
 
     def add(self, obj, parentuid=None):

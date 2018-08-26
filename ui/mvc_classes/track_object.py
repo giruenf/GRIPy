@@ -11,13 +11,15 @@ import matplotlib.cbook as cbook
 import matplotlib
 from matplotlib.patches import FancyBboxPatch
 
-from om.manager import ObjectManager
-from app.gripy_base_classes import GripyObject
-from ui.uimanager import UIManager
-from ui.uimanager import UIControllerObject 
-from ui.uimanager import UIModelObject 
-from ui.uimanager import UIViewObject 
-from datatypes.DataTypes import Density
+from classes.om import ObjectManager
+from classes.base import GripyObject
+
+from classes.ui import UIManager
+from classes.ui import UIControllerObject 
+from classes.ui import UIModelObject 
+from classes.ui import UIViewObject 
+
+from classes.om import Density
 
 # TODO: verificar se linhas abaixo devem ser mantidas
 from basic.parms import ParametersManager
@@ -784,23 +786,23 @@ class LineRepresentationModel(UIModelObject):
             'type': int,
             'pg_property': 'EnumProperty',
             'label': 'Width',
-            'labels': ['0', '1', '2', '3', '4', '5'],
-            'values': [0, 1, 2, 3, 4, 5 ]
+            'options_labels': ['0', '1', '2', '3', '4', '5'],
+            'options_values': [0, 1, 2, 3, 4, 5 ]
     }
     _ATTRIBUTES['color'] = {
             'default_value': 'Black',
             'type': str,
             'pg_property': 'EnumProperty',
             'label': 'Color',
-            'labels': MPL_COLORS.keys()                
+            'options_labels': MPL_COLORS.keys()                
     }
     _ATTRIBUTES['x_scale'] = {
             'default_value': 0, 
             'type': int,
             'pg_property': 'EnumProperty',
             'label': 'X axis scale',
-            'labels': ['Linear', 'Logarithmic'],
-            'values': [0, 1]
+            'options_labels': ['Linear', 'Logarithmic'],
+            'options_values': [0, 1]
     }
     
     def __init__(self, controller_uid, **base_state): 
@@ -1029,23 +1031,23 @@ class IndexRepresentationModel(UIModelObject):
             'type': float,
             'pg_property': 'EnumProperty',
             'label': 'Horizontal Alignment',
-            'labels': ['Left', 'Center', 'Right'],
-            'values': [0.1, 0.5, 0.9]
+            'options_labels': ['Left', 'Center', 'Right'],
+            'options_values': [0.1, 0.5, 0.9]
     }
     _ATTRIBUTES['fontsize'] = {
             'default_value': 11, 
             'type': int,
             'pg_property': 'EnumProperty',
             'label': 'Font Size',
-            'labels': ['7', '8', '9', '10', '11', '12', '13'],
-            'values': [7, 8, 9, 10, 11, 12, 13]
+            'options_labels': ['7', '8', '9', '10', '11', '12', '13'],
+            'options_values': [7, 8, 9, 10, 11, 12, 13]
     }
     _ATTRIBUTES['color'] = {
             'default_value': 'Black',
             'type': str,
             'pg_property': 'EnumProperty',
             'label': 'Color',
-            'labels': MPL_COLORS.keys()
+            'options_labels': MPL_COLORS.keys()
     }    
     _ATTRIBUTES['bbox'] = {
             'default_value': True ,
@@ -1058,11 +1060,11 @@ class IndexRepresentationModel(UIModelObject):
             'type': str,
             'pg_property': 'EnumProperty',
             'label': 'Bbox Style',
-            'labels': ['Circle', 'DArrow', 'LArrow', 'RArrow', 
+            'options_labels': ['Circle', 'DArrow', 'LArrow', 'RArrow', 
                        'Round', 'Round4', 'Roundtooth', 'Sawtooth',
                        'Square'
             ],
-            'values': ['circle', 'darrow', 'larrow', 'rarrow',
+            'options_values': ['circle', 'darrow', 'larrow', 'rarrow',
                        'round', 'round4', 'roundtooth', 'sawtooth',
                        'square'
             ]
@@ -1072,7 +1074,7 @@ class IndexRepresentationModel(UIModelObject):
             'type': str,
             'pg_property': 'EnumProperty',
             'label': 'Bbox Color',
-            'labels': MPL_COLORS.keys()
+            'options_labels': MPL_COLORS.keys()
     }         
     _ATTRIBUTES['bbox_alpha'] = {
             'default_value': 0.5,
@@ -1085,16 +1087,16 @@ class IndexRepresentationModel(UIModelObject):
             'type': str,
             'pg_property': 'EnumProperty',
             'label': 'Horizontal Alignment in the TextBox',
-            'labels': ['Left', 'Center', 'Right'],
-            'values': ['left', 'center', 'right']
+            'options_labels': ['Left', 'Center', 'Right'],
+            'options_values': ['left', 'center', 'right']
     } 
     _ATTRIBUTES['va'] = {
             'default_value': 'center',
             'type': str,
             'pg_property': 'EnumProperty',
             'label': 'Vertical Alignment in the TextBox',
-            'labels': ['Top', 'Center', 'Bottom', 'Baseline'],
-            'values': ['top', 'center', 'bottom', 'baseline']
+            'options_labels': ['Top', 'Center', 'Bottom', 'Baseline'],
+            'options_values': ['top', 'center', 'bottom', 'baseline']
     }             
     
     def __init__(self, controller_uid, **base_state): 
@@ -1280,22 +1282,22 @@ class DensityRepresentationModel(UIModelObject):
             'type': str,
             'pg_property': 'EnumProperty',
             'label': 'Plot type',
-            'labels': ['Density', 'Wiggle', 'Both'],  
-            'values': ['density', 'wiggle', 'both']
+            'options_labels': ['Density', 'Wiggle', 'Both'],  
+            'options_values': ['density', 'wiggle', 'both']
     }    
     _ATTRIBUTES['colormap'] = {
             'default_value': 'spectral_r', #'gray',
             'type': str,
             'pg_property': 'EnumProperty',
             'label': 'Colormap',
-            'labels': MPL_COLORMAPS
+            'options_labels': MPL_COLORMAPS
     }      
     _ATTRIBUTES['interpolation'] = {
             'default_value': 'bicubic', #'none', #'bilinear',
             'type': str,
             'pg_property': 'EnumProperty',
             'label': 'Colormap interpolation',
-            'labels': ['none', 'nearest', 'bilinear', 'bicubic',
+            'options_labels': ['none', 'nearest', 'bilinear', 'bicubic',
                       'spline16', 'spline36', 'hanning', 'hamming',
                       'hermite', 'kaiser', 'quadric', 'catrom',
                       'gaussian', 'bessel', 'mitchell', 'sinc',
@@ -1325,15 +1327,15 @@ class DensityRepresentationModel(UIModelObject):
             'type': int,
             'pg_property': 'EnumProperty',
             'label': 'Wiggle line width',
-            'labels': ['0', '1', '2', '3'],
-            'values': [0, 1, 2, 3]
+            'options_labels': ['0', '1', '2', '3'],
+            'options_values': [0, 1, 2, 3]
     }   
     _ATTRIBUTES['linecolor'] = {
             'default_value': 'Black',
             'type': str,
             'pg_property': 'EnumProperty',
             'label': 'Wiggle line color',
-            'labels': MPL_COLORS.keys()
+            'options_labels': MPL_COLORS.keys()
     }    
     _ATTRIBUTES['min_wiggle'] = {
             'default_value': None,
@@ -1358,22 +1360,22 @@ class DensityRepresentationModel(UIModelObject):
             'type': str,
             'pg_property': 'EnumProperty',
             'label': 'Wiggle fill type',
-            'labels': ['None', 'Left', 'Right', 'Both'],  
-            'values': [None, 'left', 'right', 'both']
+            'options_labels': ['None', 'Left', 'Right', 'Both'],  
+            'options_values': [None, 'left', 'right', 'both']
     }      
     _ATTRIBUTES['fill_color_left'] = {
             'default_value': 'Red', 
             'type': str,
             'pg_property': 'EnumProperty',
             'label': 'Wiggle left fill color',
-            'labels': MPL_COLORS.keys()
+            'options_labels': MPL_COLORS.keys()
     }       
     _ATTRIBUTES['fill_color_right'] = {
             'default_value': 'Blue', 
             'type': str,
             'pg_property': 'EnumProperty',
             'label': 'Wiggle right fill color',
-            'labels': MPL_COLORS.keys()
+            'options_labels': MPL_COLORS.keys()
     }         
     
     def __init__(self, controller_uid, **base_state): 
