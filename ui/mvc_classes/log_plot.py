@@ -46,6 +46,11 @@ class LogPlotController(WorkPageController):
         UIM.subscribe(self._post_remove, 'post_remove')
 
 
+    def PreDelete(self):
+        print ('\nLogPlotController PreDelete')
+         
+
+
     def _post_remove(self, objuid):
         if objuid[0] != self.tid:
             return
@@ -349,9 +354,25 @@ class LogPlot(WorkPage):
 
 
     def PreDelete(self):
+        print ('\nLogPlot PreDelete')
+        
         try:
+            self.overview_sizer.Detach(self.overview_track.view.track)
+        except:
+            pass
+        
+        try:
+            #UIM = UIManager()        
+            #controller = UIM.get(self._controller_uid)
+            #controller.detach() 
+            #
             self.sizer.Remove(0)
             del self._tool_bar
+            #
+            #self.overview_sizer.Detach(self.overview_track.view.track)
+            
+            super().PreDelete()
+            
         except Exception as e:
             msg = 'PreDelete ' + self.__class__.__name__ + \
                                             ' ended with error: ' + str(e)
@@ -384,6 +405,8 @@ class LogPlot(WorkPage):
         
 #        print (3)
         well = OM.get(('well', controller.model.well_oid))
+        
+        controller.attach(well.uid)
         
 #        print (4)
         
@@ -513,7 +536,10 @@ class LogPlot(WorkPage):
         
     
     def _remove_from_overview_panel(self):
-        self.overview_sizer.Detach(self.overview_track.view.track)
+        try:
+            self.overview_sizer.Detach(self.overview_track.view.track)
+        except:
+            pass
         self.overview_base_panel.SetInitialSize((0, 0))
         self.hbox.Layout()             
             

@@ -28,7 +28,10 @@ class UIBaseObject(GripyObject):
         """To be overrriden"""
         pass
 
-    def _call_self_remove(self):
+
+    def _auto_removal(self):
+        print ('_auto_removal:', self.uid)
+        
         try:
             if isinstance(self, UIControllerObject):
                 uid = self.uid
@@ -37,9 +40,10 @@ class UIBaseObject(GripyObject):
             UIM_class = self._get_manager_class()
             UIM = UIM_class()   
             wx.CallAfter(UIM.remove, uid)
-
+            print ('wx.CallAfter(UIM.remove, {})'.format(uid))
         except Exception as e:
-            print ('ERROR: _call_self_remove ', e)
+            print ('ERROR: _auto_removal ', e)
+            raise
 
 
 ###############################################################################
@@ -57,11 +61,75 @@ class UIControllerObject(UIBaseObject):
     _singleton = False
     _singleton_per_parent = False
        
+    
     def __init__(self):
         super(UIControllerObject, self).__init__()  
         self.model = None  
         self.view = None 
-  
+        # 
+        self._attached_to = None
+   
+    
+    def _check_OM_removals(self, objuid, topic=app.pubsub.AUTO_TOPIC):
+        #key = topic.getName().split('.')[2]
+        
+        
+        if objuid != self._attached_to:
+            return
+        
+        print ('Achou! _check_OM_removals:', objuid, self.uid)
+        #self.detach()
+        self._auto_removal()
+            
+            
+        #topic = 'change.' + key
+        #self.send_message(topic, old_value=old_value, new_value=new_value)
+        
+        
+    
+    def attach(self, OM_objuid):
+        """Attaches this object to a ObjectManager object.
+        
+        Example: 
+            self.attach(('log', 1))
+            OM.remove(('log', 1))     -> self will be removed by UIManager 
+        """
+        print ('ATTACHING...')       
+        #obj = OM.get(OM_objuid)
+        try:
+            OM = ObjectManager()
+            # Is OM_objuid valid?
+            obj = OM.get(OM_objuid)
+            if obj:
+                OM.subscribe(self._check_OM_removals, 'pre_remove')
+                self._attached_to = obj.uid
+                print ('{} IS NOW ATTACHED TO {} \n'.format(self.uid, self._attached_to))
+        except Exception as e:
+            print ('ERROR WHILE ATTACHING:', e)
+            #raise
+            #pass
+           
+            
+    def detach(self):
+        """Detach a object vinculated to a ObjectManager object 
+        by attach function.
+        
+        Called automatic from UIManager.remove function.
+        """
+        if self._attached_to is None:
+            return
+        print ('DETACHING...')
+        try:
+            OM = ObjectManager()
+            OM.unsubscribe(self._check_OM_removals, 'pre_remove')
+            print ('DETACHED {} FROM {}! \n'.format(self.uid, self._attached_to))
+            self._attached_to = None
+        except Exception as e:
+            print ('ERROR WHILE DETACHING:', e) 
+            #raise
+            #pass    
+    
+    
     def __setitem__(self, key, value):
         """If Controller does not have key, redirects __setitem__ to model."""  
         try:
@@ -155,7 +223,7 @@ class UIControllerObject(UIBaseObject):
             print ('\n', msg)
             raise
         
-   
+    '''
     def attach(self, OM_objuid):
         """Attaches this object to a ObjectManager object.
         
@@ -163,26 +231,39 @@ class UIControllerObject(UIBaseObject):
             self.attach(('log', 1))
             OM.remove(('log', 1))     -> self will be removed by UIManager 
         """
+        
+        print ('ATTACHING...')
+        
         OM = ObjectManager()
         obj = OM.get(OM_objuid)
         try:
             # TODO: REVER ISSO
-            obj.subscribe(self._call_self_remove, 'remove')
-        except:
-            pass
+            obj.subscribe(self._call_self_remove, 'pre_remove')
+            #OM.subscribe(self._call_self_remove, 'pre_remove')
+            print ('ATTACHED! \n')
+        except Exception as e:
+            print ('ERROR WHILE ATTACHING:', e)
+            #raise
+            #pass
            
     def detach(self, OM_objuid):
         """Detach a object vinculated to a ObjectManager object 
         by attach function.
         """
+        print ('DETACHING...')
         OM = ObjectManager()
         obj = OM.get(OM_objuid)
         try:
             # TODO: REVER ISSO
-            obj.unsubscribe(self._call_self_remove, 'remove')        
-        except:
-            pass
-        
+            obj.unsubscribe(self._call_self_remove, 'pre_remove')     
+            print ('DETACHED! \n')
+        except Exception as e:
+            print ('ERROR WHILE DETACHING:', e)
+            
+            #raise
+            #pass
+    '''
+    
         
     def get_state(self):
         """Returns MVC triad state.

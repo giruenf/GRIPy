@@ -301,6 +301,7 @@ class TreeView(UIViewObject, wx.TreeCtrl):
 
 
     def on_rightclick(self, event):
+        print ('\non_rightclick')
         tree_item = event.GetItem()
         item_data = self.GetItemData(tree_item)
         if item_data is None:
@@ -340,7 +341,8 @@ class TreeView(UIViewObject, wx.TreeCtrl):
      
         #elif node_type == ID_TYPE_ATTRIBUTE:    
         #    return
-            
+        print ('FIM on_rightclick\n')
+        
 
     def _is_convertible(self, uid):
         if uid[0] in ['log', 'data_index']:
@@ -350,7 +352,7 @@ class TreeView(UIViewObject, wx.TreeCtrl):
 
 
     def OnPopupItemSelected(self, event):
-        print ('\nOnPopupItemSelected', self.popup_obj)
+        print ('OnPopupItemSelected', self.popup_obj)
         
         #tree_item = event.GetItem()
         #item_data = self.GetItemData(tree_item)
@@ -358,16 +360,22 @@ class TreeView(UIViewObject, wx.TreeCtrl):
         
         (node_type, node_main_info, node_extra_info) = self.popup_obj
         OM = ObjectManager()
+        
         if node_type == ID_TYPE_OBJECT:
+            print ('ID_TYPE_OBJECT remove:', node_main_info)
             OM.remove(node_main_info)
+            
         elif node_type == ID_TYPE_TID:  
             #if node_info == 'well':
             #    items = OM.list(node_main_info)
             #else:    
             items = OM.list(node_main_info, node_extra_info)
             for item in items:
+                
+                print ('ID_TYPE_TID remove:', item.uid)
+                
                 OM.remove(item.uid)
-              
+        print ('FIM OnPopupItemSelected')      
 
 
     def OnRenameObject(self, event):  

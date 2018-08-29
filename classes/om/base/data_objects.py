@@ -1,8 +1,6 @@
 # -*- coding: utf-8 -*-
 """
-Created on Sun Aug 26 13:52:14 2018
-
-@author: Adriano
+DataObject is an "ObjectManager object" [sic] with a Numpy array.
 """
 
 from collections import OrderedDict
@@ -11,6 +9,7 @@ import numpy as np
 import wx
 
 from classes.om import OMBaseObject
+
 
 
 class DataObject(OMBaseObject):
@@ -28,6 +27,12 @@ class DataObject(OMBaseObject):
     
 
     def __init__(self, *args, **attributes):
+        
+        
+#        print ('\nDataObject.__init__')
+#        print (args, attributes)
+#        print (self._ATTRIBUTES)
+        
         super().__init__(**attributes)
         
         if not args:

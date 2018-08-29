@@ -242,23 +242,28 @@ class TrackView(UIViewObject):
 
 
     def PreDelete(self):
+        print ('\nTrackView PreDelete:')
         self.track.disconnect_multicursor()
         UIM = UIManager()
         controller = UIM.get(self._controller_uid)
         parent_controller_uid = UIM._getparentuid(self._controller_uid)
         parent_controller =  UIM.get(parent_controller_uid)
+        
         if not controller.model.overview:    
             pos = controller.model.pos
             parent_controller.view._detach_windows(self.label, self.track)  
             self.label.Destroy()
             self.track.Destroy()
             parent_controller._propagate_deletion(pos, self._controller_uid)
+        
         else:
             # TODO: cade o remove DropTarget?? verificar....
             if controller.model.overview:    
                 parent_controller._pre_delete_overview_track()
-            self.track.Destroy() 
-
+            try:    
+                self.track.Destroy() 
+            except:
+                pass
 
     def on_track_size(self, event):
         event.Skip()

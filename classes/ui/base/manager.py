@@ -266,36 +266,87 @@ class UIManager(GripyManager):
         """
         return self._parentuidmap.get(uid)
                
+ 
+    
+    
+    def _prepare_object_for_deletion(self, obj):
+        """
+        """
+        try:
+            # With detach, controller will not receiver messages of object 
+            # deletion from ObjectManager. 
+            obj.detach()
+            
+            # Unsubscribing listeners from controller, this implies controller
+            # will not send messages anymore.
+            obj.unsubAll()    
+            
+            # PreDelete must close (delete) all references 
+            # from controller's parent.    
+            obj.PreDelete()        
+        except:
+            raise
+            
+            
+    
+    # Before exit application
+    def PreExit(self):
+#        print ('\nUIManager PreExit')
+        for obj in self.list():
+            self._prepare_object_for_deletion(obj)
+            
+            try:
+                #
+                obj.model.unsubAll()
+                #
+                #
+                obj.model.PreDelete() 
+            except AttributeError:
+                pass
+            except:
+                raise
+            try:
+                obj.view.unsubAll() 
+                obj.view.PreDelete() 
+            except AttributeError:
+                pass
+            except Exception as e:
+                print ('\n\nERROR with object {}: {} \n\n'.format(obj.uid, e))
+                raise      
+
+            
+   
     
     def remove(self, uid):
         msg = 'Removing object from UI Manager: {}.'.format(uid)
         log.debug(msg)
-#        print ('\n' + msg)
+        print ('\n' + msg)
         self.send_message('pre_remove', objuid=uid)
         obj = self.get(uid)
         if not isinstance(obj, UIControllerObject):
             return False
+        
         for childuid in self._childrenuidmap.get(uid)[::-1]:
             self.remove(childuid) 
-        
-        # Unsubscribing listeners from controller
-        obj.unsubAll()    
-        # PreDelete must close (delete) all references from object's parent.    
-        obj.PreDelete()
 
+        self._prepare_object_for_deletion(obj)
+        
         if obj.view:
-            obj.view.unsubAll() 
-            obj.view.PreDelete() 
             msg = 'Deleting UI view object {}.'.format(obj.view.uid)
 #            print (msg)
             log.debug(msg)
             
+#            try:
+            obj.view.unsubAll() 
+            obj.view.PreDelete() 
+
             # TODO: rever se este eh o melhor caminho....
             if isinstance(obj.view, wx.Window):
                 obj.view.Destroy()
             else:
                 del obj.view
-
+#            except Exception as e:
+#                print ('ERROR:', obj.uid, e)
         if obj.model:
             #
             obj.model.unsubAll()
@@ -350,34 +401,7 @@ class UIManager(GripyManager):
         obj.view.reparent(old_parent_uid, new_parent_uid)
 
 
-    # Before exit application
-    def PreExit(self):
-#        print ('\nUIManager PreExit')
-        for obj in self.list():
-            try:
-                #
-                obj.model.unsubAll()
-                #
-                #
-                obj.model.PreDelete() 
-            except AttributeError:
-                pass
-            except:
-                raise
-            try:
-                obj.view.unsubAll() 
-                obj.view.PreDelete() 
-            except AttributeError:
-                pass
-            except Exception as e:
-                print ('\n\nERROR with object {}: {} \n\n'.format(obj.uid, e))
-                raise      
-            obj.unsubAll()      
-            obj.PreDelete()    
-            
-            
-#        self.print_info()
-#        print ('UIManager PreExit ended\n')
+
 
 
     # TODO: escolher um melhor nome para este método

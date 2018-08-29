@@ -266,8 +266,15 @@ class TrackObjectController(UIControllerObject):
 
                  
     def PreDelete(self):
+        print ('\nTrackObjectController PreDelete:')
         self.model.plottype = None
-        
+#        print ('b4 get_object')
+#        obj = self.get_object()
+#        print ('representated object is:', obj)
+#        if obj:
+#            print ('Detaching', obj.uid, 'from', self.uid)
+#            self.detach(obj.uid)             
+#            self.detach() 
     
     def get_object(self):
         # Get OM object from TrackObjectController
@@ -285,7 +292,8 @@ class TrackObjectController(UIControllerObject):
     def on_change_objtid(self, new_value, old_value):
         if old_value is not None:
             if self.model.obj_tid:
-                self.detach((old_value, self.model.obj_oid))
+#                self.detach((old_value, self.model.obj_oid))
+                self.detach()
             self.model.obj_oid = None
             # Exclude any representation, if exists
             #self.model.plottype = None
@@ -294,11 +302,16 @@ class TrackObjectController(UIControllerObject):
     def on_change_objoid(self, new_value, old_value):
         # Exclude any representation, if exists
         
-#        print ('\n\non_change_objoid {}, {}'.format(new_value, old_value))
+        
+        # TODO: VERIFICAR SE OCORRE DE OBJOID SER TROCADO PARA UM MESMO 
+        # REPRESENTATION - 27/8/2018
+        
+#        print ('\non_change_objoid {}, {}'.format(new_value, old_value))
         try:
         
             if old_value is not None:
-                self.detach((self.model.obj_tid, old_value))
+#                self.detach((self.model.obj_tid, old_value))
+                self.detach()
             self.model.plottype = None
             
 #            print (111)
@@ -316,6 +329,7 @@ class TrackObjectController(UIControllerObject):
 #                print (445)
                 self.model.plottype = plottype    
 #                print (446)
+                print ('\nAttaching', self.uid, 'to', obj.uid)
                 self.attach(obj.uid)
 #                print (447)
         except Exception as e:
@@ -1015,7 +1029,10 @@ class IndexRepresentationController(RepresentationController):
     
     def __init__(self):
         super(IndexRepresentationController, self).__init__()
-    
+ 
+    def PreDelete(self):
+        print ('\nIndexRepresentationController.PreDelete')
+        
         
 class IndexRepresentationModel(UIModelObject):
     tid = 'index_representation_model' 

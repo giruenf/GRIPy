@@ -310,7 +310,7 @@ class ObjectManager(GripyManager):
             obj = self._data[uid]
             return obj
         except Exception as e:
-            print ('ERROR OM.get:', uid, e)
+#            print ('ERROR OM.get:', uid, e)
             raise
         
 
@@ -340,21 +340,26 @@ class ObjectManager(GripyManager):
         >>> om.get(obj.uid)
         KeyError: obj.uid
         """
+        
+        print ('\nOM Removing', uid)
+        
+        obj = self._data.pop(uid)
+        #
+        # TODO: Ver se deve permanecer da forma abaixo
+        # foi deixado assim por causa do UIControllerObject.attach
+        #obj.send_message('pre_remove')
+        
         self.send_message('pre_remove', objuid=uid)
+        print ('\nReturning to OM.revove...')
+        #
         for childuid in self._childrenuidmap[uid][::-1]:
             self.remove(childuid) 
         parentuid = self._parentuidmap[uid]
-        
         del self._parentuidmap[uid]
-        
         if parentuid:      
             self._childrenuidmap[parentuid].remove(uid)    
         
         del self._childrenuidmap[uid]
-        #
-        obj = self._data.pop(uid)
-        obj.send_message('remove')
-        #
         del obj
         self.send_message('post_remove', objuid=uid)
         ObjectManager._changed  = True   

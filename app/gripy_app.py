@@ -189,6 +189,8 @@ class GripyApp(wx.App):
         print ('\nGripyApp.PreExit: ' + msg)
         
         OM = ObjectManager()
+        UIM = UIManager()
+        
         """
         if OM.get_changed_flag():
             dial = wx.MessageDialog(self.GetTopWindow(), 
@@ -200,21 +202,44 @@ class GripyApp(wx.App):
                 self.on_save()   
         """        
         #
-        
+ 
+        """
+        print ('\n\nUIM._reset')
+        UIM.print_info()
+        print ('\n')
+        """
+       
         """
         print ('\n\nOM._reset')
         OM.print_info()
         print ('\n')
         """
+        print ('\n\n\n\nUIM.PreExit:')
+        UIM.PreExit()
         
+#        mwc = Interface.get_main_window_controller()
+#        UIM.remove(mwc.uid)
+        
+        print ('\n\n\n\nOM._reset:')
         OM._reset()
+        
+        print ('\n\n\n\nFIM OM._reset!')
+        
+        #UIM.PreExit()
         
         """
         print ('\n\nAfter OM._reset')
         OM.print_info()
         print ('\n')
         """
-        
+  
+        """
+        print ('\n\nUIM._reset')
+        UIM.print_info()
+        print ('\n')
+        """
+
+      
         #
         """
         app_UI_filename = self._gripy_app_state.get('app_UI_file')
@@ -228,8 +253,8 @@ class GripyApp(wx.App):
         # freeze on exiting (1-2 seconds). Then I opted delegate it do compiler.
         #UIM = UIManager()      
         #UIM.close()
-        UIM = UIManager()
-        UIM.PreExit()
+        
+        
     
 #        mwc = Interface.get_main_window_controller()
 #        UIM.remove(mwc.uid)
@@ -332,10 +357,13 @@ class GripyApp(wx.App):
 
 
     def _get_manager_class(self, obj):
+        
         if isinstance(obj, OMBaseObject):
             return ObjectManager
         elif isinstance(obj, UIBaseObject):
             return UIManager    
+        print ('\n_get_manager_class [unknown]:',obj)
+        return None
         raise Exception('App.gripy_app._get_manager_class: Class {} has a '+\
                         'unknown manager.'.format(obj.tid)
         )
