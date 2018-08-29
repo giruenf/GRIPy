@@ -447,7 +447,7 @@ def load():
         
         
 
-    _do_initial_tests()
+    #_do_initial_tests()
 
 
 
@@ -1380,7 +1380,7 @@ def _do_initial_tests():
     #      
 
 
-    """
+    #"""
      
     log = OM.new('log', np.array(phi)/100, index_uid=index.uid, name='Phi', unit='dec', 
                  datatype='NMRperm'
@@ -1390,8 +1390,9 @@ def _do_initial_tests():
     log = OM.new('log', np.array(k), index_uid=index.uid, name='K', unit='mD', 
                  datatype='CorePerm'
     )
-    OM.add(log, well.uid)       
-    """
+    OM.add(log, well.uid)    
+    
+    #"""
     
     
     #

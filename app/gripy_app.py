@@ -214,6 +214,7 @@ class GripyApp(wx.App):
         OM.print_info()
         print ('\n')
         """
+        
         print ('\n\n\n\nUIM.PreExit:')
         UIM.PreExit()
         

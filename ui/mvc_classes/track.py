@@ -150,15 +150,7 @@ class TrackModel(UIModelObject):
         },
         'visible': {'default_value': True, 
                      'type': bool
-        }#,
-        
-#        Moved to LogPlot
-#        'y_major_grid_lines': {'default_value': 1000.0, 
-#                      'type': float
-#        },
-#        'y_minor_grid_lines': {'default_value': 100.0, 
-#                      'type': float
-#        }
+        }
           
     }        
     

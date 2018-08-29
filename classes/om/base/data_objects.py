@@ -28,6 +28,9 @@ class DataObject(OMBaseObject):
 
     def __init__(self, *args, **attributes):
         
+        # TODO: 29/8/2018
+        # CHECAR FLAG HIDDEN PARA ATRIBUTO NAO EXIBIDO NO TREE
+        # POR EXEMPLO DATA.
         
 #        print ('\nDataObject.__init__')
 #        print (args, attributes)
