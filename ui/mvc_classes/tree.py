@@ -70,7 +70,7 @@ class TreeController(UIControllerObject):
             try:
                 parentuid = OM._getparentuid(objuid)
                 # Find location to create tid node
-                if obj_class.is_tid_node_needed():
+                if obj_class._is_tid_node_needed():
                     # Then, tid node will be object node parent
                     obj_parent_node = self.get_object_tree_item(ID_TYPE_TID, objuid[0], parentuid) 
                     if obj_parent_node is None:
@@ -171,9 +171,6 @@ class TreeController(UIControllerObject):
             ret_od[attr]  = attr_label + ': ' + str(value)  
         return ret_od        
 
-
-#    def is_tid_node_needed(self, tid):
-#        return True
 
 
     def get_object_tree_item(self, node_type, node_main_info, 

@@ -20,27 +20,6 @@ Our flavor of Metaclasses was bluit based on the references below.
 
 
 
-    _ATTRIBUTES 
-        default_value:      As the name says 
-        type:               Valid type (e.g. int, str)
-        label:              Friendly name for attribute (used in a pg_property or Tree)
-        pg_property:        Kind of pg_property which deals with this attribute 
-        options_labels:     Options shown as valid for attribute (as shown in a wx.ComboBox).
-        options_values:     The truly options valid for attribute (returned from wx.ComboBox selection event).
-
-        * 25/8/2018: The least 4 above occours only in ui/mvc_classes/track_object.py and ui/mvc_classes/propgrid.py.
-        
-    _IMMUTABLES_KEYS
-        Attributes that must be setted only during object initialization. 
-        They cannot be deleted or changed. (e.g. oid)
-        
-    _BYPASSES_KEYS
-        Attributes that bypasses the checkage made in __setattr__ or 
-        __setitem__ for default ones. This type was created for flags like
-        "_processing_value_from_event" seen in GripyObject.
-
-
-
 """
 
 import types
@@ -58,6 +37,30 @@ from app import log
 
 
 class GripyObject(pubsub.PublisherMixin, metaclass=GripyWxMeta):  
+    """
+    Base class for all GRIPy classes deal
+    
+    All GripyObjects have GripyWxMeta as metaclass.
+    
+    _ATTRIBUTES:
+        * default_value:    As the name says.
+        * type:             Valid type (e.g. int, str).
+        * label:            Friendly name for attribute (used in a pg_property or Tree)
+        * pg_property:      Kind of pg_property which deals with this attribute 
+        * options_labels:   Options shown as valid for attribute (as shown in a wx.ComboBox).
+        * options_values:   The truly options valid for attribute (returned from wx.ComboBox selection event).
+
+        * 25/8/2018: The least 4 above occours only in ui/mvc_classes/track_object.py and ui/mvc_classes/propgrid.py.
+        
+    _IMMUTABLES_KEYS
+        Attributes that must be setted only during object initialization. 
+        They cannot be deleted or changed. (e.g. oid)
+        
+    _BYPASSES_KEYS
+        Attributes that bypasses the checkage made in __setattr__ or 
+        __setitem__ for default ones. This type was created for flags like
+        "_processing_value_from_event" seen in GripyObject.
+    """
     tid = None
     _BYPASSES_KEYS = ['_processing_value_from_event']
     _IMMUTABLES_KEYS = ['oid']
@@ -88,9 +91,6 @@ class GripyObject(pubsub.PublisherMixin, metaclass=GripyWxMeta):
             
     def __str__(self):
         return '{}.{}'.format(*self.uid)
-
-#    def _get_manager_class(self):
-#        raise NotImplementedError()
  
     def _get_manager_class(self):
         return wx.App.Get()._get_manager_class(self)
@@ -98,28 +98,7 @@ class GripyObject(pubsub.PublisherMixin, metaclass=GripyWxMeta):
        
     def get_publisher_name(self):
         return pubsub.uid_to_pubuid(self.uid)    
-        
-
-    # TODO: rewrite it from UIBase
-    """
-    def check_creator(self):
-        # Only UIManager can create objects. Checking it!   
-        return True
-        #
-        callers_stack = app.app_utils.get_callers_stack()
-        ok = False
-        for idx, ci in enumerate(callers_stack):
-            if (isinstance(ci.object_, UIManager) and \
-                    ci.function_name == 'create' and \
-                    isinstance(callers_stack[idx-1].object_, UIControllerObject)): 
-                ok = True
-                break     
-        if not ok:
-            msg = '{} objects must be created only by UIManager.'.format(self.__class__.__name__)
-            log.exception(msg)
-            raise Exception(msg)    
-    """  
- 
+         
     @property
     def uid(self):
         return self.tid, self.oid
@@ -199,7 +178,9 @@ class GripyObject(pubsub.PublisherMixin, metaclass=GripyWxMeta):
             else:
                 msg = '{} cannot be changed. It is on {}._IMMUTABLES_KEYS.'.format(key, self.__class__.__name__)
                 raise Exception(msg)   
-        self._do_set(key, value)       
+        self._do_set(key, value)
+        
+        
 #
 # key not in ATTR, not in DICT, is PROP, is INITED  -> OK -> Case 1   
 # key not in ATTR, not in DICT, is PROP, not INITED  -> OK -> Case 1  
@@ -304,67 +285,9 @@ class GripyObject(pubsub.PublisherMixin, metaclass=GripyWxMeta):
     def _getstate(self):
         state = OrderedDict()  
         for attr_name in self._ATTRIBUTES.keys():
-            state[attr_name] = self[attr_name]
-#        for attr_name in self._BYPASSES_KEYS:
-#            state[attr_name] = self[attr_name]                 
-#        for attr_name in self._IMMUTABLES_KEYS:
-#            state[attr_name] = self[attr_name]         
+            state[attr_name] = self[attr_name]    
         return state  
           
-
-    """ 
-    def _loadstate(self, **state):
-        if not state:
-            return
-        log.debug('Loading {} state...'.format(self.__class__.__name__))
-        for key, value in state.items():
-            if key not in self._BYPASSES_KEYS:     
-                try:
-                    self[key] = value  
-                except AttributeError:
-                    msg = 'ERROR setting self[{}] = {}. Value type: {}'.format(str(key), \
-                        str(value), str(type(value))
-                    )
-                    log.exception(msg)
-            else:
-                msg = '    {} cannot be loaded. [key in _BYPASSES_KEYS]'.format(key)
-                log.error(msg)
-        log.debug('{} state has loaded.'.format(self.__class__.__name__))
-
-
-    """
-
-    '''
-    # TODO: Rever docs
-    def _getstate(self):
-        """
-        Return the state of the object.
-        
-        This method is used by `ObjectManager` method `save`. It must return a
-        dictionary containing all necessary data to reconstruct the object with
-        a simple call to its constructor. For example::
-        
-            obj1 = SubClassOfGenericObject(someparameters)
-            # do some changes to 'obj1'
-            state = obj1._getstate()
-            obj2 = SubClassOfGenericObject(**state)
-            # now 'obj2' must behave the same as 'obj1'
-        
-        Returns
-        -------
-        dict
-            The state necessary to reconstruct the object with a call to its
-            constructor.
-        
-        Notes
-        -----
-        Not all of the data needs to be returned in this method. But the object
-        recovered from the state must behave the same way as the original
-        object.
-        """
-        return {}    
-    '''
-
 
 
 

@@ -1,14 +1,6 @@
 # -*- coding: utf-8 -*-
-"""
-Created on Sun Aug 26 14:11:52 2018
 
-@author: Adriano
-"""
-
-from collections import OrderedDict
-
-from classes.om import DataObject
-
+from classes.om import OMBaseObject
 from classes.om.welldata_1d import WellData1D
 
 
@@ -31,6 +23,6 @@ class Log(WellData1D):
         super().__init__(data, **attributes)
 
     @classmethod
-    def is_tid_node_needed(cls):
-        """For TreeController"""
+    def _is_tid_node_needed(cls):
+        __doc__ = OMBaseObject._is_tid_node_needed.__doc__
         return False

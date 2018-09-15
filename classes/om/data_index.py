@@ -4,7 +4,7 @@ from collections import OrderedDict
 
 import numpy as np
 
-
+from classes.om import OMBaseObject
 from classes.om import DataObject
 from classes.om import ObjectManager
 
@@ -91,8 +91,8 @@ class DataIndex(DataObject):
 
 
     @classmethod
-    def is_tid_node_needed(cls):
-        """For TreeController"""
+    def _is_tid_node_needed(cls):
+        __doc__ = OMBaseObject._is_tid_node_needed.__doc__
         return False
 
     def _on_OM_add(self, objuid):

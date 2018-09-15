@@ -1,13 +1,6 @@
 # -*- coding: utf-8 -*-
-"""
-Created on Sat Aug 25 20:27:47 2018
 
-@author: Adriano
-"""
 
-import os
-
-from app import app_utils
 from app import pubsub
 from classes.base.metaclasses import GripyManagerMeta
 from app import log
@@ -15,141 +8,29 @@ from app import log
 
 class GripyManager(pubsub.PublisherMixin, metaclass=GripyManagerMeta):  
     """
-    Parent class for Managers
+    The parent class for a Manager.
+    
+    A Manager is responsible for managing objects throughout the
+    program execution. For instance, it is responsible for creating new objects
+    and deleting them when they are no longer needed.
+    
+    Managers are design under "Borg pattern", i.e. all the instances of the 
+    class share the same state . This way, when access to a managed object is
+    needed an instance of its respective Manager must be created in order to access
+    the data.
     """
-
     _LOADING_STATE = False
     
-
-    def __init__(self):
-        #super().__init__()
-        self._ownerref = None
-        
-        return
     
-        print ('\nGripyManager.init')
-     
-        '''
-        print ('\nGripyManager.init')
-        
-        #owner = app.gripy_app.GripyApp.Get()
-        
-        
-        owner = wx.App.Get() 
-        if owner is not None:
-            print ('OK')
-        else:
-            print ('DEU RUIM')
-        self._ownerref = weakref.ref(owner)
-        '''
-        
-        """
-        try:
-            callers_stack = app.app_utils.get_callers_stack()     
-        except Exception as e:
-            print (e)
-            raise
-            
-        """    
-
-        '''
-        owner = wx.App.Get() 
-        if owner is not None:
-            print ('OK')
-        else:
-            print ('DEU RUIM')
-        self._ownerref = weakref.ref(owner)   
-        
-        '''
-        
-        
-        '''
-        for ci in callers_stack:
-            print ('\nGripyManager:', ci)
-        print ('\n')         
-        '''
-      
-        '''
-        
-        owner = wx.App.Get() 
-        if owner is not None:
-            print ('OK')
-        else:
-            print ('DEU RUIM')
-        self._ownerref = weakref.ref(owner)        
-        
-        '''
-        
-        owner = callers_stack[2].object_
-        
-        #print ('owner:', owner, type(owner))
-        
-        
-        
-        if owner is None: 
-            #print ('NOT OWNER')
-            full_filename = os.path.normpath(callers_stack[2].filename)
-            function_name = callers_stack[2].function_name
-            
-            
-            '''
-            function_ = get_function_from_filename(fi.filename, fi.function)
-            if function_:
-                module_ = function_.__module__  
-            '''
-            
-            
-            function_ = app_utils.get_function_from_filename(full_filename, function_name)
-            if function_:
-                #owner = function_
-                # TODO: Armengue feito para as funcoes dos menus.. tentar corrigir isso
-                owner = app.gripy_app.GripyApp.Get()
-            else:    
-                msg = 'ERROR: ' + str(owner)
-                print (msg)
-                raise Exception(msg)
-        
-        """
-            
-        # TODO: Armengue feito para as funcoes dos menus.. tentar corrigir isso
-        #if not owner:
-        #    owner = app.gripy_app.GripyApp.Get()
-        
-        """
-        try:
-            #print ('A')
-            owner_name = owner.uid
-        except AttributeError:
-            #print ('B')
-            owner_name = owner.__class__.__name__
-        msg = 'A new instance of ' + self.__class__.__name__ + \
-                                ' was solicited by {}'.format(owner_name)
-                                
-        log.debug(msg)       
-        
-        
-        #self._ownerref = weakref.ref(owner)
+    def __init__(self):
         self._ownerref = None
-        
-        '''
-        owner = wx.App.Get() 
-        if owner is not None:
-            print ('OK')
-        else:
-            print ('DEU RUIM')
-        self._ownerref = weakref.ref(owner)
-        
-        print ('GripyManager.init ended')
-        
-        '''
-
+    
     def is_loading_state(self):
         return self.__class__._LOADING_STATE 
 
     def get_publisher_name(self):
         return self.__class__.__name__
-   
-        
+       
     def do_query(self, tid, parent_uid=None, *args, **kwargs):
         try:
             objects = self.list(tid, parent_uid)
@@ -161,7 +42,6 @@ class GripyManager(pubsub.PublisherMixin, metaclass=GripyManagerMeta):
                 for (key, operator, value) in comparators:
                     ok = False
                    
-                    
                     attr = obj._ATTRIBUTES.get(key)
                     # TODO: acertar isso, pois a linha de cima deve servir de atalho
                     # para obj.model de forma transparente
@@ -172,9 +52,7 @@ class GripyManager(pubsub.PublisherMixin, metaclass=GripyManagerMeta):
 
                     type_ = attr.get('type')
                     value = type_(value)
-                    
-#                    print ('type_(value)', type_, value)
-                    
+
                     if obj_model:
                         if operator == '>=':
                             ok = obj.model[key] >= value
@@ -203,8 +81,6 @@ class GripyManager(pubsub.PublisherMixin, metaclass=GripyManagerMeta):
                         elif operator == '=':
                             ok = obj[key] == value
                             
-#                    print ('{} ok: {}'.format(obj.name, ok))
-                    
                     if not ok:
                         break
                 if ok:
@@ -223,8 +99,7 @@ class GripyManager(pubsub.PublisherMixin, metaclass=GripyManagerMeta):
                     ret_list = aux_list
                 reverse = kwargs.get('reverse')
                 if reverse:
-                    ret_list.reverse()
-#            print ('\nret_list:', ret_list)                         
+                    ret_list.reverse()                     
             return ret_list
         except Exception as e:
             print ('\nERROR in {}.do_query({}, {}, {}, {})'.format( \

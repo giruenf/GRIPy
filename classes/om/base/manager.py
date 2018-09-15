@@ -21,21 +21,11 @@ from classes.base.generic_manager import GripyManager
 
 import copy
 
-#try:
-#    import zlib
-#    compress_type = zipfile.ZIP_DEFLATED
-#except ImportError:
-#    compress_type = zipfile.ZIP_STORED
 
 try:
     import cPickle as pickle
 except ImportError:
     import pickle
-
-
-# TODO: Possibilidade e a utilidade de se usar Proxys (restrição de acesso e etc)
-# TODO: Receber o "dono" (utilizador) do ObjectManager no construtor, de modo a saber quem está invocando os métodos e poder restringir o acesso
-# TODO: Acesso simultâneo (multiprocessing)
 
 
 class ObjectManager(GripyManager):
@@ -70,7 +60,6 @@ class ObjectManager(GripyManager):
     _NPZIDENTIFIER = "__NPZ;;"
     _changed = False
     _on_load = False
-#    _PUB_NAME = 'ObjectManager'
   
     
     def __init__(self):

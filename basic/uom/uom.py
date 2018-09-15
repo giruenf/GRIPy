@@ -12,11 +12,11 @@
 # Energistics UOM data is distributed under the Energistics License Agreement at http://www.energistics.org. 
 # Copyright (c) 2014 Energistics. 
 
+import os
 import math        
 import xml.etree.ElementTree as ElementTree
 
-
-UOM_FILENAME = 'basic\\uom\\Energistics_Unit_of_Measure_Dictionary_V1.0.xml'
+UOM_FILENAME = 'Energistics_Unit_of_Measure_Dictionary_V1.0.xml'
 NAMESPACE_KEY = 'uom'
 NAMESPACE_VALUE = 'http://www.energistics.org/energyml/data/uomv1'
 
@@ -103,6 +103,9 @@ class UOM(object):
             
         
     def _load_XML(self, filename):
+        filename = os.path.join(
+                        os.path.dirname(os.path.realpath(__file__)), filename
+        )
         tree = ElementTree.parse(filename)
         uds = tree.findall(TAG_UNIT_DIMENSION_SET, namespace)[0]
         qcs = tree.findall(TAG_QUANTITY_CLASS_SET, namespace)[0]
