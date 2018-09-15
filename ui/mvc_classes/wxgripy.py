@@ -159,7 +159,8 @@ class Frame(TopLevel, wx.Frame):
     def on_close(self, event):
         print ('\n\n\nFrame on_close')
 #        event.Skip()
-        self._call_self_remove()
+#        self._call_self_remove()
+        self._auto_removal()
         wx.CallAfter(self.Destroy)
         
 

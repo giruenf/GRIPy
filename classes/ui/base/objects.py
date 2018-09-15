@@ -31,7 +31,6 @@ class UIBaseObject(GripyObject):
 
     def _auto_removal(self):
         print ('_auto_removal:', self.uid)
-        
         try:
             if isinstance(self, UIControllerObject):
                 uid = self.uid
@@ -73,15 +72,13 @@ class UIControllerObject(UIBaseObject):
     def _check_OM_removals(self, objuid, topic=app.pubsub.AUTO_TOPIC):
         #key = topic.getName().split('.')[2]
         
-        
         if objuid != self._attached_to:
             return
         
         print ('Achou! _check_OM_removals:', objuid, self.uid)
         #self.detach()
         self._auto_removal()
-            
-            
+                  
         #topic = 'change.' + key
         #self.send_message(topic, old_value=old_value, new_value=new_value)
         

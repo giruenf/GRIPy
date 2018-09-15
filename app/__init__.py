@@ -1,46 +1,45 @@
 # -*- coding: utf-8 -*-
 
-import os
+import sys
+from pathlib import Path
+from pathlib import PurePath
 import json
 import logging
 
 import wx
 import matplotlib
 
-# TODO: REVER LINHA ABAIXO
-_APP_PATH = os.path.abspath(os.path.curdir)
 
-#_APP_PATH = os.path.abspath('E:\\repo\\GRIPy')
-_APP_INIT_FILE = '.gripy_app_config.json'
-_APP_ICONS_REL_PATH = 'basic\\icons'
-_APP_ICONS_PATH = os.path.join(_APP_PATH, _APP_ICONS_REL_PATH)
+INIT_FILE = '.gripy_app_config.json'
+ICONS_REL_PATH = 'basic/icons'
+
+BASE_PATH = PurePath(__file__).parent.parent
+ICONS_PATH = BASE_PATH.joinpath(BASE_PATH, ICONS_REL_PATH)
 
 
 def _read_app_definitions():
     try:
-        init_file = open(os.path.join(_APP_PATH, _APP_INIT_FILE), 'r')
+        init_file = open(PurePath(BASE_PATH, INIT_FILE), 'r')
         init_dict = json.load(init_file)
         init_file.close()
         return init_dict
     
     except Exception as e:
         msg = 'Fatal error while loading GRIPy init file: ' \
-                            + str(os.path.join(_APP_PATH, _APP_INIT_FILE)) \
+                            + str(PurePath(BASE_PATH, INIT_FILE)) \
                             + 'ERROR: ' + str(e)
         raise Exception(msg)
-
 
 def start_logging(logging_dict):
     logging_level = logging_dict.get('logging_level', logging.DEBUG)
     log = logging.Logger('gripy', logging_level)
     logging_filename = logging_dict.get('logging_filename', '')
-    logging_filename = os.path.normpath(logging_filename)
-    if not os.path.exists(logging_filename):
-        # Creates a new file and directory if no one was found
-        dir_location, _ = os.path.split(logging_filename)
-        if not os.path.isdir(dir_location):
-            os.makedirs(dir_location)
-        open(logging_filename, 'w').close() 
+    logging_filename = Path(logging_filename)
+    # Creates app log directory and file it was not found
+    if not logging_filename.parent.exists():
+        Path(logging_filename.parent).mkdir(parents=True, exist_ok=True) 
+        open(logging_filename, 'w').close()    
+    #    
     logging_filemode = logging_dict.get('logging_filemode', 'a')
     hdlr = logging.FileHandler(logging_filename, logging_filemode)
     fs = '[%(asctime)s] [%(levelname)s] %(message)s '
@@ -49,12 +48,10 @@ def start_logging(logging_dict):
     hdlr.setFormatter(fmt)
     log.addHandler(hdlr)
     #
-    
-    #
     return log
 
 def check_platform():
-    if os.name not in ['nt', 'posix']: 
+    if sys.platform not in ['win32', 'linux']: 
         raise Exception('GriPy is not ready yet to this system platform. Sorry.')
    
 def check_dependencies():
@@ -70,8 +67,6 @@ check_dependencies()
 DEFS = _read_app_definitions()   
 # Logging 
 
-
-#print ('DEFS.get(logging):',DEFS.get('logging'))
 log = start_logging(DEFS.get('logging'))
 #print (logging.getLogger().getEffectiveLevel())
 
