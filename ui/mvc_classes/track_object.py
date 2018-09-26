@@ -362,8 +362,8 @@ class TrackObjectController(UIControllerObject):
                     raise Exception('TRATAR EXCLUSAO FILTER')
                 self.model.data_filter_oid = filter_oid    
         except Exception as e:
-            print ('ERROR set_filter', e)
-            raise
+            msg = 'ERROR [TrackObjectController.set_filter]: {}'.format(e)
+            raise Exception(msg)
     
     
     def on_change_plottype(self, new_value, old_value):

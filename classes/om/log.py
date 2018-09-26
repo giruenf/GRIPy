@@ -19,9 +19,15 @@ class Log(WellData1D):
                             #('step', 'Step'),
     ] 
     
-    def __init__(self, data, **attributes):
-        super().__init__(data, **attributes)
-
+    #def __init__(self, data, **attributes):
+    def __init__(self, *args, **kwargs):   
+        try:
+            super().__init__(*args, **kwargs)   
+        except Exception as e:
+            print ('\n\n\nERRORRRR')
+            print (e)
+            raise
+            
     @classmethod
     def _is_tid_node_needed(cls):
         __doc__ = OMBaseObject._is_tid_node_needed.__doc__

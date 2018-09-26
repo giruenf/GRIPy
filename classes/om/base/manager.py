@@ -188,8 +188,8 @@ class ObjectManager(GripyManager):
         """
         try:
             class_ = self._types[typeid]
-#            print ('\n\n{}'.format(class_))
-#            print (typeid, args, kwargs)
+            print ('\n\n{}'.format(class_))
+            print (typeid, args, kwargs)
             obj = class_(*args, **kwargs)
     #        objectid = self._getnewobjectid(typeid)
     #        obj.oid = objectid
@@ -892,8 +892,6 @@ class ObjectManager(GripyManager):
             raise Exception('Error.')
         return class_._loadstate(**objdict)
             
-
-
     @classmethod
     def get_tid_friendly_name(cls, tid):
         class_ = cls._types.get(tid)
@@ -903,7 +901,6 @@ class ObjectManager(GripyManager):
             except:
                 pass
         return None
-
 
     @classmethod
     def get_tid(cls, tid_friendly_name):  

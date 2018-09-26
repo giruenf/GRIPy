@@ -730,81 +730,8 @@ class InversionParameter(DataObject):
         super().__init__(data, **attributes)
 
 
-###############################################################################
-###############################################################################
 
-
-VALID_INDEXES = {
-    'I_LINE': {
-            'units': [None],
-            'name': 'Iline',
-            'desc': ''
-    },        
-    'X_LINE': {
-            'units': [None],
-            'name': 'Xline',
-            'desc': ''
-    },        
-    'FREQUENCY': {
-            'units': ['Hz'],
-            'name': 'Frequency',
-            'desc': ''
-    },        
-    'SCALE': {
-            'units': [None],
-            'name': 'Scale',
-            'desc': ''
-    },    
-    'OFFSET': {
-            'units': ['m', 'ft'],
-            'name': 'Offset',
-            'desc': ''
-    },     
-    'MD': {
-            'units': ['m', 'ft'],
-            'name': 'MD',
-            'desc': 'Measured depth'
-    },        
-    'TVD': {
-            'units': ['m', 'ft'],
-            'name': 'TVD',
-            'desc': 'True vertical depth'
-    },        
-    'TVDSS': {
-            'units': ['m', 'ft'],
-            'name': 'TVDSS',
-            'desc': 'True vertical depth sub sea'
-    },  
-    'TWT': {
-            'units': ['ms', 's'],
-            'name': 'TWT', 
-            'desc': 'Two-way time'
-    },        
-    'TIME': {
-            'units': ['ms', 's'],
-            'name': 'Time', 
-            'desc': 'One-way time'
-    },
-    'ANGLE': {
-            'units': ['deg', 'rad'],
-            'name': 'Angle', 
-            'desc': 'Angle'            
-    },
-    'P': {
-            'units': ['s/m', 's/km'],
-            'name': 'Ray Parameter', 
-            'desc': 'P Ray Parameter'            
-    }             
-}    
-
-
-
-def check_data_index(index_type, axis_unit):  
-    index_props = VALID_INDEXES.get(index_type)    
-    if not index_props:
-        raise Exception('Invalid index code. [index_trype={}]'.format(index_type))
-    if axis_unit not in index_props.get('units'):
-        raise Exception('Invalid index unit.')
+        
 
 """
 class IndexSet(DataObject):

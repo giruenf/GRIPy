@@ -1373,9 +1373,12 @@ def _do_initial_tests():
     
     OM = ObjectManager()
     well = OM.new('well', name='Winland-Lorenz')
-    OM.add(well)	    
+    OM.add(well)	
+    
     #
-    index = OM.new('data_index', 0, 'Depth', 'MD', 'm', data=np.array(depth)) 
+    #index = OM.new('data_index', 0, 'Depth', 'MD', 'm', data=np.array(depth)) 
+    index = OM.new('data_index', np.array(depth), name='Depth', dimension=0, 
+                                                       datatype='MD', unit='m') 
     OM.add(index, well.uid)
     #      
 

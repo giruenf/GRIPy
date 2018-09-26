@@ -11,6 +11,78 @@ import wx
 from classes.om import OMBaseObject
 
 
+VALID_INDEXES = {
+    'I_LINE': {
+            'units': [None],
+            'name': 'Iline',
+            'desc': ''
+    },        
+    'X_LINE': {
+            'units': [None],
+            'name': 'Xline',
+            'desc': ''
+    },        
+    'FREQUENCY': {
+            'units': ['Hz'],
+            'name': 'Frequency',
+            'desc': ''
+    },        
+    'SCALE': {
+            'units': [None],
+            'name': 'Scale',
+            'desc': ''
+    },    
+    'OFFSET': {
+            'units': ['m', 'ft'],
+            'name': 'Offset',
+            'desc': ''
+    },     
+    'MD': {
+            'units': ['m', 'ft'],
+            'name': 'MD',
+            'desc': 'Measured depth'
+    },        
+    'TVD': {
+            'units': ['m', 'ft'],
+            'name': 'TVD',
+            'desc': 'True vertical depth'
+    },        
+    'TVDSS': {
+            'units': ['m', 'ft'],
+            'name': 'TVDSS',
+            'desc': 'True vertical depth sub sea'
+    },  
+    'TWT': {
+            'units': ['ms', 's'],
+            'name': 'TWT', 
+            'desc': 'Two-way time'
+    },        
+    'TIME': {
+            'units': ['ms', 's'],
+            'name': 'Time', 
+            'desc': 'One-way time'
+    },
+    'ANGLE': {
+            'units': ['deg', 'rad'],
+            'name': 'Angle', 
+            'desc': 'Angle'            
+    },
+    'P': {
+            'units': ['s/m', 's/km'],
+            'name': 'Ray Parameter', 
+            'desc': 'P Ray Parameter'            
+    }             
+}    
+
+
+def check_data_index(index_type, axis_unit):  
+    index_props = VALID_INDEXES.get(index_type)    
+    if not index_props:
+        raise Exception('Invalid index code. [index_type={}]'.format(index_type))
+    if axis_unit not in index_props.get('units'):
+        raise Exception('Invalid index unit.')
+
+
 
 class DataObject(OMBaseObject):
     tid = None
@@ -23,18 +95,30 @@ class DataObject(OMBaseObject):
     _ATTRIBUTES['datatype'] = {
         'default_value': wx.EmptyString,
         'type': str        
-    }       
-    
+    }           
 
     def __init__(self, *args, **attributes):
         
+        # TODO: 24/9/2018
+        # Como todo objeto DataObject tem que ter um 'data', args[0] sempre
+        # será o 'data'. Isso deve ser propagado para todas as classes filhas.
+          
         # TODO: 29/8/2018
         # CHECAR FLAG HIDDEN PARA ATRIBUTO NAO EXIBIDO NO TREE
         # POR EXEMPLO DATA.
+            
+        print ('\nDataObject:', attributes, args)     
         
-#        print ('\nDataObject.__init__')
-#        print (args, attributes)
-#        print (self._ATTRIBUTES)
+        # TODO: 26/9/2018
+        # Retornar com a verificação abaixo
+        '''
+        try:
+            datatype = attributes.get('datatype')
+            unit = attributes.get('unit')
+            check_data_index(datatype, unit)
+        except:
+            raise     
+        '''
         
         super().__init__(**attributes)
         
@@ -47,25 +131,17 @@ class DataObject(OMBaseObject):
             self._data.flags.writeable = False
 
 
+
     @property
     def min(self):
-#        print ('ENTROU MIN')
         if self._data is None:
-#            print ('MIN IS NONE')
             return None
-#        print (np.nanmin(self._data))
         return np.nanmin(self._data)
         
     @property
     def max(self):
-#        print ('ENTROU MAX')
         if self._data is None:
-#            print ('MAX IS NONE')
             return None
-#        try:
-#            print (np.nanmax(self._data))
-#        except Exception as e:
-#            print ('ERRAO:', e)
         return np.nanmax(self._data)
     
 

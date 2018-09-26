@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 
 from collections import OrderedDict
 
@@ -7,9 +6,6 @@ import numpy as np
 from classes.om import OMBaseObject
 from classes.om import DataObject
 from classes.om import ObjectManager
-
-from classes.om.datatypes_old import check_data_index
-
 
 
 # Class for discrete dimensions of Data Objects
@@ -52,43 +48,48 @@ class DataIndex(DataObject):
     ]   
     
     
-    def __init__(self, dimension_idx, name, datatype=None, unit=None, **kwargs):   
-#    def __init__(self, *args, **kwargs):  
+    def __init__(self, *args, **kwargs):   
 
-#        print ('\nDataIndex:', dimension_idx, name, datatype, unit, kwargs)        
-        #super().__init__(**kwargs)
+        print ('\nDataIndex:', kwargs, args)        
 
-        if dimension_idx is None or dimension_idx < 0 or not isinstance(dimension_idx, int):
-            raise Exception('Wrong value for dimension_idx [{}]'.format(dimension_idx))
-        try:    
-            check_data_index(datatype, unit)
-        except:
-            raise        
-        data = kwargs.get('data') 
-        start = kwargs.get('start') 
-        end = kwargs.get('end') 
-        step = kwargs.get('step')
-        samples = kwargs.get('samples')
-        if data is None or not isinstance(data, np.ndarray):
-            try:
-                end = start + step * samples
-                data = np.arange(start, end, step)
-            except:
-                raise Exception('Data values were provided wrongly.')
-      
-        if start is None:        
-            start = data[0]
-        if end is None:
-            end = data[-1]
-        samples = len(data)
+        try:
 
-        super().__init__(data, name=name, 
-                         datatype=datatype, unit=unit,
-                         start=start, end=end, step=step, samples=samples
+            dim_idx = kwargs.get('dimension')
+            if dim_idx is None or dim_idx < 0 or not isinstance(dim_idx, int):
+                raise Exception('Wrong value for dimension_idx [{}]'.format(
+                                                                    dim_idx)
+                )
+        
+            data = None
+            if args:
+                data = args[0]
+             
+            start = kwargs.pop('start', None) 
+            end = kwargs.pop('end', None) 
+            step = kwargs.pop('step', None)    
+            
+            if data is None or not isinstance(data, np.ndarray):
+                try:
+                    if end is None:
+                        samples = kwargs.pop('samples')
+                        end = start + step * samples
+                    data = np.arange(start, end, step)
+                except:
+                    raise Exception('Data values were provided wrongly.')
+          
+            if start is None:        
+                start = data[0]
+            if end is None:
+                end = data[-1]
+            samples = len(data)
+
+        except Exception as e:
+            print (e)
+            raise
+        super().__init__(data, start=start, end=end, step=step, 
+                                                     samples=samples, **kwargs
         )
-        self['dimension'] = dimension_idx   
-        #"""
-
+        
 
     @classmethod
     def _is_tid_node_needed(cls):
@@ -105,7 +106,6 @@ class DataIndex(DataObject):
         ret_dict = OrderedDict()
         ret_dict[0] = [self]
         return ret_dict        
-
 
     
     @property

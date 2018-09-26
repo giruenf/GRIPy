@@ -19,7 +19,6 @@ Our flavor of Metaclasses was bluit based on the references below.
     https://blog.ionelmc.ro/2015/02/09/understanding-python-metaclasses/
 
 
-
 """
 
 import types
@@ -87,15 +86,13 @@ class GripyObject(pubsub.PublisherMixin, metaclass=GripyWxMeta):
                                             attr_props.get('default_value')
             )    
         self._processing_value_from_event = False
-
-            
+          
     def __str__(self):
         return '{}.{}'.format(*self.uid)
  
     def _get_manager_class(self):
         return wx.App.Get()._get_manager_class(self)
 
-       
     def get_publisher_name(self):
         return pubsub.uid_to_pubuid(self.uid)    
          
@@ -115,8 +112,7 @@ class GripyObject(pubsub.PublisherMixin, metaclass=GripyWxMeta):
             raise
         finally:    
             self._processing_value_from_event = False      
-                       
-            
+                                   
     def __getattribute__(self, key):
         try:
             return object.__getattribute__(self, key)
@@ -128,7 +124,6 @@ class GripyObject(pubsub.PublisherMixin, metaclass=GripyWxMeta):
                     return self[key]
                 except Exception as e:
                     raise AttributeError('Invalid attribute: {}.'.format(key))
-
 
     def __getitem__(self, key):
         # https://docs.python.org/3.6/reference/datamodel.html#object.__getitem__
@@ -147,8 +142,7 @@ class GripyObject(pubsub.PublisherMixin, metaclass=GripyWxMeta):
                 return prop.__get__(self, key)
             except Exception:
                 raise Exception ('ERROR __getitem__({}, {}): property cannot be obtained.'.format(self, key)) 
-                    
-                
+                                 
     def __delitem__(self, key):
         self._do_del(key)
         
@@ -279,7 +273,6 @@ class GripyObject(pubsub.PublisherMixin, metaclass=GripyWxMeta):
                 
         msg = '    {} has setted attribute {} = {}'.format(self.uid, key, self[key])  
         log.debug(msg)
-
 
 
     def _getstate(self):
