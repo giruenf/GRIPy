@@ -26,6 +26,8 @@ CP_SELECTION_TOOL = wx.NewId()
 CP_FLOAT_PANEL = wx.NewId()  
 
 
+
+
 class CrossPlotController(WorkPageController):
     tid = 'crossplot_controller'
     
@@ -39,7 +41,6 @@ class CrossPlotModel(WorkPageModel):
     def __init__(self, controller_uid, **base_state):   
         super().__init__(controller_uid, **base_state)   
 
-        
     
 class CrossPlot(WorkPage):
     tid = 'crossplot'
@@ -58,12 +59,15 @@ class CrossPlot(WorkPage):
             self.sizer.Add(self._tool_bar, 0, flag=wx.TOP|wx.EXPAND)
             #     
             UIM = UIManager()   
-            canvas_controller = UIM.create('canvas_controller', 
-                    self._controller_uid
+            canvas_controller = UIM.create('canvas_plotter_controller',
+                                           self._controller_uid
             )
+            #
+                     
             self._main_panel = canvas_controller.view
-            self._main_panel.mpl_connect('motion_notify_event', 
-                                                     self.on_canvas_mouse_move)
+            # TODO: Keep this conection? (must be disconected at PreDelete??)
+#            self._main_panel.mpl_connect('motion_notify_event', 
+#                                                     self.on_canvas_mouse_move)
             self.sizer.Add(self._main_panel, 1, flag=wx.EXPAND)
             #
             self._status_bar =  PlotStatusBar(self)
@@ -72,7 +76,9 @@ class CrossPlot(WorkPage):
             #
             self._build_tool_bar()
             self.Layout()
-    
+            #
+            print ('FIM CrossPlot.PostInit')
+            
         except Exception as e:
             print ('ERROR IN CrossPlot.PostInit:', e)
             raise
@@ -82,13 +88,18 @@ class CrossPlot(WorkPage):
         try:
             self.sizer.Remove(0)
             del self._tool_bar
-#            self._main_panel.mp
         except Exception as e:
             msg = 'PreDelete ' + self.__class__.__name__ + \
                                             ' ended with error: ' + str(e)
             print (msg)                                
             pass       
 
+
+    def _get_wx_parent(self, *args):
+        flag = args[0]
+        print ('\nCrossPlot._get_wx_parent', flag)
+        return self
+    
 
     def on_canvas_mouse_move(self, event):
         axes = event.inaxes

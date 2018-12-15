@@ -73,7 +73,9 @@ def load():
         Construct the application itself.
         """    
         mwc = UIM.create('main_window_controller', 
-                         title=gripy_app._gripy_app_state.get('app_display_name')
+                         title=gripy_app._gripy_app_state.get('app_display_name'),
+                         
+                         pos=(2000, 800), maximized=True
         )
 
        # """
@@ -1372,33 +1374,63 @@ def _do_initial_tests():
     import numpy as np
     
     OM = ObjectManager()
+    #
     well = OM.new('well', name='Winland-Lorenz')
     OM.add(well)	
-    
     #
-    #index = OM.new('data_index', 0, 'Depth', 'MD', 'm', data=np.array(depth)) 
-    index = OM.new('data_index', np.array(depth), name='Depth', dimension=0, 
-                                                       datatype='MD', unit='m') 
-    OM.add(index, well.uid)
+   
+    
+  
+    iset = OM.new('curve_set', name='Run 001')
+    OM.add(iset, well.uid)
+    #
+    
+    
+    
+    
+    #"""
+    
+    index = OM.new('data_index', np.array(depth), name='Depth', dimension=0, datatype='MD', unit='m') 
+    OM.add(index, iset.uid)
+    
     #      
-
-
-    #"""
-     
-    log = OM.new('log', np.array(phi)/100, index_uid=index.uid, name='Phi', unit='dec', 
-                 datatype='NMRperm'
-    )
-    OM.add(log, well.uid)    
-    #
-    log = OM.new('log', np.array(k), index_uid=index.uid, name='K', unit='mD', 
-                 datatype='CorePerm'
-    )
-    OM.add(log, well.uid)    
-    
+    log = OM.new('log', np.array(phi)/100, index_uid=index.uid, name='Phi', unit='dec', datatype='NMRperm')
+    OM.add(log, iset.uid)  
     #"""
     
     
+    
+    
+    
+    
+    """
     #
+    log = OM.new('log', np.array(k), index_uid=index.uid, name='K', unit='mD', datatype='CorePerm')
+    OM.add(log, iset.uid)  
+    #
+    #
+    #
+    """
+    iset2 = OM.new('curve_set', name='Run 002')
+    OM.add(iset2, well.uid)
+    #
+    
+    
+    index = OM.new('data_index', np.array(depth), name='Depth', dimension=0, datatype='MD', unit='m') 
+    OM.add(index, iset2.uid)
+    #      
+    log = OM.new('log', np.array(phi)/100, index_uid=index.uid, name='Phi', unit='dec', datatype='NMRperm')
+    OM.add(log, iset2.uid)  
+    #
+    log = OM.new('log', np.array(k), index_uid=index.uid, name='K', unit='mD', datatype='CorePerm')
+    OM.add(log, iset2.uid)  
+    #
+    
+    #"""
+        
+    
+    
+    
     
 #    mwc.model.pos = (-1300,600)
 

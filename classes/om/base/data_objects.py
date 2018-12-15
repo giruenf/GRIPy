@@ -97,17 +97,14 @@ class DataObject(OMBaseObject):
         'type': str        
     }           
 
-    def __init__(self, *args, **attributes):
-        
-        # TODO: 24/9/2018
-        # Como todo objeto DataObject tem que ter um 'data', args[0] sempre
-        # será o 'data'. Isso deve ser propagado para todas as classes filhas.
+    def __init__(self, data, **attributes):
           
         # TODO: 29/8/2018
         # CHECAR FLAG HIDDEN PARA ATRIBUTO NAO EXIBIDO NO TREE
         # POR EXEMPLO DATA.
             
-        print ('\nDataObject:', attributes, args)     
+    
+        #print ('\n\nDataObject:\n', attributes, '\n', data)  
         
         # TODO: 26/9/2018
         # Retornar com a verificação abaixo
@@ -120,13 +117,8 @@ class DataObject(OMBaseObject):
             raise     
         '''
         
-        super().__init__(**attributes)
-        
-        if not args:
-            self._data = None
-            return
-        self._data = args[0]
-        
+        super().__init__(**attributes)     
+        self._data = data
         if isinstance(self._data, np.ndarray):
             self._data.flags.writeable = False
 

@@ -356,8 +356,9 @@ class GripyEnumBitwise(GripyEnum):
     def __ror__(self, other):
         return self.__or__(other)    
         
+
         
-class LogPlotState(GripyEnum):
+class WellPlotState(GripyEnum):
     NORMAL_TOOL = 0
     SELECTION_TOOL = 1
 

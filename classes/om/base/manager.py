@@ -28,6 +28,8 @@ except ImportError:
     import pickle
 
 
+
+
 class ObjectManager(GripyManager):
     """
     The Object Manager.
@@ -188,16 +190,15 @@ class ObjectManager(GripyManager):
         """
         try:
             class_ = self._types[typeid]
-            print ('\n\n{}'.format(class_))
-            print (typeid, args, kwargs)
+    #        print ('\n\n{}'.format(class_))
+    #        print (typeid, args, kwargs)
             obj = class_(*args, **kwargs)
     #        objectid = self._getnewobjectid(typeid)
     #        obj.oid = objectid
             return obj
         except Exception as e:
-            raise Exception('Error on creating object! [tid={}, args={}, ' + \
-                        'kwargs={}, error={}]'.format(typeid, args, kwargs, e)
-            )
+            msg = 'Error on creating object! [tid={}, args={}, kwargs={}, error={}]'.format(typeid, args, kwargs, e)
+            raise Exception(msg)
 
 
     def add(self, obj, parentuid=None):
@@ -356,58 +357,7 @@ class ObjectManager(GripyManager):
         return True
 
 
-    def list(self, tidfilter=None, parentuidfilter=None):
-        """
-        Return a list of objects being managed by `ObjectManager`.
-        
-        Parameters
-        ----------
-        tidfilter : str, optional
-            Only objects which type identificator is equal to `tidfilter` will
-            be returned.
-        parentuidfilter : uid, optional
-            Only objects which parent has unique identificator equal to
-            `parentuidfilter` will be returned.
-        
-        Returns
-        -------
-        list
-            A list of objects that satisfy the given filters.
-        
-        Examples
-        --------
-        >>> om = ObjectManager()
-        >>> parentobj = om.new('parenttypeid')
-        >>> om.add(parentobj)
-        True
-        >>> childobj = om.new('childtypeid')
-        >>> om.add(childobj, parentobj.uid)
-        True
-        >>> om.list()
-        [parentobj, childobj]
-        >>> om.list(parentuidfilter=parentobj.uid)
-        [childobj]
-        >>> om.list(tidfilter='parenttypeid')
-        [parentobj]
-        >>> om.list(parentuidfilter=parentobj.uid, tidfilter='parenttypeid')
-        []
-        """
-        if parentuidfilter is None:
-            objs = self._data.values()
-            if tidfilter:
-                return [obj for obj in objs if obj.tid == tidfilter]
-            else:
-                return objs
-        else:
-            return [self.get(child_uid) for child_uid in \
-                    self._childrenuidmap[parentuidfilter] \
-                    if child_uid[0] == tidfilter
-            ]
-            #    if child_uid[0] == tidfilter:
-            #        self.get(child_uid)
-            #]
-            #    return [child for child in children if child.tid == tidfilter]
-            #return self.get(parentuidfilter).list(tidfilter)
+
 
 
     @classmethod
@@ -521,6 +471,7 @@ class ObjectManager(GripyManager):
             parenttid = parentuid[0]
         return parenttid in self._parenttidmap[objtid]
 
+
     def _getparentuid(self, uid):
         """
         Return the parent unique identificator.
@@ -540,6 +491,7 @@ class ObjectManager(GripyManager):
 
 
 
+            
     def _gettype(self, tid):
         """
         Return the type (i.e. the class) that has the given `tid`.

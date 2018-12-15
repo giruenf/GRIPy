@@ -48,13 +48,13 @@ class DataIndex(DataObject):
     ]   
     
     
-    def __init__(self, *args, **kwargs):   
+    def __init__(self, *args, **attributes):   
 
-        print ('\nDataIndex:', kwargs, args)        
+        #print ('\n\nDataIndex:\n', attributes, '\n', args)        
 
         try:
 
-            dim_idx = kwargs.get('dimension')
+            dim_idx = attributes.get('dimension')
             if dim_idx is None or dim_idx < 0 or not isinstance(dim_idx, int):
                 raise Exception('Wrong value for dimension_idx [{}]'.format(
                                                                     dim_idx)
@@ -64,14 +64,14 @@ class DataIndex(DataObject):
             if args:
                 data = args[0]
              
-            start = kwargs.pop('start', None) 
-            end = kwargs.pop('end', None) 
-            step = kwargs.pop('step', None)    
+            start = attributes.pop('start', None) 
+            end = attributes.pop('end', None) 
+            step = attributes.pop('step', None)    
             
             if data is None or not isinstance(data, np.ndarray):
                 try:
                     if end is None:
-                        samples = kwargs.pop('samples')
+                        samples = attributes.pop('samples')
                         end = start + step * samples
                     data = np.arange(start, end, step)
                 except:
@@ -87,7 +87,7 @@ class DataIndex(DataObject):
             print (e)
             raise
         super().__init__(data, start=start, end=end, step=step, 
-                                                     samples=samples, **kwargs
+                                 samples=samples, **attributes
         )
         
 

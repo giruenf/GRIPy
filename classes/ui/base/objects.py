@@ -5,6 +5,9 @@ Created on Sat Aug 25 20:43:24 2018
 @author: Adriano
 """
 
+
+from types import MethodType
+
 import wx
 
 import app
@@ -68,6 +71,19 @@ class UIControllerObject(UIBaseObject):
         # 
         self._attached_to = None
    
+
+    def __getattribute__(self, key):
+        #TODO: This Method do the function Delegation to View class
+        try:
+            return GripyObject.__getattribute__(self, key)
+        except AttributeError:
+            try:
+                # Method Delegation to View class
+                return GripyObject.__getattribute__(self.view, key)
+            except:
+                pass
+            raise 
+
     
     def _check_OM_removals(self, objuid, topic=app.pubsub.AUTO_TOPIC):
         #key = topic.getName().split('.')[2]
@@ -160,6 +176,8 @@ class UIControllerObject(UIBaseObject):
         topic = 'change.' + key
         self.send_message(topic, old_value=old_value, new_value=new_value)
  
+    
+    
     def _create_model_view(self, **base_state): 
         """Function to create model and view objects (MVC pattern)."""
         UIM_class = self._get_manager_class()
@@ -210,7 +228,7 @@ class UIControllerObject(UIBaseObject):
         except Exception as e:
             msg = 'ERROR in {}.PostInit: {}'.format(self.view.__class__.__name__, e)
             log.exception(msg)
-            print ('\n', msg)
+            print ('\n' + msg)
             raise
         try:                
             self.PostInit()    
@@ -346,3 +364,13 @@ class UIViewObject(UIBaseObject):
             raise Exception(msg)       
 
 
+    def _get_wx_parent(self, *args, **kwargs):
+        """
+        Returns wx.Object parent necessary to child object creation.
+        This way was chosen because UIViewObjects creation are segmentated
+        between __init__ and PostInit methods.
+        """
+        raise NotImplementedError('Must be implemented by subclass.')
+        
+        
+        

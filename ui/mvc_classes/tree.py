@@ -5,6 +5,7 @@ from collections import OrderedDict
 
 import wx
 
+import app
 from basic.uom import uom
 from classes.om import ObjectManager
 from classes.ui import UIManager
@@ -25,6 +26,7 @@ from app import log
 # Attribute
 # self.view.SetItemData(attr_tree_item, (ID_TYPE_ATTRIBUTE, obj_uid, attr_name))
 
+
 ID_TYPE_OBJECT = 0
 ID_TYPE_TID = 1
 ID_TYPE_ATTRIBUTE = 2
@@ -34,156 +36,174 @@ class TreeController(UIControllerObject):
     tid = 'tree_controller'
     _DEFAULT_ROOT_NAME = u"GRIPy Project"
     
+    
     def __init__(self): 
         super(TreeController, self).__init__()
         
     def PostInit(self):
         OM = ObjectManager()
-        OM.subscribe(self.create_object_node, 'add')
-        OM.subscribe(self.remove_object_node, 'post_remove')
+        OM.subscribe(self._on_OM_object_added, 'add')
+        OM.subscribe(self._on_OM_object_removed, 'post_remove')
 
     def PreDelete(self): 
         OM = ObjectManager()
-        OM.unsubscribe(self.create_object_node, 'add')
-        OM.unsubscribe(self.remove_object_node, 'post_remove')
+        OM.unsubscribe(self._on_OM_object_added, 'add')
+        OM.unsubscribe(self._on_OM_object_removed, 'post_remove')
+        
+          
+        
+    def _on_OM_object_added(self, objuid):  
+        OM = ObjectManager()
+        obj = OM.get(objuid)
+        obj.subscribe(self.teste, 'change')
+        self.create_object_node(objuid)
+
+
+    def _on_OM_object_removed(self, objuid):  
+        OM = ObjectManager()
+        obj = OM.get(objuid)
+        obj.unsubscribe(self.teste, 'change')
+        self.remove_object_node(objuid)
+
+    
+    def teste(self, old_value, new_value, topic=app.pubsub.AUTO_TOPIC):
+        key = topic.getName().split('.')[2]
+        print ('\nTESTE:',topic.getName(), key, old_value, new_value)
+        
+        
         
         
     def create_object_node(self, objuid):
         OM = ObjectManager()
-        tid = objuid[0]
-        obj_class = OM._gettype(tid)
+        obj = OM.get(objuid)
+
         
+#        print ('\ncreate_object_node', objuid)
         ####
-        try:
-            show = obj_class._SHOW_ON_TREE
-            if not show:
-                return
-        except:
-            pass
-        ###
+        #   VERIFICA SE O OBJETO DEVE SER INCLUIDO NA ÁRVORE (NAO EH O TID!)
+        #   O TID EH VERIFICADO PELA FUNCAO _is_tid_node_needed ABAIXO.
+        #
         
+        node_props = obj._get_object_node_properties()
+        if node_props is None:
+            return
         
+        #print ()
+#        print ('node_props:', node_props)
+ 
         try:
-            if not obj_class._tree_node_remover(self):
-                raise Exception('ERROR in {}._tree_node_creator'.format(obj_class))                             
-        except:    
-            try:
-                parentuid = OM._getparentuid(objuid)
-                # Find location to create tid node
-                if obj_class._is_tid_node_needed():
-                    # Then, tid node will be object node parent
-                    obj_parent_node = self.get_object_tree_item(ID_TYPE_TID, objuid[0], parentuid) 
-                    if obj_parent_node is None:
-                        # It's necessary to create tid node
-                        if parentuid is None:
-                            # Create tid node as a root child
-                            tid_parent_node = self.view.GetRootItem()
-                        else:
-                            # Create tid node as another object child
-                            tid_parent_node = self.get_object_tree_item(ID_TYPE_OBJECT, parentuid) 
-                        # Create tid node    
-                        class_ = OM._gettype(objuid[0])
-                        try:
-                            tid_label = class_._FRIENDLY_NAME
-                        except AttributeError:
-                            tid_label = class_.tid
-                        obj_parent_node = self.view.AppendItem(tid_parent_node, 
-                                                             tid_label)    
-                        self.view.SetItemData(obj_parent_node, 
-                                              (ID_TYPE_TID, objuid[0], parentuid))
-                        self.view.Expand(tid_parent_node)
-                else:
-                    #Create direct link to parent object
-                    obj_parent_node = self.get_object_tree_item(ID_TYPE_OBJECT, 
-                                                                        parentuid) 
-                obj_str = self._get_object_label(objuid)    
-                obj_node = self.view.AppendItem(obj_parent_node, obj_str)
-                self.view.SetItemData(obj_node, (ID_TYPE_OBJECT, objuid, None))
-                self.view.Expand(obj_parent_node)
-                # Create item object attributes
-                for attr, attr_label in self._get_object_attributes(objuid).items():
-                    attr_node = self.view.AppendItem(obj_node, attr_label)
-                    self.view.SetItemData(attr_node, (ID_TYPE_ATTRIBUTE, objuid, attr))            
-                #
-                self.view.Expand(obj_node)
-            except Exception as e:
-                print ('\n\nERRO ARVORE:', e)
-                raise
+            parentuid = OM._getparentuid(objuid)
+            # Find location to create tid node
+#            print (1)
+            if obj._is_tid_node_needed():
+#                print (2)
+                # Then, tid node will be object node parent
+                obj_parent_node = self.get_object_tree_item(ID_TYPE_TID, objuid[0], parentuid) 
+#                print ('obj_parent_node:', obj_parent_node)
+                if obj_parent_node is None:
+                    # It's necessary to create tid node
+                    if parentuid is None:
+                        # Create tid node as a root child
+                        tid_parent_node = self.view.GetRootItem()
+                    else:
+                        # Create tid node as another object child
+                        tid_parent_node = self.get_object_tree_item(ID_TYPE_OBJECT, parentuid) 
+                    # Create tid node    
+                    class_ = OM._gettype(objuid[0])
+                    try:
+                        tid_label = class_._FRIENDLY_NAME
+                    except AttributeError:
+                        tid_label = class_.tid
+                    obj_parent_node = self.view.AppendItem(tid_parent_node, 
+                                                         tid_label)    
+                    self.view.SetItemData(obj_parent_node, 
+                                          (ID_TYPE_TID, objuid[0], parentuid))
+                    
+#                    print ('Creating tid_node:',  (ID_TYPE_TID, objuid[0], parentuid))
+                    
+                    self.view.Expand(tid_parent_node)
+            else:
+#                print (3)
+                #Create direct link to parent object
+                obj_parent_node = self.get_object_tree_item(ID_TYPE_OBJECT, parentuid) 
+            
+            # Create object node itself
+#            print ('node_props 2:', node_props)
+            obj_repr = node_props.pop('name')
+            #obj_repr, obj_props = node_props 
+            obj_node = self.view.AppendItem(obj_parent_node, obj_repr)
+            #
+            # TODO: Consider create (ID_TYPE_OBJECT, objuid, ('ATTRIBUTE','name') vs
+            #                       (ID_TYPE_OBJECT, objuid, ('FUNCTION', 'function_name')
+            # For objects and attributes
+            #
+            
+            self.view.SetItemData(obj_node, (ID_TYPE_OBJECT, objuid, 'name'))
+#            print ('Creating obj_node:', (ID_TYPE_OBJECT, objuid, 'name'))
+            self.view.Expand(obj_parent_node)
+
+#            print ()
+            # Create item object attributes
+            for attr, attr_label in node_props.items():
+                attr_node = self.view.AppendItem(obj_node, attr_label)
+                self.view.SetItemData(attr_node, (ID_TYPE_ATTRIBUTE, objuid, attr))      
+#                print ('Creating attr_node:',  (ID_TYPE_ATTRIBUTE, objuid, attr))   
+            #
+            
+            self.view.Expand(obj_node)
+        
+        except Exception as e:
+            print ('\nERRO ARVORE:', e)
+            raise    
+
 
 
     def remove_object_node(self, objuid):
-        OM = ObjectManager()
         try:
-            tid = objuid[0]
-            class_ = OM._gettype(tid)
-            if not class_._tree_node_remover(self):
-                raise Exception('ERROR in {}._tree_node_remover'.format(class_))
+            treeitem = self.get_object_tree_item(ID_TYPE_OBJECT, objuid)
+            if treeitem is None:
+                raise Exception('Removing treeitem for an object not exists.')
+            #        
+            treeitem_parent = self.view.GetItemParent(treeitem)
+            parent_node_type, _, _ = self.view.GetItemData(treeitem_parent)
+            self.view.Delete(treeitem)
+            #
+            if (parent_node_type == ID_TYPE_TID) and not (self.view.GetChildrenCount(treeitem_parent)):
+                # If parent node is a tid node and there is no other child, del it!
+                self.view.Delete(treeitem_parent)
         except:
-            try:
-                treeitem = self.get_object_tree_item(ID_TYPE_OBJECT, objuid)
-                if treeitem is None:
-                    raise Exception('Removing treeitem for an object not exists.')
-                #        
-                treeitem_parent = self.view.GetItemParent(treeitem)
-                parent_node_type, _, _ = self.view.GetItemData(treeitem_parent)
-                self.view.Delete(treeitem)
-                #
-                if parent_node_type == ID_TYPE_TID and \
-                                    not self.view.GetChildrenCount(treeitem_parent):
-                    #If parent node is a tid node and there is no other child, del it!
-                    self.view.Delete(treeitem_parent)
-            except:
-                raise        
-              
-                
-    def _get_object_attributes(self, objuid):
-        
-#        print ('\n_get_object_attributes:', objuid)
-        
-        OM = ObjectManager()
-        obj = OM.get(objuid)
-        ret_od = OrderedDict()
-        try:
-            shown_attribs = obj._SHOWN_ATTRIBUTES
-        except AttributeError:
-            return ret_od
-        
-
-        
-        for attr, attr_label in shown_attribs:
-#            print (attr, attr_label)
-            try:
-                value = obj[attr] #getattr(obj, attr)
-#                value = obj.__getattribute__(attr)
-#                print ('    ', value)
-            except Exception as e:
-#                print ('     ERRO', e)
-                
-                continue
-                
-                #raise
-                #value = obj.attributes.get(attr)  
-                #value = obj[attr] 
-            if isinstance(value, float):
-                value = "{0:.2f}".format(value)
-            elif value is None:
-                value = 'None'               
-            ret_od[attr]  = attr_label + ': ' + str(value)  
-        return ret_od        
-
-
-
-    def get_object_tree_item(self, node_type, node_main_info, 
-                             node_extra_info=None, start_node_item=None):
+            raise   
+            
+            
+    
+    def get_object_tree_item(self, node_type, node_main_info, node_extra_info=None, start_node_item=None):
+        """Returns the wx.TreeItemId associated with Tree data given.
+        """
+        #print ('\nget_object_tree_item:', node_type, node_main_info, node_extra_info, start_node_item)
         try:
             if start_node_item is None:
                 start_node_item = self.view.GetRootItem()
+                
             start_node_data = self.view.GetItemData(start_node_item)
-            # We found the TreeItem
-            if start_node_data == (node_type, node_main_info, node_extra_info):
-                return start_node_item      
+            
+            #print (111, start_node_item, start_node_data)
+
+                
+            if start_node_data is not None:
+                    
+                if node_type == ID_TYPE_OBJECT:
+                    _, obj_uid, _ = start_node_data
+                    if obj_uid == node_main_info:
+                        # We found the TreeItem (Object)
+                        return start_node_item
+                    
+                elif start_node_data == (node_type, node_main_info, node_extra_info):
+                    # We found the TreeItem (Tid or Object attribute)
+                    return start_node_item      
+                
             # Let's search in children
             (child_item, cookie) = self.view.GetFirstChild(start_node_item)
+            
             while child_item.IsOk():
                 ret_child_val = self.get_object_tree_item(node_type, 
                                 node_main_info, node_extra_info, child_item)
@@ -191,31 +211,51 @@ class TreeController(UIControllerObject):
                     return ret_child_val         
                 (child_item, cookie) = self.view.GetNextChild(start_node_item,
                                                                         cookie)
-            return None         
+            return None       
+        
+        #except Exception as e:
+        #    print (e)
         except:
             raise
                 
+            
+    # TODO: Verificar isso        
     def set_project_name(self, name=wx.EmptyString):
         if name:
             _, name = os.path.split(name)      
-        self.view._set_project_name(name)
-           
-    # TODO: reload_object or reload_tree_item????
-    def reload_object(self, objuid):
+        self.view._set_project_name(name)        
+
+
+
+    def reload_object_node(self, objuid):
+        try:
+            self.remove_object_node(objuid)
+        except:
+            raise
+        try:    
+            self.create_object_node(objuid)
+        except:
+            raise
+            
+        """
         obj_node = self.get_object_tree_item(ID_TYPE_OBJECT, objuid)
         if not obj_node:
             raise Exception('Trying to reload an object not exists.')
         #self.view.DeleteChildren(treeitem)
         self.view.SetItemText(obj_node, self._get_object_label(objuid))
-        #self._create_object_attributes(objuid)
- 
-    
-    
-    def _get_object_label(self, objuid):
-        OM = ObjectManager()
-        obj = OM.get(objuid)
-        return obj.name
-    
+        #self._create_object_attributes(objuid)        
+        """
+
+
+
+        
+        
+
+
+
+
+     
+              
 
 
 class TreeView(UIViewObject, wx.TreeCtrl):
@@ -298,13 +338,12 @@ class TreeView(UIViewObject, wx.TreeCtrl):
 
 
     def on_rightclick(self, event):
-        print ('\non_rightclick')
         tree_item = event.GetItem()
-        item_data = self.GetItemData(tree_item)
-        if item_data is None:
-            # Root node
+        if tree_item == self.GetRootItem():
             return
+        item_data = self.GetItemData(tree_item)
         (node_type, node_main_info, node_extra_info) = item_data
+        
         if node_type == ID_TYPE_ATTRIBUTE:    
             return
                
@@ -338,7 +377,7 @@ class TreeView(UIViewObject, wx.TreeCtrl):
      
         #elif node_type == ID_TYPE_ATTRIBUTE:    
         #    return
-        print ('FIM on_rightclick\n')
+
         
 
     def _is_convertible(self, uid):
@@ -399,12 +438,13 @@ class TreeView(UIViewObject, wx.TreeCtrl):
             if answer == wx.ID_OK:
                 results = dlg.get_results()  
                 new_name = results.get('new_name')
-                obj.name = new_name   
+                obj.name = new_name
                 UIM = UIManager()
                 controller = UIM.get(self._controller_uid)
-                controller.reload_object(obj.uid)                 
-        except Exception:
-            pass
+                controller.reload_object_node(obj.uid)                 
+        except Exception as e:
+            print ('\nERROR OnRenameObject:', e)
+            raise
         finally:
             UIM.remove(dlg.uid)     
 

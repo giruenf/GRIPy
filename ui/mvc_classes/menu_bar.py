@@ -34,11 +34,14 @@ class MenuBarView(UIViewObject, wx.MenuBar):
     def __init__(self, controller_uid):
         UIViewObject.__init__(self, controller_uid)
         wx.MenuBar.__init__(self)
+        #
         UIM = UIManager()
-        parent_uid = UIM._getparentuid(controller_uid)
-        parent = UIM.get(parent_uid)
-        parent.view.SetMenuBar(self)
+        parent_controller_uid = UIM._getparentuid(controller_uid)
+        parent_controller = UIM.get(parent_controller_uid)
+        wx_parent = parent_controller._get_wx_parent()
+        wx_parent.SetMenuBar(self)
         
+
         #class_full_name = str(self.__class__.__module__) + '.' + str(self.__class__.__name__)    
         #log.debug('Successfully created View object from class: {}.'.format(class_full_name))
            

@@ -11,7 +11,7 @@ from wx.propgrid import PropertyGrid
 import wx.lib.colourdb
 
 from classes.om import ObjectManager
-from ui.mvc_classes.log_plot import LogPlotController
+from ui.mvc_classes.well_plot import WellPlotController
 from classes.ui import UIManager
 from classes.ui import UIControllerObject  
 from classes.ui import UIModelObject
@@ -23,11 +23,11 @@ from app.app_utils import parse_string_to_uid
 from app import log
 
 
-class LogPlotEditorController(UIControllerObject):
-    tid = 'log_plot_editor_controller'
+class WellPlotEditorController(UIControllerObject):
+    tid = 'well_plot_editor_controller'
      
     def __init__(self):
-        super(LogPlotEditorController, self).__init__()
+        super().__init__()
         class_full_name = str(self.__class__.__module__) + '.' + str(self.__class__.__name__)    
         log.debug('Successfully created Controller object from class: {}.'.format(class_full_name))
 
@@ -40,8 +40,8 @@ class LogPlotEditorController(UIControllerObject):
         UIM.subscribe(self.object_created, 'create')
         UIM.subscribe(self.object_removed, 'pre_remove')
         #
-        logplot_ctrl_uid = UIM._getparentuid(self.uid)
-        for track in UIM.list('track_controller', logplot_ctrl_uid):
+        wellplot_ctrl_uid = UIM._getparentuid(self.uid)
+        for track in UIM.list('track_controller', wellplot_ctrl_uid):
             track.subscribe(self._on_change_prop, 'change')
             for toc in UIM.list('track_object_controller', track.uid):
                 toc.subscribe(self._on_change_prop, 'change')
@@ -52,8 +52,8 @@ class LogPlotEditorController(UIControllerObject):
 #        UIM.unsubscribe(self.object_created, 'create')
 #        UIM.unsubscribe(self.object_removed, 'pre_remove') 
         #
-        logplot_ctrl_uid = UIM._getparentuid(self.uid)
-        for track in UIM.list('track_controller', logplot_ctrl_uid):
+        wellplot_ctrl_uid = UIM._getparentuid(self.uid)
+        for track in UIM.list('track_controller', wellplot_ctrl_uid):
             track.unsubscribe(self._on_change_prop, 'change')
             for toc in UIM.list('track_object_controller', track.uid):
                 toc.unsubscribe(self._on_change_prop, 'change')        
@@ -71,8 +71,8 @@ class LogPlotEditorController(UIControllerObject):
                                     objuid[0] != 'track_object_controller':
             return
         UIM = UIManager()
-        logplot_ctrl_uid = UIM._getparentuid(self.uid) 
-        if objuid[0] == 'track_controller' and parentuid == logplot_ctrl_uid:       
+        wellplot_ctrl_uid = UIM._getparentuid(self.uid) 
+        if objuid[0] == 'track_controller' and parentuid == wellplot_ctrl_uid:       
             track = UIM.get(objuid)
             #print 'LogPlotEditorController._object_created:', objuid, track.model.pos
             lpe_tp = UIM.list('lpe_track_panel_controller', self.uid)[0]
@@ -82,8 +82,8 @@ class LogPlotEditorController(UIControllerObject):
             track.subscribe(self._on_change_prop, 'change')
         
         elif objuid[0] == 'track_object_controller':
-            logplot_candidate = UIM._getparentuid(parentuid)
-            if logplot_candidate == logplot_ctrl_uid:
+            wellplot_candidate = UIM._getparentuid(parentuid)
+            if wellplot_candidate == wellplot_ctrl_uid:
                 lpe_op = UIM.list('lpe_objects_panel_controller', self.uid)[0]
                 track = UIM.get(parentuid)
                 toc = UIM.get(objuid)
@@ -96,8 +96,8 @@ class LogPlotEditorController(UIControllerObject):
         UIM = UIManager()
         if objuid[0] == 'track_controller':
             track_parent_uid = UIM._getparentuid(objuid)
-            logplot_ctrl_uid = UIM._getparentuid(self.uid)
-            if track_parent_uid == logplot_ctrl_uid:
+            wellplot_ctrl_uid = UIM._getparentuid(self.uid)
+            if track_parent_uid == wellplot_ctrl_uid:
                 track = UIM.get(objuid)
                 lpe_tp = UIM.list('lpe_track_panel_controller', self.uid)[0]
                 lpe_op = UIM.list('lpe_objects_panel_controller', self.uid)[0]
@@ -108,8 +108,8 @@ class LogPlotEditorController(UIControllerObject):
             print ('object_removed:', objuid)
             track_uid = UIM._getparentuid(objuid)
             track_parent_uid = UIM._getparentuid(track_uid)
-            logplot_ctrl_uid = UIM._getparentuid(self.uid)
-            if track_parent_uid == logplot_ctrl_uid:     
+            wellplot_ctrl_uid = UIM._getparentuid(self.uid)
+            if track_parent_uid == wellplot_ctrl_uid:     
                 toc = UIM.get(objuid)
                 toc.unsubscribe(self._on_change_prop, 'change')
                 lpe_op = UIM.list('lpe_objects_panel_controller', self.uid)[0]
@@ -161,12 +161,12 @@ class LogPlotEditorController(UIControllerObject):
           
 
 
-class LogPlotEditor(UIViewObject, wx.Frame):
-    tid = 'log_plot_editor'
+class WellPlotEditor(UIViewObject, wx.Frame):
+    tid = 'well_plot_editor'
 
     def __init__(self, controller_uid):
         UIViewObject.__init__(self, controller_uid)
-        wx.Frame.__init__(self, None, -1, title='LogPlotEditor',
+        wx.Frame.__init__(self, None, -1, title='WellPlotEditor',
                                           size=(950, 600),
                                           style=wx.DEFAULT_FRAME_STYLE & 
                                           (~wx.RESIZE_BORDER) &(~wx.MAXIMIZE_BOX)
@@ -296,8 +296,8 @@ class LPETrackPanelModel(dv.PyDataViewModel):
         UIM = UIManager()
         #controller = UIM.get(self._controller_uid)
         lpe_ctrl_uid = UIM._getparentuid(self._controller_uid) 
-        logplot_ctrl_uid = UIM._getparentuid(lpe_ctrl_uid)
-        tracks = UIM.list('track_controller', logplot_ctrl_uid)
+        wellplot_ctrl_uid = UIM._getparentuid(lpe_ctrl_uid)
+        tracks = UIM.list('track_controller', wellplot_ctrl_uid)
         for track in tracks:
             children.append(self.ObjectToItem(track)) 
         return len(tracks)
@@ -358,12 +358,12 @@ class LPETrackPanelModel(dv.PyDataViewModel):
                 raise Exception('Error.')    
         elif col == 11:
             UIM = UIManager()
-            logplot_uid = UIM._getparentuid(track.uid)
-            logplot_ctrl = UIM.get(logplot_uid)
+            wellplot_uid = UIM._getparentuid(track.uid)
+            wellplot_ctrl = UIM.get(wellplot_uid)
             if value:
-                logplot_ctrl.set_overview_track(track.uid)
+                wellplot_ctrl.set_overview_track(track.uid)
             else:
-                logplot_ctrl.unset_overview_track()  
+                wellplot_ctrl.unset_overview_track()  
         else:       
             track.model[self.TRACKS_MODEL_MAPPING.get(col)] = value
         return True
@@ -405,9 +405,9 @@ class LPETrackPanelModel(dv.PyDataViewModel):
     def InsertTracks(self):
         UIM = UIManager()
         lpe_ctrl_uid = UIM._getparentuid(self._controller_uid) 
-        logplot_ctrl_uid = UIM._getparentuid(lpe_ctrl_uid)
-        log_plot_ctrl = UIM.get(logplot_ctrl_uid)
-        new_tracks_uid = log_plot_ctrl.insert_track()
+        wellplot_ctrl_uid = UIM._getparentuid(lpe_ctrl_uid)
+        well_plot_ctrl = UIM.get(wellplot_ctrl_uid)
+        new_tracks_uid = well_plot_ctrl.insert_track()
         for uid in new_tracks_uid:
             new_track = UIM.get(uid)
             item = self.ObjectToItem(new_track)
@@ -580,8 +580,8 @@ class LPETrackPanel(UIViewObject, wx.Panel):
         controller = UIM.get(self._controller_uid)
         model = controller._get_real_model()
         lpe_ctrl_uid = UIM._getparentuid(self._controller_uid)
-        logplot_ctrl_uid = UIM._getparentuid(lpe_ctrl_uid)
-        tracks = UIM.list('track_controller', logplot_ctrl_uid)
+        wellplot_ctrl_uid = UIM._getparentuid(lpe_ctrl_uid)
+        tracks = UIM.list('track_controller', wellplot_ctrl_uid)
         tracks_selected = [model.ItemToObject(item) for item in items]
         for track in tracks:
             track.model.selected = track in tracks_selected
@@ -590,17 +590,17 @@ class LPETrackPanel(UIViewObject, wx.Panel):
     def OnInsertTrack(self, event):
         UIM = UIManager()
         lpe_ctrl_uid = UIM._getparentuid(self._controller_uid)
-        logplot_ctrl_uid = UIM._getparentuid(lpe_ctrl_uid)
-        log_plot_ctrl = UIM.get(logplot_ctrl_uid)
-        log_plot_ctrl.insert_track()  
+        wellplot_ctrl_uid = UIM._getparentuid(lpe_ctrl_uid)
+        well_plot_ctrl = UIM.get(wellplot_ctrl_uid)
+        well_plot_ctrl.insert_track()  
         
         
     def OnDeleteSelectedTracks(self, event):
         UIM = UIManager()
         lpe_ctrl_uid = UIM._getparentuid(self._controller_uid)
-        logplot_ctrl_uid = UIM._getparentuid(lpe_ctrl_uid)
-        log_plot_ctrl = UIM.get(logplot_ctrl_uid)
-        log_plot_ctrl.remove_selected_tracks()
+        wellplot_ctrl_uid = UIM._getparentuid(lpe_ctrl_uid)
+        well_plot_ctrl = UIM.get(wellplot_ctrl_uid)
+        well_plot_ctrl.remove_selected_tracks()
         
 
 
@@ -702,8 +702,8 @@ class LPEObjectsPanelModel(dv.PyDataViewModel):
         # Root
         if not parent:
             lpe_ctrl_uid = UIM._getparentuid(self._controller_uid) 
-            logplot_ctrl_uid = UIM._getparentuid(lpe_ctrl_uid)
-            tracks = UIM.list('track_controller', logplot_ctrl_uid)
+            wellplot_ctrl_uid = UIM._getparentuid(lpe_ctrl_uid)
+            tracks = UIM.list('track_controller', wellplot_ctrl_uid)
             if not tracks:
                 return 0
             for track in tracks:
@@ -897,8 +897,8 @@ class LPEObjectsPanel(UIViewObject, wx.Panel):
         controller = UIM.get(self._controller_uid)
         model = controller._get_real_model()
         lpe_ctrl_uid = UIM._getparentuid(self._controller_uid) 
-        logplot_ctrl_uid = UIM._getparentuid(lpe_ctrl_uid)
-        all_tracks = UIM.list('track_controller', logplot_ctrl_uid)
+        wellplot_ctrl_uid = UIM._getparentuid(lpe_ctrl_uid)
+        all_tracks = UIM.list('track_controller', wellplot_ctrl_uid)
         
         for track in all_tracks:     
             print 'expanding:', track.uid
@@ -965,8 +965,8 @@ class LPEObjectsPanel(UIViewObject, wx.Panel):
         controller = UIM.get(self._controller_uid)
         model = controller._get_real_model()
         lpe_ctrl_uid = UIM._getparentuid(self._controller_uid) 
-        logplot_ctrl_uid = UIM._getparentuid(lpe_ctrl_uid)
-        all_tracks = UIM.list('track_controller', logplot_ctrl_uid)
+        wellplot_ctrl_uid = UIM._getparentuid(lpe_ctrl_uid)
+        all_tracks = UIM.list('track_controller', wellplot_ctrl_uid)
         
         for track in all_tracks:     
             #print 'expanding:', track.uid

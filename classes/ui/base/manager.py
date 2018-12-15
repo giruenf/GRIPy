@@ -204,9 +204,7 @@ class UIManager(GripyManager):
         self.send_message('create', objuid=obj.uid, parentuid=parent_uid)    
         return obj
  
-    def get_children(self, parent_uid):
-        return self._childrenuidmap.get(parent_uid)
- 
+
     def new_wx_id(self):
         """
         TODO: Traduzir e melhorar isso
@@ -320,7 +318,8 @@ class UIManager(GripyManager):
     def remove(self, uid):
         msg = 'Removing object from UI Manager: {}.'.format(uid)
         log.debug(msg)
-        print ('\n' + msg)
+#        print ('\n' + msg)
+        
         self.send_message('pre_remove', objuid=uid)
         obj = self.get(uid)
         if not isinstance(obj, UIControllerObject):
@@ -375,6 +374,7 @@ class UIManager(GripyManager):
         self.send_message('post_remove', objuid=uid)
         msg = 'UI Manager removed sucessfully {}.'.format(uid) 
         log.debug(msg)    
+#        print (msg)
         return True
 
 
@@ -424,20 +424,6 @@ class UIManager(GripyManager):
         print (msg + '\n')
 
 
-
-    def list(self, tidfilter=None, parentuidfilter=None):
-        try:
-            if parentuidfilter is None:
-                objs = self._data.values()
-            else:
-                parent = self.get(parentuidfilter)
-                objs = [self._data.get(uid) for uid in self.get_children(parent.uid)]
-            if tidfilter:
-                return [obj for obj in objs if obj.tid == tidfilter]
-            else:
-                return objs      
-        except:
-            raise
             
     def _get_top_level_uids(self):
         return [uid for uid, puid in UIManager._parentuidmap.items() if puid is None]
@@ -527,7 +513,7 @@ class UIManager(GripyManager):
                     msg = obj.__class__.__name__ + ' cannot have an attribute called ''children''.'
                     raise AttributeError(msg)
             obj_state['children'] = []
-            for obj_child_uid in self.get_children(obj.uid):
+            for obj_child_uid in self.get_children_uids(obj.uid):
                 obj_state.get('children').append(self.get_application_state(obj_child_uid))
         return {obj.tid: obj_state}
         
@@ -550,7 +536,7 @@ class UIManager(GripyManager):
             #        msg = obj.__class__.__name__ + ' cannot have an attribute called ''children''.'
             #        raise AttributeError(msg)
             obj_state['children'] = []
-            for obj_child_uid in self.get_children(obj.uid):
+            for obj_child_uid in self.get_children_uids(obj.uid):
                 obj_state.get('children').append(self.get_user_state(obj_child_uid))
             states.append(obj_state)    
         return {obj.tid: states}

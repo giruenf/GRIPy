@@ -141,9 +141,11 @@ def on_new_wellplot(event):
         def on_change_well(name, old_value, new_value, **kwargs):				
             OM = ObjectManager()
             well = OM.get(new_value)
-            zaxis = well.get_z_axis_datatypes()
+            #
+            z_axis = well.get_z_axis_datatypes(inverted=True)
+            #
             choice_zaxis_type = dlg.view.get_object('zaxis_type')       
-            choice_zaxis_type.set_options(zaxis)
+            choice_zaxis_type.set_options(z_axis)
             choice_zaxis_type.set_value(0, True)
         #
         choice_well = dlg.view.get_object('welluid')
@@ -155,12 +157,12 @@ def on_new_wellplot(event):
         #
         if result == wx.ID_OK:
             results = dlg.get_results()  
-            #print results
+            #
             welluid = results['welluid']
             zaxis_type = results['zaxis_type']
             #
             mwc = Interface.get_main_window_controller()
-            UIM.create('logplot_controller', mwc.uid, 
+            UIM.create('wellplot_controller', mwc.uid, 
                        well_oid=welluid[1], index_type=zaxis_type
             )
             #
@@ -4702,35 +4704,3 @@ def on_test_partition(self, event):
 '''
         
 
-"""
-    @staticmethod
-    def on_plot(event):
-        gc = GripyController(event.GetEventObject())
-        gc._UIM.create('logplot_controller', gc.get_main_window().uid)
-        
-        '''
-        dlg = Dialog(self.get_main_window_controller().view, 
-            [
-                (Dialog.well_selector, 'Well:', 'well_uid'),
-                (Dialog.logplotformat_selector, 'Format: ', 'plt_file_name')
-            ], 
-            'Plot Selector'
-        )
-        if dlg.view.ShowModal() == wx.ID_OK:
-            results = dlg.get_results()
-            plt = ParametersManager.get().getPLT(results['plt_file_name'])
-            if plt is None:
-                lpf = None
-            else:    
-                lpf = logplotformat.LogPlotFormat.create_from_PLTFile(plt)
-            _, well_oid = results['well_uid']
-            UIManager.get().create_log_plot(well_oid, lpf)
-        '''        
-
-        
-    @staticmethod
-    def on_crossplot(event):
-        gc = GripyController(event.GetEventObject())
-        gc._UIM.create('crossplot_controller', gc.get_main_window().uid)        
-        
-"""

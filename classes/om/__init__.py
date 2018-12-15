@@ -14,5 +14,8 @@ from .base.data_objects import DataObject
 from .well import Well
 from .log import Log
 from .data_index import DataIndex
+from .data_filter import DataFilter
+
+from .well_curve_set import CurveSet
 
 from .datatypes_old import Density

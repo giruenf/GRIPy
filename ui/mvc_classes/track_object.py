@@ -129,124 +129,6 @@ def inverse_transform(value, left_scale, right_scale, scale=0):
 ###############################################################################
 
 
-class DataFilter(GripyObject):
-    _NO_SAVE_CLASS = True   # TODO: Melhorar isso! @ObjectManager.save
-    tid = 'data_filter'
-    _TID_FRIENDLY_NAME = 'Data Filter'
-    
-    _SHOW_ON_TREE = False
-    
-    
-    def __init__(self, objuid):
-        
-        try:
-            super(DataFilter, self).__init__()
-            self.data = []
-            self.track_obj_ctrls_uids = []
-            self.append_objuid(objuid)
-        except Exception as e:
-            print ('ERROR DataFilter:', e)
-            raise
-
-    def _get_manager_class(self):
-        return ObjectManager
-
-    
-    def append_objuid(self, track_obj_ctrl_uid):
-        if track_obj_ctrl_uid in self.track_obj_ctrls_uids:
-            raise Exception('Object was added before.')
-        try:
-            UIM = UIManager()
-            track_obj_ctrl = UIM.get(track_obj_ctrl_uid)
-            obj = track_obj_ctrl.get_object()
-            #if obj.tid == 'data_index':
-            #    self.data.append((obj.uid, True, True, 0, len(obj.data)))
-            #else:
-            self.set_z_dimension_index(track_obj_ctrl_uid)
-            #index_set = OM.get(obj.index_set_uid)
-        #    print 'HERE:', obj.uid
-            data_indexes = obj.get_data_indexes()
-        #    print '\ndata_indexes:', data_indexes
-            for dim_idx in range(1, len(data_indexes)):
-                dim_idx_indexes = data_indexes[dim_idx]
-                chosen_index = dim_idx_indexes[0]
-                if dim_idx == 1:   
-                    self.data.append((chosen_index.uid, True, True, 0, len(chosen_index.data)))
-                else:
-                    self.data.append((chosen_index.uid, False, False, 0, len(chosen_index.data)))
-            #                
-            self.track_obj_ctrls_uids.append(track_obj_ctrl_uid) 
-        except Exception as e:
-            print ('ERROR append_objuid:', e)
-            raise e     
-
-
-    def set_z_dimension_index(self, track_obj_ctrl_uid):
-        UIM = UIManager()
-        track_obj_ctrl = UIM.get(track_obj_ctrl_uid)
-        obj = track_obj_ctrl.get_object()
-
-        track_ctrl_uid = UIM._getparentuid(track_obj_ctrl.uid)
-        logplot_ctrl_uid = UIM._getparentuid(track_ctrl_uid)
-        logplot_ctrl = UIM.get(logplot_ctrl_uid)
-        
-        z_axis_candidate_indexes = obj.get_data_indexes()[0]
-        chosen_index = None
-        
-      #  for candidate_index in z_axis_candidate_indexes:
-      #      print candidate_index
-        
-#        print ('\nFOIIII\n')
-        
-        for candidate_index in z_axis_candidate_indexes:
-            if candidate_index.datatype == logplot_ctrl.model.index_type:
-                chosen_index = candidate_index     
-                break
-#        print (chosen_index)    
-        try:    
-            if chosen_index is None:
-                self.data[0] = (None, True, True, 0, 0)
-            else: 
-#                print ('la')
-#                print (len(chosen_index._data))
-#                print ('lala')
-                self.data[0] = (chosen_index.uid, True, True, 0, len(chosen_index._data))    
-#                print ('lalalalalala')
-                
-#            print ('\nFOIIII 2\n')        
-                
-        except IndexError as ie:
-            if len(self.data) > 0:
-                raise ie
-            if chosen_index is None:
-                self.data.append((None, True, True, 0, 0))
-         #       print 'APPEND NONE'
-                
-            else:    
-                self.data.append((chosen_index.uid, True, True, 0, len(chosen_index._data)))   
-        #        print 'APPEND', chosen_index.uid
-#        print ('\nFOIIII 3\n')
-        
-        
-        
-    def reload_z_dimension_indexes(self):  
-        for track_obj_ctrl_uid in self.track_obj_ctrls_uids:
-            self.set_z_dimension_index(track_obj_ctrl_uid)
-
-
-    def reload_data(self):
-       # print 'reload_data'
-        UIM = UIManager()
-        for toc_uid in self.track_obj_ctrls_uids:
-            toc = UIM.get(toc_uid)
-            toc._do_draw()
-       # print 'reload_data end'    
-
-
-###############################################################################
-###############################################################################
-
-
 
 class TrackObjectController(UIControllerObject):
     tid = 'track_object_controller'
@@ -560,6 +442,7 @@ class RepresentationController(UIControllerObject):
         return toc.get_object()
 
 
+
     def _prepare_data(self):
         
 #        print ('\n\n_prepare_data')
@@ -593,6 +476,8 @@ class RepresentationController(UIControllerObject):
                 else:
                     slicer[di_uid] = slice(first,last)
             slicer = tuple(slicer.values())
+            
+            
             data = data[slicer]
             new_dim = 1
             if len(data.shape) == 1 and isinstance(obj, Density):
@@ -601,6 +486,8 @@ class RepresentationController(UIControllerObject):
                 for dim_value in data.shape[::-1][1::]:
                     new_dim *= dim_value
                 data = data.reshape(new_dim, data.shape[-1])
+                
+                
             """    
             try:
                 if self.model.min_density is None:
@@ -614,11 +501,14 @@ class RepresentationController(UIControllerObject):
             except:
                 pass
             """
+            
             self._data = data
+            
             
 #            print (self._data)
            # print
 #            print ('FIM _prepare_data\n\n')
+           
            
         except Exception as e:
             print ('ERROR _prepare_data', e)
@@ -703,8 +593,12 @@ class RepresentationView(UIViewObject):
         if self.label:
             self.label.destroy()
         
+        
+        
     def get_data_info(self, event):
         raise NotImplemented('{}.get_data_info must be implemented.'.format(self.__class__))
+    
+    
     
     def get_canvas(self):
         try:
@@ -714,12 +608,17 @@ class RepresentationView(UIViewObject):
             canvas = self._mplot_objects.values()[0].figure.canvas        
             return canvas
         except:
+            raise
+            # TODO: REver linhas abaixo
+            """
             # Getting from TrackController
             UIM = UIManager()
             toc_uid = UIM._getparentuid(self._controller_uid)
             track_controller_uid = UIM._getparentuid(toc_uid)
             track_controller =  UIM.get(track_controller_uid)
             return track_controller._get_canvas()
+            """
+        
         
     def draw_canvas(self):     
         canvas = self.get_canvas()
@@ -1120,7 +1019,7 @@ class IndexRepresentationModel(UIModelObject):
         super(IndexRepresentationModel, self).__init__(controller_uid, **base_state)           
         
         
-        
+     
 class IndexRepresentationView(RepresentationView):
     tid = 'index_representation_view'
 
@@ -1145,6 +1044,7 @@ class IndexRepresentationView(RepresentationView):
         controller.subscribe(self._draw, 'change.bbox_alpha')
         controller.subscribe(self._draw, 'change.zorder')
             
+        
     def _draw(self, new_value, old_value):
         # Bypass function
        # print '\nIndexRepresentationView._draw (bypass)'

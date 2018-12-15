@@ -6,11 +6,11 @@ from wx.lib.scrolledpanel import ScrolledPanel
 from ui.trackssplitter import MultiSplitterWindow
 
 
-class LogPlotInternal(wx.SplitterWindow):  
+class WellPlotInternal(wx.SplitterWindow):  
     SASH_POSITION = 100    
     
     def __init__(self, parent):
-        super(LogPlotInternal, self).__init__(parent, style=wx.SP_THIN_SASH) 
+        super().__init__(parent, style=wx.SP_THIN_SASH) 
         self._top_panel = BaseScrolled(self)
         self._bottom_panel = BaseScrolled(self)
         self.SplitHorizontally(self._top_panel, self._bottom_panel)
@@ -48,6 +48,7 @@ class LogPlotInternal(wx.SplitterWindow):
     def bottom_splitter(self):
         return self._bottom_panel._splitter
   
+    
 class BaseScrolled(ScrolledPanel):
     
     def __init__(self, parent, **kwargs):

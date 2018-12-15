@@ -168,7 +168,6 @@ class CanvasController(UIControllerObject):
         #
         
         
-
     def on_change_axes_properties(self, old_value, new_value, 
                                                       topic=pubsub.AUTO_TOPIC):
         key = topic.getName().split('.')[2]
@@ -259,7 +258,6 @@ class CanvasController(UIControllerObject):
                     print ('NOT LOADED: {} = {}'.format(new_key, value))
                     
 
-
     def on_change_figure_facecolor(self, old_value, new_value, 
                                                       topic=pubsub.AUTO_TOPIC):
         try:
@@ -276,12 +274,9 @@ class CanvasController(UIControllerObject):
                                                       topic=pubsub.AUTO_TOPIC):   
         key = topic.getName().split('.')[2]
         spine = key.split('_')[2]
-        
-        
         try:
             self.view.set_spine_visibility(spine, new_value)
         except Exception as e:
-            # log(e)
             self.model.set_value_from_event(key, old_value)
         finally:
             self.view.draw()
@@ -338,8 +333,6 @@ class CanvasController(UIControllerObject):
         axis = axis[0] # x or y  (e.g. xgrid -> x)        
         
 
-    
-    
 
     def on_change_tick_params(self, old_value, new_value, 
                                                       topic=pubsub.AUTO_TOPIC):      
@@ -497,8 +490,7 @@ class CanvasModel(UIModelObject):
                 'default_value': 'center', 
                 'type': str
         },    
-        
-                
+          
         # Axes properties
         'axes_facecolor': {
                 'default_value': 'white', 

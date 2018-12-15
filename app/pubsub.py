@@ -205,7 +205,7 @@ class PublisherMixin(object):
         # print ('publisher: {} - topic: {} - data: {}'.format(self.get_publisher_name(), topic, data))
         try:
             topic = self.get_publisher_name() + '.' + topic
-#            print ('\nPublisherMixin.send_message - topic:', topic, data)
+            #print ('\nPublisherMixin.send_message - topic:', topic, data)
             pub.sendMessage(topic, **data)
         except:
 #            print ('ERROR [PublisherMixin.send_message]:', self)

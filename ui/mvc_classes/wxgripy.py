@@ -135,11 +135,11 @@ class Frame(TopLevel, wx.Frame):
         parent_uid = UIM._getparentuid(self._controller_uid)
         parent_obj = UIM.get(parent_uid)
         if not parent_obj:
-            parent_view = None
+            wx_parent = None
         else:
-            parent_view = parent_obj.view
+            wx_parent = parent_obj.view
         #
-        wx.Frame.__init__(self, parent_view, wx.ID_ANY, controller.model.title,
+        wx.Frame.__init__(self, wx_parent, wx.ID_ANY, controller.model.title,
             pos=controller.model.pos, size=controller.model.size, 
             style=controller.model.style              
         ) 
@@ -550,9 +550,6 @@ class DialogController(TopLevelController):
     def _topic_filter(self, topic_name):
         return topic_name == '_widget_changed@' + self.view.get_topic()   
         #'_widget_changed@' + dialog.get_topic()
-        
-    def get_results(self):
-        return self.view.get_results()
         
 
 class DialogModel(TopLevelModel):

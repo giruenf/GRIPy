@@ -45,20 +45,22 @@ class WorkPage(UIViewObject, wx.Panel):
     tid = 'workpage'
        
     def __init__(self, controller_uid):
+        """
+        """
+        #
+        # Basic WorkPage interface structure
+        # ==================================
+        #   Top: ToolBar
+        #   Center: A (main) panel where the 'things happens' ;-)
+        #   Bottom: StatusBar
+        #
         UIViewObject.__init__(self, controller_uid)
         UIM = UIManager()
         controller = UIM.get(controller_uid)
         parent_uid = UIM._getparentuid(controller.uid)
         parent_controller = UIM.get(parent_uid)
-        #
-        #
-        #parent_view = parent_controller.view
         parent_view = parent_controller.view.main_area_panel
-
         wx.Panel.__init__(self, parent_view)
-#        self.SetBackgroundColour('green')
-
-        #
         if controller.model.pos == -1:
             controller.model.pos = parent_controller.view.get_notebook_page_count()      
         # 
@@ -72,7 +74,7 @@ class WorkPage(UIViewObject, wx.Panel):
         controller.subscribe(self._set_title, 'change.title')            
         controller.subscribe(self._set_pos, 'change.pos')
         controller.subscribe(self._set_float_mode, 'change.float_mode')                
-        self.set_own_name()
+        self._set_own_name()
    
 
     def PreDelete(self):
@@ -94,6 +96,7 @@ class WorkPage(UIViewObject, wx.Panel):
         main_window.view.set_notebook_page_text(controller.model.pos, 
                                                       new_value
         )
+
 
     def _set_pos(self, new_value, old_value):
         UIM = UIManager()
@@ -134,8 +137,6 @@ class WorkPage(UIViewObject, wx.Panel):
             controller.subscribe(self._set_pos, 'change.pos')
 
 
-    """
-    """
     def reparent(self, old_parent_uid, new_parent_uid):
         UIM = UIManager()
         old_parent_controller = UIM.get(old_parent_uid)

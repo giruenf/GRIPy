@@ -235,9 +235,7 @@ class BaseAxes(GripyMPLAxes):
         'y_minorgrid',
         'ylim',
 
-
-
-        
+  
         'depth_lines',
         
     ]        
@@ -323,6 +321,7 @@ class BaseAxes(GripyMPLAxes):
                 length=self._internal_props['major_tick_lenght'],
                 width=self._internal_props['major_tick_width'], 
                 zorder=self._internal_props['ticks_zorder'])
+        
         self.tick_params(axis='y', which='minor', direction='in',
                 color=self._internal_props['tick_grid_color'],         
                 length=self._internal_props['minor_tick_lenght'],
@@ -494,6 +493,8 @@ class BaseAxes(GripyMPLAxes):
                 self.yaxis.set_major_locator(MultipleLocator(y_major_grid_lines))
             self._properties['y_scale_lines'] = value
             
+            
+            
         elif key == 'plotgrid': 
             self._properties['plotgrid'] = value
             if value:
@@ -505,6 +506,8 @@ class BaseAxes(GripyMPLAxes):
                 self.grid(False, axis='x', which='both')
                 #def grid(self, b=None, which='major', axis='both', **kwargs):
                 self.hide_y_ticks()
+
+
 
         elif key == 'y_plotgrid': 
             self._properties['y_plotgrid'] = value
@@ -1047,8 +1050,10 @@ class VisDataLabel(FigureCanvas):
     def destroy(self):
         wx.CallAfter(self.parent.remove_object, self)
                
+        
     def _on_press(self, event):
         self.GetParent()._on_press(event)
+
 
     def _start_variables(self):
         self.title = None 
@@ -1063,16 +1068,14 @@ class VisDataLabel(FigureCanvas):
         self.zlabel = None        
         self.zlim = None
         self.xlabel = None        
-        #self.xlim = None
+
 
     def set_object_uid(self, object_uid):
         self._obj_uid = object_uid 
 
 
     def set_title(self, title):
-   #     print '\nVisDataLabel.set_title:', title
         if self.title == title:
-   #         print 'retornou'
             return
         props = self._properties.get('title', None)
         if props:
@@ -1080,17 +1083,12 @@ class VisDataLabel(FigureCanvas):
             if not title_text:
                 title_text = create_text(self.figure, title, props)
                 self._mplot_objects['title_text'] = title_text
-   #             print 111
             else:
                 title_text.set_text(title)
-   #             print 222
             self.draw()    
             self.title = title   
-       # else:
-       #     print 'not props'
-        #print 'set title ended'    
-   
-    
+
+
     def set_unit(self, unit):
         if self.unit == unit:
             return
@@ -1118,7 +1116,6 @@ class VisDataLabel(FigureCanvas):
                 ax = create_and_prepare_axes(self.figure, extent)                    
                 line = matplotlib.lines.Line2D([0.0, 1.0], [0.5, 0.5])
                 self._mplot_objects['line'] = ax.add_line(line)
-                #self._mplot_objects['line_axes'] = ax
             line.set_color(color) 
             self.draw()
             self.color = color
@@ -1136,10 +1133,10 @@ class VisDataLabel(FigureCanvas):
                 ax = create_and_prepare_axes(self.figure, extent)        
                 line = matplotlib.lines.Line2D([0.0, 1.0], [0.5, 0.5])
                 self._mplot_objects['line'] = ax.add_line(line)
-                #self._mplot_objects['line_axes'] = ax
             line.set_linewidth(thickness) 
             self.draw()
             self.thickness = thickness
+            
             
     def set_colormap(self, cmap):
         #print '\nVisDataLabel.set_colormap'
@@ -1295,23 +1292,15 @@ class VisDataLabel(FigureCanvas):
         
 
     def set_plot_type(self, plottype):
-   #     print '\n\nVisDataLabel.set_plotype: ', plottype
         if plottype == self.plottype:
-   #         print 111
             return
         if plottype not in VALID_PLOT_TYPES:
-   #         print 222
             return
 
 
         self._remove_all_artists()
 
-
         self._start_variables()   
-   #     print 333
-
-
-
 
         self._properties = {}
         self._properties['xleft'] = 0.05
@@ -1432,8 +1421,7 @@ class VisDataLabel(FigureCanvas):
 
 
 
-            
- 
+
 class PlotLabel(wx.Panel, SelectPanelMixin):
     
     def __init__(self, wx_parent, view_object):
@@ -1504,9 +1492,9 @@ class PlotLabel(wx.Panel, SelectPanelMixin):
             raise Exception()            
         self.GetSizer().Detach(vdl)
         vdl.Destroy()
-        self.Layout()           
-
-
+        self.Layout()  
+            
+ 
 
 def create_and_prepare_axes(figure, extent):
     #import matplotlib.figure.Figure.text
@@ -1522,7 +1510,6 @@ def create_and_prepare_axes(figure, extent):
 
 
 def create_text(figure, to_print, props):
-    #print '\ncreate_text:', props,  str(to_print)
     text = figure.text(props.get('x'), props.get('y'), str(to_print),
                        ha=props.get('ha'), fontsize=props.get('fontsize')
     )

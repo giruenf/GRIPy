@@ -15,9 +15,6 @@ class StatusBarController(UIControllerObject):
     
     def __init__(self):
         super(StatusBarController, self).__init__()
-
-    def SetStatusText(self, text, i=0):
-        self.view.SetStatusText(text, i)
         
         
 class StatusBarModel(UIModelObject):

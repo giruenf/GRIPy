@@ -22,8 +22,8 @@ class WellData1D(DataObject):
         'type': str       
     }  
     
-    def __init__(self, *args, **kwargs):   
-    #def __init__(self, data, **attributes):
+    #def __init__(self, *args, **kwargs):   
+    def __init__(self, data, **attributes):
 #        print ('\nattributes:', attributes)
         """
         index_set_uid = attributes.get('index_set_uid')
@@ -35,7 +35,7 @@ class WellData1D(DataObject):
         if tid != 'index_set':
             raise Exception('Object attribute \"index_set_uid\" must have its first argument as \"index_set\".')
         """
-        super().__init__(*args, **kwargs)
+        super().__init__(data, **attributes) 
 
 #        OM = ObjectManager()        
 #        OM.subscribe(self._on_OM_add, 'add')

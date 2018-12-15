@@ -17,16 +17,7 @@ class MainWindowController(FrameController):
      
     def __init__(self):
         super().__init__()
-        
-    def close(self):
-        self.view.Close()
-
-    def insert_notebook_page(self, *args, **kwargs):
-        return self.view.insert_notebook_page(*args, **kwargs)
-
-    def remove_notebook_page(self, page_window):
-        return self.view.remove_notebook_page(page_window)
-
+         
 
 class MainWindowModel(FrameModel):
     tid = 'main_window_model'
@@ -84,6 +75,9 @@ class MainWindow(Frame):
         self.Bind(aui.EVT_AUINOTEBOOK_PAGE_CHANGED, self.on_page_changed)
 
 
+    def _get_wx_parent(self, *args, **kwargs):
+        return self
+    
 
     def adjust_background_panel(self):
         if ((self.get_notebook_page_count() == 0) and 
@@ -119,7 +113,7 @@ class MainWindow(Frame):
         #   nothing has been invalidated (i.e. marked as requiring a redraw). 
         #   Use Refresh first if you want 
         #   to immediately redraw the window unconditionally.
-        #    
+ 
 
 
     def on_page_right_down(self, event):

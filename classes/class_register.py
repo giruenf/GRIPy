@@ -6,8 +6,8 @@ from classes.ui import UIManager
 from classes.om import Well
 from classes.om import DataIndex
 from classes.om import Log
-
-from ui.mvc_classes.track_object import DataFilter
+from classes.om import DataFilter
+from classes.om import CurveSet
 
 """
 from classes.dt.datatypes import Core
@@ -57,7 +57,7 @@ from ui.mvc_classes.tree import TreeController, TreeView
 from ui.mvc_classes.tool_bar import ToolBarController, ToolBarModel, ToolBar
 from ui.mvc_classes.tool_bar_tool import ToolBarToolController, ToolBarToolModel
 from ui.mvc_classes.status_bar import StatusBarController, StatusBarModel, StatusBar
-from ui.mvc_classes.log_plot import LogPlotController, LogPlotModel, LogPlot
+from ui.mvc_classes.well_plot import WellPlotController, WellPlotModel, WellPlot
 from ui.mvc_classes.track import TrackController, TrackModel, TrackView
 from ui.mvc_classes.track_object import TrackObjectController, \
     TrackObjectModel   
@@ -73,12 +73,16 @@ from ui.mvc_classes.track_object import \
     DensityRepresentationController, DensityRepresentationModel, DensityRepresentationView, \
     PatchesRepresentationController, PatchesRepresentationModel, PatchesRepresentationView, \
     ContourfRepresentationController, ContourfRepresentationModel, ContourfRepresentationView                          
-from ui.mvc_classes.lpf import LogPlotEditorController, LogPlotEditor        
+from ui.mvc_classes.lpf import WellPlotEditorController, WellPlotEditor        
 from ui.mvc_classes.lpf import LPETrackPanelController, LPETrackPanel
 from ui.mvc_classes.lpf import LPEObjectsPanelController, LPEObjectsPanel
 from ui.mvc_classes.propgrid import PropertyGridController, \
                                             PropertyGridView
-from ui.mvc_classes.figure_canvas import CanvasController, CanvasModel, Canvas                                            
+#                                            
+from ui.mvc_classes.canvas_plotter import CanvasPlotterController, CanvasPlotterModel, CanvasPlotter                
+from ui.mvc_classes.canvas_track import TrackCanvasController, TrackCanvasModel, TrackCanvas   
+from ui.mvc_classes.track_label import TrackLabelController, TrackLabel
+                   
 #
 
 
@@ -89,10 +93,12 @@ def register_app_classes():
     
 def register_OM_classes():
     ObjectManager.register_class(Well)
-    ObjectManager.register_class(DataIndex, Well)
-    ObjectManager.register_class(Log, Well)
+    ObjectManager.register_class(CurveSet, Well)
+    ObjectManager.register_class(DataIndex, CurveSet)
+    ObjectManager.register_class(Log, CurveSet)
     #
     ObjectManager.register_class(DataFilter)
+    
     #
     """
 #    ObjectManager.register_class(IndexSet, Well)
@@ -166,17 +172,17 @@ def register_UIManager_classes():
     UIManager.register_class(WorkPageController, WorkPageModel, WorkPage, MainWindowController)
     UIManager.register_class(WorkPageController, WorkPageModel, WorkPage, FrameController)
     #
-    UIManager.register_class(LogPlotController, LogPlotModel, LogPlot, MainWindowController)
-    UIManager.register_class(LogPlotController, LogPlotModel, LogPlot, FrameController)
+    UIManager.register_class(WellPlotController, WellPlotModel, WellPlot, MainWindowController)
+    UIManager.register_class(WellPlotController, WellPlotModel, WellPlot, FrameController)
     #
     UIManager.register_class(CrossPlotController, CrossPlotModel, CrossPlot, MainWindowController)
     UIManager.register_class(CrossPlotController, CrossPlotModel, CrossPlot, FrameController)
     #    
-    UIManager.register_class(TrackController, TrackModel, TrackView, LogPlotController)
+    UIManager.register_class(TrackController, TrackModel, TrackView, WellPlotController)
     UIManager.register_class(TrackObjectController, TrackObjectModel, None,
                               TrackController
     )
-    UIManager.register_class(LogPlotEditorController, None, LogPlotEditor, LogPlotController)
+    UIManager.register_class(WellPlotEditorController, None, WellPlotEditor, WellPlotController)
     UIManager.register_class(NavigatorController, NavigatorModel, Navigator)
     UIManager.register_class(LineRepresentationController, LineRepresentationModel, 
                              LineRepresentationView, TrackObjectController
@@ -191,10 +197,10 @@ def register_UIManager_classes():
                               PatchesRepresentationView, TrackObjectController
     )
     UIManager.register_class(LPETrackPanelController, None, LPETrackPanel, 
-                             LogPlotEditorController
+                             WellPlotEditorController
     )
     UIManager.register_class(LPEObjectsPanelController, None, LPEObjectsPanel, 
-                             LogPlotEditorController
+                             WellPlotEditorController
     )
     UIManager.register_class(PropertyGridController, None,
                              PropertyGridView, LPEObjectsPanelController
@@ -204,10 +210,14 @@ def register_UIManager_classes():
     )
     #
 
-    UIManager.register_class(CanvasController, CanvasModel, Canvas, CrossPlotController) 
+    UIManager.register_class(CanvasPlotterController, CanvasPlotterModel, CanvasPlotter, CrossPlotController) 
     
     #
     UIManager.register_class(FrameController, FrameModel, Frame, MainWindowController)
+    
+    #
+    UIManager.register_class(TrackCanvasController, TrackCanvasModel, TrackCanvas, TrackController)
+    UIManager.register_class(TrackLabelController, None, TrackLabel, TrackController)
     
     
     
