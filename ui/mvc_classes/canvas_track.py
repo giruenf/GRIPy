@@ -9,10 +9,22 @@ from ui.mvc_classes.canvas_base import CanvasBaseController
 from ui.mvc_classes.canvas_base import CanvasBaseModel
 from ui.mvc_classes.canvas_base import CanvasBaseView
 
+from ui.mvc_classes.extras import SelectablePanelMixin
+
+from matplotlib.lines import Line2D
+
+
+
+
+
+
 
 # On linear X axis scale, base_axis limits will be fixed as below
 XMAX_PLUS = 0.0
 LINEAR_XLIM = (0.0, 100.0 + XMAX_PLUS)
+
+
+
 
 
 
@@ -328,7 +340,7 @@ class TrackCanvasModel(CanvasBaseModel):
     
        
     def PostInit(self):
-        self.rect = (0.05, 0.05, 0.9, 0.9) #(0.0, 0.0, 1.0, 1.0)   #(0.1, 0.1, 0.8, 0.8)
+        self.rect = (0.15, 0.15, 0.7, 0.7) #(0.05, 0.05, 0.9, 0.9) #(0.0, 0.0, 1.0, 1.0)   #(0.1, 0.1, 0.8, 0.8)
         # 
         self.axes_spines_right = False
         self.axes_spines_left = False
@@ -382,49 +394,16 @@ class TrackCanvasModel(CanvasBaseModel):
         
 
 
-ShowGridId = wx.NewId()
-HideGridId = wx.NewId()
-#
-ScaleLinGridId = wx.NewId()
-ScaleLogGridId = wx.NewId()
-#
-DepthLinesAllId = wx.NewId()
-DepthLinesLeftId = wx.NewId()
-DepthLinesRightId = wx.NewId()
-DepthLinesCenterId = wx.NewId()
-DepthLinesLeftRightId = wx.NewId()
-DepthLinesNoneId = wx.NewId()
-#
-LinScaleLines0Id = wx.NewId()
-LinScaleLines1Id = wx.NewId()
-LinScaleLines2Id = wx.NewId()
-LinScaleLines3Id = wx.NewId()
-LinScaleLines4Id = wx.NewId()
-LinScaleLines5Id = wx.NewId()
-LinScaleLines6Id = wx.NewId()
-LinScaleLines7Id = wx.NewId()
-#   
-LogDecades1Id = wx.NewId()
-LogDecades10Id = wx.NewId()
-LogDecades100Id = wx.NewId()
-LogDecades1000Id = wx.NewId()
-LogDecades10000Id = wx.NewId()
-LogDecades100000Id = wx.NewId()
-LogDecades1000000Id = wx.NewId()
-#
-ShowMinorgridId = wx.NewId()
-HideMinorgridId = wx.NewId()     
-
 
         
-class TrackCanvas(CanvasBaseView):  
+class TrackCanvas(CanvasBaseView, SelectablePanelMixin):  
     tid = 'track_canvas'
 
     def __init__(self, controller_uid):
         super().__init__(controller_uid)
-              
-        
+                
     def PostInit(self):
+        self._depth_canvas = None
         UIM = UIManager()
         controller = UIM.get(self._controller_uid)
         self.adjust_scale_xlim(controller.model.xscale)
@@ -435,8 +414,7 @@ class TrackCanvas(CanvasBaseView):
             self.set_locator('log', 'x', 'major', 
                                              numdecs=controller.model.decades)
         wx.CallAfter(self.set_plotgrid, controller.model.plotgrid)
-        self.mpl_connect('button_press_event', self._on_button_press)
-
+        
 
     def PreDelete(self):
         UIM = UIManager()
@@ -444,15 +422,27 @@ class TrackCanvas(CanvasBaseView):
         parent_controller =  UIM.get(parent_controller_uid)
         granpa_controller_uid = UIM._getparentuid(parent_controller_uid)
         granpa_controller =  UIM.get(granpa_controller_uid)
-        if parent_controller.model.overview: 
-            granpa_controller._pre_delete_overview_track()
+        if parent_controller.model.overview:
+            try:
+                granpa_controller._pre_delete_overview_track()
+            except:
+                pass
         else:    
             granpa_controller.view._detach_bottom_window(self)
-        
-
-    # To override super class method 
+        #
+        self.destroy_depth_canvas()
+        #
+                
+    # Just to override super class method 
     def _load_labels_properties(self):
         pass
+
+
+
+#    def change_selection(self, selected):
+#        change_selection(new_value)
+
+
 
 
     def adjust_scale_xlim(self, scale):
@@ -466,6 +456,10 @@ class TrackCanvas(CanvasBaseView):
             max_ = controller.model.leftscale*10.0**controller.model.decades +\
                                                                     XMAX_PLUS
             controller.model.xlim = (min_, max_)
+
+
+
+
 
  
     # Log properties            
@@ -605,244 +599,72 @@ class TrackCanvas(CanvasBaseView):
             controller.model.ytick_minor_right = False
         self._postpone_draw = False  
        
+
+    def create_depth_canvas(self):
+        self._depth_canvas = DepthCanvas(self)
+        
+        
+    def destroy_depth_canvas(self):
+        del self._depth_canvas       
+
+
+    def reposition_depth_canvas(self):
+        if self._depth_canvas:
+            self._depth_canvas.reposition_depth_canvas()
+
+  
+    
+
+    """
+    def create_depth_canvas(self):
+        ymin, ymax = self.get_ylim()
+
+        print (self.get_xlim(), (ymax, ymax))
+        self.line1 = Line2D(self.get_xlim(), (ymax, ymax), color='b', alpha=0.5, linewidth=7)
+        self.base_axes.add_line(self.line1)
+        
+        self.line2 = Line2D(self.get_xlim(), (ymin, ymin), color='b', alpha=0.5, linewidth=7)
+        self.base_axes.add_line(self.line2)        
+        
+        
+        
+        self.cidpress1 = self.line1.figure.canvas.mpl_connect(
+                                            'button_press_event', self.on_press)
+        
+        
+        self.draw()
         
 
+    def on_press(self, event):
+        'on button press we will see if the mouse is over us and store some data'
+        print ('\non_press:', event.xdata, event.ydata)
+        if event.inaxes != self.line1.axes: return
 
-    def _on_button_press(self, event):
-        #if event.guiEvent.GetSkipped():
+        contains, attrd = self.line1.contains(event)
+        if not contains: return
+        print('event contains', self.line1.get_data(), event.xdata, event.ydata)
+        #x0, y0 = self.line.xy
+        #self.press = x0, y0, event.xdata, event.ydata
 
-        """
-        if isinstance(event, wx.MouseEvent):        
-            gui_evt = event
-        else:
-            gui_evt = event.guiEvent
-            print (gui_evt)
-            
-        if gui_evt.GetEventObject() and gui_evt.GetEventObject().HasCapture():            
-            gui_evt.GetEventObject().ReleaseMouse()  
-        #  
-        """
+    """
 
-        if event.button == 3: 
-            UIM = UIManager()
-            controller = UIM.get(self._controller_uid)  
-            menu = wx.Menu()
-            #
-            grid_submenu = wx.Menu()
-            grid_submenu.AppendRadioItem(ShowGridId, 'Show')
-            event.canvas.Bind(wx.EVT_MENU, self._menu_selection, id=ShowGridId)
-            grid_submenu.AppendRadioItem(HideGridId, 'Hide')
-            event.canvas.Bind(wx.EVT_MENU, self._menu_selection, id=HideGridId)
-            if controller.model.plotgrid:
-                grid_submenu.Check(ShowGridId, True)
-            else:
-                grid_submenu.Check(HideGridId, True)
-            menu.AppendSubMenu(grid_submenu, 'Grid')
-            #
-            scale_submenu = wx.Menu()
-            scale_submenu.AppendRadioItem(ScaleLinGridId, 'Linear')
-            event.canvas.Bind(wx.EVT_MENU, self._menu_selection, id=ScaleLinGridId)
-            scale_submenu.AppendRadioItem(ScaleLogGridId, 'Logarithmic')
-            event.canvas.Bind(wx.EVT_MENU, self._menu_selection, id=ScaleLogGridId)
-            
-            if controller.model.xscale == 'linear':
-                scale_submenu.Check(ScaleLinGridId, True)
-            elif controller.model.xscale == 'log':
-                scale_submenu.Check(ScaleLogGridId, True)
-            
-            menu.AppendSubMenu(scale_submenu, 'Scale')
-            #           
-            depth_lines_submenu = wx.Menu()
-            
-            depth_lines_submenu.AppendRadioItem(DepthLinesAllId, 'All')
-            event.canvas.Bind(wx.EVT_MENU, self._menu_selection, id=DepthLinesAllId)
-            
-            depth_lines_submenu.AppendRadioItem(DepthLinesLeftId, 'Left')
-            event.canvas.Bind(wx.EVT_MENU, self._menu_selection, id=DepthLinesLeftId)
-
-            depth_lines_submenu.AppendRadioItem(DepthLinesRightId, 'Right')
-            event.canvas.Bind(wx.EVT_MENU, self._menu_selection, id=DepthLinesRightId)
-            
-            depth_lines_submenu.AppendRadioItem(DepthLinesCenterId, 'Center')
-            event.canvas.Bind(wx.EVT_MENU, self._menu_selection, id=DepthLinesCenterId)
-            
-            depth_lines_submenu.AppendRadioItem(DepthLinesLeftRightId, 'Left and Right')
-            event.canvas.Bind(wx.EVT_MENU, self._menu_selection, id=DepthLinesLeftRightId)  
- 
-            depth_lines_submenu.AppendRadioItem(DepthLinesNoneId, 'None')
-            event.canvas.Bind(wx.EVT_MENU, self._menu_selection, id=DepthLinesNoneId)  
-           
-            if controller.model.depth_lines == 0:
-                depth_lines_submenu.Check(DepthLinesAllId, True)
-                
-            elif controller.model.depth_lines == 1:
-                depth_lines_submenu.Check(DepthLinesLeftId, True)
-                
-            elif controller.model.depth_lines == 2:
-                depth_lines_submenu.Check(DepthLinesRightId, True)
-                
-            elif controller.model.depth_lines == 3:
-                depth_lines_submenu.Check(DepthLinesCenterId, True)  
-
-            elif controller.model.depth_lines == 4:
-                depth_lines_submenu.Check(DepthLinesLeftRightId, True)  
-                
-            elif controller.model.depth_lines == 5:
-                depth_lines_submenu.Check(DepthLinesNoneId, True)                  
-                
-            menu.AppendSubMenu(depth_lines_submenu, 'Depth Lines')
-            #                   
-         
-            menu.AppendSeparator() 
-            if controller.model.xscale == 'linear':
-                scale_lines_submenu = wx.Menu()
-
-                scale_lines_submenu.AppendRadioItem(LinScaleLines0Id, 'None')
-                event.canvas.Bind(wx.EVT_MENU, self._menu_selection, id=LinScaleLines0Id)
-                scale_lines_submenu.AppendRadioItem(LinScaleLines1Id, '1')
-                event.canvas.Bind(wx.EVT_MENU, self._menu_selection, id=LinScaleLines1Id)
-                scale_lines_submenu.AppendRadioItem(LinScaleLines2Id, '2')
-                event.canvas.Bind(wx.EVT_MENU, self._menu_selection, id=LinScaleLines2Id)            
-                scale_lines_submenu.AppendRadioItem(LinScaleLines3Id, '3')
-                event.canvas.Bind(wx.EVT_MENU, self._menu_selection, id=LinScaleLines3Id)
-                scale_lines_submenu.AppendRadioItem(LinScaleLines4Id, '4')
-                event.canvas.Bind(wx.EVT_MENU, self._menu_selection, id=LinScaleLines4Id)
-                scale_lines_submenu.AppendRadioItem(LinScaleLines5Id, '5')
-                event.canvas.Bind(wx.EVT_MENU, self._menu_selection, id=LinScaleLines5Id)
-                scale_lines_submenu.AppendRadioItem(LinScaleLines6Id, '6')
-                event.canvas.Bind(wx.EVT_MENU, self._menu_selection, id=LinScaleLines6Id)
-                scale_lines_submenu.AppendRadioItem(LinScaleLines7Id, '7')
-                event.canvas.Bind(wx.EVT_MENU, self._menu_selection, id=LinScaleLines7Id)
-
-                if controller.model.scale_lines == 0:
-                    scale_lines_submenu.Check(LinScaleLines0Id, True)  
-                elif controller.model.scale_lines == 1:
-                    scale_lines_submenu.Check(LinScaleLines1Id, True)  
-                elif controller.model.scale_lines == 2:
-                    scale_lines_submenu.Check(LinScaleLines2Id, True)  
-                elif controller.model.scale_lines == 3:
-                    scale_lines_submenu.Check(LinScaleLines3Id, True)  
-                elif controller.model.scale_lines == 4:
-                    scale_lines_submenu.Check(LinScaleLines4Id, True)  
-                elif controller.model.scale_lines == 5:
-                    scale_lines_submenu.Check(LinScaleLines5Id, True)                   
-                elif controller.model.scale_lines == 6:
-                    scale_lines_submenu.Check(LinScaleLines6Id, True)
-                elif controller.model.scale_lines == 7:
-                    scale_lines_submenu.Check(LinScaleLines7Id, True)    
-                menu.AppendSubMenu(scale_lines_submenu, 'Scale Lines')
-                
-            elif controller.model.xscale == 'log':
-                decades_submenu = wx.Menu()
-            
-                decades_submenu.AppendRadioItem(LogDecades1Id, '1')
-                event.canvas.Bind(wx.EVT_MENU, self._menu_selection, id=LogDecades1Id)
-                decades_submenu.AppendRadioItem(LogDecades10Id, '10')
-                event.canvas.Bind(wx.EVT_MENU, self._menu_selection, id=LogDecades10Id)
-                decades_submenu.AppendRadioItem(LogDecades100Id, '100')
-                event.canvas.Bind(wx.EVT_MENU, self._menu_selection, id=LogDecades100Id)
-                decades_submenu.AppendRadioItem(LogDecades1000Id, '1.000')
-                event.canvas.Bind(wx.EVT_MENU, self._menu_selection, id=LogDecades1000Id)        
-                decades_submenu.AppendRadioItem(LogDecades10000Id, '10.000')
-                event.canvas.Bind(wx.EVT_MENU, self._menu_selection, id=LogDecades10000Id)
-                decades_submenu.AppendRadioItem(LogDecades100000Id, '100.000')
-                event.canvas.Bind(wx.EVT_MENU, self._menu_selection, id=LogDecades100000Id)
-                decades_submenu.AppendRadioItem(LogDecades1000000Id, '1.000.000')
-                event.canvas.Bind(wx.EVT_MENU, self._menu_selection, id=LogDecades1000000Id)
-                if controller.model.decades == 1:
-                    decades_submenu.Check(LogDecades1Id, True)  
-                elif controller.model.decades == 2:
-                    decades_submenu.Check(LogDecades10Id, True)  
-                elif controller.model.decades == 3:
-                    decades_submenu.Check(LogDecades100Id, True)  
-                elif controller.model.decades == 4:
-                    decades_submenu.Check(LogDecades1000Id, True)  
-                elif controller.model.decades == 5:
-                    decades_submenu.Check(LogDecades10000Id, True)                   
-                elif controller.model.decades == 6:
-                    decades_submenu.Check(LogDecades100000Id, True)
-                elif controller.model.decades == 7:
-                    decades_submenu.Check(LogDecades1000000Id, True)    
-                menu.AppendSubMenu(decades_submenu, 'Log Max')
-                #
-                # Minorgrid submenu
-                minorgrid_submenu = wx.Menu()
-                minorgrid_submenu.AppendRadioItem(ShowMinorgridId, 'Show')
-                event.canvas.Bind(wx.EVT_MENU, self._menu_selection, id=ShowMinorgridId)
-                minorgrid_submenu.AppendRadioItem(HideMinorgridId, 'Hide')
-                event.canvas.Bind(wx.EVT_MENU, self._menu_selection, id=HideMinorgridId)                
-                if controller.model.minorgrid:
-                    minorgrid_submenu.Check(ShowMinorgridId, True)
-                else:
-                    minorgrid_submenu.Check(HideMinorgridId, True)
-                menu.AppendSubMenu(minorgrid_submenu, 'Minor Grid')
-            #   
-                
-            event.canvas.PopupMenu(menu, event.guiEvent.GetPosition())  
-            menu.Destroy() # destroy to avoid mem leak
-            # If Menu was displayed, return True to TrackFigureCanvas.on_press    
-            #return True
-                    
-              
-    def _menu_selection(self, event):
-        UIM = UIManager()
-        controller = UIM.get(self._controller_uid)
         
-        if event.GetId() == ShowGridId:
-            controller.model.plotgrid = True    
-        elif event.GetId() == HideGridId:
-            controller.model.plotgrid = False
-        elif event.GetId() == ScaleLinGridId:
-            controller.model.xscale = 'linear'  
-        elif event.GetId() == ScaleLogGridId:
-            controller.model.xscale = 'log'       
-        elif event.GetId() == DepthLinesAllId:
-            controller.model.depth_lines = 0
-        elif event.GetId() == DepthLinesLeftId:
-            controller.model.depth_lines = 1  
-        elif event.GetId() == DepthLinesRightId:
-            controller.model.depth_lines = 2
-        elif event.GetId() == DepthLinesCenterId:
-            controller.model.depth_lines = 3   
-        elif event.GetId() == DepthLinesLeftRightId:
-            controller.model.depth_lines = 4           
-        elif event.GetId() == DepthLinesNoneId:
-            controller.model.depth_lines = 5       
-        elif event.GetId() == LogDecades1Id:
-            controller.model.decades = 1
-        elif event.GetId() == LogDecades10Id:
-            controller.model.decades = 2
-        elif event.GetId() == LogDecades100Id:
-            controller.model.decades = 3
-        elif event.GetId() == LogDecades1000Id:
-            controller.model.decades = 4
-        elif event.GetId() == LogDecades10000Id:
-            controller.model.decades = 5
-        elif event.GetId() == LogDecades100000Id:
-            controller.model.decades = 6
-        elif event.GetId() == LogDecades1000000Id:
-            controller.model.decades = 7          
-        elif event.GetId() == LinScaleLines0Id:
-            controller.model.scale_lines = 0            
-        elif event.GetId() == LinScaleLines1Id:
-            controller.model.scale_lines = 1             
-        elif event.GetId() == LinScaleLines2Id:
-            controller.model.scale_lines = 2             
-        elif event.GetId() == LinScaleLines3Id:
-            controller.model.scale_lines = 3
-        elif event.GetId() == LinScaleLines4Id:
-            controller.model.scale_lines = 4
-        elif event.GetId() == LinScaleLines5Id:
-            controller.model.scale_lines = 5
-        elif event.GetId() == LinScaleLines6Id:
-            controller.model.scale_lines = 6
-        elif event.GetId() == LinScaleLines7Id:
-            controller.model.scale_lines = 7
-        elif event.GetId() == ShowMinorgridId:
-            controller.model.minorgrid = True    
-        elif event.GetId() == HideMinorgridId:
-            controller.model.minorgrid = False
-           
+    """        
+    def connect(self):
+        'connect to all the events we need'
+        self.cidpress = self.line.figure.canvas.mpl_connect(
+            'button_press_event', self.on_press)
+        self.cidrelease = self.line.figure.canvas.mpl_connect(
+            'button_release_event', self.on_release)
+        self.cidmotion = self.line.figure.canvas.mpl_connect(
+            'motion_notify_event', self.on_motion)        
+    """    
+
+
+        
+        
+
+               
             
     # TODO: Under Testing...     
     """        
@@ -859,4 +681,430 @@ class TrackCanvas(CanvasBaseView):
     def get_xaxis_ticklocs(self):
         return self.base_axes.xaxis.get_majorticklocs()            
     """        
+
+
+
+class DepthCanvas():
+    SASH_DRAG_NONE = 0 
+    SASH_DRAG_DRAGGING = 1
     
+    def __init__(self, track_canvas):
+        self.tc = track_canvas
+        self.create_depth_canvas()
+        self.reposition_depth_canvas()
+        self.tc.draw()
+        self.tc.Bind(wx.EVT_SIZE, self._on_track_size)
+        self.tc.Bind(wx.EVT_MOUSE_EVENTS, self._on_mouse) 
+
+    def __del__(self):
+        self.destroy_depth_canvas()       
+        wx.CallAfter(super().__del__())
+        
+        
+    def create_depth_canvas(self):
+        self._in_canvas = -1
+        self._drag_mode = DepthCanvas.SASH_DRAG_NONE
+        self.canvas_color = 'blue'
+        self.canvas_alt_color = 'red'
+        self.canvas_height = 20
+        #
+#        transaxes = self.tc.get_transaxes()
+#        xmin_px, ymin_px = transaxes.transform((0.0, 0.0))
+#        display_xmax, ymax_px = transaxes.transform((1.0, 1.0))
+        #
+        self.d1_canvas = wx.Panel(self.tc, name='D1') 
+#        self.d1_canvas.SetSize((display_xmax-xmin_px, self.canvas_height))
+        self.d1_canvas.SetBackgroundColour(self.canvas_color)    
+#        self.d1_canvas.SetPosition((xmin_px, ymax_px))
+        #
+#        display_coords = self._get_depth_canvas_display_coords()
+#        print (xmin_px, display_coords['xmin'])
+#        print (display_xmax-xmin_px, display_coords['width_px'])
+#        print (ymax_px, display_coords['ymin'])
+#        print (ymin_px, display_coords['ymax'])
+        self.d2_canvas = wx.Panel(self.tc, name='D2') 
+#        self.d2_canvas.SetSize((display_xmax-xmin_px, self.canvas_height))
+        self.d2_canvas.SetBackgroundColour(self.canvas_color)  
+#        self.d2_canvas.SetPosition((xmin_px, 
+#                                    display_coords['ymax']-self.canvas_height))
+        #
+        self.d1_canvas.Bind(wx.EVT_MOUSE_EVENTS, self._on_canvas_mouse)
+        self.d2_canvas.Bind(wx.EVT_MOUSE_EVENTS, self._on_canvas_mouse)        
+        #
+        
+        
+
+    def destroy_depth_canvas(self):
+        try:
+            self.tc.Unbind(wx.EVT_SIZE, handler=self._on_track_size)  
+            self.tc.Unbind(wx.EVT_MOUSE_EVENTS, handler=self._on_mouse)            
+            self.d1_canvas.Unbind(wx.EVT_MOUSE_EVENTS, handler=self._on_canvas_mouse)
+            self.d2_canvas.Unbind(wx.EVT_MOUSE_EVENTS, handler=self._on_canvas_mouse)
+            del self.d1_canvas
+            del self.d2_canvas
+        except:
+            pass
+        
+
+    def _on_track_size(self, event):
+        event.Skip()
+        wx.CallAfter(self.reposition_depth_canvas)
+        
+        
+    def _on_canvas_mouse(self, event):
+        """
+        Joga o evento do canvas para o canvas track
+        """
+        if event.GetEventType() in [wx.wxEVT_MOTION, wx.wxEVT_LEFT_DOWN, 
+                        wx.wxEVT_LEFT_UP, wx.wxEVT_MOTION|wx.wxEVT_LEFT_DOWN]:
+            new_event = wx.MouseEvent(event.GetEventType())
+            pos = self.tc.ScreenToClient(wx.GetMousePosition())
+            new_event.SetPosition(pos)
+            new_event.Skip()
+            self.tc.GetEventHandler().ProcessEvent(new_event)   
+            
+            
+    def _on_mouse(self, event):
+        #print ('on_mouse')
+        x, y = event.GetPosition()
+        if self._drag_mode == DepthCanvas.SASH_DRAG_NONE:    
+            self._canvas_hit_test(x, y)              
+            if event.LeftDown():
+                self.start_dragging(y)
+        elif self._drag_mode == DepthCanvas.SASH_DRAG_DRAGGING:
+            if event.LeftIsDown():
+                self.drag_it(y)       
+            elif event.LeftUp():
+                self.end_dragging()
+        event.Skip()
+
+   
+    def _canvas_hit_test(self, x, y, tolerance=5):
+        r1 = self.d1_canvas.GetRect()   
+        r2 = self.d2_canvas.GetRect() 
+        if y >= r1.y - tolerance and y <= r1.y + r1.height + tolerance:
+            self._in_canvas = self.d1_canvas
+            self.tc.SetCursor(wx.Cursor(wx.CURSOR_SIZENS))
+        elif y >= r2.y - tolerance and y <= r2.y + r2.height + tolerance:
+            self._in_canvas = self.d2_canvas 
+            self.tc.SetCursor(wx.Cursor(wx.CURSOR_SIZENS))
+        else:
+            self._in_canvas = None
+            self.tc.SetCursor(wx.STANDARD_CURSOR)
+
+    
+    def start_dragging(self, start_y):
+        if self._in_canvas == None:
+            return 
+        if self._drag_mode != DepthCanvas.SASH_DRAG_NONE:
+            return
+        
+        print ('\n\n\n')
+
+        self._drag_mode = DepthCanvas.SASH_DRAG_DRAGGING
+        #self.track.CaptureMouse()
+        #print 'mouse capturado'
+        self._old_y = start_y
+        self._in_canvas.SetBackgroundColour(self.canvas_alt_color)
+        self._in_canvas.Refresh()    
+        
+
+
+
+    def drag_it(self, new_y):
+        if self._in_canvas == None:
+            return
+        if self._drag_mode != DepthCanvas.SASH_DRAG_DRAGGING:
+            return       
+        if new_y != self._old_y:
+            inc = new_y - self._old_y
+            x, y = self._in_canvas.GetPosition()  
+            new_pos = y + inc
+            #
+            min_y_px, max_y_px = self._get_max_min_pixels()
+            #
+            self._in_canvas.SetPosition((x, new_pos))
+            self._in_canvas.Refresh()
+            self._old_y = new_y   
+
+            
+            #
+            """
+            if new_pos < min_y_px:
+                # Canvas top cannot exceed the minimum pixel permitted
+                return
+            elif (new_pos + self.canvas_height) > max_y_px:
+                # Canvas bottom cannot exceed the maximum pixel permitted
+                return
+            """
+            
+
+            # Adjusting position (translating) for real canvas bottom position
+            #new_pos = max_y_px + min_y_px - new_pos
+
+            if self._in_canvas.GetName() == 'D1':
+                new_pos_data = self._get_depth_from_ypixel(new_pos)           
+            else:    
+                new_pos_data = self._get_depth_from_ypixel(new_pos + 
+                                                           self.canvas_height)    
+
+
+            print(self._in_canvas.GetName(), min_y_px, max_y_px, new_pos, new_pos_data)
+            print()
+
+             
+    def _get_max_min_pixels(self):             
+        # Because we have Y axis from top to bottom, our Axes coordinated
+        # inverted too. 
+        #   Top-left: (0.0, 0.0)
+        #   Bottom-right: (1.0, 1.0)
+        #
+        # Get minimum y pixel (considering top of canvas)
+        _, min_y_px = self.tc.get_transaxes().transform((0.0, 0.0))
+        # Get maximum y pixel (considering top of canvas)
+        _, max_y_px = self.tc.get_transaxes().transform((1.0, 1.0))
+        return int(min_y_px), int(max_y_px)
+    
+    
+
+    def end_dragging(self):
+        
+        print('\nend_dragging')
+        
+        if self._in_canvas == None:
+            return
+        if self._drag_mode != DepthCanvas.SASH_DRAG_DRAGGING:
+            return  
+        #
+        self._drag_mode = DepthCanvas.SASH_DRAG_NONE
+        self._old_y = None
+        #
+        if self.tc.HasCapture():
+            self.tc.ReleaseMouse()
+
+        #       
+        transdata_inv = self.tc.get_transdata().inverted()
+        #
+        min_y_px, max_y_px = self._get_max_min_pixels()
+        #
+        top_canvas_px = self.d1_canvas.GetPosition()[1]
+        bottom_canvas_px = self.d2_canvas.GetPosition()[1]
+        
+        
+#        if top_canvas_px == bottom_canvas_px:  
+#            if bottom_canvas_px 
+        
+        print (top_canvas_px, bottom_canvas_px)
+        
+        # Top canvas position must be smaller than bottom canvas
+        if top_canvas_px > bottom_canvas_px:
+            temp = top_canvas_px
+            top_canvas_px = bottom_canvas_px
+            bottom_canvas_px = temp
+            
+        print (top_canvas_px, bottom_canvas_px)
+        
+
+
+
+        UIM = UIManager()
+        parent_controller_uid = UIM._getparentuid(self.tc._controller_uid)
+        granpa_controller_uid = UIM._getparentuid(parent_controller_uid)
+        granpa_controller = UIM.get(granpa_controller_uid)    
+        
+        
+
+        if top_canvas_px == min_y_px:
+            min_depth = granpa_controller.model.wellplot_ylim[0]
+        else:
+            min_depth = self._get_depth_from_ypixel(top_canvas_px)         
+
+        if bottom_canvas_px == max_y_px:
+            max_depth = granpa_controller.model.wellplot_ylim[1]
+        else:
+            max_depth = self._get_depth_from_ypixel(bottom_canvas_px + 
+                                                            self.canvas_height) 
+      
+
+            
+        """   
+        #
+        if y1_px <= y2_px:
+            _, d1 = transdata_inv.transform((0.0, y1_px))
+            _, d2 = transdata_inv.transform((0.0, y2_px + self.canvas_height))
+        else:    
+            _, d1 = transdata_inv.transform((0.0, y2_px))
+            _, d2 = transdata_inv.transform((0.0, y1_px + self.canvas_height)) 
+        #    
+        """
+        
+        print (min_depth, max_depth)
+        
+
+        #
+        granpa_controller.model.shown_ylim = (min_depth, max_depth)
+        #
+        self._in_canvas.SetBackgroundColour(self.canvas_color)
+        self._in_canvas.Refresh()       
+        self.tc.SetToolTip(wx.ToolTip('{0:.2f} - {1:.2f}'.format(min_depth, max_depth)))
+
+
+
+
+    def _get_ypixel_from_depth(self, depth):
+        min_y_px, max_y_px = self._get_max_min_pixels()
+        transdata = self.tc.get_transdata()
+        y_px = transdata.transform((0, depth))[1]
+        y_px = (max_y_px - y_px) + min_y_px
+        return y_px
+
+
+    def _get_depth_from_ypixel(self, y_px):
+        min_y_px, max_y_px = self._get_max_min_pixels()
+        transdata_inv = self.tc.get_transdata().inverted() 
+        depth = transdata_inv.transform((0.0, max_y_px + min_y_px - y_px))[1]
+        return depth                
+
+
+
+    """
+    
+    def _get_depth_canvas_display_coords(self):
+        UIM = UIManager()
+        parent_controller_uid = UIM._getparentuid(self.tc._controller_uid)
+        granpa_controller_uid = UIM._getparentuid(parent_controller_uid)
+        granpa_controller =  UIM.get(granpa_controller_uid)  
+        #
+        xmin, xmax = self.tc.get_xlim()
+        ymin, ymax = granpa_controller.model.shown_ylim
+        #
+        transdata = self.tc.get_transdata()
+        data_min = (xmin , ymin)
+        data_max = (xmax , ymax)
+        
+        xmin_px, ymin_px = transdata.transform(data_min)
+        
+        display_xmax, ymax_px = transdata.transform(data_max)
+        #
+        ret_dict = {
+                'xmin_px': int(xmin_px),
+                'width_px': display_xmax-int(xmin_px),
+                
+                'ymin_px': int(ymin_px),
+                'ymax_px': int(ymax_px)
+                
+        }
+        return ret_dict
+
+    """
+
+
+    def reposition_depth_canvas(self):
+        #display_coords = self._get_depth_canvas_display_coords()
+        #
+        UIM = UIManager()
+        parent_controller_uid = UIM._getparentuid(self.tc._controller_uid)
+        granpa_controller_uid = UIM._getparentuid(parent_controller_uid)
+        granpa_controller =  UIM.get(granpa_controller_uid)  
+        #
+        xmin, xmax = self.tc.get_xlim()
+        depth_min, depth_max = granpa_controller.model.shown_ylim
+        #
+        top_px = self._get_ypixel_from_depth(depth_min)
+        bottom_px = self._get_ypixel_from_depth(depth_max)
+        #
+        transaxes = self.tc.get_transaxes()
+        xmin_px, _ = transaxes.transform((0.0, 0.0))
+        xmax_px, _ = transaxes.transform((1.0, 1.0))
+        #
+        print ('\nMin Max Y:', top_px, bottom_px)
+        #
+        self.d1_canvas.SetSize(xmin_px, top_px,
+                                       xmax_px - xmin_px, self.canvas_height
+        )        
+        #
+        self.d2_canvas.SetSize(xmin_px, bottom_px - self.canvas_height,
+                                       xmax_px - xmin_px, self.canvas_height
+        )
+        #       
+       
+        
+
+        
+        
+    """    
+    def on_canvas_mouse(self, event):
+        if event.GetEventType() == wx.wxEVT_MOTION:
+            canvas.SetCursor(wx.Cursor(wx.CURSOR_SIZENS))
+            
+        x, y = event.GetPosition()    
+        
+        if (self._drag_mode == SASH_DRAG_NONE) and (event.LeftDown()): 
+            # Start dragging
+            canvas.SetBackgroundColour(self.canvas_alt_color)
+            canvas.Refresh()
+            self._drag_mode = SASH_DRAG_DRAGGING
+            self._old_y = y
+        
+        elif self._drag_mode == SASH_DRAG_DRAGGING:
+            
+            UIM = UIManager()
+            parent_controller_uid = UIM._getparentuid(self._controller_uid)
+            parent_controller =  UIM.get(parent_controller_uid)
+            
+            
+            if event.LeftIsDown():
+                # Still Dragging
+                if y == self._old_y:
+                    return
+                yinc = y - self._old_y
+                cx, cy = canvas.GetPosition()  
+                new_ypos = cy + yinc
+                
+                #if new_ypos < 0:
+                #    new_ypos = 0
+                #if new_ypos > (self.track.GetClientSize()[1] - self.canvas_height):
+                #    new_ypos = self.track.GetClientSize()[1] - self.canvas_height
+                
+                canvas.SetPosition((cx, new_ypos))
+                canvas.Refresh()            
+                
+                  
+                self._old_y = y  
+                
+            elif event.LeftUp():
+                # End dragging
+                self._drag_mode = SASH_DRAG_NONE
+                self._old_y = None
+                
+                if self.track.HasCapture():
+                    self.track.ReleaseMouse()
+                  
+                y1 = self.d1_canvas.GetPosition()[1]
+                y2 = self.d2_canvas.GetPosition()[1]
+        
+        
+                if y1 <= y2:
+                    d1 = self.track.get_depth_from_ypixel(y1)
+                    d2 = self.track.get_depth_from_ypixel(y2 + self.canvas_height)
+                else:    
+                    d1 = self.track.get_depth_from_ypixel(y2)
+                    d2 = self.track.get_depth_from_ypixel(y1 + self.canvas_height)
+                #    
+
+                #
+                parent_controller.model.set_value_from_event('shown_ylim', (d1, d2))
+                parent_controller._reload_ylim()
+                # 
+                canvas.SetBackgroundColour(self.canvas_color)
+                canvas.Refresh()  
+                #                  
+                self.track.SetToolTip(wx.ToolTip('{0:.2f} - {1:.2f}'.format(d1, d2)))
+
+                
+                
+        event.Skip()
+    """        
+        
+        
+        

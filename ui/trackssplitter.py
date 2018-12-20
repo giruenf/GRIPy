@@ -99,7 +99,7 @@ class MultiSplitterWindow(wx.Panel):
         self._sash_size = self._border_size = 1
         self.borderColor = (0,0,0)
         self.sashColor = (0,0,0)
-        #self.selectedWindowColor = 'green'
+
         self.trackerCanvas = None
         self.fit = False
         self._ajustes = []
@@ -196,16 +196,13 @@ class MultiSplitterWindow(wx.Panel):
         splitter.  The window will still exist so you should `Hide` or
         `Destroy` it as needed.
         """
-        ##print '\nDETACHING WINDOW'
         assert window in self._windows, "Unknown window!"
         idx = self._windows.index(window)
-        #self._windows[idx]._selected = False
-        #self._draw_window_selection(self._windows[idx])
+
         del self._windows[idx]
         del self._sashes[idx]
         if window.IsShown():
             self._checkRequestedSashPosition = False
-        #self._SizeComponent()
         
 
     def ReplaceWindow(self, oldWindow, newWindow):
@@ -377,68 +374,6 @@ class MultiSplitterWindow(wx.Panel):
         evt.Skip()
         
 
- 
-    """
-    def _draw_window_selection(self, window):
-    #    #print '\nMultiSplitterWindow._draw_window_selection: ', window.GetRect(), window.is_selected()
-        if not window.is_selected() and not window.selectedCanvas:
-    #        #print '  nothing to do'
-            return
-        x, y, w, h = window.GetRect()
-        
-        if window.is_selected():
-            if not window.selectedCanvas:
-    #            #print '  construindo'
-                #
-                panel = wx.Panel(window.GetParent())
-                panel.SetSize(x, y, w, self._sash_size)
-                panel.SetBackgroundColour(self.selectedWindowColor)
-                window.selectedCanvas.append(panel)
-                #    
-    #            #print 1
-                panel = wx.Panel(window.GetParent()) 
-                panel.SetSize(x, h, w, self._sash_size)
-                panel.SetBackgroundColour(self.selectedWindowColor)
-                window.selectedCanvas.append(panel)
-    #            #print 2
-                #            
-                panel = wx.Panel(window.GetParent()) 
-                panel.SetSize(x, y, self._sash_size, h)
-                panel.SetBackgroundColour(self.selectedWindowColor)
-                window.selectedCanvas.append(panel)
-    #            #print 3
-                #            
-                panel = wx.Panel(window.GetParent()) 
-                panel.SetSize((x + w - self._sash_size), y, 
-                                    self._sash_size, h)
-                panel.SetBackgroundColour(self.selectedWindowColor)              
-                window.selectedCanvas.append(panel)
-    #            #print 4
-            else:
-    #            #print '  atualizando'
-
-                window.selectedCanvas[0].SetSize(x, y, w, self._sash_size)
-                window.selectedCanvas[0].Refresh()
-                
-                window.selectedCanvas[1].SetSize(x, h, w, self._sash_size)
-                window.selectedCanvas[1].Refresh()
-
-                window.selectedCanvas[2].SetSize(x, y, self._sash_size, h)
-                window.selectedCanvas[2].Refresh()
-                
-                window.selectedCanvas[3].SetSize((x + w - self._sash_size), y, 
-                                        self._sash_size, h)
-                window.selectedCanvas[3].Refresh()                        
-                                    
-                                    
-
-        else:
-            start = len(window.selectedCanvas) - 1
-            for i in range(start, -1, -1):
-                temp = window.selectedCanvas.pop(i)
-                temp.Destroy() 
-
-    """
 
     def _OnMouse(self, evt):
         if self.HasFlag(wx.SP_NOSASH):
@@ -850,14 +785,7 @@ class MultiSplitterWindow(wx.Panel):
             ##print '    _sash:', idx, spos
             window = self.GetWindow(idx)
             if window.IsShown():
-                #print 'window.SetSize({}, {}, {}, {})'.format(x, y, spos, h)
                 window.SetSize(x, y, spos, h)
-                ##print '    {} - SetDimensions({}, {}, {}, {})'.format(window._view._controller_uid, x, y, spos, h)
-                
-                #for panel in window.selectedCanvas:
-                #    panel.Refresh()                
-                #self._draw_window_selection(window)                
-                
                 x += spos + sash	
                 
         if 'wxMSW' in wx.PlatformInfo:

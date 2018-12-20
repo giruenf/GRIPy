@@ -20,6 +20,9 @@ from matplotlib.lines import Line2D
 from matplotlib.ticker import NullLocator
 
 
+from ui.mvc_classes.extras import SelectablePanelMixin
+
+
 
 # Constants
 DPI = 80
@@ -614,7 +617,7 @@ class TrackLabel(UIModelObject):
     
     
 
-class TrackLabel(UIViewObject, wx.Panel):  #SelectPanelMixin):
+class TrackLabel(UIViewObject, wx.Panel, SelectablePanelMixin):  
     tid = 'track_label'
        
     def __init__(self, controller_uid):
@@ -624,7 +627,6 @@ class TrackLabel(UIViewObject, wx.Panel):  #SelectPanelMixin):
         parent_controller = UIM.get(parent_uid)        
         wx_parent = parent_controller._get_wx_parent(self.tid)
         wx.Panel.__init__(self, wx_parent)
-        
         #
         self.track_view_object = wx_parent
         self._title = None
@@ -641,7 +643,13 @@ class TrackLabel(UIViewObject, wx.Panel):  #SelectPanelMixin):
 
 
     def _on_button_press(self, event):
-        #if event.guiEvent.GetSkipped():
+        
+        UIM = UIManager()
+        track_controller_uid = UIM._getparentuid(self._controller_uid)
+        track_controller = UIM.get(track_controller_uid)
+        track_controller._on_button_press(event)
+        
+        #self.track_view_object.process_event(event)
 
         """
         if isinstance(event, wx.MouseEvent):        
@@ -654,7 +662,7 @@ class TrackLabel(UIViewObject, wx.Panel):  #SelectPanelMixin):
             gui_evt.GetEventObject().ReleaseMouse()  
         #  
         """
-        pass
+       
     
         """
         gui_evt = event

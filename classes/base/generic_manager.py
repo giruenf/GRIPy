@@ -69,11 +69,12 @@ class GripyManager(pubsub.PublisherMixin, metaclass=GripyManagerMeta):
     # Migrado para a SuperClasse em 10-11-2018
     # TODO: Add recursively to docs.
     def list(self, tid=None, parent_uid=None, recursively=False):
-        """Return a list of objects being managed by `Manager`.
+        """
+        Return a list of objects being managed by `Manager`.
         
         Parameters
         ----------
-        tidfilter : str, optional
+        tid : str, optional
             Only objects which type identificator is equal to `tidfilter` will
             be returned.
         parentuidfilter : uid, optional

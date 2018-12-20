@@ -1555,7 +1555,6 @@ class CanvasBaseView(UIViewObject, FigureCanvas):
     
     
     
-    
     def set_minor_tick_visibility(self, axis, b):
         axis_list = []
         if axis == 'x' or axis == 'both':
@@ -1580,4 +1579,18 @@ class CanvasBaseView(UIViewObject, FigureCanvas):
 
 
 
+    def get_xlim(self):
+        return self.base_axes.get_xlim()    
+    
+    def get_ylim(self):
+        return self.base_axes.get_ylim()     
+    
+    def get_transdata(self):    
+        return self.base_axes.transData   
+    
+    def get_transaxes(self):
+        return self.base_axes.transAxes    
+    
+    
+    
     
