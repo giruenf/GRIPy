@@ -43,7 +43,7 @@ class UIBaseObject(GripyObject):
                 uid = self.uid
             else:
                 uid = self._controller_uid
-            UIM_class = self._get_manager_class()
+            UIM_class = self.get_manager_class()
             UIM = UIM_class()   
             wx.CallAfter(UIM.remove, uid)
             print ('wx.CallAfter(UIM.remove, {})'.format(uid))
@@ -150,7 +150,7 @@ class UIControllerObject(UIBaseObject):
     def _create_view(self, **base_state): 
         # TODO:  ou seria GRIPy MC-V pattern, abaixo?
         """Function to create view objects (MVC pattern)."""
-        UIM_class = self._get_manager_class()
+        UIM_class = self.get_manager_class()
         UIM = UIM_class()         
         view_class = UIM.get_view_class(self.tid)
         
@@ -275,7 +275,7 @@ class UIViewObject(UIBaseObject):
         self._controller_uid = controller_uid        
         # We are considering that only Controller class objects 
         # can create View class objects. Then, we must verify it      
-        UIM_class = self._get_manager_class()
+        UIM_class = self.get_manager_class()
         UIM = UIM_class()
         view_class = UIM.get_view_class(controller_uid[0])
         if self.__class__ != view_class:

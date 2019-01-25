@@ -28,10 +28,9 @@ class GripyManager(pubsub.PublisherMixin, metaclass=GripyManagerMeta):
     def is_loading_state(self):
         return self.__class__._LOADING_STATE 
 
-    def get_publisher_name(self):
+    def _get_pubsub_uid(self):
         return self.__class__.__name__
        
-
     # Criado por Adriano em 08-11-2018
     def get_children_uids(self, parent_uid=None, recursively=False):
         """

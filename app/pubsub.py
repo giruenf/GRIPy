@@ -54,8 +54,8 @@ references in the notes section above.
 # TODO: corrigir Docs
 
 
-from wx.lib.pubsub import pub
-#from pubsub import pub
+#from wx.lib.pubsub import pub
+from pubsub import pub
 
 
 
@@ -74,23 +74,7 @@ def uid_to_pubuid(value):
     except:
         raise
     
-'''
-def decode_topic(topic):
-    topic_parts = topic.split('.')
-    root_topic = topic_parts[0]
-    sub_topics = topic_parts[1:] 
-    try:
-        func_name, publisher = root_topic.split('@')
-    except ValueError as ve:
-        if ve.message == 'need more than 1 value to unpack':
-            raise Exception('Publisher not found on topic: "{}"'.format(topic))
-        elif ve.message == 'too many values to unpack':
-            raise Exception('Wrong Publisher type found on topic: "{}". Are there more than 1 Publisher?'.format(topic))
-    publisher = pubuid_to_uid(publisher)
-    for idx in range(len(sub_topics)):
-        sub_topics[idx] = pubuid_to_uid(sub_topics[idx])   
-    return publisher, func_name, sub_topics
-'''
+
 
 ALL_TOPICS = pub.ALL_TOPICS
 AUTO_TOPIC = pub.AUTO_TOPIC
@@ -144,7 +128,7 @@ class PublisherMixin(object):
             return None, False
         # TODO: Check for caller 'can subscribe'
         # TODO: Check for function_ 'can be subscribed'
-        topic = self.get_publisher_name() + '.' + topic
+        topic = self._get_pubsub_uid() + '.' + topic
         return pub.subscribe(listener, topic)    
 
 
@@ -154,7 +138,7 @@ class PublisherMixin(object):
     
     def unsubscribe(self, listener, topic):
         try:
-            topic = self.get_publisher_name() + '.' + topic
+            topic = self._get_pubsub_uid() + '.' + topic
             return pub.unsubscribe(listener, topic)   
         except:
             raise
@@ -179,11 +163,11 @@ class PublisherMixin(object):
 
     
     def _topic_filter(self, topic_name):
-        return topic_name.startswith(self.get_publisher_name())
+        return topic_name.startswith(self._get_pubsub_uid())
 
 
     def isSubscribed(self, listener, topic):
-        topic = self.get_publisher_name() + '.' + topic
+        topic = self._get_pubsub_uid() + '.' + topic
         return pub.isSubscribed(listener, topic)        
 
 
@@ -213,9 +197,9 @@ class PublisherMixin(object):
         """
         
         # TODO: Refazer docs
-        # print ('publisher: {} - topic: {} - data: {}'.format(self.get_publisher_name(), topic, data))
+        # print ('publisher: {} - topic: {} - data: {}'.format(self._get_pubsub_uid(), topic, data))
         try:
-            topic = self.get_publisher_name() + '.' + topic
+            topic = self._get_pubsub_uid() + '.' + topic
             #print ('\nPublisherMixin.send_message - topic:', topic, data)
             pub.sendMessage(topic, **data)
         except:
@@ -225,7 +209,7 @@ class PublisherMixin(object):
             raise
 
     
-    def get_publisher_name(self):
+    def _get_pubsub_uid(self):
         raise NotImplementedError()
 
       

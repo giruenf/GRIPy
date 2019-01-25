@@ -1,8 +1,3 @@
-# -*- coding: utf-8 -*-
-"""
-
-"""
-
 import types
 from collections import OrderedDict
 from collections import Sequence
@@ -13,7 +8,6 @@ from app import app_utils
 from app import pubsub
 from classes.base.metaclasses import GripyWxMeta
 from app import log
-
 
 
 class GripyObject(pubsub.PublisherMixin, metaclass=GripyWxMeta):  
@@ -38,18 +32,15 @@ class GripyObject(pubsub.PublisherMixin, metaclass=GripyWxMeta):
         
     """
     tid = None
-    #
     _ATTRIBUTES = OrderedDict()
     _ATTRIBUTES['name'] = {
         'default_value': wx.EmptyString,
         'type': str        
     }      
-    #
     _READ_ONLY = ['oid']
-    #
     
     def __init__(self, **kwargs): 
-        _manager_class = self._get_manager_class()
+        _manager_class = self.get_manager_class()
         _manager_obj = _manager_class()
         #
         # TODO: verificar isso...
@@ -84,19 +75,20 @@ class GripyObject(pubsub.PublisherMixin, metaclass=GripyWxMeta):
     @uid.deleter
     def uid(self):
         raise Exception('Object uid cannot be deleted.')
+     
+    def _get_pubsub_uid(self):
+        return pubsub.uid_to_pubuid(self.uid)         
         
-    # TODO: _get_manager_class ou get_manager_class
-    def _get_manager_class(self):
+    # TODO: get_manager_class ou get_manager_class
+    def get_manager_class(self):
         """
         """
         app = wx.App.Get()
-        return app._get_manager_class(self)
+        return app.get_manager_class(self)
     
-    #TODO: Verificar se inclui funcao get_manager()  
+    
+    #TODO: Verificar se deve incluir a funcao get_manager()  
 
-    #TODO: _get_publisher_name ou get_pubsub_uid
-    def get_publisher_name(self):
-        return pubsub.uid_to_pubuid(self.uid)    
          
     # TODO: rever este nome
     def set_value_from_event(self, key, value):

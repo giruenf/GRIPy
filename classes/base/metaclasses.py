@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """
 Gripy Base Metaclasses
 ======================
@@ -29,13 +28,10 @@ from app import log
 
 
 class GripyMeta(type):
-
-    # https://docs.python.org/3/reference/datamodel.html#customizing-class-creation
-    # def __init_subclass__(cls):
-    #     pass
     
     def __new__(cls, clsname, superclasses, dict_):
-        """Function reponsible for creating classes.
+        """
+        Function reponsible for creating classes.
         
         In general every Gripy class is created on application startup.
         This method adjust attributes heritance, for example combining 
@@ -55,25 +51,28 @@ class GripyMeta(type):
             They cannot be deleted or changed (e.g. oid).
             
         """
-        
+        # Initializing class dictionary for _ATTRIBUTES and _READ_ONLY keys, if
+        # they were not setted.
         if '_ATTRIBUTES' not in dict_:
             dict_['_ATTRIBUTES'] = OrderedDict()
-
         if '_READ_ONLY' not in dict_:
             dict_['_READ_ONLY'] = []
-            
-        # Colocando is_initialised aqui
+        # The method GripyObject.is_initialised is setted below. 
+        # The idea is deal with GripyObject._GripyMeta__initialised only in 
+        # this metaclass.
         dict_['is_initialised'] = lambda self: self.__dict__.get( \
                                             '_GripyMeta__initialised', False)
-        #
-            
+        # Time to create the new class...
         ret_class = super().__new__(cls, clsname, superclasses, dict_)
+        # By default, _ATTRIBUTES and _READ_ONLY are incremented with every 
+        # superclass _ATTRIBUTES and _READ_ONLY. 
+        # If this behavior is not desired for _ATTRIBUTES, the key must be 
+        # setted with None as value.
         for superclass in superclasses:
             if '_ATTRIBUTES' in superclass.__dict__:
                 for key, value in superclass.__dict__['_ATTRIBUTES'].items():
                     if key not in ret_class.__dict__['_ATTRIBUTES']:
                         ret_class.__dict__['_ATTRIBUTES'][key] = value
-
             if '_READ_ONLY' in superclass.__dict__:
                 for item in superclass.__dict__['_READ_ONLY']:
                     if item not in ret_class.__dict__['_READ_ONLY']:
@@ -81,17 +80,15 @@ class GripyMeta(type):
         log.debug('Successfully created class: {}.'.format(clsname))                         
         return ret_class
 
-
     def __call__(cls, *args, **kwargs):
-        """Function reponsible for creating objects.
+        """
+        Function reponsible for creating objects.
         
         """
+        # Time to create the new object... 
         obj = super().__call__(*args, **kwargs)
-        # Setting obj._GripyMeta__initialised 
-#        print ()
-#        print(obj.__dict__)
+        # Setting obj._GripyMeta__initialised used by is_initialised method.
         obj.__initialised = True 
-#        print(obj.__dict__)
         #
         msg = 'Successfully created object from class: {}.'.format(
                                                                 obj.__class__)

@@ -108,6 +108,7 @@ class TreeController(UIControllerObject):
                     else:
                         # Create tid node as another object child
                         tid_parent_node = self.get_object_tree_item(ID_TYPE_OBJECT, parentuid) 
+                    
                     # Create tid node    
                     class_ = OM._gettype(objuid[0])
                     try:

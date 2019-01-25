@@ -30,7 +30,7 @@ class UIBaseObject(GripyObject):
         """To be overrriden"""
         pass
 
-    def _get_manager_class(self):
+    def get_manager_class(self):
         return UIManager
 
     def _call_self_remove(self):
