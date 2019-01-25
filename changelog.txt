@@ -21,8 +21,8 @@ Versão 0.8.beta:
 - Criação de sistema de janelas de trabalho flutuantes (com inserção da logo do Gripy como background).
 - Reescrita total do CrossPlot no modelo Gripy (M)VC.
 - Novos icones para a MainWindow.
-- _INMUTABLE_KEYS passa a se chamar _READ_ONLY
-- _BYPASSES_KEYS foi removido, pois os attributos 'não-monitorados' já eram tratados pelo método GripyObject._do_set
+- GripyObject._INMUTABLE_KEYS passa a se chamar _READ_ONLY
+- GripyObject._BYPASSES_KEYS foi removido, pois os attributos 'não-monitorados' já eram tratados pelo método GripyObject._do_set
 - Ajustes nos arquivos OSLICENSES.txt
 
 
