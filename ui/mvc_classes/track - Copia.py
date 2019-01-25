@@ -49,9 +49,9 @@ class TrackController(UIControllerObject):
                 obj_uid = parse_string_to_uid(obj_uid)
             tid, oid = obj_uid
 #            print (333)
-            toc.model.obj_tid = tid
+            toc.obj_tid = tid
 #            print (444)
-            toc.model.obj_oid = oid
+            toc.obj_oid = oid
 #            print (555)
             return toc
         except Exception as e:
@@ -68,16 +68,16 @@ class TrackController(UIControllerObject):
         UIM = UIManager()
         parent_uid = UIM._getparentuid(self.uid)
         parent_ctrl = UIM.get(parent_uid)
-        return parent_ctrl.model.cursor_state 
+        return parent_ctrl.cursor_state 
     
     def on_change_width(self, new_value, old_value):  
         UIM = UIManager()
         parent_uid = UIM._getparentuid(self.uid)
         parent_ctrl = UIM.get(parent_uid)
         parent_ctrl.view._do_change_width(self.get_position(False), 
-                                          self.model.width
+                                          self.width
         )
-        if not self.model.selected:
+        if not self.selected:
             return
         parent_ctrl._propagate_change_width(self.uid)
   
@@ -211,7 +211,7 @@ class TrackView(UIViewObject):
         #
         print ('111')
         
-        if controller.model.overview:
+        if controller.overview:
 #            print ('222')
             self.create_depth_canvas()
 #            print ('333')
@@ -245,8 +245,8 @@ class TrackView(UIViewObject):
         parent_controller_uid = UIM._getparentuid(self._controller_uid)
         parent_controller =  UIM.get(parent_controller_uid)
         
-        if not controller.model.overview:    
-            pos = controller.model.pos
+        if not controller.overview:    
+            pos = controller.pos
             parent_controller.view._detach_windows(self.label, self.track)  
             self.label.Destroy()
             self.track.Destroy()
@@ -254,7 +254,7 @@ class TrackView(UIViewObject):
         
         else:
             # TODO: cade o remove DropTarget?? verificar....
-            if controller.model.overview:    
+            if controller.overview:    
                 parent_controller._pre_delete_overview_track()
             try:    
                 self.track.Destroy() 
@@ -319,11 +319,11 @@ class TrackView(UIViewObject):
         parent_controller_uid = UIM._getparentuid(self._controller_uid)
         parent_controller =  UIM.get(parent_controller_uid)        
         ##print '\nMIN-MAX:', min_depth, max_depth, min_pos, max_pos, self.d1, self.d2     
-        y1 = self.depth_to_wx_position(parent_controller.model.y_min_shown)
+        y1 = self.depth_to_wx_position(parent_controller.y_min_shown)
         self.d1_canvas.SetPosition((0, y1)) 
            
         #self.d1_canvas.Refresh()
-        y2 = self.depth_to_wx_position(parent_controller.model.y_max_shown)          
+        y2 = self.depth_to_wx_position(parent_controller.y_max_shown)          
         self.d2_canvas.SetPosition((0, y2 - self.canvas_width))    
         #self.d2_canvas.Refresh()
 
@@ -332,9 +332,9 @@ class TrackView(UIViewObject):
         UIM = UIManager()
         parent_controller_uid = UIM._getparentuid(self._controller_uid)
         parent_controller =  UIM.get(parent_controller_uid)
-        if depth <= parent_controller.model.logplot_y_min:
+        if depth <= parent_controller.logplot_y_min:
             return 0
-        elif depth >= parent_controller.model.logplot_y_max:
+        elif depth >= parent_controller.logplot_y_max:
             return self.track.GetClientSize().height 
         return self.track.get_ypixel_from_depth(depth) 
 
@@ -406,11 +406,11 @@ class TrackView(UIViewObject):
         parent_controller_uid = UIM._getparentuid(self._controller_uid)
         parent_controller =  UIM.get(parent_controller_uid)
         #
-        #parent_controller.model.logplot_y_min = d1
-        #parent_controller.model.logplot_y_max = d2
+        #parent_controller.logplot_y_min = d1
+        #parent_controller.logplot_y_max = d2
         #
-        parent_controller.model.set_value_from_event('y_min_shown', d1)
-        parent_controller.model.set_value_from_event('y_max_shown', d2)
+        parent_controller.set_value_from_event('y_min_shown', d1)
+        parent_controller.set_value_from_event('y_max_shown', d2)
         parent_controller._reload_ylim()
         #
         #
@@ -540,7 +540,7 @@ class TrackView(UIViewObject):
         UIM = UIManager()
         parent_controller_uid = UIM._getparentuid(self._controller_uid)
         parent_controller =  UIM.get(parent_controller_uid)
-        info = parent_controller.model.index_type + ': {:0.2f}'.format(event.ydata)
+        info = parent_controller.index_type + ': {:0.2f}'.format(event.ydata)
 
         for toc in UIM.list('track_object_controller', self._controller_uid):
             data = toc.get_data_info(event)
@@ -550,7 +550,7 @@ class TrackView(UIViewObject):
                 str_x = '{:0.2f}'.format(data)
             else:
                 str_x = str(data)
-            uid = (toc.model.obj_tid, toc.model.obj_oid)
+            uid = (toc.obj_tid, toc.obj_oid)
             obj = OM.get(uid)
             info += ', {}: {}'.format(obj.name, str_x)    
                
@@ -568,14 +568,14 @@ class TrackView(UIViewObject):
     def update_title(self, new_value=None, old_value=None):
         UIM = UIManager()
         controller = UIM.get(self._controller_uid)
-        if controller.model.overview:
+        if controller.overview:
             return
-        if not controller.model.label:
+        if not controller.label:
             splitter_pos = controller.get_position(relative_position=True)
           # print 'update_title:', self._controller_uid, str(splitter_pos+1)
             self.label.update_title(text=str(splitter_pos+1))
         else:  
-            self.label.update_title(text=controller.model.label)       
+            self.label.update_title(text=controller.label)       
                 
             
     def _invert_selection(self, new_value, old_value):
@@ -627,7 +627,7 @@ class TrackView(UIViewObject):
         #    
         if gui_evt.GetButton() == 1:
             if controller.get_cursor_state() == LogPlotState.SELECTION_TOOL:
-                controller.model.selected = not controller.model.selected
+                controller.selected = not controller.selected
         #   
         elif gui_evt.GetButton() == 2: 
             print ('entrou 2')
@@ -731,7 +731,7 @@ class TrackView(UIViewObject):
                 event.canvas.Bind(wx.EVT_MENU, self._menu_selection, id=ShowGridId)
                 grid_submenu.AppendRadioItem(HideGridId, 'Hide')
                 event.canvas.Bind(wx.EVT_MENU, self._menu_selection, id=HideGridId)
-                if controller.model.plotgrid:
+                if controller.plotgrid:
                     grid_submenu.Check(ShowGridId, True)
                 else:
                     grid_submenu.Check(HideGridId, True)
@@ -743,7 +743,7 @@ class TrackView(UIViewObject):
                 event.canvas.Bind(wx.EVT_MENU, self._menu_selection, id=ScaleLinGridId)
                 scale_submenu.AppendRadioItem(ScaleLogGridId, 'Logarithmic')
                 event.canvas.Bind(wx.EVT_MENU, self._menu_selection, id=ScaleLogGridId)
-                if not controller.model.x_scale:
+                if not controller.x_scale:
                     scale_submenu.Check(ScaleLinGridId, True)
                 else:
                     scale_submenu.Check(ScaleLogGridId, True)
@@ -770,29 +770,29 @@ class TrackView(UIViewObject):
                 depth_lines_submenu.AppendRadioItem(DepthLinesNoneId, 'None')
                 event.canvas.Bind(wx.EVT_MENU, self._menu_selection, id=DepthLinesNoneId)  
                
-                if controller.model.depth_lines == 0:
+                if controller.depth_lines == 0:
                     depth_lines_submenu.Check(DepthLinesAllId, True)
                     
-                elif controller.model.depth_lines == 1:
+                elif controller.depth_lines == 1:
                     depth_lines_submenu.Check(DepthLinesLeftId, True)
                     
-                elif controller.model.depth_lines == 2:
+                elif controller.depth_lines == 2:
                     depth_lines_submenu.Check(DepthLinesRightId, True)
                     
-                elif controller.model.depth_lines == 3:
+                elif controller.depth_lines == 3:
                     depth_lines_submenu.Check(DepthLinesCenterId, True)  
     
-                elif controller.model.depth_lines == 4:
+                elif controller.depth_lines == 4:
                     depth_lines_submenu.Check(DepthLinesLeftRightId, True)  
                     
-                elif controller.model.depth_lines == 5:
+                elif controller.depth_lines == 5:
                     depth_lines_submenu.Check(DepthLinesNoneId, True)                  
                     
                 menu.AppendSubMenu(depth_lines_submenu, 'Depth Lines')
                 #                   
              
                 menu.AppendSeparator() 
-                if controller.model.x_scale == 0:
+                if controller.x_scale == 0:
                     scale_lines_submenu = wx.Menu()
                 
                     scale_lines_submenu.AppendRadioItem(ScaleLines3Id, '3')
@@ -806,15 +806,15 @@ class TrackView(UIViewObject):
                     scale_lines_submenu.AppendRadioItem(ScaleLines7Id, '7')
                     event.canvas.Bind(wx.EVT_MENU, self._menu_selection, id=ScaleLines7Id)
     
-                    if controller.model.scale_lines == 3:
+                    if controller.scale_lines == 3:
                         scale_lines_submenu.Check(ScaleLines3Id, True)  
-                    elif controller.model.scale_lines == 4:
+                    elif controller.scale_lines == 4:
                         scale_lines_submenu.Check(ScaleLines4Id, True)  
-                    elif controller.model.scale_lines == 5:
+                    elif controller.scale_lines == 5:
                         scale_lines_submenu.Check(ScaleLines5Id, True)                   
-                    elif controller.model.scale_lines == 6:
+                    elif controller.scale_lines == 6:
                         scale_lines_submenu.Check(ScaleLines6Id, True)
-                    elif controller.model.scale_lines == 7:
+                    elif controller.scale_lines == 7:
                         scale_lines_submenu.Check(ScaleLines7Id, True)    
                     menu.AppendSubMenu(scale_lines_submenu, 'Scale Lines')
                     
@@ -835,19 +835,19 @@ class TrackView(UIViewObject):
                     event.canvas.Bind(wx.EVT_MENU, self._menu_selection, id=Decades100000Id)
                     decades_submenu.AppendRadioItem(Decades1000000Id, '1.000.000')
                     event.canvas.Bind(wx.EVT_MENU, self._menu_selection, id=Decades1000000Id)
-                    if controller.model.decades == 1:
+                    if controller.decades == 1:
                         decades_submenu.Check(Decades1Id, True)  
-                    elif controller.model.decades == 2:
+                    elif controller.decades == 2:
                         decades_submenu.Check(Decades10Id, True)  
-                    elif controller.model.decades == 3:
+                    elif controller.decades == 3:
                         decades_submenu.Check(Decades100Id, True)  
-                    elif controller.model.decades == 4:
+                    elif controller.decades == 4:
                         decades_submenu.Check(Decades1000Id, True)  
-                    elif controller.model.decades == 5:
+                    elif controller.decades == 5:
                         decades_submenu.Check(Decades10000Id, True)                   
-                    elif controller.model.decades == 6:
+                    elif controller.decades == 6:
                         decades_submenu.Check(Decades100000Id, True)
-                    elif controller.model.decades == 7:
+                    elif controller.decades == 7:
                         decades_submenu.Check(Decades1000000Id, True)    
                     menu.AppendSubMenu(decades_submenu, 'Log Max')
                 #   
@@ -859,7 +859,7 @@ class TrackView(UIViewObject):
         # Otherwise, unpick artists and return False to TrackFigureCanvas.on_press
         tocs = UIM.list('track_object_controller', self._controller_uid)
         for toc in tocs:
-            toc.model.selected = False        
+            toc.selected = False        
         return False
 
 
@@ -869,7 +869,7 @@ class TrackView(UIViewObject):
         UIM = UIManager()
         tocs = UIM.list('track_object_controller', self._controller_uid)
         for toc in tocs:
-            if toc.model.selected:
+            if toc.selected:
                 obj = toc.get_object()
                 if obj:
                     obj_submenu = wx.Menu()
@@ -941,49 +941,49 @@ class TrackView(UIViewObject):
         UIM = UIManager()
         controller = UIM.get(self._controller_uid) 
         if event.GetId() == ShowGridId:
-            controller.model.plotgrid = True    
+            controller.plotgrid = True    
         elif event.GetId() == HideGridId:
-            controller.model.plotgrid = False
+            controller.plotgrid = False
         elif event.GetId() == ScaleLinGridId:
-            controller.model.x_scale = 0    
+            controller.x_scale = 0    
         elif event.GetId() == ScaleLogGridId:
-            controller.model.x_scale = 1        
+            controller.x_scale = 1        
         elif event.GetId() == DepthLinesAllId:
-            controller.model.depth_lines = 0
+            controller.depth_lines = 0
         elif event.GetId() == DepthLinesLeftId:
-            controller.model.depth_lines = 1  
+            controller.depth_lines = 1  
         elif event.GetId() == DepthLinesRightId:
-            controller.model.depth_lines = 2
+            controller.depth_lines = 2
         elif event.GetId() == DepthLinesCenterId:
-            controller.model.depth_lines = 3   
+            controller.depth_lines = 3   
         elif event.GetId() == DepthLinesLeftRightId:
-            controller.model.depth_lines = 4           
+            controller.depth_lines = 4           
         elif event.GetId() == DepthLinesNoneId:
-            controller.model.depth_lines = 5       
+            controller.depth_lines = 5       
         elif event.GetId() == Decades1Id:
-            controller.model.decades = 1
+            controller.decades = 1
         elif event.GetId() == Decades10Id:
-            controller.model.decades = 2
+            controller.decades = 2
         elif event.GetId() == Decades100Id:
-            controller.model.decades = 3
+            controller.decades = 3
         elif event.GetId() == Decades1000Id:
-            controller.model.decades = 4
+            controller.decades = 4
         elif event.GetId() == Decades10000Id:
-            controller.model.decades = 5
+            controller.decades = 5
         elif event.GetId() == Decades100000Id:
-            controller.model.decades = 6
+            controller.decades = 6
         elif event.GetId() == Decades1000000Id:
-            controller.model.decades = 7
+            controller.decades = 7
         elif event.GetId() == ScaleLines3Id:
-            controller.model.scale_lines = 3
+            controller.scale_lines = 3
         elif event.GetId() == ScaleLines4Id:
-            controller.model.scale_lines = 4
+            controller.scale_lines = 4
         elif event.GetId() == ScaleLines5Id:
-            controller.model.scale_lines = 5
+            controller.scale_lines = 5
         elif event.GetId() == ScaleLines6Id:
-            controller.model.scale_lines = 6
+            controller.scale_lines = 6
         elif event.GetId() == ScaleLines7Id:
-            controller.model.scale_lines = 7
+            controller.scale_lines = 7
 
 
 
@@ -992,7 +992,7 @@ class TrackView(UIViewObject):
         toc_ctrl_uid = UIM._getparentuid(obj_uid)
         toc_ctrl = UIM.get(toc_ctrl_uid)
         nav_ctrl = UIM.create('navigator_controller', 
-                              data_filter_oid=toc_ctrl.model.data_filter_oid,
+                              data_filter_oid=toc_ctrl.data_filter_oid,
                               title='Data navigator', size=(350, 600)
         )
         nav_ctrl.view.Show()

@@ -9,7 +9,6 @@ from wx.adv import OwnerDrawnComboBox
 from classes.om import ObjectManager
 from classes.ui import UIManager
 from classes.ui import UIControllerObject 
-from classes.ui import UIModelObject 
 from classes.ui import UIViewObject                                  
 import app.pubsub as pub
 
@@ -30,13 +29,13 @@ class IntProperty(pg.IntProperty):
     def ValueToString(self, *args):
         UIM = UIManager()
         controller = UIM.get(self._controller_uid)
-        value = controller.model[self._model_key]
+        value = controller[self._model_key]
         return str(value)
 
     def StringToValue(self, variant, text, flag):
         UIM = UIManager()
         controller = UIM.get(self._controller_uid)
-        controller.model[self._model_key] = text
+        controller[self._model_key] = text
         return True    
  
     
@@ -58,14 +57,14 @@ class FloatProperty(pg.FloatProperty):
     def ValueToString(self, *args):
         UIM = UIManager()
         controller = UIM.get(self._controller_uid)
-        value = controller.model[self._model_key]
+        value = controller[self._model_key]
         return str(value)
 
 
     def StringToValue(self, variant, text, flag):
         UIM = UIManager()
         controller = UIM.get(self._controller_uid)
-        controller.model[self._model_key] = text
+        controller[self._model_key] = text
         return True    
 
 
@@ -74,12 +73,12 @@ class PropertyMixin(object):
     def _get_value(self):
         UIM = UIManager()
         controller = UIM.get(self._controller_uid)
-        return controller.model[self._model_key]
+        return controller[self._model_key]
 
     def _set_value(self, value):
         UIM = UIManager()
         controller = UIM.get(self._controller_uid)        
-        controller.model[self._model_key] = value   
+        controller[self._model_key] = value   
 
 
 class BoolProperty(pg.BoolProperty, PropertyMixin):    
@@ -258,7 +257,7 @@ class PropertyGridController(UIControllerObject):
         repr_ctrl = toc.get_representation()
         if repr_ctrl.tid != 'patches_representation_controller':
             #print
-            for key, key_props in repr_ctrl.model._ATTRIBUTES.items():
+            for key, key_props in repr_ctrl._ATTRIBUTES.items():
                 property_ = _get_pg_property(repr_ctrl.uid, key, key_props)
                 #print '\n', repr_ctrl.uid, key, key_props, property_
                 self._properties[key] = property_
@@ -854,8 +853,8 @@ class ColorProperty(pg.PGProperty):
     def get_value(self):
         UIM = UIManager()
         controller = UIM.get(self._controller_uid)
-        print 'ColorProperty.get_value:', controller.model[self._model_key]
-        return controller.model[self._model_key]
+        print 'ColorProperty.get_value:', controller[self._model_key]
+        return controller[self._model_key]
 
 
     def set_value(self, new_value):
@@ -863,7 +862,7 @@ class ColorProperty(pg.PGProperty):
         try:
             UIM = UIManager()
             controller = UIM.get(self._controller_uid)
-            controller.model[self._model_key] = new_value  
+            controller[self._model_key] = new_value  
             return True
         except:
             return False

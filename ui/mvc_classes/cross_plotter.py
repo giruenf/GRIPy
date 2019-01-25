@@ -10,7 +10,6 @@ from matplotlib import axis
 from matplotlib import rcParams
 
 from ui.mvc_classes.workpage import WorkPageController
-from ui.mvc_classes.workpage import WorkPageModel
 from ui.mvc_classes.workpage import WorkPage
 
 from ui.plotstatusbar import PlotStatusBar
@@ -31,15 +30,8 @@ CP_FLOAT_PANEL = wx.NewId()
 class CrossPlotController(WorkPageController):
     tid = 'crossplot_controller'
     
-    def __init__(self):
-        super().__init__()
-
-        
-class CrossPlotModel(WorkPageModel):
-    tid = 'crossplot_model'
-
-    def __init__(self, controller_uid, **base_state):   
-        super().__init__(controller_uid, **base_state)   
+    def __init__(self, **state):
+        super().__init__(**state)
 
     
 class CrossPlot(WorkPage):
@@ -101,7 +93,7 @@ class CrossPlot(WorkPage):
         
         UIM = UIManager()   
         controller = UIM.get(self._controller_uid)        
-        controller.model.title = self._FRIENDLY_NAME
+        controller.title = self._FRIENDLY_NAME
 
 
 
@@ -139,7 +131,7 @@ class CrossPlot(WorkPage):
         if event.GetId() == CP_FLOAT_PANEL:
             UIM = UIManager()   
             controller = UIM.get(self._controller_uid)
-            controller.model.float_mode = event.IsChecked()            
+            controller.float_mode = event.IsChecked()            
 
 
     def _build_tool_bar(self):
@@ -223,7 +215,7 @@ class CrossPlot(WorkPage):
         self._tool_bar.choice_Style.SetSelection(0)
         #
         #controller = UIM.get(self._controller_uid)
-        #idx_index_type = ['MD', 'TVD', 'TVDSS', 'TWT', 'TIME'].index(controller.model.index_type)
+        #idx_index_type = ['MD', 'TVD', 'TVDSS', 'TWT', 'TIME'].index(controller.index_type)
         #self._tool_bar.choice_IT.SetSelection(idx_index_type)
         self._tool_bar.choice_Style.Bind(wx.EVT_CHOICE , self._on_choice_style) 
         self._tool_bar.AddControl(self._tool_bar.choice_Style, '')
@@ -241,7 +233,7 @@ class CrossPlot(WorkPage):
         lpcs = UIM.list('crossplot_controller')
         for lpc in lpcs:
             idx += 1
-        controller.model.title = self._FRIENDLY_NAME + ' ['+ str(idx) + ']'    
+        controller.title = self._FRIENDLY_NAME + ' ['+ str(idx) + ']'    
         
 
     def _on_choice_style(self, event):

@@ -666,8 +666,8 @@ class PlotFigureCanvas(FigureCanvas, SelectPanelMixin):
                 )
                 for sel_toc in selected_tocs:
                     if sel_toc != toc_ctrl:
-                        sel_toc.model.selected = False
-            toc_ctrl.model.selected = not toc_ctrl.model.selected
+                        sel_toc.selected = False
+            toc_ctrl.selected = not toc_ctrl.selected
             event.mouseevent.guiEvent.Skip(False)
 
         

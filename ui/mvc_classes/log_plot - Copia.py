@@ -78,7 +78,7 @@ class LogPlotController(WorkPageController):
         # Adjust track.model...
         UIM = UIManager()
         track = UIM.get(track_uid)
-        track.model.visible = show
+        track.visible = show
         self.view.show_track(track_uid, show)
     
     
@@ -98,7 +98,7 @@ class LogPlotController(WorkPageController):
         
         for track in selected_tracks:											 
             new_track = UIM.create('track_controller', self.uid, 
-                                   pos=track.model.pos
+                                   pos=track.pos
             )
             ret_list.append(new_track.uid)            
         return ret_list
@@ -140,10 +140,10 @@ class LogPlotController(WorkPageController):
                 if len(tracks_next_pos) == 0:
                     return    
                 track_next_pos = tracks_next_pos[0]
-                if not track_pos.model.overview and not track_next_pos.model.overview:  
+                if not track_pos.overview and not track_next_pos.overview:  
                     if new_pos != self.view.get_track_position(track_pos.uid, False):
                         self.view.change_absolute_track_position_on_splitter(track_pos.uid, new_pos)
-                track_next_pos.model.pos += 1
+                track_next_pos.pos += 1
                 pos -= 1
         
         else:
@@ -156,10 +156,10 @@ class LogPlotController(WorkPageController):
                 if len(tracks_next_pos) == 0:
                     return
                 track_next_pos = tracks_next_pos[0]
-                if not track_pos.model.overview and not track_next_pos.model.overview:      
+                if not track_pos.overview and not track_next_pos.overview:      
                     if new_pos != self.view.get_track_position(track_pos.uid, False):
                         self.view.change_absolute_track_position_on_splitter(track_pos.uid, new_pos)
-                track_next_pos.model.pos -= 1
+                track_next_pos.pos -= 1
                 pos += 1     
                  
         
@@ -169,7 +169,7 @@ class LogPlotController(WorkPageController):
                               'pos>'+str(pos)
         )    
         for track in tracks:
-            track.model.set_value_from_event('pos', track.model.pos-1)   
+            track.set_value_from_event('pos', track.pos-1)   
             track.reload_track_title()        
             
             
@@ -183,10 +183,10 @@ class LogPlotController(WorkPageController):
         for track in selected:
             if track.uid != uid:
                 # TODO: retirar a linha abaixo no futuro
-                track.model.selected = False  
-                track.model.width = obj.model.width 
+                track.selected = False  
+                track.width = obj.width 
                 # TODO: retirar a linha abaixo no futuro
-                track.model.selected = True
+                track.selected = True
 
 
     def show_status_message(self, msg):
@@ -200,11 +200,11 @@ class LogPlotController(WorkPageController):
   
     
     def get_ylim(self):
-       if self.model.y_min_shown is None or \
-                                           self.model.y_max_shown is None:
+       if self.y_min_shown is None or \
+                                           self.y_max_shown is None:
            raise Exception()                                    
-           #return (self.model.logplot_y_min, self.model.logplot_y_max)                                        
-       return (self.model.y_min_shown, self.model.y_max_shown)
+           #return (self.logplot_y_min, self.logplot_y_max)                                        
+       return (self.y_min_shown, self.y_max_shown)
  
     
     def on_change_cursor_state(self, new_value, old_value):
@@ -216,7 +216,7 @@ class LogPlotController(WorkPageController):
             )
             if selected_tracks:
                 for track in selected_tracks:
-                    track.model.selected = False
+                    track.selected = False
 
 
     def on_change_ylim(self, new_value, old_value):
@@ -230,7 +230,7 @@ class LogPlotController(WorkPageController):
         #print self.get_ylim()
         for track in UIM.list('track_controller', self.uid):
             track.set_ylim(y_min, y_max)
-            if track.model.overview:
+            if track.overview:
                 track.reposition_depth_canvas()
         self.view._reload_z_axis_textctrls()        
          
@@ -369,7 +369,7 @@ class LogPlot(WorkPage):
         ###
         
         print (3)
-        well = OM.get(('well', controller.model.well_oid))
+        well = OM.get(('well', controller.well_oid))
         
         controller.attach(well.uid)
         
@@ -380,10 +380,10 @@ class LogPlot(WorkPage):
         
         print (5)
         
-        idx_index_type = self._tool_bar.choice_IT.GetItems().index(controller.model.index_type)
+        idx_index_type = self._tool_bar.choice_IT.GetItems().index(controller.index_type)
         self._tool_bar.choice_IT.SetSelection(idx_index_type)
 
-        self.set_index_type(controller.model.index_type)
+        self.set_index_type(controller.index_type)
         
         self._tool_bar.choice_IT.Bind(wx.EVT_CHOICE , self._on_index_type) 
         
@@ -392,7 +392,7 @@ class LogPlot(WorkPage):
         #ot_toc = self.overview_track.append_object(self.zaxis_uid)
         #ot_toc_repr_ctrl = ot_toc.get_representation()
         # TODO: Update Adaptative
-        #ot_toc_repr_ctrl.model.step = 200
+        #ot_toc_repr_ctrl.step = 200
         #
 
         controller.subscribe(self.on_change_logplot_ylim, 'change.logplot_y_min')
@@ -448,16 +448,16 @@ class LogPlot(WorkPage):
             UIM = UIManager()   
             controller = UIM.get(self._controller_uid)
             idx = 0
-            well = OM.get(('well', controller.model.well_oid))
+            well = OM.get(('well', controller.well_oid))
             lpcs = UIM.list('logplot_controller')
             for lpc in lpcs:
                 if lpc == controller:
                     break
-                if lpc.model.well_oid == controller.model.well_oid:
+                if lpc.well_oid == controller.well_oid:
                     idx += 1
             idx += 1
     
-            controller.model.title = self._FRIENDLY_NAME + ': ' + well.name + \
+            controller.title = self._FRIENDLY_NAME + ': ' + well.name + \
                                         ' ['+ str(idx) + ']'    
         except Exception as e:
             print ('ERROR set_own_name:', e)
@@ -470,17 +470,17 @@ class LogPlot(WorkPage):
         UIM = UIManager()        
         controller = UIM.get(self._controller_uid)
         try:
-            well = OM.get(('well', controller.model.well_oid))
+            well = OM.get(('well', controller.well_oid))
         except:
             raise
             
-        min_, max_ = well.get_z_axis_datatype_range(controller.model.index_type)
+        min_, max_ = well.get_z_axis_datatype_range(controller.index_type)
         print ('\nLogPlot._prepare_index_data:', min_, max_)        
                 
-        controller.model.logplot_y_min = min_
-        controller.model.logplot_y_max = max_
-        controller.model.y_min_shown = min_
-        controller.model.y_max_shown = max_
+        controller.logplot_y_min = min_
+        controller.logplot_y_max = max_
+        controller.y_min_shown = min_
+        controller.y_max_shown = max_
         
         #self.zaxis_uid = zaxis[0].uid
         print ('LogPlot._prepare_index_data FIM\n')
@@ -494,10 +494,10 @@ class LogPlot(WorkPage):
     def _reload_z_axis_textctrls(self):    
         UIM = UIManager()        
         controller = UIM.get(self._controller_uid)
-        #self.overview_track.set_ylim(controller.model.y_min_shown, controller.model.logplot_y_max)
-        z_start_str = "{0:.2f}".format(controller.model.y_min_shown)
+        #self.overview_track.set_ylim(controller.y_min_shown, controller.logplot_y_max)
+        z_start_str = "{0:.2f}".format(controller.y_min_shown)
         self._tool_bar.z_start.SetValue(z_start_str)
-        z_end_str = "{0:.2f}".format(controller.model.y_max_shown)
+        z_end_str = "{0:.2f}".format(controller.y_max_shown)
         self._tool_bar.z_end.SetValue(z_end_str)
         #print '\n_reload_z_axis_textctrls:', z_start_str, z_end_str
         
@@ -531,9 +531,9 @@ class LogPlot(WorkPage):
             
             #self.label, self.track = parent_controller._create_windows(self._controller_uid)
             
-            print (1, track.model.overview)
+            print (1, track.overview)
             
-            if not track.model.overview:
+            if not track.overview:
                 print ('NOT Overview Track')
                 track.view.label = PlotLabel(self.tracks_panel.top_splitter, 
                                              track.view
@@ -541,12 +541,12 @@ class LogPlot(WorkPage):
                 print (1.1)
                 track.view.track = TrackFigureCanvas(self.tracks_panel.bottom_splitter, 
                                     track.view,                      
-                                    size=wx.Size(track.model.width, 
+                                    size=wx.Size(track.width, 
                                         self.tracks_panel.bottom_splitter.GetSize()[1]
                                     ),
-                                    y_major_grid_lines=controller.model.y_major_grid_lines,
-                                    y_minor_grid_lines=controller.model.y_minor_grid_lines,
-                                    **track.model._getstate()
+                                    y_major_grid_lines=controller.y_major_grid_lines,
+                                    y_minor_grid_lines=controller.y_minor_grid_lines,
+                                    **track._getstate()
                 )
                 print (1.2)                    
             
@@ -554,17 +554,17 @@ class LogPlot(WorkPage):
                 print ('Overview Track')
                 track.view.label = None
                 
-                print ('1.35:', track.model._getstate())
+                print ('1.35:', track._getstate())
                 
                 track.view.track = TrackFigureCanvas(self.overview_base_panel, #self._main_panel, 
                                     track.view,
     #                                0,  # TODO: Rever esse pos 
-                                    size=wx.Size(track.model.width, 
+                                    size=wx.Size(track.width, 
                                         self.tracks_panel.bottom_splitter.GetSize()[1]
                                     ),
-                                    y_major_grid_lines=controller.model.y_major_grid_lines,
-                                    y_minor_grid_lines=controller.model.y_minor_grid_lines,
-                                    **track.model._getstate()
+                                    y_major_grid_lines=controller.y_major_grid_lines,
+                                    y_minor_grid_lines=controller.y_minor_grid_lines,
+                                    **track._getstate()
                 )
                 print (1.4)
                 self.overview_base_panel.SetInitialSize((60, 10))
@@ -576,7 +576,7 @@ class LogPlot(WorkPage):
     
             print (2)
     
-            if not track.model.overview:
+            if not track.overview:
                 self.dt1 = DropTarget(controller.is_valid_object,
                                       track.append_object
                 )
@@ -586,17 +586,17 @@ class LogPlot(WorkPage):
     
             print (3)   
             
-            if not track.model.overview:    
+            if not track.overview:    
                 track.view.label.SetDropTarget(self.dt1)        
             track.view.track.SetDropTarget(self.dt2)
                 
-            if track.model.pos == -1:
+            if track.pos == -1:
                 # aqui controller.size jah inclui track
-                track.model.pos = controller.size - 1
+                track.pos = controller.size - 1
             
-            track.view.track.update_multicursor(controller.model.multicursor)
+            track.view.track.update_multicursor(controller.multicursor)
     
-            pos = track.model.pos
+            pos = track.pos
     
             print (3.5)   
             tracks_affected = UIM.exec_query('track_controller',  
@@ -612,10 +612,10 @@ class LogPlot(WorkPage):
             print (5)
             
             
-            if not track.model.overview:     
+            if not track.overview:     
                 self.tracks_panel.insert(pos, track.view.label, 
                                               track.view.track,
-                                              track.model.width
+                                              track.width
                 )
     
                 
@@ -624,14 +624,14 @@ class LogPlot(WorkPage):
                         track_affected.reload_track_title() 
                  
                 
-                track.set_ylim(controller.model.y_min_shown, 
-                               controller.model.y_max_shown
+                track.set_ylim(controller.y_min_shown, 
+                               controller.y_max_shown
                 )
     
             else:
-                print (6,controller.model.logplot_y_min, controller.model.logplot_y_max)
-                track.set_ylim(controller.model.logplot_y_min, 
-                               controller.model.logplot_y_max
+                print (6,controller.logplot_y_min, controller.logplot_y_max)
+                track.set_ylim(controller.logplot_y_min, 
+                               controller.logplot_y_max
                 )
                 print (7)
                 
@@ -657,7 +657,7 @@ class LogPlot(WorkPage):
         )    
         if len(tracks_affected) == 0:
             #for t in UIM.list('track_controller', self._controller_uid):
-             #   print t.uid, t.model.pos
+             #   print t.uid, t.pos
             raise Exception('HAVIA ERRO ==0')
         elif len(tracks_affected) == 1:
             return
@@ -665,7 +665,7 @@ class LogPlot(WorkPage):
         elif len(tracks_affected) == 2:
             tracks_affected.remove(track)
             other_track = tracks_affected[0]
-            other_track.model.set_value_from_event('pos', 
+            other_track.set_value_from_event('pos', 
                                     from_pos+1
             )
             self._adjust_up_pos(other_track.uid, from_pos+1)
@@ -700,7 +700,7 @@ class LogPlot(WorkPage):
         if UIM._getparentuid(track_uid) != self._controller_uid:
             raise Exception()
         track = UIM.get(track_uid)    
-        if track.model.overview:
+        if track.overview:
             return -1 
         _, bottom = track._get_windows()
         #if relative_position:
@@ -720,7 +720,7 @@ class LogPlot(WorkPage):
         UIM = UIManager()
         track = UIM.get(track_uid)           
         ot = self._get_overview_track()
-        if ot and ot.model.pos < track.model.pos:
+        if ot and ot.pos < track.pos:
             pos -= 1
         return pos   
     
@@ -752,14 +752,14 @@ class LogPlot(WorkPage):
         track = UIM.get(track_uid)
         if track.view.label:
             self.tracks_panel.top_splitter.ShowWindow(track.view.label, show)
-        if not track.model.overview:   
+        if not track.overview:   
             self.tracks_panel.bottom_splitter.ShowWindow(track.view.track, show)
         else:
             raise Exception('show_track overview track???')
             
         tracks_affected= UIM.exec_query('track_controller',  
                                             self._controller_uid,
-                                            'pos>='+str(track.model.pos)
+                                            'pos>='+str(track.pos)
         )    
         for track_affected in tracks_affected:
             if track_affected.uid != track.uid:
@@ -771,15 +771,15 @@ class LogPlot(WorkPage):
         UIM = UIManager()
         controller = UIM.get(self._controller_uid) 
         # To trigger only one LogPlotController.on_change_ylim
-        controller.model.set_value_from_event('y_min_shown', min_max[0])
-        controller.model.y_max_shown = min_max[1]
+        controller.set_value_from_event('y_min_shown', min_max[0])
+        controller.y_max_shown = min_max[1]
 
 
     def _on_sash_pos_change(self, event):
         idx = event.GetSashIdx()
         new_width = event.GetSashPosition()
         track_ctrl = self.get_track_on_position(idx)
-        track_ctrl.model.width = new_width
+        track_ctrl.width = new_width
 
 
     def _on_bottom_splitter_size(self, event):
@@ -813,9 +813,9 @@ class LogPlot(WorkPage):
         UIM = UIManager()
         controller = UIM.get(self._controller_uid) 
         if event.GetId() == LP_NORMAL_TOOL:
-            controller.model.cursor_state = LogPlotState.NORMAL_TOOL
+            controller.cursor_state = LogPlotState.NORMAL_TOOL
         elif event.GetId() == LP_SELECTION_TOOL:    
-            controller.model.cursor_state = LogPlotState.SELECTION_TOOL
+            controller.cursor_state = LogPlotState.SELECTION_TOOL
         else:
             raise Exception()    
 
@@ -838,22 +838,22 @@ class LogPlot(WorkPage):
         try:
             zstart = float(self._tool_bar.z_start.GetValue())
             zend = float(self._tool_bar.z_end.GetValue())
-            if not round(zstart, 2) >= round(controller.model.logplot_y_min, 2):
+            if not round(zstart, 2) >= round(controller.logplot_y_min, 2):
                 
-                raise Exception('AAA: ', str(zstart) + '   '+ str(controller.model.logplot_y_min))
+                raise Exception('AAA: ', str(zstart) + '   '+ str(controller.logplot_y_min))
                 
-            if not round(zend, 2) <= round(controller.model.logplot_y_max, 2):
-                raise Exception('BBB: ', str(zend) + '   '+ str(controller.model.logplot_y_max))              
+            if not round(zend, 2) <= round(controller.logplot_y_max, 2):
+                raise Exception('BBB: ', str(zend) + '   '+ str(controller.logplot_y_max))              
         except Exception as e:
             print ('ERROR:', e)
             self._reload_z_axis_textctrls()
             return
-        #controller.model.set_value_from_event('logplot_y_min', zstart)
-        #controller.model.logplot_y_max = zend
+        #controller.set_value_from_event('logplot_y_min', zstart)
+        #controller.logplot_y_max = zend
 
         #
-        controller.model.set_value_from_event('y_min_shown', zstart)
-        controller.model.set_value_from_event('y_max_shown', zend)
+        controller.set_value_from_event('y_min_shown', zstart)
+        controller.set_value_from_event('y_max_shown', zend)
         controller._reload_ylim()
             
 
@@ -861,7 +861,7 @@ class LogPlot(WorkPage):
     def _on_fit(self, event): 
         UIM = UIManager()
         controller = UIM.get(self._controller_uid) 
-        controller.model.fit = event.IsChecked()
+        controller.fit = event.IsChecked()
  
     
     def set_fit(self, new_value, old_value):
@@ -872,12 +872,12 @@ class LogPlot(WorkPage):
     def _on_multicursor(self, event):
         UIM = UIManager()
         controller = UIM.get(self._controller_uid) 
-        controller.model.multicursor = event.GetString()
+        controller.multicursor = event.GetString()
 
     def _on_index_type(self, event):
         UIM = UIManager()
         controller = UIM.get(self._controller_uid) 
-        controller.model.index_type = event.GetString()
+        controller.index_type = event.GetString()
         
 
     def set_multicursor(self, new_value, old_value):        
@@ -904,17 +904,17 @@ class LogPlot(WorkPage):
             #UIM = UIManager()        
             controller = UIM.get(self._controller_uid)
             try:
-                well = OM.get(('well', controller.model.well_oid))
+                well = OM.get(('well', controller.well_oid))
             except:
                 raise
                 
             min_, max_ =  well.get_z_axis_datatype_range(new_value)
             print ('\nLogPlot._prepare_index_data:', min_, max_)        
                     
-            controller.model.logplot_y_min = min_
-            controller.model.logplot_y_max = max_
-            controller.model.y_min_shown = min_
-            controller.model.y_max_shown = max_
+            controller.logplot_y_min = min_
+            controller.logplot_y_max = max_
+            controller.y_min_shown = min_
+            controller.y_max_shown = max_
             
     
             #self.zaxis_uid = zaxis[0].uid
@@ -923,7 +923,7 @@ class LogPlot(WorkPage):
             # TODO: Find a more Pythonic way to write aboxe
             for track_ctrl in UIM.list('track_controller', self._controller_uid):
                 
-                if not track_ctrl.model.overview:
+                if not track_ctrl.overview:
                     """    
 #                    print ('overview')
                     try:
@@ -942,7 +942,7 @@ class LogPlot(WorkPage):
                     #ot_toc = self.overview_track.append_object(self.zaxis_uid)
                     #ot_toc_repr_ctrl = self.ot_toc.get_representation()
                     # TODO: Update Adaptative
-                    #ot_toc_repr_ctrl.model.step = 200
+                    #ot_toc_repr_ctrl.step = 200
                     
                     else:
                     """    
@@ -977,7 +977,7 @@ class LogPlot(WorkPage):
         if event.GetId() == LP_FLOAT_PANEL:
             UIM = UIManager()   
             controller = UIM.get(self._controller_uid)
-            controller.model.float_mode = event.IsChecked()    
+            controller.float_mode = event.IsChecked()    
 
 
         
@@ -1055,7 +1055,7 @@ class LogPlot(WorkPage):
         self._tool_bar.choice_MC = wx.Choice(self._tool_bar, choices=['None', 'Horizon', 'Vertical', 'Both'])  
         UIM = UIManager()
         controller = UIM.get(self._controller_uid)
-        idx_mc = ['None', 'Horizon', 'Vertical', 'Both'].index(controller.model.multicursor)
+        idx_mc = ['None', 'Horizon', 'Vertical', 'Both'].index(controller.multicursor)
         self._tool_bar.choice_MC.SetSelection(idx_mc)
         self._tool_bar.choice_MC.Bind(wx.EVT_CHOICE , self._on_multicursor) 
         self._tool_bar.AddControl(self._tool_bar.choice_MC, '')    
@@ -1068,7 +1068,7 @@ class LogPlot(WorkPage):
         self._tool_bar.choice_IT = wx.Choice(self._tool_bar, choices=[])
         #
         #controller = UIM.get(self._controller_uid)
-        #idx_index_type = ['MD', 'TVD', 'TVDSS', 'TWT', 'TIME'].index(controller.model.index_type)
+        #idx_index_type = ['MD', 'TVD', 'TVDSS', 'TWT', 'TIME'].index(controller.index_type)
         #self._tool_bar.choice_IT.SetSelection(idx_index_type)
         #self._tool_bar.choice_IT.Bind(wx.EVT_CHOICE , self._on_index_type) 
         self._tool_bar.AddControl(self._tool_bar.choice_IT, '')    

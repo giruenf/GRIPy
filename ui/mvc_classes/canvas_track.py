@@ -6,7 +6,7 @@ from app import pubsub
 from app import log
 from classes.ui import UIManager
 from ui.mvc_classes.canvas_base import CanvasBaseController
-from ui.mvc_classes.canvas_base import CanvasBaseModel
+
 from ui.mvc_classes.canvas_base import CanvasBaseView
 
 from ui.mvc_classes.extras import SelectablePanelMixin
@@ -30,264 +30,6 @@ LINEAR_XLIM = (0.0, 100.0 + XMAX_PLUS)
 
 class TrackCanvasController(CanvasBaseController):
     tid = 'track_canvas_controller'
-    
-    def __init__(self):
-        super().__init__()
-        
-    def PostInit(self):
-        super().PostInit()
-        self.subscribe(self.on_change_ygrid_major_lines, 
-                                                   'change.ygrid_major_lines')
-        self.subscribe(self.on_change_ygrid_minor_lines, 
-                                                   'change.ygrid_minor_lines')
-        self.subscribe(self.on_change_leftscale, 'change.leftscale')
-        self.subscribe(self.on_change_decades, 'change.decades')
-        self.subscribe(self.on_change_minorgrid, 'change.minorgrid')
-        self.subscribe(self.on_change_scale_lines, 'change.scale_lines')
-        self.subscribe(self.on_change_depth_lines, 'change.depth_lines')
-        self.subscribe(self.on_change_plotgrid, 'change.plotgrid')
-
-   
-    def on_change_ygrid_major_lines(self, old_value, new_value, 
-                                                    topic=pubsub.AUTO_TOPIC):          
-        try:
-            self.view.set_ygrid_major_lines(new_value)
-        except:
-            self.model.set_value_from_event('ygrid_major_lines', old_value)
-        finally:
-            self.view.draw()
-
-    def on_change_ygrid_minor_lines(self, old_value, new_value, 
-                                                    topic=pubsub.AUTO_TOPIC):          
-        try:
-            self.view.set_ygrid_minor_lines(new_value)
-        except:
-            self.model.set_value_from_event('ygrid_minor_lines', old_value)
-        finally:
-            self.view.draw()
-        
-    def on_change_leftscale(self, old_value, new_value, 
-                                                    topic=pubsub.AUTO_TOPIC):          
-        try:
-            if new_value <= 0:
-                raise ValueError('Wrong value for leftscale. ' + \
-                                                 'Valid values are > 0.0')
-            if self.model.xscale != 'log':
-                return
-            self.view.adjust_scale_xlim('log')
-        except:
-            self.model.set_value_from_event('leftscale', old_value)
-        finally:
-            self.view.draw()     
-
-    def on_change_decades(self, old_value, new_value, 
-                                                    topic=pubsub.AUTO_TOPIC):          
-        try:
-            if new_value <= 0:
-                raise ValueError('Wrong value for decades. ' + \
-                                                 'Valid values are > 0.0')  
-            if self.model.xscale != 'log':
-                return
-            self.view.adjust_scale_xlim('log')
-        except:
-            self.model.set_value_from_event('decades', old_value)
-        finally:
-            self.view.draw()     
-            
-    def on_change_minorgrid(self, old_value, new_value, 
-                                                    topic=pubsub.AUTO_TOPIC):          
-        try:
-            self.view.set_minorgrid(new_value)
-        except:
-            self.model.set_value_from_event('minorgrid', old_value)
-        finally:
-            self.view.draw()              
-
-    def on_change_scale_lines(self, old_value, new_value, 
-                                                    topic=pubsub.AUTO_TOPIC):          
-        try:
-            self.view.set_scale_lines(new_value)
-        except:
-            self.model.set_value_from_event('scale_lines', old_value)
-        finally:
-            self.view.draw()    
-        
-        
-    def on_change_depth_lines(self, old_value, new_value, 
-                                                      topic=pubsub.AUTO_TOPIC):  
-#        print ('\n\n\non_change_depth_lines:', old_value, new_value, topic)
-        try:
-            self.view.set_depth_lines(new_value)
-        except:
-            self.model.set_value_from_event('depth_lines', old_value)
-        finally:
-            self.view.draw()
-            
-            
-    def on_change_plotgrid(self, old_value, new_value, 
-                                                    topic=pubsub.AUTO_TOPIC):          
-        try:
-            self.view.set_plotgrid(new_value)
-        except:
-            self.model.set_value_from_event('plotgrid', old_value)
-        finally:
-            self.view.draw()           
-            
-            
-    def on_change_lim(self, old_value, new_value, topic=pubsub.AUTO_TOPIC):   
-#        print ('\nTrackCanvasController.on_change_lim:', old_value, new_value, topic.getName())
-        
-        key = topic.getName().split('.')[2]
-        if new_value[0] == new_value[1]:
-            
-            self.model.set_value_from_event(key, old_value)
-            raise Exception('Limits for {} axis cannot be same. {}'.format(
-                            key[0], new_value)
-            )
-        
-        # Inverting Y axis limits if necessary
-        if (key[0] == 'y') and (new_value[0] < new_value[1]):
-            new_value = (new_value[1], new_value[0])
-
-        super().on_change_lim(old_value, new_value, topic)
-    
-
-
-
-    def on_change_scale(self, old_value, new_value, topic=pubsub.AUTO_TOPIC):
-#        print ('\n\nTrackCanvasController.on_change_scale:', old_value, new_value, topic.getName())
-                
-        key = topic.getName().split('.')[2]
-        axis = key[0] # x or y  
-        # Y axis (depth) is linear and will not be changed.
-        if axis == 'y':
-            # TODO: Check for coding a Exception here
-            self.model.set_value_from_event(key, old_value)
-            return
-        # This time we only have X axis 
-        if new_value not in ["linear", "log"]:
-            # TODO: Check for coding a Exception here
-            self.model.set_value_from_event(key, old_value)
-            return            
-        # Setting locators to NullLocator. 
-        # This is made to avoid "exceeds Locator.MAXTICKS" RuntimeError
-        self.view.set_locator(None, 'x', 'major')
-        self.view.set_locator(None, 'x', 'minor') 
-        #
-        if new_value == "linear":  
-            super().on_change_scale(old_value, new_value, topic)
-            self.view.adjust_scale_xlim(new_value)
-            # Returning with locators
-            self.view.set_scale_lines(self.model.scale_lines)
-        else:
-            # On log scales is necessary adjust xlim before change scale. 
-            # This is made to avoid non-positive limits for log-scale axis.
-            self.view.adjust_scale_xlim(new_value)
-            super().on_change_scale(old_value, new_value, topic)
-            # Returning with locators
-            self.set_locator('log', 'x', 'major', numdecs=self.model.decades)            
-            self.view.set_minorgrid(self.model.minorgrid)
-        self.view.set_plotgrid(self.model.plotgrid)
-
-
-
-
-    # TODO: Check if it is the best way        
-    # Overriding super class method
-    def on_change_rect(self, old_value, new_value):        
-        self.model.set_value_from_event('rect', old_value)
-
-
-    # TODO: Check if it is the best way        
-    # Overriding super class method
-    def on_change_figure_facecolor(self, old_value, new_value, 
-                                                      topic=pubsub.AUTO_TOPIC):
-        key = topic.getName().split('.')[2]
-        self.model.set_value_from_event(key, old_value)
-            
-
-    # TODO: Check if it is the best way        
-    # Overriding super class method
-    def on_change_spine_visibility(self, old_value, new_value, 
-                                                      topic=pubsub.AUTO_TOPIC):  
-        key = topic.getName().split('.')[2]
-        self.model.set_value_from_event(key, old_value)
-        
-        
-        
-    # TODO: Check if it is the best way        
-    # Overriding super class method
-    def on_change_axis_visibility(self, old_value, new_value, 
-                                                      topic=pubsub.AUTO_TOPIC):   
-        key = topic.getName().split('.')[2]
-        self.model.set_value_from_event(key, old_value)
-        
-
-
-    # TODO: Check if it is the best way        
-    # Overriding super class method
-    def on_change_axes_properties(self, old_value, new_value, 
-                                                      topic=pubsub.AUTO_TOPIC):
-        key = topic.getName().split('.')[2]
-        self.model.set_value_from_event(key, old_value)
-
-
-        
-    # TODO: Check if it is the best way        
-    # Overriding super class method
-    def on_change_text_properties(self, old_value, new_value, topic=pubsub.AUTO_TOPIC): 
-        key = topic.getName().split('.')[2]
-        self.model.set_value_from_event(key, old_value) 
-
-
-
-    def on_change_grid_parameters(self, old_value, new_value, 
-                                                      topic=pubsub.AUTO_TOPIC):
-        param_key = topic.getName().split('.')[2]
-        key_type = param_key.split('_')[0]
-        # grid keys are unchangeable (grid_color, grid_alpha, grid_linestyle and grid_linewidth)
-        if key_type == 'grid':
-            self.model.set_value_from_event(param_key, old_value) 
-        else:  
-            super().on_change_grid_parameters(old_value, new_value, topic)
-
-
-
-    # TODO: Check if it is the best way        
-    # Overriding super class method
-    def load_style(self, style_name):
-        pass
-
-
-    # TODO: Check if it is the best way        
-    # Overriding super class method
-    def _load_dict(self, lib_dict):
-        pass
-        
-
-
-
-
-
-
-###############################################################################
-###############################################################################
-
-# ESSES 2 METODOS ABAIXO PRECISAM SER DECIDIDOS ONDE FICARAO
- 
-#    def on_change_locator(self, old_value, new_value, topic=pubsub.AUTO_TOPIC):           
-
-#    def on_change_tick_params(self, old_value, new_value, 
-#                                                      topic=pubsub.AUTO_TOPIC):      
-
-
-###############################################################################
-###############################################################################
-        
-    
-        
-class TrackCanvasModel(CanvasBaseModel):
-    tid = 'track_canvas_model'
 
     _ATTRIBUTES = {
         #['depth_lines', 'plotgrid', 'leftscale', 'decades', 'minorgrid', 
@@ -334,12 +76,10 @@ class TrackCanvasModel(CanvasBaseModel):
         }    
 
     }  
-        
-    def __init__(self, controller_uid, **base_state):      
-        super().__init__(controller_uid, **base_state) 
     
-       
-    def PostInit(self):
+    def __init__(self, **state):
+        super().__init__(**state)
+
         self.rect = (0.15, 0.15, 0.7, 0.7) #(0.05, 0.05, 0.9, 0.9) #(0.0, 0.0, 1.0, 1.0)   #(0.1, 0.1, 0.8, 0.8)
         # 
         self.axes_spines_right = False
@@ -391,9 +131,265 @@ class TrackCanvasModel(CanvasBaseModel):
         self.xgrid_minor =  False
         
         #self.figure_facecolor = 'white'
+
+
+
+
+
+        
+    def PostInit(self):
+        super().PostInit()
+        self.subscribe(self.on_change_ygrid_major_lines, 
+                                                   'change.ygrid_major_lines')
+        self.subscribe(self.on_change_ygrid_minor_lines, 
+                                                   'change.ygrid_minor_lines')
+        self.subscribe(self.on_change_leftscale, 'change.leftscale')
+        self.subscribe(self.on_change_decades, 'change.decades')
+        self.subscribe(self.on_change_minorgrid, 'change.minorgrid')
+        self.subscribe(self.on_change_scale_lines, 'change.scale_lines')
+        self.subscribe(self.on_change_depth_lines, 'change.depth_lines')
+        self.subscribe(self.on_change_plotgrid, 'change.plotgrid')
+
+   
+    def on_change_ygrid_major_lines(self, old_value, new_value, 
+                                                    topic=pubsub.AUTO_TOPIC):          
+        try:
+            self.view.set_ygrid_major_lines(new_value)
+        except:
+            self.set_value_from_event('ygrid_major_lines', old_value)
+        finally:
+            self.view.draw()
+
+    def on_change_ygrid_minor_lines(self, old_value, new_value, 
+                                                    topic=pubsub.AUTO_TOPIC):          
+        try:
+            self.view.set_ygrid_minor_lines(new_value)
+        except:
+            self.set_value_from_event('ygrid_minor_lines', old_value)
+        finally:
+            self.view.draw()
+        
+    def on_change_leftscale(self, old_value, new_value, 
+                                                    topic=pubsub.AUTO_TOPIC):          
+        try:
+            if new_value <= 0:
+                raise ValueError('Wrong value for leftscale. ' + \
+                                                 'Valid values are > 0.0')
+            if self.xscale != 'log':
+                return
+            self.view.adjust_scale_xlim('log')
+        except:
+            self.set_value_from_event('leftscale', old_value)
+        finally:
+            self.view.draw()     
+
+    def on_change_decades(self, old_value, new_value, 
+                                                    topic=pubsub.AUTO_TOPIC):          
+        try:
+            if new_value <= 0:
+                raise ValueError('Wrong value for decades. ' + \
+                                                 'Valid values are > 0.0')  
+            if self.xscale != 'log':
+                return
+            self.view.adjust_scale_xlim('log')
+        except:
+            self.set_value_from_event('decades', old_value)
+        finally:
+            self.view.draw()     
+            
+    def on_change_minorgrid(self, old_value, new_value, 
+                                                    topic=pubsub.AUTO_TOPIC):          
+        try:
+            self.view.set_minorgrid(new_value)
+        except:
+            self.set_value_from_event('minorgrid', old_value)
+        finally:
+            self.view.draw()              
+
+    def on_change_scale_lines(self, old_value, new_value, 
+                                                    topic=pubsub.AUTO_TOPIC):          
+        try:
+            self.view.set_scale_lines(new_value)
+        except:
+            self.set_value_from_event('scale_lines', old_value)
+        finally:
+            self.view.draw()    
+        
+        
+    def on_change_depth_lines(self, old_value, new_value, 
+                                                      topic=pubsub.AUTO_TOPIC):  
+#        print ('\n\n\non_change_depth_lines:', old_value, new_value, topic)
+        try:
+            self.view.set_depth_lines(new_value)
+        except:
+            self.set_value_from_event('depth_lines', old_value)
+        finally:
+            self.view.draw()
+            
+            
+    def on_change_plotgrid(self, old_value, new_value, 
+                                                    topic=pubsub.AUTO_TOPIC):          
+        try:
+            self.view.set_plotgrid(new_value)
+        except:
+            self.set_value_from_event('plotgrid', old_value)
+        finally:
+            self.view.draw()           
+            
+            
+    def on_change_lim(self, old_value, new_value, topic=pubsub.AUTO_TOPIC):   
+#        print ('\nTrackCanvasController.on_change_lim:', old_value, new_value, topic.getName())
+        
+        key = topic.getName().split('.')[2]
+        if new_value[0] == new_value[1]:
+            
+            self.set_value_from_event(key, old_value)
+            raise Exception('Limits for {} axis cannot be same. {}'.format(
+                            key[0], new_value)
+            )
+        
+        # Inverting Y axis limits if necessary
+        if (key[0] == 'y') and (new_value[0] < new_value[1]):
+            new_value = (new_value[1], new_value[0])
+
+        super().on_change_lim(old_value, new_value, topic)
+    
+
+
+
+    def on_change_scale(self, old_value, new_value, topic=pubsub.AUTO_TOPIC):
+#        print ('\n\nTrackCanvasController.on_change_scale:', old_value, new_value, topic.getName())
+                
+        key = topic.getName().split('.')[2]
+        axis = key[0] # x or y  
+        # Y axis (depth) is linear and will not be changed.
+        if axis == 'y':
+            # TODO: Check for coding a Exception here
+            self.set_value_from_event(key, old_value)
+            return
+        # This time we only have X axis 
+        if new_value not in ["linear", "log"]:
+            # TODO: Check for coding a Exception here
+            self.set_value_from_event(key, old_value)
+            return            
+        # Setting locators to NullLocator. 
+        # This is made to avoid "exceeds Locator.MAXTICKS" RuntimeError
+        self.view.set_locator(None, 'x', 'major')
+        self.view.set_locator(None, 'x', 'minor') 
+        #
+        if new_value == "linear":  
+            super().on_change_scale(old_value, new_value, topic)
+            self.view.adjust_scale_xlim(new_value)
+            # Returning with locators
+            self.view.set_scale_lines(self.scale_lines)
+        else:
+            # On log scales is necessary adjust xlim before change scale. 
+            # This is made to avoid non-positive limits for log-scale axis.
+            self.view.adjust_scale_xlim(new_value)
+            super().on_change_scale(old_value, new_value, topic)
+            # Returning with locators
+            self.set_locator('log', 'x', 'major', numdecs=self.decades)            
+            self.view.set_minorgrid(self.minorgrid)
+        self.view.set_plotgrid(self.plotgrid)
+
+
+
+
+    # TODO: Check if it is the best way        
+    # Overriding super class method
+    def on_change_rect(self, old_value, new_value):        
+        self.set_value_from_event('rect', old_value)
+
+
+    # TODO: Check if it is the best way        
+    # Overriding super class method
+    def on_change_figure_facecolor(self, old_value, new_value, 
+                                                      topic=pubsub.AUTO_TOPIC):
+        key = topic.getName().split('.')[2]
+        self.set_value_from_event(key, old_value)
+            
+
+    # TODO: Check if it is the best way        
+    # Overriding super class method
+    def on_change_spine_visibility(self, old_value, new_value, 
+                                                      topic=pubsub.AUTO_TOPIC):  
+        key = topic.getName().split('.')[2]
+        self.set_value_from_event(key, old_value)
+        
+        
+        
+    # TODO: Check if it is the best way        
+    # Overriding super class method
+    def on_change_axis_visibility(self, old_value, new_value, 
+                                                      topic=pubsub.AUTO_TOPIC):   
+        key = topic.getName().split('.')[2]
+        self.set_value_from_event(key, old_value)
         
 
 
+    # TODO: Check if it is the best way        
+    # Overriding super class method
+    def on_change_axes_properties(self, old_value, new_value, 
+                                                      topic=pubsub.AUTO_TOPIC):
+        key = topic.getName().split('.')[2]
+        self.set_value_from_event(key, old_value)
+
+
+        
+    # TODO: Check if it is the best way        
+    # Overriding super class method
+    def on_change_text_properties(self, old_value, new_value, topic=pubsub.AUTO_TOPIC): 
+        key = topic.getName().split('.')[2]
+        self.set_value_from_event(key, old_value) 
+
+
+
+    def on_change_grid_parameters(self, old_value, new_value, 
+                                                      topic=pubsub.AUTO_TOPIC):
+        param_key = topic.getName().split('.')[2]
+        key_type = param_key.split('_')[0]
+        # grid keys are unchangeable (grid_color, grid_alpha, grid_linestyle and grid_linewidth)
+        if key_type == 'grid':
+            self.set_value_from_event(param_key, old_value) 
+        else:  
+            super().on_change_grid_parameters(old_value, new_value, topic)
+
+
+
+    # TODO: Check if it is the best way        
+    # Overriding super class method
+    def load_style(self, style_name):
+        pass
+
+
+    # TODO: Check if it is the best way        
+    # Overriding super class method
+    def _load_dict(self, lib_dict):
+        pass
+        
+
+
+
+
+
+
+###############################################################################
+###############################################################################
+
+# ESSES 2 METODOS ABAIXO PRECISAM SER DECIDIDOS ONDE FICARAO
+ 
+#    def on_change_locator(self, old_value, new_value, topic=pubsub.AUTO_TOPIC):           
+
+#    def on_change_tick_params(self, old_value, new_value, 
+#                                                      topic=pubsub.AUTO_TOPIC):      
+
+
+###############################################################################
+###############################################################################
+        
+
+
+        
 
         
 class TrackCanvas(CanvasBaseView, SelectablePanelMixin):  
@@ -406,14 +402,14 @@ class TrackCanvas(CanvasBaseView, SelectablePanelMixin):
         self._depth_canvas = None
         UIM = UIManager()
         controller = UIM.get(self._controller_uid)
-        self.adjust_scale_xlim(controller.model.xscale)
+        self.adjust_scale_xlim(controller.xscale)
         super().PostInit()
-        self.set_ygrid_major_lines(controller.model.ygrid_major_lines)
-        self.set_ygrid_minor_lines(controller.model.ygrid_minor_lines)
-        if controller.model.xscale == 'log':
+        self.set_ygrid_major_lines(controller.ygrid_major_lines)
+        self.set_ygrid_minor_lines(controller.ygrid_minor_lines)
+        if controller.xscale == 'log':
             self.set_locator('log', 'x', 'major', 
-                                             numdecs=controller.model.decades)
-        wx.CallAfter(self.set_plotgrid, controller.model.plotgrid)
+                                             numdecs=controller.decades)
+        wx.CallAfter(self.set_plotgrid, controller.plotgrid)
         
 
     def PreDelete(self):
@@ -422,7 +418,7 @@ class TrackCanvas(CanvasBaseView, SelectablePanelMixin):
         parent_controller =  UIM.get(parent_controller_uid)
         granpa_controller_uid = UIM._getparentuid(parent_controller_uid)
         granpa_controller =  UIM.get(granpa_controller_uid)
-        if parent_controller.model.overview:
+        if parent_controller.overview:
             try:
                 granpa_controller._pre_delete_overview_track()
             except:
@@ -449,13 +445,13 @@ class TrackCanvas(CanvasBaseView, SelectablePanelMixin):
         UIM = UIManager()
         controller = UIM.get(self._controller_uid)   
         if scale == 'linear':
-            controller.model.xlim = LINEAR_XLIM
+            controller.xlim = LINEAR_XLIM
 
         elif scale == 'log':
-            min_ = controller.model.leftscale
-            max_ = controller.model.leftscale*10.0**controller.model.decades +\
+            min_ = controller.leftscale
+            max_ = controller.leftscale*10.0**controller.decades +\
                                                                     XMAX_PLUS
-            controller.model.xlim = (min_, max_)
+            controller.xlim = (min_, max_)
 
 
 
@@ -466,8 +462,8 @@ class TrackCanvas(CanvasBaseView, SelectablePanelMixin):
     def set_minorgrid(self, value):
         UIM = UIManager()
         controller = UIM.get(self._controller_uid)   
-        if controller.model.xscale == 'log' and controller.model.plotgrid:
-            controller.model.xgrid_minor = value
+        if controller.xscale == 'log' and controller.plotgrid:
+            controller.xgrid_minor = value
             
 
     # Linear properties
@@ -478,13 +474,13 @@ class TrackCanvas(CanvasBaseView, SelectablePanelMixin):
         UIM = UIManager()
         controller = UIM.get(self._controller_uid) 
 
-        if controller.model.xscale == 'linear' and controller.model.plotgrid:
+        if controller.xscale == 'linear' and controller.plotgrid:
             x0, x1 = LINEAR_XLIM
             x1 -= XMAX_PLUS
             x_major_grid_lines = (x1-x0)/value
             # TODO: Verificar Locators
             self.set_locator('multiple', 'x', 'major', x_major_grid_lines)
-            controller.model.xgrid_major = True
+            controller.xgrid_major = True
 
 
     def set_ygrid_major_lines(self, value):
@@ -508,75 +504,75 @@ class TrackCanvas(CanvasBaseView, SelectablePanelMixin):
         if value < 0 or value > 5:
             raise ValueError('Wrong value for depth_lines. ' + \
                                                      'Valid values are 0-5.')            
-        if controller.model.plotgrid:
+        if controller.plotgrid:
             self._ticks = False
             self._postpone_draw = True
             # DEPTH LINES == DEFAULT - X GRIDS, BUT NO TICKS
             if value == 0:
-                controller.model.ygrid_major = True
-                controller.model.ygrid_minor = True
-                controller.model.ytick_major_left = False
-                controller.model.ytick_minor_left = False
-                controller.model.ytick_major_right = False
-                controller.model.ytick_minor_right = False
+                controller.ygrid_major = True
+                controller.ygrid_minor = True
+                controller.ytick_major_left = False
+                controller.ytick_minor_left = False
+                controller.ytick_major_right = False
+                controller.ytick_minor_right = False
             # DEPTH LINES == LEFT 
             elif value == 1:
                 self._ticks = True
-                controller.model.ygrid_major = False
-                controller.model.ygrid_minor = False
-                controller.model.axes_spines_left_position = ('axes', 0.0)
-                controller.model.axes_spines_right_position = ('axes', 1.0)
-                controller.model.ytick_direction = 'in'
-                controller.model.ytick_major_left = True
-                controller.model.ytick_minor_left = True
-                controller.model.ytick_major_right = False
-                controller.model.ytick_minor_right = False
+                controller.ygrid_major = False
+                controller.ygrid_minor = False
+                controller.axes_spines_left_position = ('axes', 0.0)
+                controller.axes_spines_right_position = ('axes', 1.0)
+                controller.ytick_direction = 'in'
+                controller.ytick_major_left = True
+                controller.ytick_minor_left = True
+                controller.ytick_major_right = False
+                controller.ytick_minor_right = False
             # DEPTH LINES == RIGHT
             elif value == 2:
                 self._ticks = True
-                controller.model.ygrid_major = False
-                controller.model.ygrid_minor = False
-                controller.model.axes_spines_left_position = ('axes', 0.0)
-                controller.model.axes_spines_right_position = ('axes', 1.0)
-                controller.model.ytick_direction = 'in'
-                controller.model.ytick_major_left = False
-                controller.model.ytick_minor_left = False
-                controller.model.ytick_major_right = True
-                controller.model.ytick_minor_right = True
+                controller.ygrid_major = False
+                controller.ygrid_minor = False
+                controller.axes_spines_left_position = ('axes', 0.0)
+                controller.axes_spines_right_position = ('axes', 1.0)
+                controller.ytick_direction = 'in'
+                controller.ytick_major_left = False
+                controller.ytick_minor_left = False
+                controller.ytick_major_right = True
+                controller.ytick_minor_right = True
             # DEPTH LINES == CENTER   
             elif value == 3:
                 self._ticks = True             
-                controller.model.ygrid_major = False
-                controller.model.ygrid_minor = False 
-                controller.model.axes_spines_left_position = ('axes', 0.5)
-                controller.model.axes_spines_right_position = ('axes', 0.5)
-                controller.model.ytick_direction = 'out'
-                controller.model.ytick_major_left = True
-                controller.model.ytick_minor_left = True
-                controller.model.ytick_major_right = True
-                controller.model.ytick_minor_right = True
+                controller.ygrid_major = False
+                controller.ygrid_minor = False 
+                controller.axes_spines_left_position = ('axes', 0.5)
+                controller.axes_spines_right_position = ('axes', 0.5)
+                controller.ytick_direction = 'out'
+                controller.ytick_major_left = True
+                controller.ytick_minor_left = True
+                controller.ytick_major_right = True
+                controller.ytick_minor_right = True
             # DEPTH LINES == LEFT AND RIGHT    
             elif value == 4:   
                 self._ticks = True
-                controller.model.ygrid_major = False
-                controller.model.ygrid_minor = False 
-                controller.model.axes_spines_left_position = ('axes', 0.0)
-                controller.model.axes_spines_right_position = ('axes', 1.0)
-                controller.model.ytick_direction = 'in'
-                controller.model.ytick_major_left = True
-                controller.model.ytick_minor_left = True
-                controller.model.ytick_major_right = True
-                controller.model.ytick_minor_right = True
+                controller.ygrid_major = False
+                controller.ygrid_minor = False 
+                controller.axes_spines_left_position = ('axes', 0.0)
+                controller.axes_spines_right_position = ('axes', 1.0)
+                controller.ytick_direction = 'in'
+                controller.ytick_major_left = True
+                controller.ytick_minor_left = True
+                controller.ytick_major_right = True
+                controller.ytick_minor_right = True
             # DEPTH LINES == NONE
             elif value == 5:
-                controller.model.ygrid_major = False
-                controller.model.ygrid_minor = False                 
-                controller.model.axes_spines_left_position = ('axes', 0.0)
-                controller.model.axes_spines_right_position = ('axes', 1.0)
-                controller.model.ytick_major_left = False
-                controller.model.ytick_minor_left = False
-                controller.model.ytick_major_right = False
-                controller.model.ytick_minor_right = False
+                controller.ygrid_major = False
+                controller.ygrid_minor = False                 
+                controller.axes_spines_left_position = ('axes', 0.0)
+                controller.axes_spines_right_position = ('axes', 1.0)
+                controller.ytick_major_left = False
+                controller.ytick_minor_left = False
+                controller.ytick_major_right = False
+                controller.ytick_minor_right = False
             self._postpone_draw = False  
 
 
@@ -585,18 +581,18 @@ class TrackCanvas(CanvasBaseView, SelectablePanelMixin):
         controller = UIM.get(self._controller_uid)   
         self._postpone_draw = True  
         if value:
-            self.set_minorgrid(controller.model.minorgrid)
-            self.set_scale_lines(controller.model.scale_lines)
-            self.set_depth_lines(controller.model.depth_lines)
+            self.set_minorgrid(controller.minorgrid)
+            self.set_scale_lines(controller.scale_lines)
+            self.set_depth_lines(controller.depth_lines)
         else:
-            controller.model.xgrid_major = False
-            controller.model.xgrid_minor = False
-            controller.model.ygrid_major = False
-            controller.model.ygrid_minor = False
-            controller.model.ytick_major_left = False
-            controller.model.ytick_minor_left = False
-            controller.model.ytick_major_right = False
-            controller.model.ytick_minor_right = False
+            controller.xgrid_major = False
+            controller.xgrid_minor = False
+            controller.ygrid_major = False
+            controller.ygrid_minor = False
+            controller.ytick_major_left = False
+            controller.ytick_minor_left = False
+            controller.ytick_major_right = False
+            controller.ytick_minor_right = False
         self._postpone_draw = False  
        
 
@@ -921,12 +917,12 @@ class DepthCanvas():
         
 
         if top_canvas_px == min_y_px:
-            min_depth = granpa_controller.model.wellplot_ylim[0]
+            min_depth = granpa_controller.wellplot_ylim[0]
         else:
             min_depth = self._get_depth_from_ypixel(top_canvas_px)         
 
         if bottom_canvas_px == max_y_px:
-            max_depth = granpa_controller.model.wellplot_ylim[1]
+            max_depth = granpa_controller.wellplot_ylim[1]
         else:
             max_depth = self._get_depth_from_ypixel(bottom_canvas_px + 
                                                             self.canvas_height) 
@@ -948,7 +944,7 @@ class DepthCanvas():
         
 
         #
-        granpa_controller.model.shown_ylim = (min_depth, max_depth)
+        granpa_controller.shown_ylim = (min_depth, max_depth)
         #
         self._in_canvas.SetBackgroundColour(self.canvas_color)
         self._in_canvas.Refresh()       
@@ -982,7 +978,7 @@ class DepthCanvas():
         granpa_controller =  UIM.get(granpa_controller_uid)  
         #
         xmin, xmax = self.tc.get_xlim()
-        ymin, ymax = granpa_controller.model.shown_ylim
+        ymin, ymax = granpa_controller.shown_ylim
         #
         transdata = self.tc.get_transdata()
         data_min = (xmin , ymin)
@@ -1014,7 +1010,7 @@ class DepthCanvas():
         granpa_controller =  UIM.get(granpa_controller_uid)  
         #
         xmin, xmax = self.tc.get_xlim()
-        depth_min, depth_max = granpa_controller.model.shown_ylim
+        depth_min, depth_max = granpa_controller.shown_ylim
         #
         top_px = self._get_ypixel_from_depth(depth_min)
         bottom_px = self._get_ypixel_from_depth(depth_max)
@@ -1102,7 +1098,7 @@ class DepthCanvas():
                 #    
 
                 #
-                parent_controller.model.set_value_from_event('shown_ylim', (d1, d2))
+                parent_controller.set_value_from_event('shown_ylim', (d1, d2))
                 parent_controller._reload_ylim()
                 # 
                 canvas.SetBackgroundColour(self.canvas_color)

@@ -72,7 +72,7 @@ class UIControllerObject(UIBaseObject):
         except:
             ok = False
             try:
-                self.model.__setitem__(key, value)
+                self.__setitem__(key, value)
                 ok = True
             except:
                 pass
@@ -88,7 +88,7 @@ class UIControllerObject(UIBaseObject):
 #            print ('erro')
             ok = False
             try:
-                self.model.__setattr__(key, value)
+                self.__setattr__(key, value)
                 ok = True
             except:
 #                print ('erro 2')
@@ -111,8 +111,8 @@ class UIControllerObject(UIBaseObject):
             try:
                 self.model = model_class(self.uid, **base_state)
                 #
-                for attr_name, attr_props in self.model._ATTRIBUTES.items():
-                    self.model.subscribe(self._model_changed, 'change.' + attr_name)
+                for attr_name, attr_props in self._ATTRIBUTES.items():
+                    self.subscribe(self._model_changed, 'change.' + attr_name)
                 #
             except Exception as e:
                 msg = 'ERROR on creating MVC model {} object: {}'.format(model_class.__name__, e)
@@ -137,9 +137,9 @@ class UIControllerObject(UIBaseObject):
     def _PostInit(self):
         try:
             if self.model:
-                self.model.PostInit()
+                self.PostInit()
         except Exception as e:
-            msg = 'ERROR in {}.PostInit: {}'.format(self.model.__class__.__name__, e)
+            msg = 'ERROR in {}.PostInit: {}'.format(self.__class__.__name__, e)
             log.exception(msg)
             print ('\n', msg)
             raise
@@ -187,7 +187,7 @@ class UIControllerObject(UIBaseObject):
     def get_state(self):
         if not self.model:
             return None 
-        state = self.model._getstate()
+        state = self._getstate()
         UIM = UIManager()
         children = UIM.list(parentuidfilter=self.uid)
         if children:
@@ -555,10 +555,10 @@ class UIManager(GripyManager):
 
         if obj.model:
             #
-            obj.model.unsubAll()
+            obj.unsubAll()
             #
-            obj.model.PreDelete()  
-            msg = 'Deleting UI model object {}.'.format(obj.model.uid)
+            obj.PreDelete()  
+            msg = 'Deleting UI model object {}.'.format(obj.uid)
 #            print (msg)
             log.debug(msg)
             del obj.model    
@@ -613,10 +613,10 @@ class UIManager(GripyManager):
         for obj in self.list():
             try:
                 #
-                obj.model.unsubAll()
+                obj.unsubAll()
                 #
                 #
-                obj.model.PreDelete() 
+                obj.PreDelete() 
             except AttributeError:
                 pass
             except:
@@ -755,7 +755,7 @@ class UIManager(GripyManager):
             if not obj.model: 
                 obj_state = OrderedDict()
             else:
-                obj_state = obj.model.get_application_state()
+                obj_state = obj.get_application_state()
                 if obj_state.has_key('children'):
                     msg = obj.__class__.__name__ + ' cannot have an attribute called ''children''.'
                     raise AttributeError(msg)
@@ -778,7 +778,7 @@ class UIManager(GripyManager):
             if not obj.model: 
                 obj_state = OrderedDict()
             else:
-                obj_state = obj.model.get_user_state()
+                obj_state = obj.get_user_state()
             #    if obj_state.has_key('children'):
             #        msg = obj.__class__.__name__ + ' cannot have an attribute called ''children''.'
             #        raise AttributeError(msg)

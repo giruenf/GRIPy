@@ -140,32 +140,19 @@ class GripyManager(pubsub.PublisherMixin, metaclass=GripyManagerMeta):
                 ok = True
                 for (key, operator, value) in comparators:
                     ok = False
-                   
-                    print('\n\n\nb4:', key, operator, value)
-                    try:
-                        attr = obj.find_attribute(key)
-                    except Exception as e:
-                        print('ERROR 1:', e)
-                        attr = None
-                        
-                    print('attr 1:', attr)
+
+
+                    attr = obj.find_attribute(key)
                     if attr is None:
-                        raise Exception('Attribute {} not found.'.format(key))
-                    
+                        raise Exception('Attribute {} was not found.'.format(\
+                                                                        key)
+                        )
+                        
+                        
                     type_ = attr.get('type')
                     value = type_(value)
-                    
-                    try:
-                        attr_value = obj[key]
-                    except Exception as e:
-                        print('ERROR 2:', e, type(e))
-                        try:
-                            attr_value = obj.model[key]
-                            print('OK:', attr_value)
-                        except Exception as e2:
-                            print('ERROR 3:', e2, type(e2))
-                            
-                    #else:
+                    attr_value = obj[key]
+
                     if operator == '>=':
                         ok = attr_value >= value
                     elif operator == '<=':
@@ -190,7 +177,7 @@ class GripyManager(pubsub.PublisherMixin, metaclass=GripyManagerMeta):
                 while len(ret_list) > 0:
                     minor_idx = 0
                     for idx, obj in enumerate(ret_list):
-                        if obj.model[orderby] < ret_list[minor_idx].model[orderby]:
+                        if obj[orderby] < ret_list[minor_idx][orderby]:
                             minor_idx = idx
                     aux_list.append(ret_list[minor_idx])
                     del ret_list[minor_idx]

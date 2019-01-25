@@ -7,7 +7,6 @@ import wx
 from classes.om import ObjectManager
 from classes.ui import UIManager
 from ui.mvc_classes.wxgripy import FrameController
-from ui.mvc_classes.wxgripy import FrameModel
 from ui.mvc_classes.wxgripy import Frame
 from app import log
 
@@ -242,12 +241,18 @@ class DimensionPanel(wx.Panel):
 class NavigatorController(FrameController):
     tid = 'navigator_controller'
     
-    def __init__(self):
-        super(NavigatorController, self).__init__()
+    _ATTRIBUTES = OrderedDict()
+    _ATTRIBUTES['data_filter_oid'] = {
+            'default_value': None,
+            'type': int
+    }  
+    
+    def __init__(self, **state):
+        super().__init__(**state)
  
     def PostInit(self):
         OM = ObjectManager()
-        df = OM.get(('data_filter', self.model.data_filter_oid))
+        df = OM.get(('data_filter', self.data_filter_oid))
         data_indexes = df.data[::-1]
         for (di_uid, display, is_range, first, last) in data_indexes:
             #obj = OM.get(di_uid)
@@ -259,7 +264,7 @@ class NavigatorController(FrameController):
     def Set(self, results):
         print ('NavigatorController.Set:', results)
         OM = ObjectManager()
-        df = OM.get(('data_filter', self.model.data_filter_oid))
+        df = OM.get(('data_filter', self.data_filter_oid))
         new_data = []
         for result in results[::-1]:
             new_data.append((result['uid'], result['display'], 
@@ -270,18 +275,6 @@ class NavigatorController(FrameController):
         df.reload_data()
         print ('NavigatorController.Set ENDED')
         
-            
-class NavigatorModel(FrameModel):
-    tid = 'navigator_model'
-
-    _ATTRIBUTES = OrderedDict()
-    _ATTRIBUTES['data_filter_oid'] = {
-            'default_value': None,
-            'type': int
-    }  
-     
-    def __init__(self, controller_uid, **base_state): 
-        super(NavigatorModel, self).__init__(controller_uid, **base_state) 
 
 
 class Navigator(Frame):

@@ -3,8 +3,7 @@
 import wx
 
 from classes.ui import UIManager
-from classes.ui import UIControllerObject 
-from classes.ui import UIModelObject 
+from classes.ui import UIControllerObject
 from classes.ui import UIViewObject 
 from ui.mvc_classes.main_window import MainWindowController
 from app import log
@@ -14,12 +13,6 @@ class ToolBarController(UIControllerObject):
     tid = 'toolbar_controller'
     _singleton_per_parent = True
     
-    def __init__(self):
-        super(ToolBarController, self).__init__()
-      
-  
-class ToolBarModel(UIModelObject):
-    tid = 'toolbar_model'
     _ATTRIBUTES = {
         'id': {'default_value': wx.ID_ANY, 
                'type': int
@@ -33,13 +26,12 @@ class ToolBarModel(UIModelObject):
         'style': {'default_value': wx.TB_FLAT|wx.TB_NODIVIDER, 
                   'type': int
         }
-    }    
-    
-    def __init__(self, controller_uid, **base_state):     
-        super(ToolBarModel, self).__init__(controller_uid, **base_state)    
-               
+    }   
         
-        
+    def __init__(self, **state):
+        super().__init__(**state)
+      
+  
 class ToolBar(UIViewObject, wx.ToolBar):
     tid = 'toolbar'
     paneinfo = wx.aui.AuiPaneInfo().Name(tid).ToolbarPane().Top()
@@ -51,9 +43,9 @@ class ToolBar(UIViewObject, wx.ToolBar):
         parent_controller_uid = _UIM._getparentuid(self._controller_uid)
         parent_controller =  _UIM.get(parent_controller_uid)
         #wx.SystemOptions.SetOption("msw.remap", '0')
-        wx.ToolBar.__init__(self, parent_controller.view, controller.model.id, 
-                            controller.model.pos,
-                            controller.model.size, controller.model.style
+        wx.ToolBar.__init__(self, parent_controller.view, controller.id, 
+                            controller.pos,
+                            controller.size, controller.style
         )
         self.Realize()  
         if isinstance(parent_controller, MainWindowController):

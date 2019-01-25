@@ -16,7 +16,6 @@ from app import log
 from classes.base import GripyManager
 
 from classes.ui import UIControllerObject 
-from classes.ui import UIModelObject
 
 
 class UIManager(GripyManager):
@@ -64,7 +63,7 @@ class UIManager(GripyManager):
 
 
     @classmethod
-    def register_class(cls, controller_class, model_class, view_class,
+    def register_class(cls, controller_class, view_class,
                                                controller_parent_class=None):  
         #
         if controller_class is None:
@@ -80,17 +79,6 @@ class UIManager(GripyManager):
         cls._types[controller_class.tid] = controller_class 
         cls._currentobjectids[controller_class.tid] = 0    
         #
-        if model_class is not None:
-            if not issubclass(model_class, UIModelObject):
-                msg = "Model class must inherit from UIModelObject."
-                log.exception(msg)
-                raise TypeError(msg)     
-            model_class_tid = model_class.tid
-            if model_class_tid not in cls._types.keys():    
-                cls._types[model_class_tid] = model_class
-                cls._currentobjectids[model_class_tid] = 0     
-        else:
-            model_class_tid = None
         if view_class is not None:
             view_class_tid = view_class.tid
             if view_class_tid not in cls._types.keys():
@@ -100,10 +88,10 @@ class UIManager(GripyManager):
             view_class_tid = None
         #    
         if controller_class.tid not in cls._MVC_CLASSES.keys():    
-            cls._MVC_CLASSES[controller_class.tid] = (model_class_tid, view_class_tid)
+            cls._MVC_CLASSES[controller_class.tid] = view_class_tid
         else:
-            if (model_class_tid, view_class_tid) != cls._MVC_CLASSES.get(controller_class.tid):
-                msg = 'Cannot register another model or another view for controller {}'.format(controller_class.tid)
+            if view_class_tid != cls._MVC_CLASSES.get(controller_class.tid):
+                msg = 'Cannot register another view for controller {}'.format(controller_class.tid)
                 log.exception(msg)
                 raise Exception(msg)
         #        
@@ -178,7 +166,7 @@ class UIManager(GripyManager):
                 msg = 'Cannot create more than one per parent object stated as Singleton per parent.'
                 raise Exception(msg)     
         try: 
-            obj = class_()
+            obj = class_(**base_state)
         except Exception:
             msg = 'ERROR found in Controller {} creation.'.format(class_.__name__)      
             log.exception(msg)
@@ -189,10 +177,10 @@ class UIManager(GripyManager):
         if parent_uid:
             self._childrenuidmap[parent_uid].append(obj.uid)
         try:
-            obj._create_model_view(**base_state)
+            obj._create_view()
         except Exception as e:
             print (e)
-            msg = 'ERROR found in Model-View creation for class {}.'.format(class_.__name__)      
+            msg = 'ERROR found in View creation for class {}.'.format(class_.__name__)      
             log.exception(msg)
             raise         
         try:
@@ -292,17 +280,7 @@ class UIManager(GripyManager):
 #        print ('\nUIManager PreExit')
         for obj in self.list():
             self._prepare_object_for_deletion(obj)
-            
-            try:
-                #
-                obj.model.unsubAll()
-                #
-                #
-                obj.model.PreDelete() 
-            except AttributeError:
-                pass
-            except:
-                raise
+
             try:
                 obj.view.unsubAll() 
                 obj.view.PreDelete() 
@@ -346,15 +324,6 @@ class UIManager(GripyManager):
                 del obj.view
 #            except Exception as e:
 #                print ('ERROR:', obj.uid, e)
-        if obj.model:
-            #
-            obj.model.unsubAll()
-            #
-            obj.model.PreDelete()  
-            msg = 'Deleting UI model object {}.'.format(obj.model.uid)
-#            print (msg)
-            log.debug(msg)
-            del obj.model    
 
         # Removing from _childrenuidmap    
         parent_uid = self._parentuidmap.get(uid)
@@ -444,21 +413,18 @@ class UIManager(GripyManager):
         """
         return self._types.get(tid)
 
-    def get_model_view_classes(self, controller_tid):
+
+    def get_view_class(self, controller_tid):
         try:
             self._check_controller_tid(controller_tid)
         except:
             raise
-        model_tid, view_tid = self._MVC_CLASSES.get(controller_tid)
-        if model_tid is None:
-            model_class = None
-        else:    
-            model_class = self._gettype(model_tid)
+        view_tid = self._MVC_CLASSES.get(controller_tid)
         if view_tid is None:
             view_class = None
         else:      
             view_class = self._gettype(view_tid)
-        return model_class, view_class
+        return view_class
 
     def _check_controller_tid(self, controller_tid):
         if controller_tid is None:
@@ -505,10 +471,10 @@ class UIManager(GripyManager):
         else:
             objects = [self.get(start_from_obj_uid)]          
         for obj in objects:
-            if not obj.model: 
-                obj_state = OrderedDict()
+
+            obj_state = OrderedDict()
             else:
-                obj_state = obj.model.get_application_state()
+                obj_state = obj.get_application_state()
                 if obj_state.has_key('children'):
                     msg = obj.__class__.__name__ + ' cannot have an attribute called ''children''.'
                     raise AttributeError(msg)
@@ -531,7 +497,7 @@ class UIManager(GripyManager):
             if not obj.model: 
                 obj_state = OrderedDict()
             else:
-                obj_state = obj.model.get_user_state()
+                obj_state = obj.get_user_state()
             #    if obj_state.has_key('children'):
             #        msg = obj.__class__.__name__ + ' cannot have an attribute called ''children''.'
             #        raise AttributeError(msg)

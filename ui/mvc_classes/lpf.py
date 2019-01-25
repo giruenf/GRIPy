@@ -14,7 +14,6 @@ from classes.om import ObjectManager
 from ui.mvc_classes.well_plot import WellPlotController
 from classes.ui import UIManager
 from classes.ui import UIControllerObject  
-from classes.ui import UIModelObject
 from classes.ui import UIViewObject 
 from ui.mvc_classes.track import TrackController    
 from ui.mvc_classes.track_object import TrackObjectController  
@@ -26,8 +25,8 @@ from app import log
 class WellPlotEditorController(UIControllerObject):
     tid = 'well_plot_editor_controller'
      
-    def __init__(self):
-        super().__init__()
+    def __init__(self, **state):
+        super().__init__(**state)
         class_full_name = str(self.__class__.__module__) + '.' + str(self.__class__.__name__)    
         log.debug('Successfully created Controller object from class: {}.'.format(class_full_name))
 
@@ -74,7 +73,7 @@ class WellPlotEditorController(UIControllerObject):
         wellplot_ctrl_uid = UIM._getparentuid(self.uid) 
         if objuid[0] == 'track_controller' and parentuid == wellplot_ctrl_uid:       
             track = UIM.get(objuid)
-            #print 'LogPlotEditorController._object_created:', objuid, track.model.pos
+            #print 'LogPlotEditorController._object_created:', objuid, track.pos
             lpe_tp = UIM.list('lpe_track_panel_controller', self.uid)[0]
             lpe_op = UIM.list('lpe_objects_panel_controller', self.uid)[0]
             lpe_tp.create_item(track)
@@ -306,9 +305,9 @@ class LPETrackPanelModel(dv.PyDataViewModel):
     def GetValue(self, item, col):
         track = self.ItemToObject(item)
         if col == 0:
-            return track.model.pos+1
+            return track.pos+1
         elif col == 5:
-            value = track.model[self.TRACKS_MODEL_MAPPING.get(col)]
+            value = track[self.TRACKS_MODEL_MAPPING.get(col)]
             if value == 0:
                 return 'All'
             elif value == 1:
@@ -323,37 +322,37 @@ class LPETrackPanelModel(dv.PyDataViewModel):
                 return 'None'
             raise Exception('Error.')
         elif col == 7:
-            value = track.model[self.TRACKS_MODEL_MAPPING.get(col)]
+            value = track[self.TRACKS_MODEL_MAPPING.get(col)]
             if value == 0:
                 return 'Linear'
             elif value == 1:
                 return 'Logarithmic'
             raise Exception('Error.')    
-        return track.model[self.TRACKS_MODEL_MAPPING.get(col)]
+        return track[self.TRACKS_MODEL_MAPPING.get(col)]
 
     def SetValue(self, value, item, col):
         track = self.ItemToObject(item)
         #print 'SetValue', track.uid, col, value
         if col == 5:
             if value == 'All':
-                track.model.depth_lines = 0
+                track.depth_lines = 0
             elif value == 'Left':
-                track.model.depth_lines = 1
+                track.depth_lines = 1
             elif value == 'Right':
-                track.model.depth_lines = 2
+                track.depth_lines = 2
             elif value == 'Center':
-                track.model.depth_lines = 3
+                track.depth_lines = 3
             elif value == 'Left & Right':
-                track.model.depth_lines = 4
+                track.depth_lines = 4
             elif value == 'None':
-                track.model.depth_lines = 5
+                track.depth_lines = 5
             else:    
                 raise Exception('Error.')  
         elif col == 7:
             if value == 'Linear':
-                track.model.x_scale = 0
+                track.x_scale = 0
             elif value == 'Logarithmic':
-                track.model.x_scale = 1
+                track.x_scale = 1
             else:
                 raise Exception('Error.')    
         elif col == 11:
@@ -365,7 +364,7 @@ class LPETrackPanelModel(dv.PyDataViewModel):
             else:
                 wellplot_ctrl.unset_overview_track()  
         else:       
-            track.model[self.TRACKS_MODEL_MAPPING.get(col)] = value
+            track[self.TRACKS_MODEL_MAPPING.get(col)] = value
         return True
 
     #def ChangedItem(self, item):
@@ -385,15 +384,15 @@ class LPETrackPanelModel(dv.PyDataViewModel):
     def Compare(self, item1, item2, col, ascending):
         track1 = self.ItemToObject(item1)
         track2 = self.ItemToObject(item2)
-        if track1.model.pos == track2.model.pos:
+        if track1.pos == track2.pos:
             raise Exception('Two tracks cannot have same position: {} - {}.'.format(track1.uid, track2.uid))
         if ascending: 
-            if track1.model.pos > track2.model.pos:
+            if track1.pos > track2.pos:
                 return 1
             else:
                 return -1
         else:
-            if track1.model.pos > track2.model.pos:
+            if track1.pos > track2.pos:
                 return -1
             else:
                 return 1
@@ -553,7 +552,7 @@ class LPETrackPanel(UIViewObject, wx.Panel):
             model = controller._get_real_model()                    
             self.dvc.Select(new_pos_item)    
             new_pos_track = model.ItemToObject(new_pos_item)
-            new_pos_track.model.pos = old_pos_track.model.pos
+            new_pos_track.pos = old_pos_track.pos
 
             #model.ItemChanged(new_pos_item) 
             #model.ItemChanged(old_pos_item)
@@ -584,7 +583,7 @@ class LPETrackPanel(UIViewObject, wx.Panel):
         tracks = UIM.list('track_controller', wellplot_ctrl_uid)
         tracks_selected = [model.ItemToObject(item) for item in items]
         for track in tracks:
-            track.model.selected = track in tracks_selected
+            track.selected = track in tracks_selected
             
             
     def OnInsertTrack(self, event):
@@ -752,17 +751,17 @@ class LPEObjectsPanelModel(dv.PyDataViewModel):
         obj = self.ItemToObject(item)    
         if isinstance(obj, TrackController):
             if col == 0:
-                if obj.model.label:
-                    return obj.model.label
-                return 'Track ' + str(obj.model.pos + 1)
+                if obj.label:
+                    return obj.label
+                return 'Track ' + str(obj.pos + 1)
             return wx.EmptyString     
         elif isinstance(obj, TrackObjectController):
             if col == 0:
                 return wx.EmptyString 
             elif col == 1:
                 try:
-                    if obj.model.obj_tid:
-                        ret = ObjectManager.get_tid_friendly_name(obj.model.obj_tid)
+                    if obj.obj_tid:
+                        ret = ObjectManager.get_tid_friendly_name(obj.obj_tid)
                         if ret:
                             return ret
                         return wx.EmptyString
@@ -796,11 +795,11 @@ class LPEObjectsPanelModel(dv.PyDataViewModel):
                     ctrl.view.splitter.Unsplit(pgc.view)  
                     UIM.remove(pgc.uid)
             if col == 1:
-                obj.model.obj_tid = value
+                obj.obj_tid = value
             if col == 2:
                 if isinstance(value, tuple):
                     print ('aqui') 
-                    obj.model.obj_oid = value[1]
+                    obj.obj_oid = value[1]
                     ctrl.view.dvc.Select(item)
         #            
         return True
@@ -825,15 +824,15 @@ class LPEObjectsPanelModel(dv.PyDataViewModel):
         if obj1.tid == 'track_controller' and obj2.tid == 'track_controller'\
                                 or obj1.tid == 'track_object_controller' and \
                                 obj2.tid == 'track_object_controller':
-            if obj1.model.pos == obj2.model.pos:
+            if obj1.pos == obj2.pos:
                 raise Exception('Two tracks cannot have same position.')
             if ascending: 
-                if obj1.model.pos > obj2.model.pos:
+                if obj1.pos > obj2.pos:
                     return 1
                 else:
                     return -1
             else:
-                if obj1.model.pos > obj2.model.pos:
+                if obj1.pos > obj2.pos:
                     return -1
                 else:
                     return 1                                
@@ -1058,7 +1057,7 @@ class TextChoiceRenderer(dv.DataViewCustomRenderer):
  
     def __init__(self, model=None):
         dv.DataViewCustomRenderer.__init__(self, mode=dv.DATAVIEW_CELL_EDITABLE)
-        self.model = model
+        #self.model = model
         self._value = None    
   
     def GetValue(self):
@@ -1123,11 +1122,11 @@ class ObjectNameRenderer(TextChoiceRenderer):
 
     def CreateEditorCtrl(self, parent, rect, value):    
         OM = ObjectManager()
-        obj = self.model.ItemToObject(self.item)
+        obj = self.ItemToObject(self.item)
         self._options = OrderedDict()
-        #print 'ObjectNameRenderer:', obj.model.obj_tid
-        if obj.model.obj_tid in LogPlotController.get_acceptable_tids():
-            for om_obj in OM.list(obj.model.obj_tid):
+        #print 'ObjectNameRenderer:', obj.obj_tid
+        if obj.obj_tid in LogPlotController.get_acceptable_tids():
+            for om_obj in OM.list(obj.obj_tid):
                 #print '   Adding:', om_obj.uid, om_obj.name  
                 self._options[om_obj.uid] = om_obj.name    
         _editor = wx.Choice(parent, 
@@ -1157,12 +1156,12 @@ class PropertyMixin(object):
     def _get_value(self):
         UIM = UIManager()
         controller = UIM.get(self._controller_uid)
-        return controller.model[self._model_key]
+        return controller[self._model_key]
 
     def _set_value(self, value):
         UIM = UIManager()
         controller = UIM.get(self._controller_uid)
-        controller.model[self._model_key] = value   
+        controller[self._model_key] = value   
 
 
 
@@ -1234,13 +1233,13 @@ class IntProperty(pg.IntProperty):
     def ValueToString(self, *args):
         UIM = UIManager()
         controller = UIM.get(self._controller_uid)
-        value = controller.model[self._model_key]
+        value = controller[self._model_key]
         return str(value)
 
     def StringToValue(self, variant, text, flag):
         UIM = UIManager()
         controller = UIM.get(self._controller_uid)
-        controller.model[self._model_key] = text
+        controller[self._model_key] = text
         return True    
     
     
@@ -1258,13 +1257,13 @@ class FloatProperty(pg.FloatProperty):
     def ValueToString(self, *args):
         UIM = UIManager()
         controller = UIM.get(self._controller_uid)
-        value = controller.model[self._model_key]
+        value = controller[self._model_key]
         return str(value)
 
     def StringToValue(self, variant, text, flag):
         UIM = UIManager()
         controller = UIM.get(self._controller_uid)
-        controller.model[self._model_key] = text
+        controller[self._model_key] = text
         return True    
 
 
@@ -1281,13 +1280,13 @@ class StringProperty(pg.StringProperty):
     def ValueToString(self, *args):
         UIM = UIManager()
         controller = UIM.get(self._controller_uid)
-        value = controller.model[self._model_key]
+        value = controller[self._model_key]
         return value
 
     def StringToValue(self, variant, text, flag):
         UIM = UIManager()
         controller = UIM.get(self._controller_uid)
-        controller.model[self._model_key] = text
+        controller[self._model_key] = text
         return True
 
     
@@ -1640,8 +1639,8 @@ class ColorProperty(pg.PGProperty):
     def get_value(self):
         UIM = UIManager()
         controller = UIM.get(self._controller_uid)
-        print ('ColorProperty.get_value:', controller.model[self._model_key])
-        return controller.model[self._model_key]
+        print ('ColorProperty.get_value:', controller[self._model_key])
+        return controller[self._model_key]
 
 
     def set_value(self, new_value):
@@ -1649,7 +1648,7 @@ class ColorProperty(pg.PGProperty):
         try:
             UIM = UIManager()
             controller = UIM.get(self._controller_uid)
-            controller.model[self._model_key] = new_value  
+            controller[self._model_key] = new_value  
             return True
         except:
             return False

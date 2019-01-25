@@ -319,11 +319,11 @@ class TracksPanel(wx.Panel):
         if new_item.IsOk() and \
                             evt.GetDataFormat() == VarNodeDropData.GetFormat():
             self.dvc.Select(new_item)    
-            new_track = self.model.ItemToObject(new_item)
-            new_pos = self.model.logplotformat.get_track_index(new_track)
-            old_track = self.model.ItemToObject(old_item)
-            self.model.logplotformat.set_track_new_position(old_track, new_pos)
-            self.model.ChangedItem(new_item) 
+            new_track = self.ItemToObject(new_item)
+            new_pos = self.logplotformat.get_track_index(new_track)
+            old_track = self.ItemToObject(old_item)
+            self.logplotformat.set_track_new_position(old_track, new_pos)
+            self.ChangedItem(new_item) 
             return True    
         return False        
     
@@ -332,7 +332,7 @@ class TracksPanel(wx.Panel):
     def _OnDeleteTracks(self, evt):
         rows = self._get_selection_positions()
         for row in rows:
-            track = self.model.logplotformat.get_track(row)
+            track = self.logplotformat.get_track(row)
             self.DeleteTrack(track)
 
 
@@ -354,23 +354,23 @@ class TracksPanel(wx.Panel):
         
     def _get_selection_positions(self):
         items = self.dvc.GetSelections()
-        tracks_selected = [self.model.ItemToObject(item) for item in items]
+        tracks_selected = [self.ItemToObject(item) for item in items]
         rows = []
         for track in tracks_selected:
-            rows.append(self.model.logplotformat.get_track_index(track))
+            rows.append(self.logplotformat.get_track_index(track))
         rows.sort(reverse=True)  
         return rows    
 
 
     def DeleteTrack(self, track):
-        self.model.DeleteTrack(track)
+        self.DeleteTrack(track)
         
         
     def InsertTrack(self, track, pos=None):
         #print 'TracksPanel.InsertTrack pos: ', pos
         if not isinstance(track, TrackFormat):
             raise ValueError('Parameter track must be a TrackFormat.')
-        self.model.InsertTrack(track, pos)
+        self.InsertTrack(track, pos)
           
 
     def _get_dummy_track(self):
@@ -674,11 +674,11 @@ class CurvesPanel(wx.Panel):
         self.Sizer.Add(btnbox, 0, wx.TOP|wx.BOTTOM, 5)
 
 
-        if self.model.logplotformat is not None:
-            for track in self.model.logplotformat.get_tracks():     
-                item = self.model.ObjectToItem(track)
+        if self.logplotformat is not None:
+            for track in self.logplotformat.get_tracks():     
+                item = self.ObjectToItem(track)
                 self.dvc.Expand(item)
-                self.model.Resort()
+                self.Resort()
      
         
 
@@ -694,7 +694,7 @@ class CurvesPanel(wx.Panel):
 
         item = evt.GetItem()
         try:    
-            obj = self.model.ItemToObject(item)
+            obj = self.ItemToObject(item)
             if isinstance(obj, CurveFormat):
                 self.node = VarNodeDropData()
                 self.node.SetItem(item)
@@ -717,15 +717,15 @@ class CurvesPanel(wx.Panel):
                             evt.GetDataFormat() == VarNodeDropData.GetFormat():
                          
             self.dvc.Select(new_item)    
-            new_obj = self.model.ItemToObject(new_item)
+            new_obj = self.ItemToObject(new_item)
             new_track = None
             if isinstance(new_obj, TrackFormat):
                 new_track = new_obj
             elif isinstance(new_obj, CurveFormat):
-                new_track = self.model.logplotformat.get_curve_parent(new_obj)
-            curve = self.model.ItemToObject(old_item)   
+                new_track = self.logplotformat.get_curve_parent(new_obj)
+            curve = self.ItemToObject(old_item)   
             
-            old_parent_track = self.model.logplotformat.get_curve_parent(curve)    
+            old_parent_track = self.logplotformat.get_curve_parent(curve)    
             if old_parent_track == new_track:
                 evt.Veto()
                 return False              
@@ -738,15 +738,15 @@ class CurvesPanel(wx.Panel):
     def OnItemDrop(self, evt):  
         old_item = self.node.GetItem()
         # From OnItemBeginDrag, we're sure it's a CurveFormat
-        curve = self.model.ItemToObject(old_item)
+        curve = self.ItemToObject(old_item)
         
         new_item = evt.GetItem()
-        new_obj = self.model.ItemToObject(new_item)
+        new_obj = self.ItemToObject(new_item)
         new_track = None
         if isinstance(new_obj, TrackFormat):
             new_track = new_obj
         elif isinstance(new_obj, CurveFormat):
-            new_track = self.model.logplotformat.get_curve_parent(new_obj)
+            new_track = self.logplotformat.get_curve_parent(new_obj)
         
         self.DeleteCurve(curve)           
         self.AddCurve(new_track, curve)
@@ -762,14 +762,14 @@ class CurvesPanel(wx.Panel):
         #print 'OnAddCurve' 
         tracks, curves = self._get_objects_selected() 
         if curves:
-            parent = self.model.logplotformat.get_curve_parent(curves[0]) 
+            parent = self.logplotformat.get_curve_parent(curves[0]) 
             self.AddCurve(parent, self._get_dummy_curve())
         elif tracks:
             parent = tracks[0]
             self.AddCurve(parent, self._get_dummy_curve())
         else:
-            if self.model.track_id != LogPlotFormatFrame.ID_ALL_TRACKS:
-                track = self.model.logplotformat.get_track(self.model.track_id)
+            if self.track_id != LogPlotFormatFrame.ID_ALL_TRACKS:
+                track = self.logplotformat.get_track(self.track_id)
                 self.AddCurve(track, self._get_dummy_curve())
             
     def _OnDeleteCurves(self, evt):
@@ -779,15 +779,15 @@ class CurvesPanel(wx.Panel):
             self.DeleteCurve(curve)
             
     def AddCurve(self, track_parent, curve):
-        self.model.AddCurve(track_parent, curve)                
+        self.AddCurve(track_parent, curve)                
 
     def DeleteCurve(self, curve):
         #print 'DeleteCurve'
-        self.model.DeleteCurve(curve)
+        self.DeleteCurve(curve)
         
     def _get_objects_selected(self):
         items = self.dvc.GetSelections()
-        objects_selected = [self.model.ItemToObject(item) for item in items]
+        objects_selected = [self.ItemToObject(item) for item in items]
         tracks = []
         curves = []
         for obj in objects_selected:
@@ -1513,7 +1513,7 @@ class ColorRenderer(dv.PyDataViewCustomRenderer):
         """CreateEditorCtrl(self, Window parent, Rect labelRect, wxVariant value) -> Window"""
         print '\nColorRenderer.CreateEditorCtrl: starting value: {}'.format(value)
         print self.model
-        #self.model.teste()
+        #self.teste()
         
         #self._editor = ColorSelectorComboBox(parent, pos=rect.GetTopLeft(), 
         #                                 size=wx.Size(rect.GetWidth(), -1))
@@ -1540,7 +1540,7 @@ class ColorRenderer(dv.PyDataViewCustomRenderer):
     def StartEditing(self, item, rect):
         """StartEditing(self, DataViewItem item, Rect labelRect) -> bool"""
         print '\nColorRenderer.StartEditing '
-        #obj = self.model.ItemToObject(item)
+        #obj = self.ItemToObject(item)
         
         #print obj
         self._item = item
@@ -1548,7 +1548,7 @@ class ColorRenderer(dv.PyDataViewCustomRenderer):
         print 'bol: ', bol
         return bol
         #col = self.GetOwner().GetModelColumn()
-        #value = self.model.GetValue(item, col)
+        #value = self.GetValue(item, col)
         #dvc = self.GetOwner().GetOwner()
         #dvc.GetMainWindowOfCompositeControl() 
         #self._editor = self.CreateEditorCtrl(dvc , rect, value)
@@ -1591,7 +1591,7 @@ class ColorRenderer(dv.PyDataViewCustomRenderer):
         #self._editor.Release()
         
         #if isValid:
-        self.model.ChangeValue(self._value, self._item, col);
+        self.ChangeValue(self._value, self._item, col);
         #self.CancelEditing() 
         return True
         #return False

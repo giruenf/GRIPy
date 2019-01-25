@@ -4,7 +4,6 @@ import wx
 
 from classes.ui import UIManager
 from classes.ui import UIControllerObject 
-from classes.ui import UIModelObject 
 from classes.ui import UIViewObject 
 from ui import Interface
 
@@ -14,13 +13,6 @@ from app import log
 class WorkPageController(UIControllerObject):
     tid = 'workpage_controller'
     
-    def __init__(self):
-        super().__init__()
-        
-       
-class WorkPageModel(UIModelObject):
-    tid = 'workpage_model'
-
     _ATTRIBUTES = {
         'pos': {
                 'default_value': -1, 
@@ -36,10 +28,9 @@ class WorkPageModel(UIModelObject):
         }          
     }  
         
-    def __init__(self, controller_uid, **base_state):      
-        super().__init__(controller_uid, **base_state) 
-    
-    
+    def __init__(self, **state):
+        super().__init__(**state)
+        
     
 class WorkPage(UIViewObject, wx.Panel):  
     tid = 'workpage'
@@ -61,11 +52,11 @@ class WorkPage(UIViewObject, wx.Panel):
         parent_controller = UIM.get(parent_uid)
         parent_view = parent_controller.view.main_area_panel
         wx.Panel.__init__(self, parent_view)
-        if controller.model.pos == -1:
-            controller.model.pos = parent_controller.view.get_notebook_page_count()      
+        if controller.pos == -1:
+            controller.pos = parent_controller.view.get_notebook_page_count()      
         # 
-        result = parent_controller.insert_notebook_page(controller.model.pos, 
-                                        self, controller.model.title, True
+        result = parent_controller.insert_notebook_page(controller.pos, 
+                                        self, controller.title, True
         )
         #
         if not result:
@@ -82,7 +73,7 @@ class WorkPage(UIViewObject, wx.Panel):
     def PreDelete(self):
         UIM = UIManager()
         controller = UIM.get(self._controller_uid)        
-        if controller.model.float_mode:
+        if controller.float_mode:
             raise Exception('TRATAR DELETE ON FLOAT MODE')
         mwc = Interface.get_main_window_controller()
         mwc.remove_notebook_page(self)
@@ -94,8 +85,8 @@ class WorkPage(UIViewObject, wx.Panel):
         main_window_uid = UIM._getparentuid(controller.uid)
         main_window = UIM.get(main_window_uid)
         my_pos = main_window.view.get_notebook_page_index(self)
-        controller.model.set_value_from_event('pos', my_pos)
-        main_window.view.set_notebook_page_text(controller.model.pos, 
+        controller.set_value_from_event('pos', my_pos)
+        main_window.view.set_notebook_page_text(controller.pos, 
                                                       new_value
         )
 
@@ -108,13 +99,13 @@ class WorkPage(UIViewObject, wx.Panel):
         # Check event
         if new_value < 0 or new_value > main_window.view.get_notebook_page_count()-1:
             # Undo wrong event
-            controller.model.set_value_from_event('pos', old_value)
+            controller.set_value_from_event('pos', old_value)
             return 
         # Broadcasting position change to other pages 
         for mw_child in UIM.list(tidfilter='workpage_controller', 
                                             parentuidfilter=main_window_uid):
             pos = main_window.view.get_notebook_page_index(mw_child.view)
-            mw_child.model.set_value_from_event('pos', pos)
+            mw_child.set_value_from_event('pos', pos)
         
         
 
@@ -126,7 +117,7 @@ class WorkPage(UIViewObject, wx.Panel):
             controller.unsubscribe(self._set_title, 'change.title')            
             controller.unsubscribe(self._set_pos, 'change.pos')
             fc = UIM.create('frame_controller', parent_uid, 
-                            title=controller.model.title
+                            title=controller.title
             )
             UIM.reparent(self._controller_uid, fc.uid)
             fc.view.Show()
@@ -155,8 +146,8 @@ class WorkPage(UIViewObject, wx.Panel):
             self.Reparent(new_parent_controller.view)
             controller = UIM.get(self._controller_uid)
             ret_val = new_parent_controller.insert_notebook_page(
-                    controller.model.pos, self, 
-                    controller.model.title, True
+                    controller.pos, self, 
+                    controller.title, True
             )     
         return ret_val          
         

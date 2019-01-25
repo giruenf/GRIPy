@@ -4,7 +4,6 @@ import wx.aui as aui
 from classes.ui import UIManager
 
 from ui.mvc_classes.wxgripy import FrameController
-from ui.mvc_classes.wxgripy import FrameModel
 from ui.mvc_classes.wxgripy import Frame
 
 from app.app_utils import GripyBitmap
@@ -15,16 +14,9 @@ class MainWindowController(FrameController):
     tid = 'main_window_controller'
     _singleton = True
      
-    def __init__(self):
-        super().__init__()
+    def __init__(self, **state):
+        super().__init__(**state)
          
-
-class MainWindowModel(FrameModel):
-    tid = 'main_window_model'
-    
-    def __init__(self, controller_uid, **base_state):    
-        super().__init__(controller_uid, **base_state)
-
 
 class MainWindow(Frame):
     tid = 'main_window'
@@ -146,7 +138,7 @@ class MainWindow(Frame):
         for idx in range(self._notebook.GetPageCount()):
             page = self._notebook.GetPage(idx)
             controller = UIM.get(page._controller_uid)
-            controller.model.set_value_from_event('pos', idx)
+            controller.set_value_from_event('pos', idx)
         event.Skip()
 
 

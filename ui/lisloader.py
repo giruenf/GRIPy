@@ -152,14 +152,14 @@ class LISImportFrame(wx.Frame):
 
 
     def _OnToggleAll(self, evt):
-        self.model.ToggleAll()
+        self.ToggleAll()
         
     def _OnToggleNone(self, evt):
-        self.model.ToggleNone()      
+        self.ToggleNone()      
 
     def _OnImportToggled(self, evt):
       
-        for idx, lis_well, filename in self.model.get_selected_wells():
+        for idx, lis_well, filename in self.get_selected_wells():
             well_header = OrderedDict()
             for info in lis_well.infos:
                 if info.type is None:# or info.type == 'CONS':
@@ -199,7 +199,7 @@ class LISImportFrame(wx.Frame):
                         part = self._OM.new('part', booldata[idx], code=int(codes[idx]), curvetype=logtype)
                         self._OM.add(part, partition.uid)
                 
-            self.model.SetProgress(idx, 100)
+            self.SetProgress(idx, 100)
             
 
         

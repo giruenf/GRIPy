@@ -468,7 +468,7 @@ def _do_initial_tests():
    # pass
    
     mwc = get_main_window_controller()
-    mwc.model.size = (1000, 700)
+    mwc.size = (1000, 700)
   
     
     depth = [
@@ -1432,9 +1432,9 @@ def _do_initial_tests():
     
     
     
-#    mwc.model.pos = (-1300,600)
+#    mwc.pos = (-1300,600)
 
-   # mwc.model.maximized = True
+   # mwc.maximized = True
     
     
     """  
@@ -1461,9 +1461,9 @@ def _do_initial_tests():
     
     '''
     mwc = get_main_window_controller()
-    mwc.model.pos = (-1092, 606)
-    mwc.model.size = (900, 600)
-    mwc.model.maximized = False
+    mwc.pos = (-1092, 606)
+    mwc.size = (900, 600)
+    mwc.maximized = False
     '''
 
     '''
@@ -1524,20 +1524,20 @@ def _do_initial_tests():
     #
     #lpc = UIM.create('logplot_controller', mwc.uid)
     #tc1 = UIM.create('track_controller', lpc.uid)
-    #tc1.model.width = 900
+    #tc1.width = 900
     
     #UIM.create('track_controller', lpc.uid)
     #UIM.create('track_controller', lpc.uid)
     #UIM.create('track_controller', lpc.uid, overview=True, plotgrid=False)
 
     # CASA
-    #mwc.model.pos = (-8, 0)
-    #mwc.model.size = (1240, 1046)
-    #mwc.model.maximized = False
+    #mwc.pos = (-8, 0)
+    #mwc.size = (1240, 1046)
+    #mwc.maximized = False
 
     # BR
-    #mwc.model.pos = (-1925, -921) 
-    #mwc.model.size = (1116, 1131) 
+    #mwc.pos = (-1925, -921) 
+    #mwc.size = (1116, 1131) 
 
     # """    
     # Fim - Testes

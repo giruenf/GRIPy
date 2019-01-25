@@ -4,7 +4,6 @@ import wx
 
 from classes.ui import UIManager
 from classes.ui import UIControllerObject 
-from classes.ui import UIModelObject 
 from classes.ui import UIViewObject 
 
 
@@ -604,17 +603,7 @@ class TrackLabelController(UIControllerObject):
         super().__init__()
         
 
-"""       
-class TrackLabel(UIModelObject):
-    tid = 'track_label_model'
 
-    _ATTRIBUTES = {     
-    }  
-        
-    def __init__(self, controller_uid, **base_state):      
-        super().__init__(controller_uid, **base_state) 
-"""    
-    
     
 
 class TrackLabel(UIViewObject, wx.Panel, SelectablePanelMixin):  

@@ -295,7 +295,7 @@ class PartitionTable(wx.grid.GridTableBase):
         UIM = UIManager()
         tocs = UIM.list('track_object_controller') 
         for toc in tocs:
-            if (toc.model.obj_tid, toc.model.obj_oid) == partition_uid:
+            if (toc.obj_tid, toc.obj_oid) == partition_uid:
                 repr_ctrl = toc.get_representation()
                 repr_ctrl.view.draw()    
         ###

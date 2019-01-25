@@ -1,41 +1,30 @@
 ﻿Gripy Change log - (pt-br only)
-Atualizado em 25/8/2018 por Adriano (@adrianopls)
+Atualizado em 25/1/2019 por Adriano (@adrianopls)
 
 
 Versão 0.8.beta:
 ================
 - Adoção de Python 3.6
+- Adequação ao PEP-8 (https://www.python.org/dev/peps/pep-0008)
 - Utilização de Pypubsub 4.0 como dependencia
 - Significativa mudança (from scratch) do modelo de classes que inclui:
     - Utilização de metaclasses
-    - Sistema de atributos similar ao que jah existia nos objetos da UI. Desta forma, todos GripyObject passam a ter
-      funções de Model, considerado o modelo MVC.  
-      
-      
-    - [???] A classe UIModelBase e todas subclasses foram incorporadas a UIControllerBase e suas respectivas subclasses.  
-      
-      
-      
+    - Sistema de atributos similar ao que jah existia nas classes de interface.
+      Desta forma, todos GripyObject passam a ter funções de Model, considerado o modelo MVC.  
+    - A classe UIModelBase e todas subclasses foram incorporadas a UIControllerBase e suas respectivas subclasses.
+      Dessa forma, o MVC no Gripy passa possuir somente as classes Controller e View.
+      O 'Gripy MVC flavor' passa a ser referido como Gripy (M)VC.
     - Reorganizacao dos modulos contidos nos pacotes om, dt e ui. Os modulos desses pacotes estao no novo pacote classes. 
-    - Mudança de nome das classes UIControllerBase, UIModelBase, UIViewBase  para UIControllerObject, UIModelObject, UIViewObject.
+    - Mudança de nome das classes UIControllerBase, UIViewBase  para UIControllerObject, UIViewObject.
     - Mudança de nome das classes GenericDataType para DataTypeObject.
 - Reescrita dos métodos save e load do ObjectManager em função da mudança para Python 3 (método np.load não funcionava adequadamente).
 - Criação de sistema de janelas de trabalho flutuantes (com inserção da logo do Gripy como background).
-- Reescrita total do CrossPlot no modelo MVC.
-
+- Reescrita total do CrossPlot no modelo Gripy (M)VC.
+- Novos icones para a MainWindow.
 - _INMUTABLE_KEYS passa a se chamar _READ_ONLY
 - _BYPASSES_KEYS foi removido, pois os attributos 'não-monitorados' já eram tratados pelo método GripyObject._do_set
- 
 - Ajustes nos arquivos OSLICENSES.txt
 
-
-
-
-
-
-
-
- 
 
 Versão 0.7:
 ===========

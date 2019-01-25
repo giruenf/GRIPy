@@ -190,14 +190,14 @@ class CanvasController(UIControllerObject):
         keys = param_key.split('_')
         if keys[0] == 'axes':
             self.view.set_grid_parameters( 
-                                          self.model.axes_grid_axis, 
-                                          self.model.axes_grid_which,
-                                          gridOn=self.model.axes_grid
+                                          self.axes_grid_axis, 
+                                          self.axes_grid_which,
+                                          gridOn=self.axes_grid
             )
         else:  # keys[0] == 'grid'
             kw = {param_key: new_value} 
-            self.view.set_grid_parameters(self.model.axes_grid_axis, 
-                                          self.model.axes_grid_which,
+            self.view.set_grid_parameters(self.axes_grid_axis, 
+                                          self.axes_grid_which,
                                           **kw
             )
         self.view.draw()
@@ -264,7 +264,7 @@ class CanvasController(UIControllerObject):
             self.view.set_figure_facecolor(new_value)
         except:
             key = topic.getName().split('.')[2]
-            self.model.set_value_from_event(key, old_value)
+            self.set_value_from_event(key, old_value)
         finally:
             self.view.draw()         
             
@@ -277,7 +277,7 @@ class CanvasController(UIControllerObject):
         try:
             self.view.set_spine_visibility(spine, new_value)
         except Exception as e:
-            self.model.set_value_from_event(key, old_value)
+            self.set_value_from_event(key, old_value)
         finally:
             self.view.draw()
         
@@ -290,7 +290,7 @@ class CanvasController(UIControllerObject):
             self.view.set_axis_visibility(axis, new_value)
         except Exception as e:
             # log(e)
-            self.model.set_value_from_event(key, old_value)
+            self.set_value_from_event(key, old_value)
         finally:
             self.view.draw()        
         
@@ -301,7 +301,7 @@ class CanvasController(UIControllerObject):
             self.view.draw()  
         except Exception as e:
             # log(e)
-            self.model.rect(old_value)
+            self.rect(old_value)
 
 
     def on_change_lim(self, old_value, new_value, 
@@ -320,7 +320,7 @@ class CanvasController(UIControllerObject):
                                                       topic=pubsub.AUTO_TOPIC):
         key = topic.getName().split('.')[2]
         if new_value not in CANVAS_SCALES:
-            self.model.set_value_from_event(key, old_value)
+            self.set_value_from_event(key, old_value)
             return
         axis = key[0] # x or y         
         self.view.set_scale(axis, new_value)
@@ -858,22 +858,22 @@ class Canvas(UIViewObject, FigureCanvas):
             #
             self.figure = Figure()    
             
-            self.figure.set_facecolor(controller.model.figure_facecolor)
+            self.figure.set_facecolor(controller.figure_facecolor)
             
             FigureCanvas.__init__(self, wx_parent, -1, self.figure)
             
             share_x = True
 
-            self.base_axes = Axes(self.figure, controller.model.rect,
+            self.base_axes = Axes(self.figure, controller.rect,
                                       facecolor=None,
                                       frameon=True,
                                       sharex=None,  # use Axes instance's xaxis info
                                       sharey=None,  # use Axes instance's yaxis info
                                       label='',
-                                      xscale=controller.model.xscale,
-                                      yscale=controller.model.yscale,
-                                      xlim=controller.model.xlim,
-                                      ylim=controller.model.ylim
+                                      xscale=controller.xscale,
+                                      yscale=controller.yscale,
+                                      xlim=controller.xlim,
+                                      ylim=controller.ylim
             )
             self.figure.add_axes(self.base_axes)
             self.base_axes.set_zorder(0)
@@ -893,8 +893,8 @@ class Canvas(UIViewObject, FigureCanvas):
                                  sharey=self.base_axes, 
                                  frameon=False
                 )
-                self.plot_axes.set_xlim(xlim=controller.model.xlim,
-                                                ylim=controller.model.ylim
+                self.plot_axes.set_xlim(xlim=controller.xlim,
+                                                ylim=controller.ylim
                 )
             
             self.figure.add_axes(self.plot_axes)
@@ -902,70 +902,70 @@ class Canvas(UIViewObject, FigureCanvas):
             self.plot_axes.yaxis.set_visible(False)        
             self.plot_axes.set_zorder(1)
             #
-            self.set_axis_visibility('x', controller.model.xaxis_visibility)
-            self.set_axis_visibility('y', controller.model.yaxis_visibility)
+            self.set_axis_visibility('x', controller.xaxis_visibility)
+            self.set_axis_visibility('y', controller.yaxis_visibility)
             #
             self.set_spine_visibility('right', 
-                                      controller.model.axes_spines_right) 
+                                      controller.axes_spines_right) 
             self.set_spine_visibility('left', 
-                                      controller.model.axes_spines_left) 
+                                      controller.axes_spines_left) 
             self.set_spine_visibility('bottom', 
-                                      controller.model.axes_spines_bottom) 
+                                      controller.axes_spines_bottom) 
             self.set_spine_visibility('top', 
-                                      controller.model.axes_spines_top) 
+                                      controller.axes_spines_top) 
             #
             self._load_locator_properties()
             self._load_ticks_properties()
             self._load_grids_properties()
             #
             self.set_label_properties('figure', 
-                            text=controller.model.figure_titletext, 
-                            x=controller.model.figure_titlex, 
-                            y=controller.model.figure_titley, 
-                            ha=controller.model.figure_titleha, 
-                            va=controller.model.figure_titleva,
-                            size=controller.model.figure_titlesize, 
-                            weight=controller.model.figure_titleweight
+                            text=controller.figure_titletext, 
+                            x=controller.figure_titlex, 
+                            y=controller.figure_titley, 
+                            ha=controller.figure_titleha, 
+                            va=controller.figure_titleva,
+                            size=controller.figure_titlesize, 
+                            weight=controller.figure_titleweight
             )
             #
             self.set_label_properties('axes', 
                                       loc='left',
-                                      text=controller.model.axes_titletextleft,
-                                      color=controller.model.axes_titlecolor,
-                                      pad=controller.model.axes_titlepad,
-                                      size=controller.model.axes_titlesize,
-                                      weight=controller.model.axes_titleweight
+                                      text=controller.axes_titletextleft,
+                                      color=controller.axes_titlecolor,
+                                      pad=controller.axes_titlepad,
+                                      size=controller.axes_titlesize,
+                                      weight=controller.axes_titleweight
             ) 
             self.set_label_properties('axes', 
                                       loc='center',
-                                      text=controller.model.axes_titletextcenter,
-                                      color=controller.model.axes_titlecolor,
-                                      pad=controller.model.axes_titlepad,
-                                      size=controller.model.axes_titlesize,
-                                      weight=controller.model.axes_titleweight
+                                      text=controller.axes_titletextcenter,
+                                      color=controller.axes_titlecolor,
+                                      pad=controller.axes_titlepad,
+                                      size=controller.axes_titlesize,
+                                      weight=controller.axes_titleweight
             ) 
             self.set_label_properties('axes', 
                                       loc='right',
-                                      text=controller.model.axes_titletextright,
-                                      color=controller.model.axes_titlecolor,
-                                      pad=controller.model.axes_titlepad,
-                                      size=controller.model.axes_titlesize,
-                                      weight=controller.model.axes_titleweight
+                                      text=controller.axes_titletextright,
+                                      color=controller.axes_titlecolor,
+                                      pad=controller.axes_titlepad,
+                                      size=controller.axes_titlesize,
+                                      weight=controller.axes_titleweight
             )                               
             #
             self.set_label_properties('axis', axis='x', 
-                                    text=controller.model.xaxis_labeltext, 
-                                    color=controller.model.axes_labelcolor, 
-                                    pad=controller.model.axes_labelpad,
-                                    size=controller.model.axes_labelsize,
-                                    weight=controller.model.axes_labelweight
+                                    text=controller.xaxis_labeltext, 
+                                    color=controller.axes_labelcolor, 
+                                    pad=controller.axes_labelpad,
+                                    size=controller.axes_labelsize,
+                                    weight=controller.axes_labelweight
             )
             self.set_label_properties('axis', axis='y', 
-                                    text=controller.model.yaxis_labeltext,
-                                    color=controller.model.axes_labelcolor, 
-                                    pad=controller.model.axes_labelpad,
-                                    size=controller.model.axes_labelsize,
-                                    weight=controller.model.axes_labelweight
+                                    text=controller.yaxis_labeltext,
+                                    color=controller.axes_labelcolor, 
+                                    pad=controller.axes_labelpad,
+                                    size=controller.axes_labelsize,
+                                    weight=controller.axes_labelweight
             )                                           
             #
             self.mpl_connect('motion_notify_event', self.on_track_move)
@@ -981,13 +981,13 @@ class Canvas(UIViewObject, FigureCanvas):
         UIM = UIManager()
         controller = UIM.get(self._controller_uid)
         self.set_locator('x', 'major', 
-                                     controller.model.xgrid_major_locator)
+                                     controller.xgrid_major_locator)
         self.set_locator('x', 'minor', 
-                                     controller.model.xgrid_minor_locator)
+                                     controller.xgrid_minor_locator)
         self.set_locator('y', 'major', 
-                                     controller.model.ygrid_major_locator)
+                                     controller.ygrid_major_locator)
         self.set_locator('y', 'minor', 
-                                     controller.model.ygrid_minor_locator)        
+                                     controller.ygrid_minor_locator)        
 
 
     def _load_ticks_properties(self):
@@ -995,32 +995,32 @@ class Canvas(UIViewObject, FigureCanvas):
         controller = UIM.get(self._controller_uid)
         
         self.base_axes.tick_params(
-            top=(controller.model.xtick_top and controller.model.xtick_major_top),
-            bottom=(controller.model.xtick_bottom and controller.model.xtick_major_bottom),
-            labeltop=(controller.model.xtick_labeltop and controller.model.xtick_major_top),
-            labelbottom=(controller.model.xtick_labelbottom and controller.model.xtick_major_bottom),
-            left=(controller.model.ytick_left and controller.model.ytick_major_left),
-            right=(controller.model.ytick_right and controller.model.ytick_major_right),
-            labelleft=(controller.model.ytick_labelleft and controller.model.ytick_major_left),
-            labelright=(controller.model.ytick_labelright and controller.model.ytick_major_right),
+            top=(controller.xtick_top and controller.xtick_major_top),
+            bottom=(controller.xtick_bottom and controller.xtick_major_bottom),
+            labeltop=(controller.xtick_labeltop and controller.xtick_major_top),
+            labelbottom=(controller.xtick_labelbottom and controller.xtick_major_bottom),
+            left=(controller.ytick_left and controller.ytick_major_left),
+            right=(controller.ytick_right and controller.ytick_major_right),
+            labelleft=(controller.ytick_labelleft and controller.ytick_major_left),
+            labelright=(controller.ytick_labelright and controller.ytick_major_right),
             which='major'
         )
         self.base_axes.tick_params(
-            top=(controller.model.xtick_top and controller.model.xtick_minor_top),
-            bottom=(controller.model.xtick_bottom and controller.model.xtick_minor_bottom),
-            labeltop=(controller.model.xtick_labeltop and controller.model.xtick_minor_top),
-            labelbottom=(controller.model.xtick_labelbottom and controller.model.xtick_minor_bottom),
-            left=(controller.model.ytick_left and controller.model.ytick_minor_left),
-            right=(controller.model.ytick_right and controller.model.ytick_minor_right),
-            labelleft=(controller.model.ytick_labelleft and controller.model.ytick_minor_left),
-            labelright=(controller.model.ytick_labelright and controller.model.ytick_minor_right),
+            top=(controller.xtick_top and controller.xtick_minor_top),
+            bottom=(controller.xtick_bottom and controller.xtick_minor_bottom),
+            labeltop=(controller.xtick_labeltop and controller.xtick_minor_top),
+            labelbottom=(controller.xtick_labelbottom and controller.xtick_minor_bottom),
+            left=(controller.ytick_left and controller.ytick_minor_left),
+            right=(controller.ytick_right and controller.ytick_minor_right),
+            labelleft=(controller.ytick_labelleft and controller.ytick_minor_left),
+            labelright=(controller.ytick_labelright and controller.ytick_minor_right),
             which='minor'
         )  
         
-        self.base_axes.tick_params(axis='x', which='major', size=controller.model.xtick_major_size)
-        self.base_axes.tick_params(axis='x', which='minor', size=controller.model.xtick_minor_size)
-        self.base_axes.tick_params(axis='y', which='major', size=controller.model.ytick_major_size)
-        self.base_axes.tick_params(axis='y', which='minor', size=controller.model.ytick_minor_size)
+        self.base_axes.tick_params(axis='x', which='major', size=controller.xtick_major_size)
+        self.base_axes.tick_params(axis='x', which='minor', size=controller.xtick_minor_size)
+        self.base_axes.tick_params(axis='y', which='major', size=controller.ytick_major_size)
+        self.base_axes.tick_params(axis='y', which='minor', size=controller.ytick_minor_size)
         
         
         
@@ -1028,13 +1028,13 @@ class Canvas(UIViewObject, FigureCanvas):
         UIM = UIManager()
         controller = UIM.get(self._controller_uid)
 
-        self.set_grid_parameters(controller.model.axes_grid_axis,  
-                                 controller.model.axes_grid_which,
-                                 gridOn=controller.model.axes_grid,
-                                 grid_color=controller.model.grid_color,
-                                 grid_alpha=controller.model.grid_alpha,
-                                 grid_linestyle=controller.model.grid_linestyle,
-                                 grid_linewidth=controller.model.grid_linewidth
+        self.set_grid_parameters(controller.axes_grid_axis,  
+                                 controller.axes_grid_which,
+                                 gridOn=controller.axes_grid,
+                                 grid_color=controller.grid_color,
+                                 grid_alpha=controller.grid_alpha,
+                                 grid_linestyle=controller.grid_linestyle,
+                                 grid_linewidth=controller.grid_linewidth
         )
         
 

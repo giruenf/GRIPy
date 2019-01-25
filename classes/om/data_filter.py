@@ -55,7 +55,7 @@ class DataFilter(OMBaseObject):
 
         """
 
-        filter_ = toc.get_filter() #OM.get(('data_filter', toc.model.data_filter_oid))
+        filter_ = toc.get_filter() #OM.get(('data_filter', toc.data_filter_oid))
         #
         data_indexes = filter_.data
         x_index = 0
@@ -173,7 +173,7 @@ class DataFilter(OMBaseObject):
 #        print ('\nFOIIII\n')
         
         for candidate_index in z_axis_candidate_indexes:
-            if candidate_index.datatype == logplot_ctrl.model.index_type:
+            if candidate_index.datatype == logplot_ctrl.index_type:
                 chosen_index = candidate_index     
                 break
 #        print (chosen_index)    

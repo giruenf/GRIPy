@@ -7,7 +7,6 @@ from pubsub import pub
 
 from classes.ui import UIManager
 from classes.ui import UIControllerObject 
-from classes.ui import UIModelObject 
 from classes.ui import UIViewObject 
 from app.pubsub import AUTO_TOPIC
 from app.app_utils import GripyIcon
@@ -18,14 +17,7 @@ from app.app_utils import GripyIcon
 
 class TopLevelController(UIControllerObject):
     tid = 'toplevel_controller'
-         
-    def __init__(self):
-        super().__init__()
 
-
-class TopLevelModel(UIModelObject):
-    tid = 'toplevel_model'
-    
     _ATTRIBUTES = {
         'title': {'default_value': wx.EmptyString, 
                   'type': str
@@ -47,9 +39,9 @@ class TopLevelModel(UIModelObject):
                 'type': wx.Point
         }
     }    
-    
-    def __init__(self, controller_uid, **state):     
-        super().__init__(controller_uid, **state)
+   
+    def __init__(self, **state):     
+        super().__init__(**state)
 
 
 class TopLevel(UIViewObject):
@@ -72,21 +64,18 @@ class TopLevel(UIViewObject):
     def on_maximize(self, event):
         UIM = UIManager()
         controller = UIM.get(self._controller_uid)
-        controller.model.set_value_from_event('maximized', self.IsMaximized())
+        controller.set_value_from_event('maximized', self.IsMaximized())
 
     def on_move(self, event):
         UIM = UIManager()
         controller = UIM.get(self._controller_uid)
-        controller.model.set_value_from_event('pos', self.GetPosition())
+        controller.set_value_from_event('pos', self.GetPosition())
 
     def on_size(self, event):
         UIM = UIManager()
         controller = UIM.get(self._controller_uid)
-#        self._flag = True
-#        controller.model.size = event.GetSize()
-#        self._flag = False
-        controller.model.set_value_from_event('size', event.GetSize())
-        controller.model.set_value_from_event('maximized', self.IsMaximized())
+        controller.set_value_from_event('size', event.GetSize())
+        controller.set_value_from_event('maximized', self.IsMaximized())
         event.Skip()
   
     def _set_maximized(self, new_value, old_value):  
@@ -113,15 +102,8 @@ class TopLevel(UIViewObject):
 class FrameController(TopLevelController):
     tid = 'frame_controller'
          
-    def __init__(self):
-        super().__init__()
-
-
-class FrameModel(TopLevelModel):
-    tid = 'frame_model'
-        
-    def __init__(self, controller_uid, **state):  
-        super().__init__(controller_uid, **state)
+    def __init__(self, **state):  
+        super().__init__(**state)
 
 
 class Frame(TopLevel, wx.Frame):
@@ -139,14 +121,14 @@ class Frame(TopLevel, wx.Frame):
         else:
             wx_parent = parent_obj.view
         #
-        wx.Frame.__init__(self, wx_parent, wx.ID_ANY, controller.model.title,
-            pos=controller.model.pos, size=controller.model.size, 
-            style=controller.model.style              
+        wx.Frame.__init__(self, wx_parent, wx.ID_ANY, controller.title,
+            pos=controller.pos, size=controller.size, 
+            style=controller.style              
         ) 
-        if controller.model.icon:   
-            self.icon = GripyIcon(controller.model.icon, wx.BITMAP_TYPE_ICO)        
+        if controller.icon:   
+            self.icon = GripyIcon(controller.icon, wx.BITMAP_TYPE_ICO)        
             self.SetIcon(self.icon)     
-        if controller.model.maximized:
+        if controller.maximized:
             self.Maximize()   
             
         # TODO: Bind para a super class???    
@@ -262,7 +244,7 @@ def pop_widget_registers(keys, kwargs):
     return ctrl_dict, special_dict, kwargs
 
 
-
+# TODO: Its a GripyObject?
 class EncapsulatedControl(object):
     
     def __init__(self, *args, **kwargs):
@@ -535,9 +517,20 @@ class EncapsulatedListBox(EncapsulatedControl):
 
 class DialogController(TopLevelController):
     tid = 'dialog_controller'
-         
-    def __init__(self):
-        super(DialogController, self).__init__()
+    
+    _ATTRIBUTES = {
+        'flags': {
+                'default_value': wx.OK|wx.CANCEL, 
+                'type': int
+        }
+    }    
+    _ATTRIBUTES['style'] = {
+        'default_value': wx.DEFAULT_DIALOG_STYLE, 
+        'type': int        
+    }         
+    
+    def __init__(self, **state):
+        super().__init__(**state)
 
     def PreDelete(self):
         pub.unsubAll(topicFilter=self._topic_filter)
@@ -550,24 +543,6 @@ class DialogController(TopLevelController):
     def _topic_filter(self, topic_name):
         return topic_name == '_widget_changed@' + self.view.get_topic()   
         #'_widget_changed@' + dialog.get_topic()
-        
-
-class DialogModel(TopLevelModel):
-    tid = 'dialog_model'
-    
-    _ATTRIBUTES = {
-        'flags': {
-                'default_value': wx.OK|wx.CANCEL, 
-                'type': int
-        }
-    }    
-    _ATTRIBUTES['style'] = {
-        'default_value': wx.DEFAULT_DIALOG_STYLE, 
-        'type': int        
-    }
-    
-    def __init__(self, controller_uid, **base_state):      
-        super(DialogModel, self).__init__(controller_uid, **base_state) 
     
           
 class Dialog(TopLevel, wx.Dialog):   
@@ -577,15 +552,15 @@ class Dialog(TopLevel, wx.Dialog):
         TopLevel.__init__(self, controller_uid)
         UIM = UIManager()
         controller = UIM.get(self._controller_uid)
-        wx.Dialog.__init__(self, None, wx.ID_ANY, controller.model.title,
-            pos=controller.model.pos, size=controller.model.size, 
-            style=controller.model.style              
+        wx.Dialog.__init__(self, None, wx.ID_ANY, controller.title,
+            pos=controller.pos, size=controller.size, 
+            style=controller.style              
         ) 
         self._objects = {}
-        if controller.model.icon:   
-            self.icon = GripyIcon(controller.model.icon, wx.BITMAP_TYPE_ICO)        
+        if controller.icon:   
+            self.icon = GripyIcon(controller.icon, wx.BITMAP_TYPE_ICO)        
             self.SetIcon(self.icon)     
-        if controller.model.maximized:
+        if controller.maximized:
             self.Maximize()   
         self.Bind(wx.EVT_MAXIMIZE, self.on_maximize)       
         self.Bind(wx.EVT_SIZE, self.on_size)    
@@ -595,7 +570,7 @@ class Dialog(TopLevel, wx.Dialog):
         self.mainpanel = self.AddCreateContainer('BoxSizer', self, proportion=1, 
                             flag=wx.TOP|wx.LEFT|wx.RIGHT|wx.EXPAND, border=10
         )
-        button_sizer = self.CreateButtonSizer(controller.model.flags)
+        button_sizer = self.CreateButtonSizer(controller.flags)
         dialog_box.Add(button_sizer, flag=wx.ALIGN_CENTER|wx.TOP|wx.BOTTOM, border=10)    
         dialog_box.Layout()  
 
@@ -606,7 +581,7 @@ class Dialog(TopLevel, wx.Dialog):
     def _get_button(self, button_id):
         UIM = UIManager()
         controller = UIM.get(self._controller_uid)
-        if button_id & controller.model.flags:
+        if button_id & controller.flags:
             return self.FindWindow(button_id)
         return None
 

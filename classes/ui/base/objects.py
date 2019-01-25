@@ -18,10 +18,14 @@ from classes.om import ObjectManager
 
 
 class UIBaseObject(GripyObject):
+    """
+    UIBaseObject é usado para separar as classes de UI das demais. Assim sendo,
+    todas as classes de interface devem herdar, direta ou indiretamente, desta.
+    """
     tid = None
     
-    def __init__(self, **data):
-        super().__init__(**data)
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
       
     def PostInit(self):
         """To be overrriden"""
@@ -31,7 +35,7 @@ class UIBaseObject(GripyObject):
         """To be overrriden"""
         pass
 
-
+    # TODO: rever isso
     def _auto_removal(self):
         print ('_auto_removal:', self.uid)
         try:
@@ -64,15 +68,15 @@ class UIControllerObject(UIBaseObject):
     _singleton_per_parent = False
        
     
-    def __init__(self):
-        super(UIControllerObject, self).__init__()  
-        self.model = None  
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
         self.view = None 
-        # 
         self._attached_to = None
    
-
+    
     def __getattribute__(self, key):
+        """
+        """
         #TODO: This Method do the function Delegation to View class
         try:
             return GripyObject.__getattribute__(self, key)
@@ -141,63 +145,15 @@ class UIControllerObject(UIBaseObject):
             print ('ERROR WHILE DETACHING:', e) 
             #raise
             #pass    
-    
-    
-    def __setitem__(self, key, value):
-        """If Controller does not have key, redirects __setitem__ to model."""  
-        try:
-            super().__setitem__(key, value)
-        except:
-            try:
-                self.model.__setitem__(key, value)
-            except:
-                raise Exception('ERROR in UIControllerObject.__setitem__({},'+\
-                                +'{})'.format(key, value)
-                )   
-                
-    def __setattr__(self, key, value):
-        """If Controller does not have key, redirects __setattr__ to model."""   
-        try:
-            super().__setattr__(key, value)
-        except:
-            try:
-                self.model.__setattr__(key, value)
-            except:
-                raise Exception('ERROR in UIControllerObject.__setattr__({},'+\
-                                +'{})'.format(key, value)
-                )    
-        
-    def _model_changed(self, old_value, new_value, 
-                                                 topic=app.pubsub.AUTO_TOPIC):
-        """Redirect model messages to the system as they were 
-        controller messages.
-        """    
-        key = topic.getName().split('.')[2]
-        topic = 'change.' + key
-        self.send_message(topic, old_value=old_value, new_value=new_value)
- 
-    
-    
-    def _create_model_view(self, **base_state): 
-        """Function to create model and view objects (MVC pattern)."""
+
+
+    def _create_view(self, **base_state): 
+        # TODO:  ou seria GRIPy MC-V pattern, abaixo?
+        """Function to create view objects (MVC pattern)."""
         UIM_class = self._get_manager_class()
         UIM = UIM_class()         
-        model_class, view_class = UIM.get_model_view_classes(self.tid)
-        # First, create model object
-        if model_class is not None:
-            try:
-                self.model = model_class(self.uid, **base_state)
-                #
-                for attr_name, attr_props in self.model._ATTRIBUTES.items():
-                    self.model.subscribe(self._model_changed, 'change.' + attr_name)
-                #
-            except Exception as e:
-                msg = 'ERROR on creating MVC model {} object: {}'.format(model_class.__name__, e)
-                log.exception(msg)
-                print ('\n', msg)
-                raise
-        else:
-            self.model = None
+        view_class = UIM.get_view_class(self.tid)
+        
         # Then, create view object   
         if view_class is not None:     
             try:
@@ -205,23 +161,17 @@ class UIControllerObject(UIBaseObject):
             except Exception as e:
                 msg = 'ERROR on creating MVC view {} object: {}'.format(view_class.__name__, e)
                 log.exception(msg)
-                print ('\n', msg, view_class, model_class.__dict__, '\n')
+                print ('\n', msg, view_class, '\n')
                 raise e             
         else:
             self.view = None  
+    
     
     def _PostInit(self):
         """Redirects post init call made by UIManager.create to model, 
         view and controller objects.
         """
-        try:
-            if self.model:
-                self.model.PostInit()
-        except Exception as e:
-            msg = 'ERROR in {}.PostInit: {}'.format(self.model.__class__.__name__, e)
-            log.exception(msg)
-            print ('\n', msg)
-            raise
+
         try:    
             if self.view:        
                 self.view.PostInit()
@@ -286,9 +236,7 @@ class UIControllerObject(UIBaseObject):
         In general, object states are used add persistence to a object or to
         make an object clone.
         """
-        if not self.model:
-            return None 
-        return self.model._getstate()
+        return self._getstate()
         """
         UIM = UIManager()
         children = UIM.list(parentuidfilter=self.uid)
@@ -313,34 +261,6 @@ class UIControllerObject(UIBaseObject):
     """
     
 
-class UIModelObject(UIBaseObject):
-    """
-    The base class for all Model classes (MVC software architectural pattern).
-        
-    """
-    tid = None
-    _READ_ONLY = ['_controller_uid']
-
-    def __init__(self, controller_uid, **state):
-        UIM_class = self._get_manager_class()
-        UIM = UIM_class()   
-        try:
-            super().__init__(**state)
-            self._controller_uid = controller_uid
-            # We are considering that only Controller class objects 
-            # can create Model class objects. Then, we must verify it
-
-            model_class = UIM.get_model_view_classes(controller_uid[0])[0]
-            if self.__class__ != model_class:
-                msg = 'Error! Only the controller can create the model.'
-                raise Exception(msg)                  
-        except:
-            try:
-                UIM.remove(self._controller_uid)
-            except:
-                pass
-            raise 
-
 
 class UIViewObject(UIBaseObject):
     """
@@ -357,7 +277,7 @@ class UIViewObject(UIBaseObject):
         # can create View class objects. Then, we must verify it      
         UIM_class = self._get_manager_class()
         UIM = UIM_class()
-        view_class = UIM.get_model_view_classes(controller_uid[0])[1]
+        view_class = UIM.get_view_class(controller_uid[0])
         if self.__class__ != view_class:
             msg = 'Error! Only the controller can create the view.'
             log.exception(msg)

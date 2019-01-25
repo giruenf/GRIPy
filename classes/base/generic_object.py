@@ -111,22 +111,7 @@ class GripyObject(pubsub.PublisherMixin, metaclass=GripyWxMeta):
         """
         Find a Gripy attribute inside _ATTRIBUTES structure.
         """
-        try:
-            if key in self._ATTRIBUTES:
-                return self._ATTRIBUTES[key]
-            
-            print('\nfind_attribute:', key, type(key), self._ATTRIBUTES, self)
-
-            attr = self.model._ATTRIBUTES[key]
-            print('fa attr:', attr)
-            return attr
-        
-        #except KeyError as ke:
-        except Exception as e:
-            msg = 'ERROR [GripyObject.find_attribute]:' + e
-            print('\n' + msg)
-            #return None
-            raise
+        return self._ATTRIBUTES.get(key, None)
             
                                    
     def __getattribute__(self, key):

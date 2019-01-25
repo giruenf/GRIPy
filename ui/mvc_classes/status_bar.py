@@ -4,7 +4,6 @@ import wx
 
 from classes.ui import UIManager
 from classes.ui import UIControllerObject 
-from classes.ui import UIModelObject 
 from classes.ui import UIViewObject 
 from app import log
  
@@ -13,23 +12,16 @@ class StatusBarController(UIControllerObject):
     tid = 'statusbar_controller'
     _singleton_per_parent = True
     
-    def __init__(self):
-        super(StatusBarController, self).__init__()
-        
-        
-class StatusBarModel(UIModelObject):
-    tid = 'statusbar_model'
-
     # TODO: Corrigir atributo abaixo
     _ATTRIBUTES = {
         'label': {'default_value': wx.EmptyString, 
                   'type': str}
-    }    
-    
-    def __init__(self, controller_uid, **base_state):
-        super(StatusBarModel, self).__init__(controller_uid, **base_state)  
-
-
+    }        
+        
+    def __init__(self, **state):
+        super().__init__(**state)
+        
+        
 class StatusBar(UIViewObject, wx.StatusBar):
     tid = 'statusbar'
  
@@ -44,7 +36,7 @@ class StatusBar(UIViewObject, wx.StatusBar):
     def PostInit(self):
         _UIM = UIManager()
         controller = _UIM.get(self._controller_uid)
-        self.SetStatusText(controller.model.label)
+        self.SetStatusText(controller.label)
         
         
         

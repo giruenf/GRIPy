@@ -66,7 +66,7 @@ class GripyPluginInfo(PluginInfo):
         menus = _UIM.list('menu_item_controller')
         print ('menus', menus)
         for menu in menus:
-            testing_name = menu.model.label
+            testing_name = menu.label
             
             print ('testing_name',testing_name)
             
@@ -75,7 +75,7 @@ class GripyPluginInfo(PluginInfo):
             if testing_name == menu_name:
                 found = menu
         if found:
-            log.debug('Plugin {} will try insert itself to Menu {}'.format(self.name, found.model.label))
+            log.debug('Plugin {} will try insert itself to Menu {}'.format(self.name, found.label))
 
             menu_item = _UIM.create('menu_item_controller', found.uid, 
                             label=str(self.name), 
@@ -85,7 +85,7 @@ class GripyPluginInfo(PluginInfo):
 
             if menu_item:
                 self._menu_item_uid = menu_item.uid
-            log.debug('Plugin {} was inserted to Menu {}'.format(self.name, found.model.label))
+            log.debug('Plugin {} was inserted to Menu {}'.format(self.name, found.label))
         self.plugin_object.activate()
         log.debug('Activated plugin: {}'.format(self.name))
         
