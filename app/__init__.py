@@ -57,8 +57,8 @@ def check_platform():
 def check_dependencies():
     if not 'phoenix' in wx.version():    
         raise Exception('Gripy works only with wxPython 4.')
-    if not matplotlib.__version__.startswith('2.'):    
-        raise Exception('Gripy works only with Matplotlib 2.')
+    if not matplotlib.__version__.startswith('3.'):    
+        raise Exception('Gripy works only with Matplotlib 3.')
         
 #
 check_platform()    

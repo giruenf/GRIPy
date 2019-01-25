@@ -1,5 +1,3 @@
-# -*- coding: utf-8 -*-
-
 #
 # Universidade Estadual do Norte Fluminense - UENF
 # Laboratório de Engenharia de Petróleo - LENEP
@@ -7,26 +5,21 @@
 # Adriano Paulo Laes de Santana
 # May 11th, 2017
 
-from wx.lib.pubsub import pub
-#from pubsub import pub
-
 
 """
-
-                    Gripy messaging pattern module
-                    ==============================
+Gripy messaging pattern module
+==============================
 
 "In the publish–subscribe model, subscribers typically receive only 
 a subset of the total messages published. 
 The process of selecting messages for reception and processing 
 is called filtering. There are two common forms of filtering: 
-topic-based and content-based."
-Source: http://en.wikipedia.org/wiki/Publish-subscribe_pattern  (1)
+topic-based and content-based." [1]_
+
 
 Our flavor of publish–subscribe (PubSub) is based on PyPubSub.
 PyPubSub was born as wxPython module but it has grown and nowadays 
-has its own project hosted in GitHub 
-http://github.com/schollii/pypubsub.        
+has its own project hosted in GitHub . [2]_     
 
 Despite its growth, PyPubSub remains accessible as a wxPython module
 located at wx.lib.pubsub.
@@ -37,16 +30,34 @@ published to 'topics' or named logical channels. Subscribers in a topic-based
 system will receive all messages published to the topics to which they 
 subscribe, and all subscribers to a topic will receive the same messages. 
 The publisher is responsible for defining the classes of messages to which 
-subscribers can subscribe." (1)
+subscribers can subscribe." [1]_
 
 We developed a "topic system" to add a flavor of content-based to PyPubSub.
 "In a content-based system, messages are only delivered to a subscriber if the
 attributes or content of those messages match constraints defined by the 
-subscriber. The subscriber is responsible for classifying the messages."  (1)
+subscriber. The subscriber is responsible for classifying the messages."  [1]_
+
+   
+References
+----------
+Cite the relevant literature, e.g. [1]_, [2]_.  You may also cite these
+references in the notes section above.
+
+.. [1] http://en.wikipedia.org/wiki/Publish-subscribe_pattern
+
+.. [2] http://github.com/schollii/pypubsub
+
 
 """
 
+
 # TODO: corrigir Docs
+
+
+from wx.lib.pubsub import pub
+#from pubsub import pub
+
+
 
 def pubuid_to_uid(value):
     try:

@@ -549,7 +549,7 @@ class ObjectManager(GripyManager):
                 else:
                     objdict[key] = value
             
-#            for key in obj._IMMUTABLES_KEYS:
+#            for key in obj._READ_ONLY:
 #                objdict[key] = obj[key]
 
                         

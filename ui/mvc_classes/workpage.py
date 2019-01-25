@@ -73,7 +73,9 @@ class WorkPage(UIViewObject, wx.Panel):
         #    
         controller.subscribe(self._set_title, 'change.title')            
         controller.subscribe(self._set_pos, 'change.pos')
-        controller.subscribe(self._set_float_mode, 'change.float_mode')                
+        controller.subscribe(self._set_float_mode, 'change.float_mode')
+
+        # Set notebook page name                
         self._set_own_name()
    
 

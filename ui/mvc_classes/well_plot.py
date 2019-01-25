@@ -73,7 +73,7 @@ class WellPlotController(WorkPageController):
         if new_value != WellPlotState.NORMAL_TOOL:
             return
         UIM = UIManager()
-        selected_tracks = UIM.do_query('track_controller',  self.uid,
+        selected_tracks = UIM.exec_query('track_controller',  self.uid,
                                    'selected=True',
                                     orderby='pos'
         )
@@ -134,7 +134,7 @@ class WellPlotController(WorkPageController):
             objects uids.
         """
         UIM = UIManager()
-        selected_tracks = UIM.do_query('track_controller', self.uid,
+        selected_tracks = UIM.exec_query('track_controller', self.uid,
                                        'selected=True',
                                        orderby='pos',
                                        reverse=True
@@ -159,7 +159,7 @@ class WellPlotController(WorkPageController):
         :class:`WellPlot`.
         """
         UIM = UIManager()
-        selected_tracks = UIM.do_query('track_controller',  self.uid,
+        selected_tracks = UIM.exec_query('track_controller',  self.uid,
                                        'selected=True',
                                        orderby='pos',
                                        reverse=True
@@ -177,13 +177,14 @@ class WellPlotController(WorkPageController):
             The track placed as Overview, or None if it does not exist.        
         """
         UIM = UIManager() 
-        query_list = UIM.do_query('track_controller', 
+        query_list = UIM.exec_query('track_controller', 
                                    self._controller_uid, 'overview=True'
         )
         track = None
         if query_list:
             track = query_list[0]
         return track
+
 
     def _adjust_positions_after_track_deletion(self, pos):
         """
@@ -200,11 +201,12 @@ class WellPlotController(WorkPageController):
             
         """
         UIM = UIManager()
-        tracks = UIM.do_query('track_controller', self.uid, 'pos>'+str(pos))
+        tracks = UIM.exec_query('track_controller', self.uid, 'pos>'+str(pos))
         for track in tracks:
             track.model.set_value_from_event('pos', track.model.pos-1)   
             track.reload_track_title()        
                     
+            
     def _change_width_for_selected_tracks(self, dragged_track_uid):
         """
         Change width for a group of selected tracks.
@@ -222,10 +224,11 @@ class WellPlotController(WorkPageController):
         """
         UIM = UIManager()
         dragged_track = UIM.get(dragged_track_uid)
-        selected =  UIM.do_query('track_controller', self.uid, 'selected=True')
+        selected =  UIM.exec_query('track_controller', self.uid, 'selected=True')
         for track in selected:
             if track.uid != dragged_track_uid:
                 track.model.width = dragged_track.model.width 
+
 
     def _increment_tracks_positions(self, pos, exclude_track_uid=None):
         """
@@ -251,7 +254,7 @@ class WellPlotController(WorkPageController):
         controller = UIM.get(self._controller_uid)
         if pos >= len(controller):
             return
-        tracks_affected = UIM.do_query('track_controller',  
+        tracks_affected = UIM.exec_query('track_controller',  
                                             self._controller_uid,
                                             'pos>='+str(pos)
         )    
@@ -284,7 +287,7 @@ class WellPlotController(WorkPageController):
             If given, exclude the Track to have title updated.
         """        
         UIM = UIManager()
-        tracks_affected = UIM.do_query('track_controller',  
+        tracks_affected = UIM.exec_query('track_controller',  
                                             self._controller_uid,
                                             'pos>='+str(pos)
         ) 
@@ -322,7 +325,7 @@ class WellPlotController(WorkPageController):
             return
         if new_pos < old_pos:
             while pos > new_pos:     
-                tracks_next_pos = UIM.do_query('track_controller',  self.uid, 
+                tracks_next_pos = UIM.exec_query('track_controller',  self.uid, 
                                       'pos='+str(pos-1))
                 if track_pos in tracks_next_pos:
                     tracks_next_pos.remove(track_pos)
@@ -337,7 +340,7 @@ class WellPlotController(WorkPageController):
         
         else:
             while pos < new_pos: 
-                tracks_next_pos = UIM.do_query('track_controller',  self.uid, 
+                tracks_next_pos = UIM.exec_query('track_controller',  self.uid, 
                                       'pos='+str(pos+1))
                 if track_pos in tracks_next_pos:
                     tracks_next_pos.remove(track_pos)
@@ -792,10 +795,12 @@ class WellPlot(WorkPage):
         else:
             raise Exception('show_track overview track???')
             
-        tracks_affected= UIM.do_query('track_controller',  
+
+        tracks_affected= UIM.exec_query('track_controller',  
                                             self._controller_uid,
                                             'pos>='+str(track.model.pos)
         )    
+
         for track_affected in tracks_affected:
             if track_affected.uid != track.uid:
                 #print 'track_affected.uid:', track_affected.uid

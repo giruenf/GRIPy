@@ -700,39 +700,22 @@ class DepthCanvas():
         self.destroy_depth_canvas()       
         wx.CallAfter(super().__del__())
         
-        
     def create_depth_canvas(self):
         self._in_canvas = -1
         self._drag_mode = DepthCanvas.SASH_DRAG_NONE
         self.canvas_color = 'blue'
         self.canvas_alt_color = 'red'
-        self.canvas_height = 20
-        #
-#        transaxes = self.tc.get_transaxes()
-#        xmin_px, ymin_px = transaxes.transform((0.0, 0.0))
-#        display_xmax, ymax_px = transaxes.transform((1.0, 1.0))
+        self.canvas_height = 3
         #
         self.d1_canvas = wx.Panel(self.tc, name='D1') 
-#        self.d1_canvas.SetSize((display_xmax-xmin_px, self.canvas_height))
         self.d1_canvas.SetBackgroundColour(self.canvas_color)    
-#        self.d1_canvas.SetPosition((xmin_px, ymax_px))
         #
-#        display_coords = self._get_depth_canvas_display_coords()
-#        print (xmin_px, display_coords['xmin'])
-#        print (display_xmax-xmin_px, display_coords['width_px'])
-#        print (ymax_px, display_coords['ymin'])
-#        print (ymin_px, display_coords['ymax'])
         self.d2_canvas = wx.Panel(self.tc, name='D2') 
-#        self.d2_canvas.SetSize((display_xmax-xmin_px, self.canvas_height))
         self.d2_canvas.SetBackgroundColour(self.canvas_color)  
-#        self.d2_canvas.SetPosition((xmin_px, 
-#                                    display_coords['ymax']-self.canvas_height))
         #
         self.d1_canvas.Bind(wx.EVT_MOUSE_EVENTS, self._on_canvas_mouse)
         self.d2_canvas.Bind(wx.EVT_MOUSE_EVENTS, self._on_canvas_mouse)        
-        #
-        
-        
+
 
     def destroy_depth_canvas(self):
         try:
@@ -765,7 +748,9 @@ class DepthCanvas():
             
             
     def _on_mouse(self, event):
-        #print ('on_mouse')
+        """
+        O evento do canvas track retorna para cah
+        """
         x, y = event.GetPosition()
         if self._drag_mode == DepthCanvas.SASH_DRAG_NONE:    
             self._canvas_hit_test(x, y)              
@@ -780,6 +765,18 @@ class DepthCanvas():
 
    
     def _canvas_hit_test(self, x, y, tolerance=5):
+        """
+        Test if a user click hitted one of the two canvas.
+        
+        Parameters
+        ----------
+        x: int
+            X coordinate
+        y: int
+            Y coordinate            
+        tolerance: int
+            Number of pixels tolerated outside canvas.     
+        """         
         r1 = self.d1_canvas.GetRect()   
         r2 = self.d2_canvas.GetRect() 
         if y >= r1.y - tolerance and y <= r1.y + r1.height + tolerance:
@@ -793,18 +790,17 @@ class DepthCanvas():
             self.tc.SetCursor(wx.STANDARD_CURSOR)
 
     
-    def start_dragging(self, start_y):
+    def start_dragging(self, y):
+        """
+        Prepare for dragging...
+        """
         if self._in_canvas == None:
             return 
         if self._drag_mode != DepthCanvas.SASH_DRAG_NONE:
             return
-        
-        print ('\n\n\n')
-
         self._drag_mode = DepthCanvas.SASH_DRAG_DRAGGING
         #self.track.CaptureMouse()
-        #print 'mouse capturado'
-        self._old_y = start_y
+        self._old_y = y
         self._in_canvas.SetBackgroundColour(self.canvas_alt_color)
         self._in_canvas.Refresh()    
         
@@ -812,6 +808,9 @@ class DepthCanvas():
 
 
     def drag_it(self, new_y):
+        """
+        During the drag....
+        """
         if self._in_canvas == None:
             return
         if self._drag_mode != DepthCanvas.SASH_DRAG_DRAGGING:
@@ -822,37 +821,45 @@ class DepthCanvas():
             new_pos = y + inc
             #
             min_y_px, max_y_px = self._get_max_min_pixels()
-            #
-            self._in_canvas.SetPosition((x, new_pos))
-            self._in_canvas.Refresh()
-            self._old_y = new_y   
+
 
             
             #
-            """
+#            """
             if new_pos < min_y_px:
                 # Canvas top cannot exceed the minimum pixel permitted
                 return
             elif (new_pos + self.canvas_height) > max_y_px:
                 # Canvas bottom cannot exceed the maximum pixel permitted
                 return
-            """
-            
+#            """
+
+
+            #
+            self._in_canvas.SetPosition((x, new_pos))
+            self._in_canvas.Refresh()
+            self._old_y = new_y   
+
+
 
             # Adjusting position (translating) for real canvas bottom position
             #new_pos = max_y_px + min_y_px - new_pos
 
             if self._in_canvas.GetName() == 'D1':
-                new_pos_data = self._get_depth_from_ypixel(new_pos)           
+                new_depth = self._get_depth_from_ypixel(new_pos)           
             else:    
-                new_pos_data = self._get_depth_from_ypixel(new_pos + 
+                new_depth = self._get_depth_from_ypixel(new_pos + 
                                                            self.canvas_height)    
 
-
-            print(self._in_canvas.GetName(), min_y_px, max_y_px, new_pos, new_pos_data)
+            self.tc.SetToolTip(wx.ToolTip('{0:.2f}'.format(new_depth)))
+            
+            
+            print(self._in_canvas.GetName(), min_y_px, max_y_px, new_pos, new_depth)
             print()
 
              
+            
+            
     def _get_max_min_pixels(self):             
         # Because we have Y axis from top to bottom, our Axes coordinated
         # inverted too. 
@@ -868,9 +875,10 @@ class DepthCanvas():
     
 
     def end_dragging(self):
-        
+        """
+        """
         print('\nend_dragging')
-        
+        #
         if self._in_canvas == None:
             return
         if self._drag_mode != DepthCanvas.SASH_DRAG_DRAGGING:
@@ -881,7 +889,6 @@ class DepthCanvas():
         #
         if self.tc.HasCapture():
             self.tc.ReleaseMouse()
-
         #       
         transdata_inv = self.tc.get_transdata().inverted()
         #
@@ -904,7 +911,6 @@ class DepthCanvas():
             
         print (top_canvas_px, bottom_canvas_px)
         
-
 
 
         UIM = UIManager()
@@ -1014,17 +1020,20 @@ class DepthCanvas():
         bottom_px = self._get_ypixel_from_depth(depth_max)
         #
         transaxes = self.tc.get_transaxes()
-        xmin_px, _ = transaxes.transform((0.0, 0.0))
-        xmax_px, _ = transaxes.transform((1.0, 1.0))
         #
-        print ('\nMin Max Y:', top_px, bottom_px)
+#        xmin_px, _ = transaxes.transform((0.0, 0.0))
+        xmin_px, top_px_ax = transaxes.transform((0.0, 0.0))
+#        xmax_px, _ = transaxes.transform((1.0, 1.0))
+        xmax_px, bottom_px_ax = transaxes.transform((1.0, 1.0))
         #
-        self.d1_canvas.SetSize(xmin_px, top_px,
-                                       xmax_px - xmin_px, self.canvas_height
+        print ('\nMin Max Y:', top_px, top_px_ax, bottom_px, bottom_px_ax)
+        #
+        self.d1_canvas.SetSize(int(xmin_px), int(top_px),
+                                       xmax_px-xmin_px, self.canvas_height
         )        
         #
-        self.d2_canvas.SetSize(xmin_px, bottom_px - self.canvas_height,
-                                       xmax_px - xmin_px, self.canvas_height
+        self.d2_canvas.SetSize(int(xmin_px), int(bottom_px)-self.canvas_height,
+                                       xmax_px-xmin_px, self.canvas_height
         )
         #       
        

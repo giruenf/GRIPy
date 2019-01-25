@@ -24,6 +24,7 @@ class Well(OMBaseObject):
         and value will be a short identification (e.g. 'MD'). Returned dict 
         will contain information from all DataIndex objects that are children 
         of this Well.
+        
         """
         OM = ObjectManager()
         z_axis = OrderedDict()    

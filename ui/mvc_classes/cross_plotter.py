@@ -95,6 +95,16 @@ class CrossPlot(WorkPage):
             pass       
 
 
+    def _set_own_name(self):
+        """
+        """
+        
+        UIM = UIManager()   
+        controller = UIM.get(self._controller_uid)        
+        controller.model.title = self._FRIENDLY_NAME
+
+
+
     def _get_wx_parent(self, *args):
         flag = args[0]
         print ('\nCrossPlot._get_wx_parent', flag)
@@ -238,7 +248,7 @@ class CrossPlot(WorkPage):
         lib_name = event.GetString()
         print ('\n\nLoading Style:', lib_name)
         UIM = UIManager()  
-        cc = UIM.list('canvas_controller', self._controller_uid)[0]
+        cc = UIM.list('canvas_plotter_controller', self._controller_uid)[0]
         cc.load_style(lib_name)
 
 

@@ -219,7 +219,7 @@ class UIModelObject(UIBaseObject):
         
     """
     tid = None
-    _IMMUTABLES_KEYS = ['_controller_uid']
+    _READ_ONLY = ['_controller_uid']
 
 
     def __init__(self, controller_uid, **state):
@@ -257,7 +257,7 @@ class UIModelObject(UIBaseObject):
 
 class UIViewObject(UIBaseObject):
     tid = None
-    _IMMUTABLES_KEYS = ['_controller_uid']
+    _READ_ONLY = ['_controller_uid']
     
     def __init__(self, controller_uid):
         super().__init__()

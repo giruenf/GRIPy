@@ -84,7 +84,7 @@ class LogPlotController(WorkPageController):
     
     def insert_track(self):
         UIM = UIManager()
-        selected_tracks = UIM.do_query('track_controller', self.uid,
+        selected_tracks = UIM.exec_query('track_controller', self.uid,
                                        'selected=True',
                                        orderby='pos',
                                        reverse=True
@@ -106,7 +106,7 @@ class LogPlotController(WorkPageController):
 
     def remove_selected_tracks(self):
         UIM = UIManager()
-        selected_tracks = UIM.do_query('track_controller',  self.uid,
+        selected_tracks = UIM.exec_query('track_controller',  self.uid,
                                        'selected=True',
                                        orderby='pos',
                                        reverse=True
@@ -133,7 +133,7 @@ class LogPlotController(WorkPageController):
             return
         if new_pos < old_pos:
             while pos > new_pos:     
-                tracks_next_pos = UIM.do_query('track_controller',  self.uid, 
+                tracks_next_pos = UIM.exec_query('track_controller',  self.uid, 
                                       'pos='+str(pos-1))
                 if track_pos in tracks_next_pos:
                     tracks_next_pos.remove(track_pos)
@@ -148,7 +148,7 @@ class LogPlotController(WorkPageController):
         
         else:
             while pos < new_pos: 
-                tracks_next_pos = UIM.do_query('track_controller',  self.uid, 
+                tracks_next_pos = UIM.exec_query('track_controller',  self.uid, 
                                       'pos='+str(pos+1))
                 if track_pos in tracks_next_pos:
                     tracks_next_pos.remove(track_pos)
@@ -165,7 +165,7 @@ class LogPlotController(WorkPageController):
         
     def _propagate_deletion(self, pos, uid):
         UIM = UIManager()
-        tracks = UIM.do_query('track_controller',  self.uid,
+        tracks = UIM.exec_query('track_controller',  self.uid,
                               'pos>'+str(pos)
         )    
         for track in tracks:
@@ -177,7 +177,7 @@ class LogPlotController(WorkPageController):
     def _propagate_change_width(self, uid):
         UIM = UIManager()
         obj = UIM.get(uid)
-        selected =  UIM.do_query('track_controller',  self.uid,
+        selected =  UIM.exec_query('track_controller',  self.uid,
                                  'selected=True'
         )
         for track in selected:
@@ -210,7 +210,7 @@ class LogPlotController(WorkPageController):
     def on_change_cursor_state(self, new_value, old_value):
         if new_value == LogPlotState.NORMAL_TOOL:
             UIM = UIManager()
-            selected_tracks = UIM.do_query('track_controller',  self.uid,
+            selected_tracks = UIM.exec_query('track_controller',  self.uid,
                                        'selected=True',
                                         orderby='pos'
             )
@@ -599,7 +599,7 @@ class LogPlot(WorkPage):
             pos = track.model.pos
     
             print (3.5)   
-            tracks_affected = UIM.do_query('track_controller',  
+            tracks_affected = UIM.exec_query('track_controller',  
                                                 self._controller_uid,
                                                 'pos>='+str(pos)
             )    
@@ -651,7 +651,7 @@ class LogPlot(WorkPage):
         if from_pos >= controller.size:
             return
         track = UIM.get(track_uid)
-        tracks_affected = UIM.do_query('track_controller',  
+        tracks_affected = UIM.exec_query('track_controller',  
                                             self._controller_uid,
                                             'pos='+str(from_pos)
         )    
@@ -757,7 +757,7 @@ class LogPlot(WorkPage):
         else:
             raise Exception('show_track overview track???')
             
-        tracks_affected= UIM.do_query('track_controller',  
+        tracks_affected= UIM.exec_query('track_controller',  
                                             self._controller_uid,
                                             'pos>='+str(track.model.pos)
         )    

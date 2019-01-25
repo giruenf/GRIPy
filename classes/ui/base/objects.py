@@ -319,7 +319,7 @@ class UIModelObject(UIBaseObject):
         
     """
     tid = None
-    _IMMUTABLES_KEYS = ['_controller_uid']
+    _READ_ONLY = ['_controller_uid']
 
     def __init__(self, controller_uid, **state):
         UIM_class = self._get_manager_class()
@@ -348,7 +348,7 @@ class UIViewObject(UIBaseObject):
         
     """
     tid = None
-    _IMMUTABLES_KEYS = ['_controller_uid']
+    _READ_ONLY = ['_controller_uid']
     
     def __init__(self, controller_uid):
         super().__init__()

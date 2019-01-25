@@ -1,23 +1,5 @@
 # -*- coding: utf-8 -*-
 """
-Gripy Base Classes
-==================
-
-This file defines the base classes for all GRIPy objects.
-
-Here we have 2 main Metaclasses: GripyMeta and GripyManagerMeta. They are
-responsible for create all classes inherits from GripyObject or GripyManager.
-Another Metaclass in this file is GripyWxMeta is a convinience one for creating 
-object inherits from GripyObject and wx.Object.
-
-All GripyObjects have GripyWxMeta as metaclass as well as GripyManagers have
-GripyManagerMeta. 
-
-Our flavor of Metaclasses was bluit based on the references below.
-
-    https://www.python-course.eu/python3_metaclasses.php and
-    https://blog.ionelmc.ro/2015/02/09/understanding-python-metaclasses/
-
 
 """
 
@@ -27,7 +9,6 @@ from collections import Sequence
 
 import wx
 
-#from app.gripy_app import GripyApp
 from app import app_utils
 from app import pubsub
 from classes.base.metaclasses import GripyWxMeta
@@ -37,7 +18,7 @@ from app import log
 
 class GripyObject(pubsub.PublisherMixin, metaclass=GripyWxMeta):  
     """
-    Base class for all GRIPy classes deal
+    Base for all GRIPy classes.
     
     All GripyObjects have GripyWxMeta as metaclass.
     
@@ -51,24 +32,21 @@ class GripyObject(pubsub.PublisherMixin, metaclass=GripyWxMeta):
 
         * 25/8/2018: The least 4 above occours only in ui/mvc_classes/track_object.py and ui/mvc_classes/propgrid.py.
         
-    _IMMUTABLES_KEYS
+    _READ_ONLY
         Attributes that must be setted only during object initialization. 
         They cannot be deleted or changed. (e.g. oid)
         
-    _BYPASSES_KEYS
-        Attributes that bypasses the checkage made in __setattr__ or 
-        __setitem__ for default ones. This type was created for flags like
-        "_processing_value_from_event" seen in GripyObject.
     """
     tid = None
-    _BYPASSES_KEYS = ['_processing_value_from_event']
-    _IMMUTABLES_KEYS = ['oid']
-
+    #
     _ATTRIBUTES = OrderedDict()
     _ATTRIBUTES['name'] = {
         'default_value': wx.EmptyString,
         'type': str        
-    }   
+    }      
+    #
+    _READ_ONLY = ['oid']
+    #
     
     def __init__(self, **kwargs): 
         _manager_class = self._get_manager_class()
@@ -89,21 +67,36 @@ class GripyObject(pubsub.PublisherMixin, metaclass=GripyWxMeta):
           
     def __str__(self):
         return '{}.{}'.format(*self.uid)
- 
-    def _get_manager_class(self):
-        return wx.App.Get()._get_manager_class(self)
 
+    @property
+    def uid(self):
+        """
+        """
+        return self.tid, self.oid
+    
+    @uid.setter
+    def uid(self, value):
+        raise Exception('Object uid cannot be setted.')
+
+    @uid.deleter
+    def uid(self):
+        raise Exception('Object uid cannot be deleted.')
+        
+
+    # TODO: _get_manager_class ou get_manager_class
+    def _get_manager_class(self):
+        """
+        """
+        app = wx.App.Get()
+        return app._get_manager_class(self)
+    
+    #TODO: Verificar se inclui funcao get_manager()  
+
+    #TODO: _get_publisher_name ou get_pubsub_uid
     def get_publisher_name(self):
         return pubsub.uid_to_pubuid(self.uid)    
          
-    @property
-    def uid(self):
-        return self.tid, self.oid
-
-    # TODO: try to put it in the Metaclass
-    def is_initialised(self):
-        return self.__dict__.get('_GripyMeta__initialised', False)    
-    
+    # TODO: rever este nome
     def set_value_from_event(self, key, value):
         self._processing_value_from_event = True
         try:
@@ -111,7 +104,30 @@ class GripyObject(pubsub.PublisherMixin, metaclass=GripyWxMeta):
         except: 
             raise
         finally:    
-            self._processing_value_from_event = False      
+            self._processing_value_from_event = False   
+            
+
+    def find_attribute(self, key):
+        """
+        Find a Gripy attribute inside _ATTRIBUTES structure.
+        """
+        try:
+            if key in self._ATTRIBUTES:
+                return self._ATTRIBUTES[key]
+            
+            print('\nfind_attribute:', key, type(key), self._ATTRIBUTES, self)
+
+            attr = self.model._ATTRIBUTES[key]
+            print('fa attr:', attr)
+            return attr
+        
+        #except KeyError as ke:
+        except Exception as e:
+            msg = 'ERROR [GripyObject.find_attribute]:' + e
+            print('\n' + msg)
+            #return None
+            raise
+            
                                    
     def __getattribute__(self, key):
         try:
@@ -150,7 +166,7 @@ class GripyObject(pubsub.PublisherMixin, metaclass=GripyWxMeta):
         self._do_del(key)
         
     def _do_del(self, key):
-        if key in self._IMMUTABLES_KEYS:
+        if key in self._READ_ONLY:
             msg = 'Cannot delete attribute {}.'.format(key)
             raise AttributeError(msg)           
         if key in self._ATTRIBUTES:
@@ -162,39 +178,37 @@ class GripyObject(pubsub.PublisherMixin, metaclass=GripyWxMeta):
         self._do_set(key, value)
 
     def __setattr__(self, key, value):
-        if key in self._BYPASSES_KEYS:
-            self.__dict__[key] = value
-            return
-        elif key in self._IMMUTABLES_KEYS:
+        if key in self._READ_ONLY:
             if not self.is_initialised():
                 self.__dict__[key] = value
                 return
             else:
-                msg = '{} cannot be changed. It is on {}._IMMUTABLES_KEYS.'.format(key, self.__class__.__name__)
+                msg = '{} cannot be changed. It is on {}._READ_ONLY ' + \
+                                'list.'.format(key, self.__class__.__name__)
                 raise Exception(msg)   
         self._do_set(key, value)
         
-        
-#
-# key not in ATTR, not in DICT, is PROP, is INITED  -> OK -> Case 1   
-# key not in ATTR, not in DICT, is PROP, not INITED  -> OK -> Case 1  
-#        
-# [DEPRECATED] - key not in ATTR, not in DICT, not PROP, is INITED -> ERROR -> Exception 1 
-#                turned into case 2.3 below
-#
-# Setting DICT key while running object __init__       
-# key not in ATTR, not in DICT, not PROP, not INITED -> OK  -> Case 2.1
-#        
-# Key DICT was setted on case 2.1 above         
-# key not in ATTR, is in DICT, not INITED, not PROP -> OK  -> Case 2.2
-# key not in ATTR, is in DICT, is INITED, not PROP -> OK -> Case 2.2
-# key not in ATTR, not in DICT, is INITED, not PROP -> OK -> Case 2.3 
-#        
-# Key is monitorated attribute         
-# key is in ATTR -> OK -> Case 3       
-               
-        
+           
     def _do_set(self, key, value):       
+        """
+        #
+        # key not in ATTR, not in DICT, is PROP, is INITED  -> OK -> Case 1   
+        # key not in ATTR, not in DICT, is PROP, not INITED  -> OK -> Case 1  
+        #        
+        # [DEPRECATED] - key not in ATTR, not in DICT, not PROP, is INITED -> ERROR -> Exception 1 
+        #                turned into case 2.3 below
+        #
+        # Setting DICT key while running object __init__       
+        # key not in ATTR, not in DICT, not PROP, not INITED -> OK  -> Case 2.1
+        #        
+        # Key DICT was setted on case 2.1 above         
+        # key not in ATTR, is in DICT, not INITED, not PROP -> OK  -> Case 2.2
+        # key not in ATTR, is in DICT, is INITED, not PROP -> OK -> Case 2.2
+        # key not in ATTR, not in DICT, is INITED, not PROP -> OK -> Case 2.3 
+        #        
+        # Key is monitorated attribute         
+        # key is in ATTR -> OK -> Case 3   
+        """
         # Checking if key is a Data Descriptor, e.g. property
         if key not in self._ATTRIBUTES and key not in self.__dict__:
             prop = None
@@ -216,7 +230,8 @@ class GripyObject(pubsub.PublisherMixin, metaclass=GripyWxMeta):
             return
               
         # Case 3: Okay,we have a monitorated attribute
-        type_ = self._ATTRIBUTES[key].get('type')
+        attr = self.find_attribute(key)
+        type_ = attr.get('type')
          
         # Special treatment for some Sequences attributes like 
         # _ATTRIBUTES.type: (sequence, sequence_inner_type, sequence_lenght)
@@ -275,6 +290,7 @@ class GripyObject(pubsub.PublisherMixin, metaclass=GripyWxMeta):
         log.debug(msg)
 
 
+    # TODO: Change this name
     def _getstate(self):
         state = OrderedDict()  
         for attr_name in self._ATTRIBUTES.keys():

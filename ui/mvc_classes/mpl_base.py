@@ -661,7 +661,7 @@ class PlotFigureCanvas(FigureCanvas, SelectPanelMixin):
             toc_ctrl = UIM.get(obj_uid)
             track_uid = UIM._getparentuid(toc_ctrl)
             if not event.mouseevent.guiEvent.ControlDown():
-                selected_tocs = UIM.do_query('track_object_controller', 
+                selected_tocs = UIM.exec_query('track_object_controller', 
                                                track_uid, 'selected=True'
                 )
                 for sel_toc in selected_tocs:

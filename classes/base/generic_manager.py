@@ -125,7 +125,11 @@ class GripyManager(pubsub.PublisherMixin, metaclass=GripyManagerMeta):
 
 
         
-    def do_query(self, tid, parent_uid=None, *args, **kwargs):
+    def exec_query(self, tid, parent_uid=None, *args, **kwargs):
+        """
+        Execute queries for searching managed objects.
+        
+        """
         try:
             recursively = kwargs.pop('recursively', False)
             objects = self.list(tid, parent_uid, recursively)
@@ -137,44 +141,43 @@ class GripyManager(pubsub.PublisherMixin, metaclass=GripyManagerMeta):
                 for (key, operator, value) in comparators:
                     ok = False
                    
-                    attr = obj._ATTRIBUTES.get(key)
-                    # TODO: acertar isso, pois a linha de cima deve servir de atalho
-                    # para obj.model de forma transparente
-                    obj_model = False
+                    print('\n\n\nb4:', key, operator, value)
+                    try:
+                        attr = obj.find_attribute(key)
+                    except Exception as e:
+                        print('ERROR 1:', e)
+                        attr = None
+                        
+                    print('attr 1:', attr)
                     if attr is None:
-                        attr = obj.model._ATTRIBUTES.get(key)
-                        obj_model = True
-
+                        raise Exception('Attribute {} not found.'.format(key))
+                    
                     type_ = attr.get('type')
                     value = type_(value)
-
-                    if obj_model:
-                        if operator == '>=':
-                            ok = obj.model[key] >= value
-                        elif operator == '<=':
-                            ok = obj.model[key] <= value                  
-                        elif operator == '>':
-                            ok = obj.model[key] > value
-                        elif operator == '<':
-                            ok = obj.model[key] < value     
-                        elif operator == '!=':
-                            ok = obj.model[key] != value
-                        elif operator == '=':
-                            ok = obj.model[key] == value
-                        
-                    else:
-                        if operator == '>=':
-                            ok = obj[key] >= value
-                        elif operator == '<=':
-                            ok = obj[key] <= value                  
-                        elif operator == '>':
-                            ok = obj[key] > value
-                        elif operator == '<':
-                            ok = obj[key] < value     
-                        elif operator == '!=':
-                            ok = obj[key] != value
-                        elif operator == '=':
-                            ok = obj[key] == value
+                    
+                    try:
+                        attr_value = obj[key]
+                    except Exception as e:
+                        print('ERROR 2:', e, type(e))
+                        try:
+                            attr_value = obj.model[key]
+                            print('OK:', attr_value)
+                        except Exception as e2:
+                            print('ERROR 3:', e2, type(e2))
+                            
+                    #else:
+                    if operator == '>=':
+                        ok = attr_value >= value
+                    elif operator == '<=':
+                        ok = attr_value <= value                  
+                    elif operator == '>':
+                        ok = attr_value > value
+                    elif operator == '<':
+                        ok = attr_value < value     
+                    elif operator == '!=':
+                        ok = attr_value != value
+                    elif operator == '=':
+                        ok = attr_value == value
                             
                     if not ok:
                         break
@@ -197,14 +200,18 @@ class GripyManager(pubsub.PublisherMixin, metaclass=GripyManagerMeta):
                 ret_list.reverse()                     
             return ret_list
         except Exception as e:
-            print ('\nERROR in {}.do_query({}, {}, {}, {})'.format( \
-                   self.__class__.__name__,tid, parent_uid, args, kwargs)
-            )
+            msg = 'ERROR in {}.exec_query({}, {}, {}, {})'.format( \
+                        self.__class__.__name__, tid, parent_uid, args, kwargs)
+            print ('\n' + msg)
             raise
             
             
             
     def _create_comparators(self, *args):
+        """
+        Create the comparators used by `.exec_query`.
+        
+        """
         operators = ['>=', '<=', '>', '<', '!=', '=']
         ret_list = []
         for arg in args:

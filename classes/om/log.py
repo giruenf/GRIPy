@@ -29,10 +29,16 @@ class Log(WellData1D):
         #@_autogen_docstring(OMBaseObject._is_tid_node_needed)
         __doc__ = OMBaseObject._is_tid_node_needed.__doc__
         return False
+#    _is_tid_node_needed.__doc__ = OMBaseObject._is_tid_node_needed.__doc__
     
+    
+    # https://docs.scipy.org/doc/numpy-1.15.0/docs/howto_document.html
     
     # TODO: Usar Sphinx, como modelo abaixo do MPL - confirmar visitando respectiva pagina do MPL
     # neste caso eh a pagina Artist.set_clip_path do docs online.
+    
+
+    
     """
     Set the artist's clip path, which may be:
 

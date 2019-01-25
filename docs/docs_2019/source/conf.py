@@ -14,7 +14,9 @@
 #
 import os
 import sys
-sys.path.insert(0, os.path.abspath('../..'))
+
+#sys.path.insert(0, os.path.abspath('E:\\repo\\GRIPy-3'))
+sys.path.insert(0, 'E:\\repo\\GRIPy-3')
 sys.setrecursionlimit(1500)
 
 # -- Project information -----------------------------------------------------
@@ -38,14 +40,37 @@ release = '0.1'
 # Add any Sphinx extension module names here, as strings. They can be
 # extensions coming with Sphinx (named 'sphinx.ext.*') or your custom
 # ones.
+#extensions = [
+#    'sphinx.ext.autodoc',
+#    'sphinx.ext.doctest',
+#    'sphinx.ext.todo',
+#    'sphinx.ext.ifconfig',
+#    'sphinx.ext.viewcode',
+#    'sphinx.ext.githubpages',
+#	'rinoh.frontend.sphinx',
+#]
+
+
 extensions = [
     'sphinx.ext.autodoc',
+    'sphinx.ext.autosummary',
     'sphinx.ext.doctest',
-    'sphinx.ext.todo',
-    'sphinx.ext.ifconfig',
+    'sphinx.ext.inheritance_diagram',
+    'sphinx.ext.intersphinx',
     'sphinx.ext.viewcode',
-    'sphinx.ext.githubpages',
-	'rinoh.frontend.sphinx',
+    'IPython.sphinxext.ipython_console_highlighting',
+    'IPython.sphinxext.ipython_directive',
+    'numpydoc',  # Needs to be loaded *after* autodoc.
+#    'sphinx_gallery.gen_gallery',
+#    'matplotlib.sphinxext.mathmpl',
+#    'matplotlib.sphinxext.plot_directive',
+#    'sphinxext.custom_roles',
+#    'sphinxext.github',
+#    'sphinxext.math_symbol_table',
+#    'sphinxext.mock_gui_toolkits',
+#    'sphinxext.skip_deprecated',
+#    'sphinx_copybutton',
+	'rinoh.frontend.sphinx'
 ]
 
 # Add any paths that contain templates here, relative to this directory.
@@ -182,6 +207,10 @@ epub_exclude_files = ['search.html']
 
 # -- Extension configuration -------------------------------------------------
 
+# -- Options for intersphinx extension ---------------------------------------
+
+# Example configuration for intersphinx: refer to the Python standard library.
+intersphinx_mapping = {'https://docs.python.org/': None}
 # -- Options for todo extension ----------------------------------------------
 
 # If true, `todo` and `todoList` produce output, else they produce nothing.

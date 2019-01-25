@@ -4179,10 +4179,10 @@ def _get_phi_K_objects(well_uid):
     OM = ObjectManager()    
     #well_uid = ('well', 0) 
 
-    phi_log_objects = OM.do_query('log', well_uid, 'name=Phi')       
+    phi_log_objects = OM.exec_query('log', well_uid, 'name=Phi')       
     phi_log_obj = phi_log_objects[0]
 
-    K_log_objects = OM.do_query('log', well_uid, 'name=K')       
+    K_log_objects = OM.exec_query('log', well_uid, 'name=K')       
     K_log_obj = K_log_objects[0]
                  
     #phi_data = uom.convert(phi_log_obj.data, phi_log_obj.unit, new_unit_name)
