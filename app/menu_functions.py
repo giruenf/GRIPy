@@ -1849,7 +1849,7 @@ def on_cwt(event):
                 scalogram_index_set = OM.new('index_set', name=obj_index_set.name)
                 OM.add(scalogram_index_set, scalogram.uid)
                 #
-                state = z_axis._getstate()
+                state = z_axis.get_state()
                 index = OM.create_object_from_state('data_index', **state)
                 OM.add(index, scalogram_index_set.uid)
                 #
@@ -1866,7 +1866,7 @@ def on_cwt(event):
                 # Inserindo as outras dimensões do dado
                 for idx in range(1, len(input_indexes)):
                     print ('idx:', idx)
-                    state = input_indexes[idx][0]._getstate()        
+                    state = input_indexes[idx][0].get_state()        
                     state['dimension'] = idx+1
                     index = OM.index = OM.create_object_from_state('data_index', **state)
                     OM.add(index, scalogram_index_set.uid)

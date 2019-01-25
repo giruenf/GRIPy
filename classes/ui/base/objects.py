@@ -236,7 +236,7 @@ class UIControllerObject(UIBaseObject):
         In general, object states are used add persistence to a object or to
         make an object clone.
         """
-        return self._getstate()
+        return self.get_state()
         """
         UIM = UIManager()
         children = UIM.list(parentuidfilter=self.uid)

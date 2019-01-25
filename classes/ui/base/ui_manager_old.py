@@ -187,7 +187,7 @@ class UIControllerObject(UIBaseObject):
     def get_state(self):
         if not self.model:
             return None 
-        state = self._getstate()
+        state = self.get_state()
         UIM = UIManager()
         children = UIM.list(parentuidfilter=self.uid)
         if children:

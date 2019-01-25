@@ -546,7 +546,7 @@ class LogPlot(WorkPage):
                                     ),
                                     y_major_grid_lines=controller.y_major_grid_lines,
                                     y_minor_grid_lines=controller.y_minor_grid_lines,
-                                    **track._getstate()
+                                    **track.get_state()
                 )
                 print (1.2)                    
             
@@ -554,7 +554,7 @@ class LogPlot(WorkPage):
                 print ('Overview Track')
                 track.view.label = None
                 
-                print ('1.35:', track._getstate())
+                print ('1.35:', track.get_state())
                 
                 track.view.track = TrackFigureCanvas(self.overview_base_panel, #self._main_panel, 
                                     track.view,
@@ -564,7 +564,7 @@ class LogPlot(WorkPage):
                                     ),
                                     y_major_grid_lines=controller.y_major_grid_lines,
                                     y_minor_grid_lines=controller.y_minor_grid_lines,
-                                    **track._getstate()
+                                    **track.get_state()
                 )
                 print (1.4)
                 self.overview_base_panel.SetInitialSize((60, 10))

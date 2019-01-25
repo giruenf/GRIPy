@@ -52,11 +52,13 @@ class GripyObject(pubsub.PublisherMixin, metaclass=GripyWxMeta):
         _manager_class = self._get_manager_class()
         _manager_obj = _manager_class()
         #
+        # TODO: verificar isso...
         if _manager_obj.is_loading_state():
             self.oid = kwargs.pop['oid']
         else:    
             self.oid = _manager_obj._getnewobjectid(self.tid)     
-        #    
+        # 
+        # TODO: verificar isso...   
         self._processing_value_from_event = True
         self.name = '{}.{}'.format(*self.uid)
         for attr_name, attr_props in self._ATTRIBUTES.items():
@@ -64,7 +66,8 @@ class GripyObject(pubsub.PublisherMixin, metaclass=GripyWxMeta):
                                             attr_props.get('default_value')
             )    
         self._processing_value_from_event = False
-          
+        #
+        
     def __str__(self):
         return '{}.{}'.format(*self.uid)
 
@@ -82,7 +85,6 @@ class GripyObject(pubsub.PublisherMixin, metaclass=GripyWxMeta):
     def uid(self):
         raise Exception('Object uid cannot be deleted.')
         
-
     # TODO: _get_manager_class ou get_manager_class
     def _get_manager_class(self):
         """
@@ -276,7 +278,7 @@ class GripyObject(pubsub.PublisherMixin, metaclass=GripyWxMeta):
 
 
     # TODO: Change this name
-    def _getstate(self):
+    def get_state(self):
         state = OrderedDict()  
         for attr_name in self._ATTRIBUTES.keys():
             state[attr_name] = self[attr_name]    

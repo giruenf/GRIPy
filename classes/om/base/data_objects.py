@@ -203,8 +203,8 @@ class DataObject(OMBaseObject):
                     zaxis[z_axis_dt_desc] = z_axis_dt
         return zaxis
 
-    def _getstate(self):
-        state = super(DataTypeObject, self)._getstate()
+    def get_state(self):
+        state = super(DataTypeObject, self).get_state()
         state.update(data=self._data)
         state.update(self.attributes)
         return state

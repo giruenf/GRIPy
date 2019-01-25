@@ -100,7 +100,7 @@ def do_STFT(*args, **kwargs):
                 if not OM.add(spectogram, parent_uid):
                     raise Exception('Object was not added. tid={\'gather_spectogram\'}')
 
-                state = index._getstate()
+                state = index.get_state()
                 index = OM.create_object_from_state('data_index', **state)
                 OM.add(index, spectogram.uid)
                 #

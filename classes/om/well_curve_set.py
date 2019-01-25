@@ -89,8 +89,8 @@ class CurveSet(OMBaseObject):
         return [data_index for data_index in z_axis_indexes if data_index.datatype == datatype]
 
 
-    def _getstate(self):
-        state = super()._getstate()
+    def get_state(self):
+        state = super().get_state()
         state.update(name=self.name)
         state.update(vinculated=self.vinculated)
         return state

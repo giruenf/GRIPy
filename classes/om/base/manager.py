@@ -541,7 +541,7 @@ class ObjectManager(GripyManager):
         for uid, obj in self._data.items():
             objdict = {} #OrderedDict()
             
-            for key, value in obj._getstate().items():
+            for key, value in obj.get_state().items():
                 if isinstance(value, np.ndarray):
                     npzname = "{}_{}_{}".format(uid[0], uid[1], key)
                     npzdata[npzname] = value
