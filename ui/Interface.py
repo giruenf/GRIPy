@@ -449,7 +449,7 @@ def load():
         
         
 
-    _do_initial_tests()
+    # _do_initial_tests()
 
 
 
