@@ -172,13 +172,12 @@ class WellPlotController(WorkPageController):
                                        orderby='pos',
                                        reverse=True
         )
+        # There isn't any track selected
         if not selected_tracks:
-            new_track = UIM.create('track_controller', self.uid, 
-                                   pos=len(self)
-            )
-            return [new_track.uid]         
+            new_track = UIM.create('track_controller', self.uid, pos=len(self))
+            return [new_track.uid]  
+        # Instead, insert new tracks before every selected track
         new_tracks_uids = []    
-        
         for track in selected_tracks:											 
             new_track = UIM.create('track_controller', self.uid, 
                                    pos=track.pos
@@ -199,6 +198,7 @@ class WellPlotController(WorkPageController):
         )
         for track in selected_tracks:
             UIM.remove(track.uid)  
+
 
     def get_overview_track(self):
         """
@@ -335,7 +335,7 @@ class WellPlotController(WorkPageController):
 
 
     # TODO: REVER ESSA FUNCAO
-    '''
+#    '''
     def change_track_position(self, track_uid, old_pos, new_pos):
         """
         Change track position.
@@ -351,9 +351,12 @@ class WellPlotController(WorkPageController):
             Spacing in points between the label and the x-axis.        
         
         """
+        
         UIM = UIManager()
         track_pos = UIM.get(track_uid)
         pos = old_pos
+        
+        
         if new_pos == self.view.get_adjusted_absolute_track_position(track_pos.uid):
             return
         if new_pos < old_pos:
@@ -387,7 +390,7 @@ class WellPlotController(WorkPageController):
                 track_next_pos.pos -= 1
                 pos += 1         
     
-    '''
+#    '''
     
     # TODO: REVER ESSA FUNCAO
     """
@@ -712,35 +715,42 @@ class WellPlot(WorkPage):
         track = UIM.get(track_uid)    
         if track.overview:
             return -1 
-        _, bottom = track._get_windows()
+        
+        tcc = track._get_canvas_controller()
+        
         #if relative_position:
         #    return self._tracks_panel.bottom_splitter.GetVisibleIndexOf(bottom)
         #return self._tracks_panel.bottom_splitter.IndexOf(bottom)
         if relative_position:
-            ret = self._tracks_panel.bottom_splitter.GetVisibleIndexOf(bottom)
+            ret = self._tracks_panel.bottom_splitter.GetVisibleIndexOf(tcc.view)
         else:
-            ret = self._tracks_panel.bottom_splitter.IndexOf(bottom)           
+            ret = self._tracks_panel.bottom_splitter.IndexOf(tcc.view)           
         #print 'get_track_position({}, {}): {}'.format(track_uid, relative_position, ret)    
         return ret    
 
-    """
+#    """
+        
     # Posicao absoluta, considerando overview
     def get_adjusted_absolute_track_position(self, track_uid):  
         pos = self.get_track_position(track_uid, False)
         UIM = UIManager()
+        controller = UIM.get(self._controller_uid)   
         track = UIM.get(track_uid)           
-        ot = self.get_overview_track()
+        ot = controller.get_overview_track()
         if ot and ot.pos < track.pos:
             pos -= 1
         return pos   
-    """
+#    """
 
     def change_absolute_track_position_on_splitter(self, track_uid, new_pos):
         UIM = UIManager()
         track = UIM.get(track_uid)   
-        top, bottom = track._get_windows()
-        self._tracks_panel.top_splitter.ChangeWindowPosition(top, new_pos)
-        self._tracks_panel.bottom_splitter.ChangeWindowPosition(bottom, new_pos)
+        #
+        tlc = track._get_label_controller()
+        tcc = track._get_canvas_controller()
+        #
+        self._tracks_panel.top_splitter.ChangeWindowPosition(tlc.view, new_pos)
+        self._tracks_panel.bottom_splitter.ChangeWindowPosition(tcc.view, new_pos)
 
 
     def refresh_overview(self):

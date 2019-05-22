@@ -44,7 +44,7 @@ class GripyMeta(type):
             * pg_property:      Kind of pg_property which deals with this attribute.
             * options_labels:   Options shown as valid for attribute (as shown in a wx.ComboBox).
             * options_values:   The truly options valid for attribute (returned from wx.ComboBox selection event).
-            * 25/8/2018:    The least 4 above occours only in ui/mvc_classes/track_object.py and ui/mvc_classes/propgrid.py.
+            * 25/8/2018:        The least 4 above occours only in ui/mvc_classes/track_object.py and ui/mvc_classes/propgrid.py.
             
         _READ_ONLY:
             Properties that must be setted only during object initialization. 
@@ -64,19 +64,27 @@ class GripyMeta(type):
                                             '_GripyMeta__initialised', False)
         # Time to create the new class...
         ret_class = super().__new__(cls, clsname, superclasses, dict_)
+        
         # By default, _ATTRIBUTES and _READ_ONLY are incremented with every 
         # superclass _ATTRIBUTES and _READ_ONLY. 
         # If this behavior is not desired for _ATTRIBUTES, the key must be 
         # setted with None as value.
+        
+#        print('\n\n', clsname)
+#        print('\tATTR:', ret_class.__dict__['_ATTRIBUTES'])
         for superclass in superclasses:
+#            print('\t\tSUPER:', superclass)
             if '_ATTRIBUTES' in superclass.__dict__:
                 for key, value in superclass.__dict__['_ATTRIBUTES'].items():
                     if key not in ret_class.__dict__['_ATTRIBUTES']:
+#                        print('\t\t\tkv:', key, value)
                         ret_class.__dict__['_ATTRIBUTES'][key] = value
             if '_READ_ONLY' in superclass.__dict__:
                 for item in superclass.__dict__['_READ_ONLY']:
                     if item not in ret_class.__dict__['_READ_ONLY']:
-                        ret_class.__dict__['_READ_ONLY'].append(item)                      
+                        ret_class.__dict__['_READ_ONLY'].append(item)          
+                        
+#        print('\tTOTAL ATTR:', ret_class.__dict__['_ATTRIBUTES'])                
         log.debug('Successfully created class: {}.'.format(clsname))                         
         return ret_class
 

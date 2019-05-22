@@ -120,11 +120,13 @@ class TrackController(UIControllerObject):
     def redraw(self):
         self.view.track.draw() 
            
-    def _append_track_label(self):    
-        return self.view.label.append_object()
+    def _append_track_label(self): 
+        tlc = self._get_label_controller()
+        return tlc.view.append_object()
 
     def _append_artist(self, artist_type, *args, **kwargs):
-        return self.view._append_artist(artist_type, *args, **kwargs)
+        tcc = self._get_canvas_controller()
+        return tcc.view._append_artist(artist_type, *args, **kwargs)
     
     
     """
@@ -136,11 +138,13 @@ class TrackController(UIControllerObject):
     """
     
 
+
+    """
     def _get_windows(self):    
         tlc, tcc = self.view._get_label_canvas_controllers()
         return tlc.view, tcc.view
 
-
+    """
 
 
 
@@ -211,6 +215,7 @@ class TrackView(UIViewObject):
             drop_target_track_canvas = DropTarget(controller.is_valid_object,
                                   controller.append_object
             )            
+            
             tcc.view.SetDropTarget(drop_target_track_canvas)            
             #   
             if controller.overview:             
@@ -274,10 +279,11 @@ class TrackView(UIViewObject):
 
             controller.subscribe(self._on_change_selected, 'change.selected')
             controller.subscribe(self.change_visibility, 'change.visible')
+            
             controller.subscribe(self.update_title, 'change.label')
             controller.subscribe(self.update_title, 'change.pos')
             
-            #controller.subscribe(self._change_position, 'change.pos')
+            controller.subscribe(self._change_position, 'change.pos')
 
             self.update_title(None, None)   
             
@@ -354,15 +360,15 @@ class TrackView(UIViewObject):
 
 
     def _on_change_selected(self, new_value, old_value):
-        tlc, tcc = self._get_label_canvas_controllers()
-        #
+        tlc = self._get_label_controller()
         if tlc:
             try:
                 tlc.change_selection(new_value)
             except Exception as e:
                 print ('ERROR @ Track._on_change_selected: [LABEL]', e, new_value, old_value)
                 pass
-        #    
+        #
+        tcc = self._get_canvas_controller()
         try:
             tcc.change_selection(new_value)
         except Exception as e:
@@ -750,8 +756,8 @@ class TrackView(UIViewObject):
         parent_controller.show_track(self._controller_uid, new_value)
 
 
-    def _append_artist(self, artist_type, *args, **kwargs):
-        return self.track.append_artist(artist_type, *args, **kwargs)
+#    def _append_artist(self, artist_type, *args, **kwargs):
+#        return self.track.append_artist(artist_type, *args, **kwargs)
 
 
 
@@ -763,13 +769,9 @@ class TrackView(UIViewObject):
         try:
             if controller.overview:
                 return
-            
-            tlc, _ = self._get_label_canvas_controllers()
+            tlc = self._get_label_controller()
             if not controller.label:
-#                print (333)
                 splitter_pos = controller.get_position(relative_position=True)
-#                print (444)
-              # print 'update_title:', self._controller_uid, str(splitter_pos+1)
                 tlc.update_title(text=str(splitter_pos+1))
             else:  
                 tlc.update_title(text=controller.label)       
@@ -787,7 +789,7 @@ class TrackView(UIViewObject):
     def set_ylim(self, ymin, ymax):
 #        print ('\nTrackView.set_ylim:', ymax, ymin)
         
-        _, tcc = self._get_label_canvas_controllers()
+        tcc = self._get_canvas_controller()
         tcc.ylim = (ymax, ymin)
 
         UIM = UIManager()
@@ -798,7 +800,10 @@ class TrackView(UIViewObject):
         #print 'END _set_ylim\n'
 
 
-    """
+#    """
+        
+        
+        
     def _change_position(self, new_value, old_value):
         UIM = UIManager()
         parent_controller_uid = UIM._getparentuid(self._controller_uid)
@@ -809,9 +814,14 @@ class TrackView(UIViewObject):
         )
             
         self.update_title()    
-    """
+        
+        
+        
+#    """
     
- 
+    
+    
+    '''
     def _get_label_canvas_controllers(self):
         """
         """
@@ -823,13 +833,25 @@ class TrackView(UIViewObject):
         else:
             tlc = UIM.list('track_label_controller', self._controller_uid)[0]    
         return tlc, tcc
+    '''    
         
         
         
+    def _get_label_controller(self):     
+        """
+        """
+        UIM = UIManager()
+        controller = UIM.get(self._controller_uid)
+        if controller.overview:
+            return None
+        return UIM.list('track_label_controller', self._controller_uid)[0]    
+     
         
-        
-        
-        
+    def _get_canvas_controller(self):
+        """
+        """
+        UIM = UIManager()
+        return UIM.list('track_canvas_controller', self._controller_uid)[0]
         
         
         
@@ -1120,3 +1142,13 @@ class TrackView(UIViewObject):
             tcc.minorgrid = True    
         elif event.GetId() == HideMinorgridId:
             tcc.minorgrid = False        
+            
+            
+            
+    def teste_teste(self):
+        print('\n\nteste_teste')
+        print('teste_teste')
+        print('teste_teste')
+        
+        
+            

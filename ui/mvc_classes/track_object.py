@@ -1,6 +1,8 @@
 # -*- coding: utf-8 -*-
 
-import collections    
+
+from collections import OrderedDict   
+from collections import Sequence
 
 import numpy as np
 import numpy.ma as ma
@@ -22,7 +24,8 @@ from classes.om import Density
 
 # TODO: verificar se linhas abaixo devem ser mantidas
 from basic.parms import ParametersManager
-from app.app_utils import MPL_COLORS, MPL_COLORMAPS
+
+from app.app_utils import MPL_COLORMAPS
 
 
 
@@ -132,7 +135,8 @@ def inverse_transform(value, left_scale, right_scale, scale=0):
 class TrackObjectController(UIControllerObject):
     tid = 'track_object_controller'
 
-    _ATTRIBUTES = collections.OrderedDict()
+    _ATTRIBUTES = OrderedDict()
+    
     _ATTRIBUTES['obj_tid'] = {
             'default_value': None,
             'type': str    
@@ -262,7 +266,7 @@ class TrackObjectController(UIControllerObject):
 
 
     def set_filter(self, filter_oid=None):
-#        print ('\n\nset_filter', filter_oid)
+        print ('\n\nset_filter', filter_oid)
         try:
             if filter_oid is None:
                 OM = ObjectManager()
@@ -307,10 +311,12 @@ class TrackObjectController(UIControllerObject):
     def _do_draw(self):
 #        print ('\nTrackObjectController._do_draw')
         repr_ctrl = self.get_representation() 
+        """
         if self.get_object().tid != 'partition':
 #            print ('b4 CALL draw')   
             repr_ctrl._prepare_data() 
-#        print ('CALL draw')    
+#        print ('CALL draw') 
+        """    
         repr_ctrl.view.draw()       
 #        print ('CALL end')
 
@@ -423,7 +429,7 @@ class RepresentationController(UIControllerObject):
 
     def _prepare_data(self):
         
-#        print ('\n\n_prepare_data')
+        print('\n\n_prepare_data')
         
         UIM = UIManager()
         toc_uid = UIM._getparentuid(self.uid)
@@ -435,7 +441,7 @@ class RepresentationController(UIControllerObject):
             filter_ = toc.get_filter()
             data_indexes = filter_.data[::-1]
             
-            #print 'data_indexes[-1]:', data_indexes[-1]
+            print('data_indexes[-1]:', data_indexes[-1])
             #
             if data_indexes[-1][0] is None:
                 self._data = None
@@ -446,7 +452,7 @@ class RepresentationController(UIControllerObject):
             
             #print '\nRepresentationController._prepare_data:', obj.uid
             
-            slicer = collections.OrderedDict()
+            slicer = OrderedDict()
             for (di_uid, display, is_range, first, last) in data_indexes:
               #  print di_uid, display, is_range, first, last
                 if not is_range:
@@ -555,11 +561,12 @@ class RepresentationView(UIViewObject):
 
     def __init__(self, controller_uid):
         UIViewObject.__init__(self, controller_uid) 
-        self._mplot_objects = {}
+        self._mplot_objects = OrderedDict()
         UIM = UIManager()
         toc_uid = UIM._getparentuid(self._controller_uid)
         track_controller_uid = UIM._getparentuid(toc_uid)
         track_controller =  UIM.get(track_controller_uid)
+        #
         if not track_controller.overview:
             self.label = track_controller._append_track_label()
             self.label.set_object_uid(self._controller_uid)
@@ -583,19 +590,35 @@ class RepresentationView(UIViewObject):
             # Getting canvas from MPL.Artist
             # All _mplot_objects are on the same FigureCanvas
             # (TrackFigureCanvas.plot_axes)
-            canvas = self._mplot_objects.values()[0].figure.canvas        
+            
+            """
+            vals = self._mplot_objects.values()
+            print(vals, type(vals))
+            
+            val = vals[0]
+            print(val, type(val))
+            
+            canvas = val.figure.canvas
+            """
+            
+            first_mpl_object = list(self._mplot_objects.values())[0]
+            canvas = first_mpl_object.figure.canvas        
+            
+            
+            
             return canvas
         except:
-            raise
-            # TODO: REver linhas abaixo
-            """
-            # Getting from TrackController
-            UIM = UIManager()
-            toc_uid = UIM._getparentuid(self._controller_uid)
-            track_controller_uid = UIM._getparentuid(toc_uid)
-            track_controller =  UIM.get(track_controller_uid)
-            return track_controller._get_canvas()
-            """
+            # TODO: Rever linhas abaixo
+            # Getting from TrackController    
+            try:
+                UIM = UIManager()
+                toc_uid = UIM._getparentuid(self._controller_uid)
+                track_controller_uid = UIM._getparentuid(toc_uid)
+                track_controller =  UIM.get(track_controller_uid)
+                tcc = track_controller._get_canvas_controller()
+                return tcc.view
+            except:
+                raise
         
         
     def draw_canvas(self):     
@@ -617,14 +640,14 @@ class RepresentationView(UIViewObject):
     def _remove_all_artists(self):
         for value in self._mplot_objects.values():
             # String is a sequence too, but it will not be here
-            if isinstance(value, collections.Sequence):
+            if isinstance(value, Sequence):
                 for obj in value:
                     if obj:
                         obj.remove()  
             else:
                 if value:
                     value.remove()
-        self._mplot_objects = {}       
+        self._mplot_objects = OrderedDict()     
         
         
     def set_title(self, title):
@@ -652,7 +675,7 @@ class RepresentationView(UIViewObject):
 class LineRepresentationController(RepresentationController):
     tid = 'line_representation_controller'
 
-    _ATTRIBUTES = collections.OrderedDict()
+    _ATTRIBUTES = OrderedDict()
     _ATTRIBUTES['left_scale'] = {
             'default_value': None,
             'type': float,
@@ -672,13 +695,17 @@ class LineRepresentationController(RepresentationController):
             'label': 'Width',
             'options_labels': ['0', '1', '2', '3', '4', '5'],
             'options_values': [0, 1, 2, 3, 4, 5 ]
+#            'default_value': 3,             
+#            'options_labels': ['2', '3', '4', '5'],
+#            'options_values': [2, 3, 4, 5]            
+            
     }
     _ATTRIBUTES['color'] = {
             'default_value': 'Black',
             'type': str,
-            'pg_property': 'EnumProperty',
-            'label': 'Color',
-            'options_labels': MPL_COLORS.keys()                
+            'pg_property': 'MPLColorsProperty',
+            'label': 'Color'
+#            'options_labels': list(MPL_COLORS.keys())                
     }
     _ATTRIBUTES['x_scale'] = {
             'default_value': 0, 
@@ -897,7 +924,7 @@ class LineRepresentationView(RepresentationView):
 class IndexRepresentationController(RepresentationController):
     tid = 'index_representation_controller'
 
-    _ATTRIBUTES = collections.OrderedDict()
+    _ATTRIBUTES = OrderedDict()
     _ATTRIBUTES['step'] = {
             'default_value': 50.0,
             'type': float,
@@ -923,9 +950,9 @@ class IndexRepresentationController(RepresentationController):
     _ATTRIBUTES['color'] = {
             'default_value': 'Black',
             'type': str,
-            'pg_property': 'EnumProperty',
-            'label': 'Color',
-            'options_labels': MPL_COLORS.keys()
+            'pg_property': 'MPLColorsProperty',
+            'label': 'Color'
+#            'options_labels': list(MPL_COLORS.keys())
     }    
     _ATTRIBUTES['bbox'] = {
             'default_value': True ,
@@ -950,9 +977,9 @@ class IndexRepresentationController(RepresentationController):
     _ATTRIBUTES['bbox_color'] = {
             'default_value': 'White',
             'type': str,
-            'pg_property': 'EnumProperty',
-            'label': 'Bbox Color',
-            'options_labels': MPL_COLORS.keys()
+            'pg_property': 'MPLColorsProperty',
+            'label': 'Bbox Color'
+#            'options_labels': list(MPL_COLORS.keys())
     }         
     _ATTRIBUTES['bbox_alpha'] = {
             'default_value': 0.5,
@@ -1120,7 +1147,7 @@ class IndexRepresentationView(RepresentationView):
 class DensityRepresentationController(RepresentationController):
     tid = 'density_representation_controller'
 
-    _ATTRIBUTES = collections.OrderedDict()
+    _ATTRIBUTES = OrderedDict()
     
     _ATTRIBUTES['type'] = {
             'default_value': 'density', #'wiggle', #'density', 
@@ -1178,9 +1205,9 @@ class DensityRepresentationController(RepresentationController):
     _ATTRIBUTES['linecolor'] = {
             'default_value': 'Black',
             'type': str,
-            'pg_property': 'EnumProperty',
-            'label': 'Wiggle line color',
-            'options_labels': MPL_COLORS.keys()
+            'pg_property': 'MPLColorsProperty',
+            'label': 'Wiggle line color'
+#            'options_labels': list(MPL_COLORS.keys())
     }    
     _ATTRIBUTES['min_wiggle'] = {
             'default_value': None,
@@ -1211,16 +1238,16 @@ class DensityRepresentationController(RepresentationController):
     _ATTRIBUTES['fill_color_left'] = {
             'default_value': 'Red', 
             'type': str,
-            'pg_property': 'EnumProperty',
-            'label': 'Wiggle left fill color',
-            'options_labels': MPL_COLORS.keys()
+            'pg_property': 'MPLColorsProperty',
+            'label': 'Wiggle left fill color'
+#            'options_labels': list(MPL_COLORS.keys())
     }       
     _ATTRIBUTES['fill_color_right'] = {
             'default_value': 'Blue', 
             'type': str,
-            'pg_property': 'EnumProperty',
-            'label': 'Wiggle right fill color',
-            'options_labels': MPL_COLORS.keys()
+            'pg_property': 'MPLColorsProperty',
+            'label': 'Wiggle right fill color'
+#            'options_labels': list(MPL_COLORS.keys())
     }  
     
     def __init__(self, **state):

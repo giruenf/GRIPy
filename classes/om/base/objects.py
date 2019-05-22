@@ -1,3 +1,4 @@
+
 from collections import OrderedDict
 
 from classes.base import GripyObject
@@ -10,7 +11,6 @@ class OMBaseObject(GripyObject):
     tid = None
     _TID_FRIENDLY_NAME = None
     
-
     def _get_object_node_properties(self):
         """Used by TreeController to get the way a object is represented in the
         Tree. General usage is return a dict with object name as main key and
@@ -18,9 +18,6 @@ class OMBaseObject(GripyObject):
         will make object invisible in Tree. 
         
         """
-        #return None
-        #return {self.name: None}
-        
         ret_od = OrderedDict()
         ret_od['name'] = self.name
         
@@ -40,7 +37,6 @@ class OMBaseObject(GripyObject):
             pass
         return ret_od  
         
-
     def _is_tid_node_needed(self):
         """Used by TreeController to create or not a tid node as a objects
         from a given class grouper. If tid node is created, the method 

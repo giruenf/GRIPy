@@ -11,91 +11,104 @@ from classes.ui import UIManager
 from classes.ui import UIControllerObject 
 from classes.ui import UIViewObject                                  
 import app.pubsub as pub
-
+from app.app_utils import MPL_COLORS, MPL_COLORMAPS
 
 ###############################################################################
 ###############################################################################
 
 
-class IntProperty(pg.IntProperty):    
-
-    def __init__(self, controller_uid, model_key, 
-                                 label = pg.PG_LABEL, name = pg.PG_LABEL):
+class GripyPgProperty(object):
+    
+    def __init__(self, obj_uid, obj_attr):
+        self._obj_uid = obj_uid
+        self._obj_attr = obj_attr
         
-        self._controller_uid = controller_uid
-        self._model_key = model_key
-        super(IntProperty, self).__init__(label, name)
+    def _get_object(self):
+        app = wx.App.Get()
+        Manager = app.get_manager_class(self._obj_uid[0])
+        manager = Manager()
+        obj = manager.get(self._obj_uid)
+        return obj
+
+    def _get_value(self):
+        obj = self._get_object()
+        return obj[self._obj_attr]
+
+    def _set_value(self, value):
+        try:
+            obj = self._get_object()     
+            obj[self._obj_attr] = value   
+            return True
+        except:
+            return False
 
     def ValueToString(self, *args):
-        UIM = UIManager()
-        controller = UIM.get(self._controller_uid)
-        value = controller[self._model_key]
-        return str(value)
+        return str(self._get_value())
 
     def StringToValue(self, variant, text, flag):
-        UIM = UIManager()
-        controller = UIM.get(self._controller_uid)
-        controller[self._model_key] = text
-        return True    
- 
-    
+        return self._set_value(text)  
+
+
+
+class IntProperty(pg.IntProperty, GripyPgProperty):    
+
+    def __init__(self, obj_uid, obj_attr, 
+                                 label=pg.PG_LABEL, name=pg.PG_LABEL):
+        
+        GripyPgProperty.__init__(self, obj_uid, obj_attr)
+        pg.IntProperty.__init__(self, label, name)
+
+    """
+    def ValueToString(self, *args):
+        return str(self._get_value())
+
+    def StringToValue(self, variant, text, flag):
+        return self._set_value(text)  
+    """
         #pg.Append( wxpg.IntProperty("IntWithSpin",value=256) )
         #pg.SetPropertyEditor("IntWithSpin", "SpinCtrl")    
     
     
-class FloatProperty(pg.FloatProperty):    
+class FloatProperty(pg.FloatProperty, GripyPgProperty):     
 
-    def __init__(self, controller_uid, model_key, 
-                 label = pg.PG_LABEL,
-                 name = pg.PG_LABEL):
+    def __init__(self, obj_uid, obj_attr, label=pg.PG_LABEL, name=pg.PG_LABEL):
+        GripyPgProperty.__init__(self, obj_uid, obj_attr)
+        pg.FloatProperty.__init__(self, label, name)
 
-        self._controller_uid = controller_uid
-        self._model_key = model_key
-        super(FloatProperty, self).__init__(label, name)
-
-
+    """
     def ValueToString(self, *args):
         UIM = UIManager()
         controller = UIM.get(self._controller_uid)
-        value = controller[self._model_key]
+        value = controller[self._obj_attr]
         return str(value)
 
 
     def StringToValue(self, variant, text, flag):
         UIM = UIManager()
         controller = UIM.get(self._controller_uid)
-        controller[self._model_key] = text
+        controller[self._obj_attr] = text
         return True    
 
-
-class PropertyMixin(object):
-    
-    def _get_value(self):
-        UIM = UIManager()
-        controller = UIM.get(self._controller_uid)
-        return controller[self._model_key]
-
-    def _set_value(self, value):
-        UIM = UIManager()
-        controller = UIM.get(self._controller_uid)        
-        controller[self._model_key] = value   
+    """
 
 
-class BoolProperty(pg.BoolProperty, PropertyMixin):    
 
-    def __init__(self, controller_uid, model_key, 
-                                         label=pg.PG_LABEL, name=pg.PG_LABEL):
-        self._controller_uid = controller_uid
-        self._model_key = model_key
-        super(BoolProperty, self).__init__(label, name)
+
+class BoolProperty(pg.BoolProperty, GripyPgProperty):   
+
+    def __init__(self, obj_uid, obj_attr, label=pg.PG_LABEL, name=pg.PG_LABEL):
+        GripyPgProperty.__init__(self, obj_uid, obj_attr)
+        pg.BoolProperty.__init__(self, label, name)
         self.SetAttribute("UseCheckbox", 1)
         self.SetAttribute("UseDClickCycling", 1)
         value = self._get_value()
         self.SetValue(value)
-    
+        
+    """
     def ValueToString(self, *args):
         value = self._get_value()
         return str(value)
+    """
     
     def OnSetValue(self):
         self._set_value(self.GetValue())
@@ -103,55 +116,194 @@ class BoolProperty(pg.BoolProperty, PropertyMixin):
 
             
     
-class EnumProperty(pg.EnumProperty, PropertyMixin):    
+class EnumProperty(pg.EnumProperty, GripyPgProperty):    
  
-    def __init__(self, controller_uid, model_key, 
-                 label=pg.PG_LABEL, name=pg.PG_LABEL, labels=[], 
-                 values=None, value=0):
-        if labels is None:
-            raise Exception('No labels values found in: {} - model key: {}'.\
-                            format(controller_uid, model_key)
+    
+    def __init__(self, obj_uid, obj_attr, label=pg.PG_LABEL, name=pg.PG_LABEL,
+                 opt_labels=[], opt_values=None, values=None, value=0):
+        
+        if opt_labels is None:
+            raise Exception('No options labels values found in: {} - model key: {}'.\
+                            format(obj_uid, obj_attr)
             )   
-        super(EnumProperty, self).__init__(label, name, labels, 
-                                                 values, value=value)
+            
+            
+        print('\n\nCriando EnumProperty para:' + obj_attr)    
+        print('Prop label:', label, type(label))
+        print('Prop name:', name, type(name))
+        print('Opt labels:', opt_labels, type(opt_labels))
+        print('Opt values:', opt_values, type(opt_values))
+        print('Values:', values, type(values))
+        print('Value', value, type(value))
         
-        #pg.EnumProperty(label, name, labels, values, value)
-        # EnumProperty(label, name, choice, value=0)  choice as wxPGChoices
-        #              
-        # EnumProperty(label, name, labels=[], values=[], value=0)
-        # labels - list of strings
-        # values - list of integers
         
-        #wxEnumProperty(const  ::wxString& label,const  ::wxString& name, 
-        #                ::wxPGChoices& choices,int value)
         
-        self._controller_uid = controller_uid
-        self._model_key = model_key
-        self._labels = labels
-        if not values:
-            self._values = labels
-        else:    
+        if values is None:
+            values = list(range(len(opt_labels)))
+            print('VALUES WAS NONE.')
+            print('NEW VALUES IS:' + str(values), type(values))
+        else:
+            print('VALUES OK.')
+        
+        
+        try:
+            
+            GripyPgProperty.__init__(self, obj_uid, obj_attr)
+            pg.EnumProperty.__init__(self, label, name, opt_labels, values, value=value)    
+            
+            
+            #super(EnumProperty, self).__init__(label, name, labels, values, value=value)
+            
+            #pg.EnumProperty(label, name, labels, values, value)
+            # EnumProperty(label, name, choice, value=0)  choice as wxPGChoices
+            #              
+            # EnumProperty(label, name, labels=[], values=[], value=0)
+            # labels - list of strings
+            # values - list of integers
+            
+            #wxEnumProperty(const  ::wxString& label,const  ::wxString& name, 
+            #                ::wxPGChoices& choices,int value)
+            
+            #
+            self._opt_labels = opt_labels
+            self._opt_values = opt_values        
+            if self._opt_values is None:
+                self._opt_values = opt_labels
+            #
             self._values = values
-
-        val = self._get_value()
-        idx = self._values.index(val)
-        self.SetValue(idx)
+            #
+            val = self._get_value()
+            #
+            print('val:', val)
+            
+            try:
+                idx = self._opt_values.index(val)
+            except ValueError:
+                raise
+            #    
+            print('idx:', idx)
+            
+#            self.SetValue(idx)
+            self.SetValue(val)
+            
+        except Exception as e:
+            print('\n\n\nDEU RUIM!!!! - {}\n\n\n'.format(e))
+            raise
+        
         
     def IntToValue(self, variant, int_value, flag):
-        val = self._values[int_value]
-        self._set_value(val)
-        return True
+        """Given a wx.Choice integer index, get its associated value 
+        (from opt_values) and set the object attribute with this value.
         
+        Parameters
+        ----------
+        variant : not used
+            Default parameter from wx.propgrid.EnumProperty.
+        int_value : int
+            A wx.Choice integer index.    
+        flag : not used
+            Default parameter from wx.propgrid.EnumProperty.
+            
+        Returns
+        -------
+        ret_val : bool
+            A value indicating operation was successful. 
+        """        
+        print('\nIntToValue [{}]: {} - {}'.format(self._obj_attr, int_value, type(int_value)))
+
+        #val = self._values[int_value]
+        #print('val:', val, type(val))
+        
+        # This is the actual value
+        opt_value = self._opt_values[int_value]
+        print('actual_value:', opt_value, type(opt_value))
+        #
+        ret_val = self._set_value(opt_value)
+        return ret_val
+        
+
     def ValueToString(self, value, flag):
-        val = self._get_value()
-        # self._label.index can raise Exception (Attention)
-        idx = self._values.index(val)
-        return self._labels[idx]    
+        """Get object property value and returns a string associated with it.
+        This string will be selected on wx.Choice container.
         
-    def GetIndexForValue(self, value):
+        Parameters
+        ----------
+        value : not used
+            Default parameter from wx.propgrid.EnumProperty.
+        flag : not used
+            Default parameter from wx.propgrid.EnumProperty.
+            
+        Returns
+        -------
+        ret_str : str
+            A string that will be selected on wx.Choice container. 
+        """
+        print('\nValueToString [{}]: {} - {}'.format(self._obj_attr, value, type(value)))
         val = self._get_value()
-        idx = self._values.index(val)
+        
+        print('val:', val, type(val))
+        
+        if isinstance(val, int):
+            idx_val = self._opt_values.index(val)
+            print('idx_val:', idx_val)
+            ret_str = str(self._opt_labels[idx_val])
+            #ret_str = str(self._opt_labels[val])
+        elif isinstance(val, str): 
+            ret_str = val
+            
+            
+        print('Retornando String \"' + ret_str + '\" para Value: ' + str(val))
+        return ret_str
+        
+    
+    
+    def GetIndexForValue(self, value):  
+        """Given a value, returns its associated index.
+        
+        Parameters
+        ----------
+        value : not used
+            Default parameter from wx.propgrid.EnumProperty.
+
+        Returns
+        -------
+        idx : int
+            A integer index for given value. 
+        """        
+        
+        
+        print('\nGetIndexForValue [{}]: {} - {}'.format(self._obj_attr, value, type(value)))
+
+#        idx = self._opt_values.index(value)
+#        """
+
+        val = self._get_value()
+        
+        print('val:', val, type(val))
+
+       
+        idx = self._opt_values.index(val)
+        
+        """
+        try:
+            print(1)
+            idx = self._values.index(value)
+        except ValueError:
+            try:
+                print(2)
+                idx = self._opt_values.index(value)
+            except:
+                raise   
+        """
+        
+#        """
+        
+        print('Retornando Index', idx, 'para Value:', value, 'para val:', val)
+        
         return idx
+
+
+
 
 
 
@@ -182,35 +334,119 @@ class DynamicEnumProperty(pg.EnumProperty):
         
 
 
-def _get_pg_property(uid, model_key, model_key_props):
-    if model_key_props.get('label') is None:
-        raise Exception('No label found in: {} - model key: {}'.format(uid, \
-                                                                    model_key))  
-    #if model_key_props.get('pg_property') is None:
+class MPLColorsProperty(EnumProperty):    
+    
+    def __init__(self, obj_uid, obj_attr, label=pg.PG_LABEL, name=pg.PG_LABEL,
+                 opt_labels=[], opt_values=None, values=None, value=0):
+        
+        super().__init__(obj_uid, obj_attr, label=label, name=name,
+                                            opt_labels=list(MPL_COLORS.keys()))
+
+
+
+
+
+def _get_pg_property(obj_uid, obj_attr, obj_attr_props):
+
+    if obj_attr_props.get('label') is None:
+        raise Exception('No label found in: {} - model key: {}'.format(obj_uid, \
+                                                                    obj_attr))  
+    #if obj_attr_props.get('pg_property') is None:
     #    return None
-    if model_key_props.get('pg_property') == 'IntProperty':
-        return IntProperty(uid, model_key, label=model_key_props.get('label'))
-    if model_key_props.get('pg_property') == 'FloatProperty':
-        return FloatProperty(uid, model_key, label=model_key_props.get('label'))
-    if model_key_props.get('pg_property') == 'EnumProperty':
-        return EnumProperty(uid, model_key, label=model_key_props.get('label'),
-                            labels=model_key_props.get('options_labels'),
-                            values=model_key_props.get('options_values')
+    
+    if obj_attr_props.get('pg_property') == 'IntProperty':
+        return IntProperty(obj_uid, obj_attr, 
+                                           label=obj_attr_props.get('label')
+        )
+    elif obj_attr_props.get('pg_property') == 'FloatProperty':
+        return FloatProperty(obj_uid, obj_attr, 
+                                             label=obj_attr_props.get('label')
+        )
+    elif obj_attr_props.get('pg_property') == 'EnumProperty':
+        return EnumProperty(obj_uid, obj_attr, 
+                            label=obj_attr_props.get('label'),
+                            opt_labels=obj_attr_props.get('options_labels'),
+                            opt_values=obj_attr_props.get('options_values')
         )    
-    if model_key_props.get('pg_property') == 'BoolProperty':
-        return BoolProperty(uid, model_key, label=model_key_props.get('label'))                
-    raise Exception()
+    elif obj_attr_props.get('pg_property') == 'MPLColorsProperty':
+        return MPLColorsProperty(obj_uid, obj_attr, 
+                                 label=obj_attr_props.get('label')
+        )
+    elif obj_attr_props.get('pg_property') == 'BoolProperty':
+        return BoolProperty(obj_uid, obj_attr, 
+                            label=obj_attr_props.get('label')
+        )   
+    else:             
+        raise Exception()
+
+
+
 
 
 
 class PropertyGridController(UIControllerObject):
     tid = 'property_grid_controller'
-    
-    def __init__(self):
-        super(PropertyGridController, self).__init__()
-        self._properties = OrderedDict()
-        self._toc_obj_uid = None
 
+    _ATTRIBUTES = OrderedDict()
+    _ATTRIBUTES['obj_uid'] = {
+        'default_value': None,
+        'type': (tuple, [str, int])
+    }      
+
+    def __init__(self, **state):
+        super().__init__(**state)  
+        print('PropertyGridController.__init__:', state, self.get_state())
+        #
+        self._properties = OrderedDict()
+
+
+    def PostInit(self):
+        self._draw()
+        
+        
+    def _get_object(self):
+        app = wx.App.Get()
+        print(self.obj_uid[0])
+        Manager = app.get_manager_class(self.obj_uid[0])
+        manager = Manager()
+        obj = manager.get(self.obj_uid)
+        return obj
+
+
+
+    def _draw(self):
+        obj = self._get_object()  
+        # TODO: rever isso
+        title = obj.get_object().get_friendly_name()    
+        #
+        self.view.Append(
+            pg.PropertyCategory(title, name='title')
+        )
+        # TODO: rever isso
+        repr_ctrl = obj.get_representation()
+        if repr_ctrl.tid != 'patches_representation_controller':
+            
+#            print()
+#            print(repr_ctrl._ATTRIBUTES.items(), type(repr_ctrl._ATTRIBUTES.items()))
+#            print()
+            
+            for key, key_props in repr_ctrl._ATTRIBUTES.items():
+#                print('\n', repr_ctrl.uid, key, key_props)
+                
+                try:
+                    property_ = _get_pg_property(repr_ctrl.uid, key, key_props)
+
+                    self._properties[key] = property_
+                    self.view.Append(property_)
+                    repr_ctrl.subscribe(self.refresh_property, 'change.' + key)
+                    
+                except:
+                    pass
+        else:  
+            raise Exception('patches_representation_controller')
+            
+            
+        
 
     def clear(self):
         UIM = UIManager()
@@ -232,9 +468,10 @@ class PropertyGridController(UIControllerObject):
  
 
       
-    def get_object_uid(self):
-        return self._toc_obj_uid
+#    def get_object_uid(self):
+#        return self._toc_obj_uid
 
+    """
     def set_object_uid(self, toc_obj_uid): 
         if toc_obj_uid == self._toc_obj_uid:
             self.view.Refresh()
@@ -256,13 +493,23 @@ class PropertyGridController(UIControllerObject):
         
         repr_ctrl = toc.get_representation()
         if repr_ctrl.tid != 'patches_representation_controller':
-            #print
+            
+            print()
+            print(repr_ctrl._ATTRIBUTES.items(), type(repr_ctrl._ATTRIBUTES.items()))
+            print()
+            
             for key, key_props in repr_ctrl._ATTRIBUTES.items():
-                property_ = _get_pg_property(repr_ctrl.uid, key, key_props)
-                #print '\n', repr_ctrl.uid, key, key_props, property_
-                self._properties[key] = property_
-                self.view.Append(property_)
-                repr_ctrl.subscribe(self.refresh_property, 'change.' + key)
+                print('\n', repr_ctrl.uid, key, key_props)
+                
+                try:
+                    property_ = _get_pg_property(repr_ctrl.uid, key, key_props)
+
+                    self._properties[key] = property_
+                    self.view.Append(property_)
+                    repr_ctrl.subscribe(self.refresh_property, 'change.' + key)
+                    
+                except:
+                    pass
         else:
             obj = toc.get_object()
             OM = ObjectManager()
@@ -277,8 +524,10 @@ class PropertyGridController(UIControllerObject):
             self._properties['part'] = property_
             self.view.Append(property_)
         self._toc_obj_uid = toc_obj_uid
-        
-        
+    
+    """    
+    
+    
     def cb(self, value):
         OM = ObjectManager()
         part = OM.get(value)
@@ -313,7 +562,7 @@ class PropertyGridView(UIViewObject, pg.PropertyGrid):
         pg.PropertyGrid.__init__(self, parent_controller.view.splitter, 
                         style=pg.PG_SPLITTER_AUTO_CENTER|pg.PG_HIDE_MARGIN
         )
-        self.SetCaptionBackgroundColour(wx.Colour(0,128,192))
+        self.SetCaptionBackgroundColour(wx.Colour(0, 128, 192))
         self.SetCaptionTextColour('white')       
 
 
@@ -820,12 +1069,12 @@ class ColorPropertyEditor(pg.PGEditor):
 class ColorProperty(pg.PGProperty):
     # All arguments of this ctor should have a default value -
     # use wx.propgrid.PG_LABEL for label and name
-    def __init__(self, controller_uid, model_key, 
+    def __init__(self, controller_uid, obj_attr, 
              label = pg.PG_LABEL,
              name = pg.PG_LABEL):
         print 'ColorProperty.__init__'
         self._controller_uid = controller_uid
-        self._model_key = model_key
+        self._obj_attr = obj_attr
         super(pg.PGProperty, self).__init__(label, name)
         self.SetValue(self.get_value())
         print 'ColorProperty.__init__ ENDED'
@@ -853,8 +1102,8 @@ class ColorProperty(pg.PGProperty):
     def get_value(self):
         UIM = UIManager()
         controller = UIM.get(self._controller_uid)
-        print 'ColorProperty.get_value:', controller[self._model_key]
-        return controller[self._model_key]
+        print 'ColorProperty.get_value:', controller[self._obj_attr]
+        return controller[self._obj_attr]
 
 
     def set_value(self, new_value):
@@ -862,7 +1111,7 @@ class ColorProperty(pg.PGProperty):
         try:
             UIM = UIManager()
             controller = UIM.get(self._controller_uid)
-            controller[self._model_key] = new_value  
+            controller[self._obj_attr] = new_value  
             return True
         except:
             return False

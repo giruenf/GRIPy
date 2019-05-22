@@ -468,7 +468,7 @@ def _do_initial_tests():
    # pass
    
     mwc = get_main_window_controller()
-    mwc.size = (1000, 700)
+    #mwc.size = (1000, 700)
   
     
     depth = [
@@ -1430,6 +1430,18 @@ def _do_initial_tests():
         
     
     
+    # Trabalho Sala GBDI/PCE
+    #mwc.pos = (-1900, -700)
+    #mwc.maximized = False
+    
+    # CASA
+    mwc.pos = (-8, 0)
+    mwc.size = (1240, 1046)
+    mwc.maximized = False
+
+    # BR
+    #mwc.pos = (-1925, -921) 
+    #mwc.size = (1116, 1131)    
     
     
 #    mwc.pos = (-1300,600)
@@ -1530,14 +1542,7 @@ def _do_initial_tests():
     #UIM.create('track_controller', lpc.uid)
     #UIM.create('track_controller', lpc.uid, overview=True, plotgrid=False)
 
-    # CASA
-    #mwc.pos = (-8, 0)
-    #mwc.size = (1240, 1046)
-    #mwc.maximized = False
 
-    # BR
-    #mwc.pos = (-1925, -921) 
-    #mwc.size = (1116, 1131) 
 
     # """    
     # Fim - Testes

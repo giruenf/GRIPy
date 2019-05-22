@@ -1,6 +1,7 @@
+
+
 from collections import OrderedDict
 
-#from classes.om import ObjectManager
 from classes.om import OMBaseObject
 
 
@@ -96,8 +97,121 @@ class DataFilter(OMBaseObject):
             return ret_list[0]
         return ret_list
     
-    
-    
+
+    def append_objuid(self, track_obj_ctrl_uid):    
+        print('DataFilter.append_objuid:', track_obj_ctrl_uid)
+        
+
+
+"""
+
+    def _prepare_data(self):
+        
+        print('\n\n_prepare_data')
+        
+        UIM = UIManager()
+        toc_uid = UIM._getparentuid(self.uid)
+        toc = UIM.get(toc_uid)
+        #
+        
+        try:
+        
+            filter_ = toc.get_filter()
+            data_indexes = filter_.data[::-1]
+            
+            print('data_indexes[-1]:', data_indexes[-1])
+            #
+            if data_indexes[-1][0] is None:
+                self._data = None
+                return            
+            #
+            obj = toc.get_object() 
+            data = obj._data
+            
+            #print '\nRepresentationController._prepare_data:', obj.uid
+            
+            slicer = OrderedDict()
+            for (di_uid, display, is_range, first, last) in data_indexes:
+              #  print di_uid, display, is_range, first, last
+                if not is_range:
+                    slicer[di_uid] = first
+                else:
+                    slicer[di_uid] = slice(first,last)
+            slicer = tuple(slicer.values())
+            
+            
+            data = data[slicer]
+            new_dim = 1
+            if len(data.shape) == 1 and isinstance(obj, Density):
+                data = data[np.newaxis, :]
+            elif len(data.shape) > 2:
+                for dim_value in data.shape[::-1][1::]:
+                    new_dim *= dim_value
+                data = data.reshape(new_dim, data.shape[-1])
+                
+                
+            '''    
+            try:
+                if self.min_density is None:
+                    self.set_value_from_event('min_density', np.nanmin(data))
+                if self.max_density is None:    
+                    self.set_value_from_event('max_density', np.nanmax(data))
+                if self.min_wiggle is None:    
+                    self.set_value_from_event('min_wiggle', np.nanmin(data))
+                if self.max_wiggle is None:     
+                    self.set_value_from_event('max_wiggle', np.nanmax(data))
+            except:
+                pass
+            '''
+            
+            self._data = data
+            
+            
+#            print (self._data)
+           # print
+#            print ('FIM _prepare_data\n\n')
+           
+           
+        except Exception as e:
+            print ('ERROR _prepare_data', e)
+            raise
+
+
+
+    def _get_z_index(self, ydata):   
+        
+        if self._data is None:
+            # When we have differents z_axis (e.g. Wellplot as TVD e Log with data_axis as MD)
+            return None
+        #
+        UIM = UIManager()
+        toc_uid = UIM._getparentuid(self.uid)
+        toc = UIM.get(toc_uid) 
+        #
+        OM = ObjectManager()
+        filter_ = toc.get_filter() #OM.get(('data_filter', toc.data_filter_oid))
+        z_data = filter_.data[0]
+        #
+        
+        #print 'filter_.data[0]:', z_data  
+        
+        di_uid, display, is_range, z_first, z_last = z_data
+        z_data_index = OM.get(di_uid)
+        z_data = z_data_index.data[z_first:z_last]
+        z_index = (np.abs(z_data-ydata)).argmin()
+        if z_index == 0:
+            if np.abs(ydata - z_data[z_index]) > np.abs(z_data[1] - z_data[0]):
+                return None
+        if z_index == self._data.shape[-1]-1:
+            if np.abs(ydata - z_data[z_index]) > np.abs(z_data[-1] - z_data[-2]):
+                return None
+            
+        #print '\n_get_z_index:', ydata, z_index    
+        return z_index
+
+"""
+
+
 
 """
 class DataFilter(OMBaseObject):

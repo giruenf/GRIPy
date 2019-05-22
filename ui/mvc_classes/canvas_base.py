@@ -38,6 +38,10 @@ CANVAS_SCALES = ["linear", "log", "symlog", "logit"]
     """
 
 
+
+"""
+O CanvasBaseController eh a classe de base para todos objeto de Plotagem!!!
+"""
 class CanvasBaseController(UIControllerObject):
     tid = None
 
@@ -46,6 +50,7 @@ class CanvasBaseController(UIControllerObject):
         # Top level properties    
         'rect': {
                 'default_value': (0.1, 0.1, 0.8, 0.8), 
+                #'default_value': (0.0, 0.0, 1.0, 1.0), 
                 'type': (tuple, float, 4)  
         },
         'xscale': {
@@ -541,9 +546,10 @@ class CanvasBaseController(UIControllerObject):
     def __init__(self, **state):
         super().__init__(**state)
           
+        
     def PostInit(self):
         
-        
+        print('CanvasBaseController.PostInit')
         #
         self.subscribe(self.on_change_figure_facecolor, 
                        'change.figure_facecolor')
@@ -698,7 +704,7 @@ class CanvasBaseController(UIControllerObject):
         self.subscribe(self.on_change_minor_tick_visibility, 
                                                'change.ytick_minor_visible')
         #
-
+        print('CanvasBaseController.PostInit fim')
 
 
     def on_change_axes_properties(self, old_value, new_value, 
@@ -837,7 +843,8 @@ class CanvasBaseController(UIControllerObject):
             self.view.draw()        
         
         
-    def on_change_rect(self, old_value, new_value):        
+    def on_change_rect(self, old_value, new_value):  
+        print ('on_change_rect')
         try:
             self.view.set_position(new_value)
             self.view.draw()  

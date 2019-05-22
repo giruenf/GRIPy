@@ -80,7 +80,8 @@ class TrackCanvasController(CanvasBaseController):
     def __init__(self, **state):
         super().__init__(**state)
 
-        self.rect = (0.15, 0.15, 0.7, 0.7) #(0.05, 0.05, 0.9, 0.9) #(0.0, 0.0, 1.0, 1.0)   #(0.1, 0.1, 0.8, 0.8)
+        #self.rect = (0.15, 0.15, 0.7, 0.7) #(0.05, 0.05, 0.9, 0.9) #(0.0, 0.0, 1.0, 1.0)   #(0.1, 0.1, 0.8, 0.8)
+        self.rect = (0.0, 0.0, 1.0, 1.0)
         # 
         self.axes_spines_right = False
         self.axes_spines_left = False
@@ -315,8 +316,6 @@ class TrackCanvasController(CanvasBaseController):
                                                       topic=pubsub.AUTO_TOPIC):  
         key = topic.getName().split('.')[2]
         self.set_value_from_event(key, old_value)
-        
-        
         
     # TODO: Check if it is the best way        
     # Overriding super class method
@@ -694,7 +693,7 @@ class DepthCanvas():
 
     def __del__(self):
         self.destroy_depth_canvas()       
-        wx.CallAfter(super().__del__())
+        #wx.CallAfter(object.__del__())
         
     def create_depth_canvas(self):
         self._in_canvas = -1

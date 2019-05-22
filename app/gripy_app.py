@@ -357,16 +357,16 @@ class GripyApp(wx.App):
 
 
 
-    def get_manager_class(self, obj):
-        
-        if isinstance(obj, OMBaseObject):
+    def get_manager_class(self, obj_tid):
+#        print('\n\n\n_get_manager_class:', obj_tid)      
+        if obj_tid in ObjectManager._types:
             return ObjectManager
-        elif isinstance(obj, UIBaseObject):
+        elif obj_tid in UIManager._types:
             return UIManager    
-        print ('\n_get_manager_class [unknown]:',obj)
-        return None
+        print('\n_get_manager_class [unknown]:', obj_tid)
+        #return None
         raise Exception('App.gripy_app.get_manager_class: Class {} has a '+\
-                        'unknown manager.'.format(obj.tid)
+                        'unknown manager.'.format(obj_tid)
         )
     
     

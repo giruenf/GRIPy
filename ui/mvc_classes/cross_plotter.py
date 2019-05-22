@@ -26,7 +26,6 @@ CP_FLOAT_PANEL = wx.NewId()
 
 
 
-
 class CrossPlotController(WorkPageController):
     tid = 'crossplot_controller'
     

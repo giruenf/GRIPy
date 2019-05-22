@@ -229,7 +229,8 @@ class UIControllerObject(UIBaseObject):
             #pass
     '''
     
-        
+    
+    '''     
     def get_state(self):
         """Returns MVC triad state.
         
@@ -246,6 +247,8 @@ class UIControllerObject(UIBaseObject):
                 state['children'].append(child.get_state())
         return self.tid, state
         """
+    '''
+    
     
     """  
     # TODO: ver se deve-se manter o tid na chamada abaixo (@staticmethod)
@@ -293,4 +296,5 @@ class UIViewObject(UIBaseObject):
         raise NotImplementedError('Must be implemented by subclass.')
         
         
-        
+    def get_state(self):
+        raise NotImplementedError('View class. Check it at classes.ui.base.objects.py')        

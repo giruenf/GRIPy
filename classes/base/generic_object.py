@@ -1,3 +1,4 @@
+
 import types
 from collections import OrderedDict
 from collections import Sequence
@@ -61,53 +62,7 @@ class GripyObject(pubsub.PublisherMixin, metaclass=GripyWxMeta):
         
     def __str__(self):
         return '{}.{}'.format(*self.uid)
-
-    @property
-    def uid(self):
-        """
-        """
-        return self.tid, self.oid
-    
-    @uid.setter
-    def uid(self, value):
-        raise Exception('Object uid cannot be setted.')
-
-    @uid.deleter
-    def uid(self):
-        raise Exception('Object uid cannot be deleted.')
-     
-    def _get_pubsub_uid(self):
-        return pubsub.uid_to_pubuid(self.uid)         
-        
-    # TODO: get_manager_class ou get_manager_class
-    def get_manager_class(self):
-        """
-        """
-        app = wx.App.Get()
-        return app.get_manager_class(self)
-    
-    
-    #TODO: Verificar se deve incluir a funcao get_manager()  
-
-         
-    # TODO: rever este nome
-    def set_value_from_event(self, key, value):
-        self._processing_value_from_event = True
-        try:
-            self._do_set(key, value)
-        except: 
-            raise
-        finally:    
-            self._processing_value_from_event = False   
-            
-
-    def find_attribute(self, key):
-        """
-        Find a Gripy attribute inside _ATTRIBUTES structure.
-        """
-        return self._ATTRIBUTES.get(key, None)
-            
-                                   
+                            
     def __getattribute__(self, key):
         try:
             return object.__getattribute__(self, key)
@@ -212,9 +167,10 @@ class GripyObject(pubsub.PublisherMixin, metaclass=GripyWxMeta):
         attr = self.find_attribute(key)
         type_ = attr.get('type')
          
+        
         # Special treatment for some Sequences attributes like 
         # _ATTRIBUTES.type: (sequence, sequence_inner_type, sequence_lenght)
-        # e.g., 'type': (tuple, float, 2) 
+        # e.g., 'type': (tuple, float, 2) or 'type': (tuple, [str, int])  
         # In case we have 'type': tuple, the default threatment will be given.
         if isinstance(type_, Sequence):
             if len(type_) >= 3:
@@ -226,10 +182,18 @@ class GripyObject(pubsub.PublisherMixin, metaclass=GripyWxMeta):
             if len(type_) >= 2:
                 sequence_inner_type = type_[1]
                 if sequence_inner_type:
-                    value = [sequence_inner_type(val) for val in value]              
+                    if isinstance(sequence_inner_type, Sequence):
+                        if len(value) != len(sequence_inner_type):
+                            raise Exception('Wrong lenght on attribute {}.{}'.format(\
+                                            self.__class__.__name__, key)
+                            )    
+                        value = [sequence_inner_type[i](val) for i, val in enumerate(value)]    
+                    else:    
+                        value = [sequence_inner_type(val) for val in value]              
             type_ = type_[0]
             value = type_(value)
                      
+            
         # Special treatment for functions
         elif type_ == types.FunctionType:
             if isinstance(value, str):
@@ -269,10 +233,59 @@ class GripyObject(pubsub.PublisherMixin, metaclass=GripyWxMeta):
         log.debug(msg)
 
 
-    # TODO: Change this name
+    @property
+    def uid(self):
+        """
+        """
+        return self.tid, self.oid
+    
+    @uid.setter
+    def uid(self, value):
+        raise Exception('Object uid cannot be setted.')
+
+    @uid.deleter
+    def uid(self):
+        raise Exception('Object uid cannot be deleted.')
+     
+    def _get_pubsub_uid(self):
+        return pubsub.uid_to_pubuid(self.uid)         
+        
+    # TODO: get_manager_class ou get_manager_class
+    def get_manager_class(self):
+        """
+        """
+        app = wx.App.Get()
+        return app.get_manager_class(self.tid)
+    
+    
+    #TODO: Verificar se deve incluir a funcao get_manager()  
+
+         
+    # TODO: rever este nome
+    def set_value_from_event(self, key, value):
+        self._processing_value_from_event = True
+        try:
+            self._do_set(key, value)
+        except: 
+            raise
+        finally:    
+            self._processing_value_from_event = False   
+            
+
+    # TODO: Aqui serah pesquisado os atributos atraves dos subniveis...
+    def find_attribute(self, key):
+        """
+        Find a Gripy attribute inside _ATTRIBUTES structure.
+        """
+        return self._ATTRIBUTES.get(key, None)
+            
+
+
     def get_state(self):
+        print('\nGripyObject.get_state', self._ATTRIBUTES.keys())
         state = OrderedDict()  
         for attr_name in self._ATTRIBUTES.keys():
+            print(attr_name, self[attr_name])
             state[attr_name] = self[attr_name]    
         return state  
           

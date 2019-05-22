@@ -22,6 +22,8 @@ from app.app_utils import parse_string_to_uid
 from app import log
 
 
+
+
 class WellPlotEditorController(UIControllerObject):
     tid = 'well_plot_editor_controller'
      
@@ -271,7 +273,7 @@ class LPETrackPanelModel(dv.PyDataViewModel):
         4: 'plotgrid',
         5: 'depth_lines',
         6: 'scale_lines',
-        7: 'x_scale', 
+        7: 'xscale', 
         8: 'decades',
         9: 'leftscale',
         10: 'minorgrid',
@@ -304,10 +306,14 @@ class LPETrackPanelModel(dv.PyDataViewModel):
             
     def GetValue(self, item, col):
         track = self.ItemToObject(item)
+        
+        UIM = UIManager()
+        tcc = UIM.list('track_canvas_controller', track.uid)[0]        
+        
         if col == 0:
             return track.pos+1
         elif col == 5:
-            value = track[self.TRACKS_MODEL_MAPPING.get(col)]
+            value = tcc[self.TRACKS_MODEL_MAPPING.get(col)]
             if value == 0:
                 return 'All'
             elif value == 1:
@@ -322,39 +328,47 @@ class LPETrackPanelModel(dv.PyDataViewModel):
                 return 'None'
             raise Exception('Error.')
         elif col == 7:
-            value = track[self.TRACKS_MODEL_MAPPING.get(col)]
-            if value == 0:
+            value = tcc[self.TRACKS_MODEL_MAPPING.get(col)]
+            if value == 'linear':
                 return 'Linear'
-            elif value == 1:
+            elif value == 'log':
                 return 'Logarithmic'
-            raise Exception('Error.')    
-        return track[self.TRACKS_MODEL_MAPPING.get(col)]
+            raise Exception('Error.', value) 
+             
+        
+        if col in [0, 1, 2, 3, 11]:
+            return track[self.TRACKS_MODEL_MAPPING.get(col)]
+        else:
+            return tcc[self.TRACKS_MODEL_MAPPING.get(col)]
+
 
     def SetValue(self, value, item, col):
         track = self.ItemToObject(item)
+        UIM = UIManager()
+        tcc = UIM.list('track_canvas_controller', track.uid)[0]   
         #print 'SetValue', track.uid, col, value
         if col == 5:
             if value == 'All':
-                track.depth_lines = 0
+                tcc.depth_lines = 0
             elif value == 'Left':
-                track.depth_lines = 1
+                tcc.depth_lines = 1
             elif value == 'Right':
-                track.depth_lines = 2
+                tcc.depth_lines = 2
             elif value == 'Center':
-                track.depth_lines = 3
+                tcc.depth_lines = 3
             elif value == 'Left & Right':
-                track.depth_lines = 4
+                tcc.depth_lines = 4
             elif value == 'None':
-                track.depth_lines = 5
+                tcc.depth_lines = 5
             else:    
                 raise Exception('Error.')  
         elif col == 7:
             if value == 'Linear':
-                track.x_scale = 0
+                tcc.x_scale = 'linear'
             elif value == 'Logarithmic':
-                track.x_scale = 1
+                tcc.x_scale = 'log'
             else:
-                raise Exception('Error.')    
+                raise Exception('Error.', value)    
         elif col == 11:
             UIM = UIManager()
             wellplot_uid = UIM._getparentuid(track.uid)
@@ -363,8 +377,12 @@ class LPETrackPanelModel(dv.PyDataViewModel):
                 wellplot_ctrl.set_overview_track(track.uid)
             else:
                 wellplot_ctrl.unset_overview_track()  
-        else:       
+                
+        elif col in [0, 1, 2, 3, 11]:
             track[self.TRACKS_MODEL_MAPPING.get(col)] = value
+        else:       
+            tcc[self.TRACKS_MODEL_MAPPING.get(col)] = value
+            
         return True
 
     #def ChangedItem(self, item):
@@ -384,8 +402,10 @@ class LPETrackPanelModel(dv.PyDataViewModel):
     def Compare(self, item1, item2, col, ascending):
         track1 = self.ItemToObject(item1)
         track2 = self.ItemToObject(item2)
+        
         if track1.pos == track2.pos:
             raise Exception('Two tracks cannot have same position: {} - {}.'.format(track1.uid, track2.uid))
+            
         if ascending: 
             if track1.pos > track2.pos:
                 return 1
@@ -525,9 +545,15 @@ class LPETrackPanel(UIViewObject, wx.Panel):
             return
         UIM = UIManager()
         controller = UIM.get(self._controller_uid)
+        
+        # TODO: wtf this armengue?
         model = controller._get_real_model()
+        #
         obj = model.ItemToObject(item)
         self.node = VarNodeDropData()
+        
+        print('\n\n\nOnItemBeginDrag obj:', obj, type(obj), model)
+        
         self.node.SetObject(obj) 
         event.SetDataObject(self.node)
         event.SetDragFlags(wx.Drag_DefaultMove)
@@ -538,6 +564,7 @@ class LPETrackPanel(UIViewObject, wx.Panel):
         UIM = UIManager()
         controller = UIM.get(self._controller_uid)
         model = controller._get_real_model()
+        
         old_pos_track = self.node.GetObject()
         old_pos_item = model.ObjectToItem(old_pos_track)
 
@@ -552,7 +579,17 @@ class LPETrackPanel(UIViewObject, wx.Panel):
             model = controller._get_real_model()                    
             self.dvc.Select(new_pos_item)    
             new_pos_track = model.ItemToObject(new_pos_item)
-            new_pos_track.pos = old_pos_track.pos
+            
+            print('old_pos_track:', old_pos_track, old_pos_track.pos)
+            print('new_pos_track:', new_pos_track, new_pos_track.pos)
+            
+#            new_pos_track.pos = old_pos_track.pos
+            try:
+                old_pos_track.pos = new_pos_track.pos
+            except Exception as e:
+                print('DEU RUIM! ', e)
+                raise
+            print('FOI\n\n')
 
             #model.ItemChanged(new_pos_item) 
             #model.ItemChanged(old_pos_item)
@@ -608,25 +645,93 @@ class LPETrackPanel(UIViewObject, wx.Panel):
 
 ###############################################################################
 
+"""
+From tree.py
+============
+
+def DoDragDrop():
+    data_obj = wx.CustomDataObject('obj_uid')
+    data_obj.SetData(str.encode(str(node_main_info)))
+    drag_source = wx.DropSource(self)
+    drag_source.SetData(data_obj)  
+    drag_source.DoDragDrop()
+
+
+From app_utils.py
+=================
+
+class DropTarget(wx.DropTarget):
+    
+    def __init__(self, _test_func, callback=None):
+        wx.DropTarget.__init__(self)
+        self.data = wx.CustomDataObject('obj_uid')
+        self.SetDataObject(self.data)
+        self._test_func = _test_func
+        self._callback = callback
+        
+    def OnDrop(self, x, y):
+        return True
+
+    def OnData(self, x, y, defResult):
+        obj_uid = self._get_object_uid()
+        if self._callback:
+            wx.CallAfter(self._callback, obj_uid)
+        return defResult   
+    
+    def OnDragOver(self, x, y, defResult):    
+        obj_uid = self._get_object_uid()
+        if obj_uid:
+            if self._test_func(obj_uid):
+                return defResult   
+        return wx.DragNone
+
+    def _get_object_uid(self):
+        if self.GetData(): 
+            obj_uid_bytes = self.data.GetData().tobytes()   
+            obj_uid_str = obj_uid_bytes.decode()
+            if obj_uid_str:
+                obj_uid = parse_string_to_uid(obj_uid_str)
+                return obj_uid
+        return None    
+        
+"""
+
+
+
 
 class VarNodeDropData(wx.CustomDataObject):
     NAME = "VarNode"
     PICKLE_PROTOCOL = 2
 	   
     def __init__(self):
-        wx.CustomDataObject.__init__(self, VarNodeDropData.GetFormat())
+        super().__init__(VarNodeDropData.GetFormat())
     
     def SetObject(self, obj):
-        self.SetData(str(obj.uid))
-        
+        self.SetData(str.encode(str(obj.uid)))
+
     def GetObject(self):
-        obj_uid_str = self.GetData().tobytes()
+        
+        obj_uid_bytes = self.GetData().tobytes()
+        obj_uid_str = obj_uid_bytes.decode()
+#        print('\n\n\nGetObject:', obj_uid_str, type(obj_uid_str))
+        
         UIM = UIManager()
         return UIM.get(obj_uid_str)
     
     @staticmethod  
     def GetFormat():
         return wx.DataFormat(VarNodeDropData.NAME)
+
+    """
+    def _get_object_uid(self):
+        if self.GetData(): 
+            obj_uid_bytes = self.data.GetData().tobytes()   
+            obj_uid_str = obj_uid_bytes.decode()
+            if obj_uid_str:
+                obj_uid = parse_string_to_uid(obj_uid_str)
+                return obj_uid
+        return None    
+    """
         
 
 ###############################################################################
@@ -779,10 +884,14 @@ class LPEObjectsPanelModel(dv.PyDataViewModel):
             raise RuntimeError("unknown node type")
             
 
+
+
     def SetValue(self, value, item, col):
         obj = self.ItemToObject(item)    
         if isinstance(obj, TrackController):
             raise Exception()  
+            
+            
         #TODO: rever isso, pois esta horrivel    
         if isinstance(obj, TrackObjectController):
             UIM = UIManager()
@@ -985,19 +1094,24 @@ class LPEObjectsPanel(UIViewObject, wx.Panel):
         objs = [model.ItemToObject(item) for item in items]
         toc_objs = [obj for obj in objs if isinstance(obj, TrackObjectController)]
         pg_shown = False
+        
+        
         if toc_objs:
             toc_obj = toc_objs[-1]
             if toc_obj.is_valid():
                 pgcs = UIM.list('property_grid_controller', self._controller_uid)
                 if not pgcs:
-                    #print '\nself._controller_uid:', self._controller_uid
+                    
+                    
+                    print ('\n\nCRIANDO property_grid_controller PARA:', self._controller_uid)
                     #print
                     pgc = UIM.create('property_grid_controller', 
-                                           self._controller_uid
+                                           self._controller_uid,
+                                           obj_uid=toc_obj.uid
                     )
                 else:
                     pgc = pgcs[0]   
-                pgc.set_object_uid(toc_obj.uid)    
+                #pgc.set_object_uid(toc_obj.uid)    
                 if not self.splitter.IsSplit():
                     self.splitter.SplitVertically(self.dvc, pgc.view)
                 pg_shown = True
