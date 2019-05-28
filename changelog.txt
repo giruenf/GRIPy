@@ -24,7 +24,9 @@ Versão 0.8.beta:
 - GripyObject._INMUTABLE_KEYS passa a se chamar _READ_ONLY
 - GripyObject._BYPASSES_KEYS foi removido, pois os attributos 'não-monitorados' já eram tratados pelo método GripyObject._do_set
 - Ajustes nos arquivos OSLICENSES.txt
-
+- Fim das classes Partition e Part. Essas passam a ser integradas a classe Log.
+  De forma conjunta, a classe WellData1D também deixa de existir.
+  
 
 Versão 0.7:
 ===========

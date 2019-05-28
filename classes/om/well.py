@@ -18,6 +18,16 @@ class Well(OMBaseObject):
     def __init__(self, **attributes):
         super().__init__(**attributes)
 
+
+    def create_new_curve_set(self, curve_set_name=None):
+        OM = ObjectManager()
+        if not curve_set_name:
+            curve_set_name = 'Run ' + str(len(OM.list('curve_set', self.uid)))
+        curve_set = OM.new('curve_set', name=curve_set_name)
+        OM.add(curve_set, self.uid)
+        return curve_set
+
+
     def get_z_axis_datatypes(self, inverted=False):
         """Returns a dict with valid Z axis data types for this Well. Dict key
         will be a long description for the data type (e.g. 'Measured Depth') 

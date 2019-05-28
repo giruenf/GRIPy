@@ -704,8 +704,7 @@ class LineRepresentationController(RepresentationController):
             'default_value': 'Black',
             'type': str,
             'pg_property': 'MPLColorsProperty',
-            'label': 'Color'
-#            'options_labels': list(MPL_COLORS.keys())                
+            'label': 'Color'            
     }
     _ATTRIBUTES['x_scale'] = {
             'default_value': 0, 

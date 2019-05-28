@@ -81,10 +81,10 @@ class TreeController(UIControllerObject):
 #        print ('\ncreate_object_node', objuid)
         ####
         #   VERIFICA SE O OBJETO DEVE SER INCLUIDO NA ÁRVORE (NAO EH O TID!)
-        #   O TID EH VERIFICADO PELA FUNCAO _is_tid_node_needed ABAIXO.
+        #   O TID EH VERIFICADO PELA FUNCAO _is_tree_tid_node_needed ABAIXO.
         #
         
-        node_props = obj._get_object_node_properties()
+        node_props = obj._get_tree_object_node_properties()
         if node_props is None:
             return
         
@@ -95,7 +95,7 @@ class TreeController(UIControllerObject):
             parentuid = OM._getparentuid(objuid)
             # Find location to create tid node
 #            print (1)
-            if obj._is_tid_node_needed():
+            if obj._is_tree_tid_node_needed():
 #                print (2)
                 # Then, tid node will be object node parent
                 obj_parent_node = self.get_object_tree_item(ID_TYPE_TID, objuid[0], parentuid) 

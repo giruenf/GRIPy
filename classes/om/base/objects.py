@@ -11,7 +11,7 @@ class OMBaseObject(GripyObject):
     tid = None
     _TID_FRIENDLY_NAME = None
     
-    def _get_object_node_properties(self):
+    def _get_tree_object_node_properties(self):
         """Used by TreeController to get the way a object is represented in the
         Tree. General usage is return a dict with object name as main key and
         the object properties are represented as an OrderedDict. Returning None
@@ -37,7 +37,7 @@ class OMBaseObject(GripyObject):
             pass
         return ret_od  
         
-    def _is_tid_node_needed(self):
+    def _is_tree_tid_node_needed(self):
         """Used by TreeController to create or not a tid node as a objects
         from a given class grouper. If tid node is created, the method 
         get_tid_friendly_name will provide it's node label.
@@ -46,7 +46,7 @@ class OMBaseObject(GripyObject):
         return True
 
     @classmethod
-    def _get_tid_friendly_name(self):
+    def _get_tree_tid_friendly_name(self):
         """In general, classes tids are not adequated to be shown as a
         tid node label. If class _TID_FRIENDLY_NAME is provided, it will be
         used by TreeController as tid node label.
@@ -57,7 +57,7 @@ class OMBaseObject(GripyObject):
         except:
             return self.tid
 
-    def _get_object_friendly_name(self):
+    def _get_tree_object_friendly_name(self):
         """Returns a name to be used by TreeController as object node label."""
         return self.name
     

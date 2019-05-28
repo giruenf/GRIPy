@@ -63,6 +63,7 @@ class UIControllerObject(UIBaseObject):
         
     """
     tid = None
+    
     # TODO: verificar se vale a pena manter esses singletons
     _singleton = False
     _singleton_per_parent = False
@@ -87,6 +88,48 @@ class UIControllerObject(UIBaseObject):
             except:
                 pass
             raise 
+
+
+    def _create_view(self, **base_state): 
+        # TODO:  ou seria GRIPy MC-V pattern, abaixo?
+        """Function to create view objects (MVC pattern)."""
+        UIM_class = self.get_manager_class()
+        UIM = UIM_class()         
+        view_class = UIM.get_view_class(self.tid)
+        
+        # Then, create view object   
+        if view_class is not None:     
+            try:
+                self.view = view_class(self.uid)
+            except Exception as e:
+                msg = 'ERROR on creating MVC view {} object: {}'.format(view_class.__name__, e)
+                log.exception(msg)
+                print ('\n', msg, view_class, '\n')
+                raise e             
+        else:
+            self.view = None  
+    
+    
+    def _PostInit(self):
+        """Redirects post init call made by UIManager.create to model, 
+        view and controller objects.
+        """
+
+        try:    
+            if self.view:        
+                self.view.PostInit()
+        except Exception as e:
+            msg = 'ERROR in {}.PostInit: {}'.format(self.view.__class__.__name__, e)
+            log.exception(msg)
+            print ('\n' + msg)
+            raise
+        try:                
+            self.PostInit()    
+        except Exception as e:
+            msg = 'ERROR in {}.PostInit: {}'.format(self.__class__.__name__, e)
+            log.exception(msg)
+            print ('\n', msg)
+            raise
 
     
     def _check_OM_removals(self, objuid, topic=app.pubsub.AUTO_TOPIC):
@@ -147,109 +190,8 @@ class UIControllerObject(UIBaseObject):
             #pass    
 
 
-    def _create_view(self, **base_state): 
-        # TODO:  ou seria GRIPy MC-V pattern, abaixo?
-        """Function to create view objects (MVC pattern)."""
-        UIM_class = self.get_manager_class()
-        UIM = UIM_class()         
-        view_class = UIM.get_view_class(self.tid)
         
-        # Then, create view object   
-        if view_class is not None:     
-            try:
-                self.view = view_class(self.uid)
-            except Exception as e:
-                msg = 'ERROR on creating MVC view {} object: {}'.format(view_class.__name__, e)
-                log.exception(msg)
-                print ('\n', msg, view_class, '\n')
-                raise e             
-        else:
-            self.view = None  
-    
-    
-    def _PostInit(self):
-        """Redirects post init call made by UIManager.create to model, 
-        view and controller objects.
-        """
-
-        try:    
-            if self.view:        
-                self.view.PostInit()
-        except Exception as e:
-            msg = 'ERROR in {}.PostInit: {}'.format(self.view.__class__.__name__, e)
-            log.exception(msg)
-            print ('\n' + msg)
-            raise
-        try:                
-            self.PostInit()    
-        except Exception as e:
-            msg = 'ERROR in {}.PostInit: {}'.format(self.__class__.__name__, e)
-            log.exception(msg)
-            print ('\n', msg)
-            raise
-        
-    '''
-    def attach(self, OM_objuid):
-        """Attaches this object to a ObjectManager object.
-        
-        Example: 
-            self.attach(('log', 1))
-            OM.remove(('log', 1))     -> self will be removed by UIManager 
-        """
-        
-        print ('ATTACHING...')
-        
-        OM = ObjectManager()
-        obj = OM.get(OM_objuid)
-        try:
-            # TODO: REVER ISSO
-            obj.subscribe(self._call_self_remove, 'pre_remove')
-            #OM.subscribe(self._call_self_remove, 'pre_remove')
-            print ('ATTACHED! \n')
-        except Exception as e:
-            print ('ERROR WHILE ATTACHING:', e)
-            #raise
-            #pass
-           
-    def detach(self, OM_objuid):
-        """Detach a object vinculated to a ObjectManager object 
-        by attach function.
-        """
-        print ('DETACHING...')
-        OM = ObjectManager()
-        obj = OM.get(OM_objuid)
-        try:
-            # TODO: REVER ISSO
-            obj.unsubscribe(self._call_self_remove, 'pre_remove')     
-            print ('DETACHED! \n')
-        except Exception as e:
-            print ('ERROR WHILE DETACHING:', e)
-            
-            #raise
-            #pass
-    '''
-    
-    
-    '''     
-    def get_state(self):
-        """Returns MVC triad state.
-        
-        In general, object states are used add persistence to a object or to
-        make an object clone.
-        """
-        return self.get_state()
-        """
-        UIM = UIManager()
-        children = UIM.list(parentuidfilter=self.uid)
-        if children:
-            state['children'] = []
-            for child in children:
-                state['children'].append(child.get_state())
-        return self.tid, state
-        """
-    '''
-    
-    
+   
     """  
     # TODO: ver se deve-se manter o tid na chamada abaixo (@staticmethod)
     @staticmethod    
@@ -295,6 +237,5 @@ class UIViewObject(UIBaseObject):
         """
         raise NotImplementedError('Must be implemented by subclass.')
         
+
         
-    def get_state(self):
-        raise NotImplementedError('View class. Check it at classes.ui.base.objects.py')        

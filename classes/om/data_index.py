@@ -52,48 +52,54 @@ class DataIndex(DataObject):
 
         #print ('\n\nDataIndex:\n', attributes, '\n', args)        
 
-        try:
+        """
+        index = OM.new('data_index', 0, names[i], 
+                       sel_curvetypes[i].upper(), units[i].lower(), 
+                       data=data[i]
+        )
+        """
 
-            dim_idx = attributes.get('dimension')
-            if dim_idx is None or dim_idx < 0 or not isinstance(dim_idx, int):
-                raise Exception('Wrong value for dimension_idx [{}]'.format(
-                                                                    dim_idx)
-                )
+        if not args:
+            raise Exception('Args (DataIndex) not found!')
+
+        dim_idx = attributes['dimension']
         
-            data = None
-            if args:
-                data = args[0]
-             
-            start = attributes.pop('start', None) 
-            end = attributes.pop('end', None) 
-            step = attributes.pop('step', None)    
-            
-            if data is None or not isinstance(data, np.ndarray):
-                try:
-                    if end is None:
-                        samples = attributes.pop('samples')
-                        end = start + step * samples
-                    data = np.arange(start, end, step)
-                except:
-                    raise Exception('Data values were provided wrongly.')
-          
-            if start is None:        
-                start = data[0]
-            if end is None:
-                end = data[-1]
-            samples = len(data)
+        if dim_idx is None or dim_idx < 0 or not isinstance(dim_idx, int):
+            raise Exception('Wrong value for dimension_idx [{}]'.format(
+                                                                dim_idx)
+            )        
 
-        except Exception as e:
-            print (e)
-            raise
+        data = None
+        if args:
+            data = args[0]
+             
+        start = attributes.pop('start', None) 
+        end = attributes.pop('end', None) 
+        step = attributes.pop('step', None)    
+            
+        if data is None or not isinstance(data, np.ndarray):
+            try:
+                if end is None:
+                    samples = attributes.pop('samples')
+                    end = start + step * samples
+                data = np.arange(start, end, step)
+            except:
+                raise Exception('Data values were provided wrongly.')
+      
+        if start is None:        
+            start = data[0]
+        if end is None:
+            end = data[-1]
+        samples = len(data)
+
         super().__init__(data, start=start, end=end, step=step, 
                                  samples=samples, **attributes
         )
         
 
     @classmethod
-    def _is_tid_node_needed(cls):
-        __doc__ = OMBaseObject._is_tid_node_needed.__doc__
+    def _is_tree_tid_node_needed(cls):
+        __doc__ = OMBaseObject._is_tree_tid_node_needed.__doc__
         return False
 
     def _on_OM_add(self, objuid):
@@ -139,20 +145,7 @@ class DataIndex(DataObject):
         except:
             return 0  
     
-    """
-    @classmethod
-    def _loadstate(cls, **state):
-        OM = ObjectManager()
-        try:
-            dimension = state.pop('dimension')
-            name = state.pop('name')
-            datatype = state.pop('datatype')
-            unit = state.pop('unit')
-            index = OM.new(cls.tid, dimension, name, datatype, unit, **state)
-        except Exception as e:
-            print ('\nERROR:', e, '\n', state)
-        return index
-    """
+
 
 
 

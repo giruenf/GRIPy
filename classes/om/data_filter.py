@@ -23,9 +23,10 @@ class DataFilter(OMBaseObject):
             raise
 
 
-    def _get_object_node_properties(self):
-        __doc__ = super()._is_tid_node_needed.__doc__
-        return None
+    def _is_tree_tid_node_needed(self):
+        __doc__ = super()._is_tree_tid_node_needed.__doc__
+        return False
+
 
 
 

@@ -2797,10 +2797,33 @@ def on_import_las(event):
             indexes = [sel_datatypes[i] for i in range(ncurves) if sel_datatypes[i] == 'Index']
             if len(indexes) == 0:
                 raise Exception('ERROR: len(indexes) == 0')
+                
             #    
 #            index_set = OM.new('index_set', name='Run 1')
 #            OM.add(index_set, well.uid)
             ##           
+
+
+
+
+            #curve_set = OM.new('curve_set', name='Run 001')
+            #OM.add(curve_set, well.uid)
+            # Replacing above by well.create_new_curve_set()
+            curve_set = well.create_new_curve_set()
+            #
+    
+            """
+            index = OM.new('data_index', np.array(depth), name='Depth', dimension=0, datatype='MD', unit='m') 
+            OM.add(index, iset2.uid)
+            #      
+            log = OM.new('log', np.array(phi)/100, index_uid=index.uid, name='Phi', unit='dec', datatype='NMRperm')
+            OM.add(log, iset2.uid)  
+            #
+            log = OM.new('log', np.array(k), index_uid=index.uid, name='K', unit='mD', datatype='CorePerm')
+            OM.add(log, iset2.uid)  
+            """
+
+
 
             for i in range(ncurves):
                 if sel_curvetypes[i]:
@@ -2812,22 +2835,27 @@ def on_import_las(event):
                 
                 if sel_datatypes[i] == 'Index':
                     #(self, dimension_idx, name, datatype=None, unit=None, **kwargs)
-                    index = OM.new('data_index', 0, names[i], 
-                                   sel_curvetypes[i].upper(), units[i].lower(), 
-                                   data=data[i]
+                    index = OM.new('data_index', data[i], dimension=0, 
+                                   name=names[i], unit=units[i].lower(),
+                                   datatype=sel_curvetypes[i].upper()
                     )
-                    OM.add(index, well.uid)
-#                    OM.add(index, index_set.uid)
+                    #OM.add(index, well.uid)
+                    OM.add(index, curve_set.uid)
                 
                 elif sel_datatypes[i] == 'Log':
                     log = OM.new('log', data[i], index_uid=index.uid, #index_set_uid=index.uid, 
                                  name=names[i], unit=units[i], 
                                  datatype=sel_curvetypes[i]
                     )
-                    OM.add(log, well.uid)
-
+                    #OM.add(log, well.uid)
+                    OM.add(log, curve_set.uid)
+                    
+                    
                 elif sel_datatypes[i] == 'Partition':
-                    #raise Exception('Tratar isso!')
+    
+                    continue
+                    
+                #raise Exception('Tratar isso!')
                     if part_code is None:
                         part_code = OM.new('property', name='partition_code')
                         OM.add(part_code)   

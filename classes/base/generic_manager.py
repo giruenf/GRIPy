@@ -1,6 +1,5 @@
 # -*- coding: utf-8 -*-
 
-
 from app import pubsub
 from classes.base.metaclasses import GripyManagerMeta
 from app import log
@@ -23,13 +22,17 @@ class GripyManager(pubsub.PublisherMixin, metaclass=GripyManagerMeta):
     
     
     def __init__(self):
-        self._ownerref = None
+        pass
+        #self._ownerref = None
+
+    def _get_pubsub_uid(self):
+        return self.__class__.__name__
+
     
     def is_loading_state(self):
         return self.__class__._LOADING_STATE 
 
-    def _get_pubsub_uid(self):
-        return self.__class__.__name__
+
        
     # Criado por Adriano em 08-11-2018
     def get_children_uids(self, parent_uid=None, recursively=False):
@@ -133,7 +136,7 @@ class GripyManager(pubsub.PublisherMixin, metaclass=GripyManagerMeta):
             recursively = kwargs.pop('recursively', False)
             objects = self.list(tid, parent_uid, recursively)
             if not objects: return None  
-            comparators = self._create_comparators(*args)  
+            comparators = self._create_query_comparators(*args)  
             ret_list = []
             for obj in objects:
                 ok = True
@@ -193,7 +196,7 @@ class GripyManager(pubsub.PublisherMixin, metaclass=GripyManagerMeta):
             
             
             
-    def _create_comparators(self, *args):
+    def _create_query_comparators(self, *args):
         """
         Create the comparators used by `.exec_query`.
         

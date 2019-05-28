@@ -8,7 +8,7 @@ from classes.om import OMBaseObject
 
 class CurveSet(OMBaseObject):
     tid = 'curve_set'
-    _FRIENDLY_NAME = 'Curve Set'    
+#    _FRIENDLY_NAME = 'Curve Set'    
     
     
     def __init__(self, **attributes):
@@ -34,12 +34,12 @@ class CurveSet(OMBaseObject):
 
 
     @classmethod
-    def _is_tid_node_needed(cls):
-        __doc__ = OMBaseObject._is_tid_node_needed.__doc__
+    def _is_tree_tid_node_needed(cls):
+        __doc__ = OMBaseObject._is_tree_tid_node_needed.__doc__
         return False
 
 
-                  
+                 
     def _on_OM_add(self, objuid):
         if objuid != self.uid:
             return
@@ -51,9 +51,9 @@ class CurveSet(OMBaseObject):
             if obj is not self and obj.name == self.name:
                 raise Exception('Parent object has another son with same name.')
 
-    @property
-    def name(self):
-        return self.attributes['name']
+#    @property
+#    def name(self):
+#        return self.attributes['name']
 
     @property
     def vinculated(self):
@@ -95,6 +95,7 @@ class CurveSet(OMBaseObject):
         state.update(vinculated=self.vinculated)
         return state
      
+        
     @classmethod
     def _loadstate(cls, **state):
         OM = ObjectManager()

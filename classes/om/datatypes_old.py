@@ -477,6 +477,8 @@ class RockTable(Partition):
     def __init__(self, data=None,**attributes):        
         super(RockTable, self).__init__(data,**attributes)
 
+
+
 class RockType(Part):
     """
     New type
