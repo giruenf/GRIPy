@@ -67,11 +67,12 @@ class TrackCanvasController(CanvasBaseController):
         }, 
                 
         'ygrid_major_lines': {
-            'default_value': 10.0, 
+            'default_value': 500.0, 
             'type': float
-        },                 
+        },       
+                
         'ygrid_minor_lines': {
-            'default_value': 2.0, 
+            'default_value': 100.0, 
             'type': float
         }    
 

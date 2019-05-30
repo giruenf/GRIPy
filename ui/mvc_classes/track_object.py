@@ -233,25 +233,21 @@ class TrackObjectController(UIControllerObject):
 #                self.detach((self.obj_tid, old_value))
                 self.detach()
             self.plottype = None
-            
-#            print (111)
-            
+
             obj = self.get_object()
             
-#            print (222)
-            
             if obj:
-                #if obj.tid != 'partition':
-#                print ('333', obj)
+
                 self.set_filter()
-#                print (444)
+
                 plottype = _PREFERRED_PLOTTYPES.get(obj.tid)
-#                print (445)
+
                 self.plottype = plottype    
-#                print (446)
+
                 print ('\nAttaching', self.uid, 'to', obj.uid)
                 self.attach(obj.uid)
-#                print (447)
+
+
         except Exception as e:
             print ('ERROR on_change_objoid:', e)
             raise
@@ -266,24 +262,26 @@ class TrackObjectController(UIControllerObject):
 
 
     def set_filter(self, filter_oid=None):
-        print ('\n\nset_filter', filter_oid)
+        print ('\nset_filter:', filter_oid)
         try:
             if filter_oid is None:
                 OM = ObjectManager()
-#                print ('a1')
-                filter_ = OM.new('data_filter', self.uid)
-#                print ('a2')
-                OM.add(filter_)
-#                print ('a3')
-                self.data_filter_oid = filter_.oid
-#                print ('a4')
+                #
+                data_filter_ = OM.new('data_filter', self.uid)
+                OM.add(data_filter_)
+                #
+                self.data_filter_oid = data_filter_.oid
+
             else:
                 if self.data_filter_oid:
                     raise Exception('TRATAR EXCLUSAO FILTER')
                 self.data_filter_oid = filter_oid    
+                
         except Exception as e:
             msg = 'ERROR [TrackObjectController.set_filter]: {}'.format(e)
             raise Exception(msg)
+    
+    
     
     
     def on_change_plottype(self, new_value, old_value):

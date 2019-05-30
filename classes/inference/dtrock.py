@@ -5,7 +5,7 @@ from classes.dt.datatypes import DataTypeObject
 
 class Rock (DataTypeObject):
     tid = 'rock'
-    _FRIENDLY_NAME = 'Rock'
+    _TID_FRIENDLY_NAME = 'Rock'
     _SHOWN_ATTRIBUTES = [
                             ('suporte', 'Suporte'),
                             ('grain', 'Grain'),
@@ -26,7 +26,7 @@ class Rock (DataTypeObject):
 
 class Fluid (DataTypeObject):
     tid = 'fluid'
-    _FRIENDLY_NAME = 'Fluid'
+    _TID_FRIENDLY_NAME = 'Fluid'
     _SHOWN_ATTRIBUTES = [
                             ('vp', 'Vp'),
                             ('vs', 'Vs'),                             

@@ -1557,9 +1557,9 @@ def on_cwt(event):
                 parent_uid = OM._getparentuid(obj.uid)
                 if parent_uid:
                     parent = OM.get(parent_uid)
-                    input_data[obj._FRIENDLY_NAME + ': ' + obj.name + '@' + parent.name ] = obj.uid
+                    input_data[obj._get_tid_friendly_name() + ': ' + obj.name + '@' + parent.name ] = obj.uid
                 else:
-                    input_data[obj._FRIENDLY_NAME + ': ' + obj.name] = obj.uid
+                    input_data[obj._get_tid_friendly_name() + ': ' + obj.name] = obj.uid
 
         dlg.view.AddChoice(ctn_input_data, proportion=0, flag=wx.EXPAND|wx.TOP,
                            border=5, widget_name='obj_uid', options=input_data
@@ -1902,7 +1902,7 @@ def on_phase_rotation(event):
         input_data = OrderedDict()
         for tid in accept_tids:
             for obj in OM.list(tid):
-                input_data[obj._FRIENDLY_NAME + ': ' + obj.name] = obj.uid
+                input_data[obj._get_tid_friendly_name() + ': ' + obj.name] = obj.uid
 
         dlg.view.AddChoice(ctn_input_data, proportion=0, flag=wx.EXPAND|wx.TOP,
                            border=5, widget_name='obj_uid', options=input_data
@@ -1987,7 +1987,7 @@ def on_hilbert_attributes(event):
         input_data = OrderedDict()
         for tid in accept_tids:
             for obj in OM.list(tid):
-                input_data[obj._FRIENDLY_NAME + ': ' + obj.name] = obj.uid
+                input_data[obj._get_tid_friendly_name() + ': ' + obj.name] = obj.uid
 
         dlg.view.AddChoice(ctn_input_data, proportion=0, flag=wx.EXPAND|wx.TOP,
                            border=5, widget_name='obj_uid', options=input_data
@@ -2753,7 +2753,10 @@ def on_import_las(event):
     hedlg = HeaderEditor.Dialog(wx.App.Get().GetTopWindow())
     hedlg.set_header(las_file.header)
 
+
+
     if hedlg.ShowModal() == wx.ID_OK:
+        
         las_file.header = hedlg.get_header()
         names = las_file.curvesnames
         units = las_file.curvesunits
@@ -2782,114 +2785,58 @@ def on_import_las(event):
         isdlg.set_curvetypes(sel_curvetypes)
         isdlg.set_datatypes(sel_datatypes)
         
+        
         if isdlg.ShowModal() == wx.ID_OK:
             sel_curvetypes = isdlg.get_curvetypes()
             sel_datatypes = isdlg.get_datatypes()
             data = las_file.data
             
+            
             OM = ObjectManager()
-            well = OM.new('well', name=las_file.wellname, 
-                              LASheader=las_file.header)
-            OM.add(well)			
-            index = None
-            part_code = None 						   
-            ##
-            indexes = [sel_datatypes[i] for i in range(ncurves) if sel_datatypes[i] == 'Index']
-            if len(indexes) == 0:
-                raise Exception('ERROR: len(indexes) == 0')
-                
-            #    
-#            index_set = OM.new('index_set', name='Run 1')
-#            OM.add(index_set, well.uid)
-            ##           
-
-
-
-
-            #curve_set = OM.new('curve_set', name='Run 001')
-            #OM.add(curve_set, well.uid)
-            # Replacing above by well.create_new_curve_set()
+            well = OM.new('well', name=las_file.wellname)
+            OM.add(well)	
             curve_set = well.create_new_curve_set()
-            #
-    
-            """
-            index = OM.new('data_index', np.array(depth), name='Depth', dimension=0, datatype='MD', unit='m') 
-            OM.add(index, iset2.uid)
-            #      
-            log = OM.new('log', np.array(phi)/100, index_uid=index.uid, name='Phi', unit='dec', datatype='NMRperm')
-            OM.add(log, iset2.uid)  
-            #
-            log = OM.new('log', np.array(k), index_uid=index.uid, name='K', unit='mD', datatype='CorePerm')
-            OM.add(log, iset2.uid)  
-            """
+            
+            
+            indexes_idx = [i for i in range(ncurves) if sel_datatypes[i] == 'Index']
+            if len(indexes_idx) == 0:
+                raise Exception('ERROR: len(indexes) == 0')
+                    
+            logs_idx = [i for i in range(ncurves) if sel_datatypes[i] == 'Log']
 
+            indexes_uid = []
 
-
+            
             for i in range(ncurves):
                 if sel_curvetypes[i]:
                     PM.voteforcurvetype(names[i], sel_curvetypes[i])
 
                 if sel_datatypes[i]:
                     PM.votefordatatype(names[i], sel_datatypes[i])
-                
-                
-                if sel_datatypes[i] == 'Index':
-                    #(self, dimension_idx, name, datatype=None, unit=None, **kwargs)
-                    index = OM.new('data_index', data[i], dimension=0, 
-                                   name=names[i], unit=units[i].lower(),
-                                   datatype=sel_curvetypes[i].upper()
-                    )
-                    #OM.add(index, well.uid)
-                    OM.add(index, curve_set.uid)
-                
-                elif sel_datatypes[i] == 'Log':
-                    log = OM.new('log', data[i], index_uid=index.uid, #index_set_uid=index.uid, 
-                                 name=names[i], unit=units[i], 
-                                 datatype=sel_curvetypes[i]
-                    )
-                    #OM.add(log, well.uid)
-                    OM.add(log, curve_set.uid)
                     
                     
-                elif sel_datatypes[i] == 'Partition':
-    
-                    continue
-                    
-                #raise Exception('Tratar isso!')
-                    if part_code is None:
-                        part_code = OM.new('property', name='partition_code')
-                        OM.add(part_code)   
-                    try:
-                        booldata, codes = datatypes.DataTypes.Partition.getfromlog(data[i])
-                        
-                    except TypeError:
-#                        print ('data[{}]: {}'.format(i, data[i]))
-                        raise
-                    #    
-                    partition = OM.new('partition', index_uid=index.uid, name=names[i], 
-                                           datatype=sel_curvetypes[i]
-															   
-                    )
-                    #
-                    OM.add(partition, well.uid)
-                    for j in range(len(codes)):
-                        
-#                        print ('{}, code={}, datatype={}'.format(booldata[j], codes[j], sel_curvetypes[i]))
-                        
-                        part = OM.new('part', booldata[j], 
-                                      name=str(int(codes[j])), 
-                                      index_uid=index.uid, 
-                                      code=int(codes[j]), 
-                                      datatype=sel_curvetypes[i]
-                        )
-																		   
-                        OM.add(part, partition.uid)
-                        
-                else:
-                    print ("Not importing {} as no datatype matches '{}'".format(names[i], sel_datatypes[i]))
-                 
+            for index_idx in indexes_idx:
+                index = OM.new('data_index', 
+                               data[index_idx], 
+                               name=names[index_idx], 
+                               unit=units[index_idx].lower(), 
+                               datatype=sel_curvetypes[index_idx].upper()
+                )
+                OM.add(index, curve_set.uid)
+                indexes_uid.append(index.uid)
+                
+            
+            for log_idx in logs_idx:
+                log = OM.new('log', 
+                             data[log_idx], 
+                             name=names[log_idx], 
+                             unit=units[log_idx].lower(), 
+                             datatype=sel_curvetypes[log_idx].upper()
+                )
+                OM.add(log, curve_set.uid)
+                log._create_data_index_map(indexes_uid)
+            
         PM.register_votes()
-        
         isdlg.Destroy()
         
     hedlg.Destroy()
@@ -3390,8 +3337,9 @@ def on_create_well(event):
     ctn_index_base = dlg.view.AddCreateContainer('BoxSizer', ctn_index, orient=wx.VERTICAL, proportion=0, flag=wx.EXPAND|wx.TOP, border=5)
     #
     datatypes_ = OrderedDict()
-    datatypes_['Time'] = 'TIME'
     datatypes_['MD'] = 'MD'
+    datatypes_['Time'] = 'TIME'
+    
     #
     def on_change_datatype(name, old_value, new_value, **kwargs):
         textctrl_name = dlg.view.get_object('index_name')
@@ -3403,7 +3351,7 @@ def on_create_well(event):
             statictext_start.set_value('Start (ms):')
             statictext_end.set_value('End (ms):')
             statictext_sampling.set_value('Sampling (ms):')
-        if new_value == "MD":
+        elif new_value == "MD":
             textctrl_name.set_value('Depth')  
             statictext_start.set_value('Start (m):')
             statictext_end.set_value('End (m):')
@@ -3459,20 +3407,18 @@ def on_create_well(event):
             start = float(results['start'])
             end = float(results['end'])
             ts = float(results['ts'])
-            
-            well = OM.new('well', name=well_name) 
-            OM.add(well)
             samples = ((end-start)/ts)+1
             #
-#            index_set = OM.new('index_set', name='Set')
-#            OM.add(index_set, well.uid)
             #
-            index = OM.new('data_index', 0, index_name, datatype, unit, 
-                   start=start, samples=samples, step=ts
-            )
-#            OM.add(index, index_set.uid)
-            ret_val = OM.add(index, well.uid)
-#            ret_val = True
+            well = OM.new('well', name=well_name) 
+            OM.add(well)
+            #   
+            curve_set = well.create_new_curve_set()
+            #
+            index = OM.new('data_index', name=index_name, datatype=datatype, 
+                           unit=unit, start=start, samples=samples, step=ts
+            )            
+            ret_val = OM.add(index, curve_set.uid)
     except Exception as e:
         print ('ERROR [on_create_well]:', str(e))
         raise
@@ -3623,7 +3569,9 @@ def on_create_synthetic(event):
         wait = wx.BusyInfo("Creating synthetic. Wait...")
         if result == wx.ID_OK:
             results = dlg.get_results()  
-            print (results)
+            
+#            print (results)
+            
             synth_type = results['synth_type']
             welluid = results['welluid']
             indexuid = results['indexuid'] 
@@ -3668,12 +3616,22 @@ def on_create_synthetic(event):
                 print (data.shape)
                 print (data)
             #
-            index_set_uid = OM._getparentuid(indexuid)       
-            #print indexuid, index_set_uid            
-            log = OM.new('log', data, index_set_uid=index_set_uid, 
+            print('\n\nfinalizando a criacao...')
+            print(indexuid)
+            curve_set_uid = OM._getparentuid(indexuid)       
+            print(curve_set_uid)
+            log = OM.new('log', data, 
                          name=synth_name, unit='amplitude', datatype=''
             )
-            OM.add(log, welluid)  
+            
+            
+            
+            ret = OM.add(log, curve_set_uid)
+            print(ret)
+            
+            log._create_data_index_map([indexuid])
+            
+            
     except Exception as e:
         print ('ERROR:', str(e))
     finally:
@@ -4506,8 +4464,66 @@ def calc_logs(event):
     
 
 
+def on_load_teste_2019(event):
+    
+    
+    OM = ObjectManager()
+    
+    data = np.arange(100000000).reshape(100, 100, 100, 100)
 
 
+    seismic = OM.new('seismic', 
+                 data, 
+                 name='Sismica', 
+                 unit='amplitude', 
+                 datatype='seismic'
+    )
+    OM.add(seismic)
+    
+
+    """    
+    
+    #
+    i_line_index = OM.new('data_index', 
+                   np.arange(100), 
+                   name='I_LINE', 
+                   unit='i_line', 
+                   datatype='idx'
+    )
+    OM.add(i_line_index, seismic.uid)
+    #
+    x_line_index = OM.new('data_index', 
+                   np.arange(100), 
+                   name='X_LINE', 
+                   unit='x_line', 
+                   datatype='idx'
+    )
+    OM.add(x_line_index, seismic.uid)
+    #
+    offset_index = OM.new('data_index', 
+                   np.arange(100), 
+                   name='OFFSET', 
+                   unit='offset', 
+                   datatype='idx'
+    )
+    OM.add(offset_index, seismic.uid)
+    #
+    time_index = OM.new('data_index', 
+                   np.arange(100), 
+                   name='TIME', 
+                   unit='time', 
+                   datatype='idx'
+    )
+    OM.add(time_index, seismic.uid)
+    #    
+    seismic._create_data_index_map([time_index.uid], 
+                                    [offset_index.uid], 
+                                    [x_line_index.uid], 
+                                    [i_line_index.uid]
+    )
+    
+    """
+                
 
 '''
 

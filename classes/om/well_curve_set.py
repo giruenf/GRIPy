@@ -8,7 +8,7 @@ from classes.om import OMBaseObject
 
 class CurveSet(OMBaseObject):
     tid = 'curve_set'
-#    _FRIENDLY_NAME = 'Curve Set'    
+#    _TID_FRIENDLY_NAME = 'Curve Set'    
     
     
     def __init__(self, **attributes):

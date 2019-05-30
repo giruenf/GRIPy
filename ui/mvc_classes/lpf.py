@@ -1206,7 +1206,7 @@ class ObjectTidRenderer(TextChoiceRenderer):
     def CreateEditorCtrl(self, parent, rect, value):    
         OM = ObjectManager()
         acceptable_tids = LogPlotController.get_acceptable_tids()
-        tids = list(set([obj._TID_FRIENDLY_NAME for obj in OM.list() \
+        tids = list(set([obj._get_tid_friendly_name() for obj in OM.list() \
                          if obj.tid in acceptable_tids
                         ]
                        )

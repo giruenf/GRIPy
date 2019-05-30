@@ -5,9 +5,11 @@ from classes.ui import UIManager
 #
 from classes.om import Well
 from classes.om import DataIndex
+from classes.om import DataIndexMap
 from classes.om import Log
 from classes.om import DataFilter
 from classes.om import CurveSet
+from classes.om import Seismic
 
 """
 from classes.dt.datatypes import Core
@@ -18,7 +20,6 @@ from classes.dt.datatypes import RockType
 from classes.dt.datatypes import Part
 from classes.dt.datatypes import Property
 
-from classes.dt.datatypes import Seismic
 #from classes.dt.datatypes import Velocity
 
 
@@ -94,8 +95,11 @@ def register_OM_classes():
     ObjectManager.register_class(Log, CurveSet)
     #
     ObjectManager.register_class(DataFilter)
-    
+    ObjectManager.register_class(Seismic)
     #
+    
+    ObjectManager.register_class(DataIndexMap, Log)
+    
     """
 #    ObjectManager.register_class(IndexSet, Well)
     ObjectManager.register_class(Core, Well)

@@ -26,6 +26,7 @@ Versão 0.8.beta:
 - Ajustes nos arquivos OSLICENSES.txt
 - Fim das classes Partition e Part. Essas passam a ser integradas a classe Log.
   De forma conjunta, a classe WellData1D também deixa de existir.
+- Fim do carregamento do LASheader para o objeto Well.  
   
 
 Versão 0.7:

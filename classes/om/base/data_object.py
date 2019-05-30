@@ -9,6 +9,7 @@ import numpy as np
 import wx
 
 from classes.om import OMBaseObject
+from classes.om import ObjectManager
 
 
 VALID_INDEXES = {
@@ -91,7 +92,7 @@ class DataObject(OMBaseObject):
     _ATTRIBUTES['unit'] = {
         'default_value': wx.EmptyString,
         'type': str        
-    }   
+    }
     _ATTRIBUTES['datatype'] = {
         'default_value': wx.EmptyString,
         'type': str        
@@ -116,11 +117,13 @@ class DataObject(OMBaseObject):
         except:
             raise     
         '''
-        
-        super().__init__(**attributes)     
-        self._data = data
+
+
+        super().__init__(**attributes)      
+        self._data = data  
         if isinstance(self._data, np.ndarray):
             self._data.flags.writeable = False
+
 
 
 
@@ -130,6 +133,7 @@ class DataObject(OMBaseObject):
             return None
         return np.nanmin(self._data)
         
+    
     @property
     def max(self):
         if self._data is None:
@@ -141,19 +145,94 @@ class DataObject(OMBaseObject):
     def data(self):
         return self._data
 
+
+    def _get_max_dimensions(self):
+        raise NotImplementedError('Must be implemented by a subclass.')
+
+
+    def _create_data_index_map(self, *args):
+        max_dims = self._get_max_dimensions()
+        if len(args) > max_dims:
+            msg = 'Exceed number of dimensions [{}] - {}.'.format(max_dims, args)
+            raise Exception(msg)
+        
+#        print('\n\n\n_create_data_index_map')
+#        print('args:', args)     
+#        print('list(args):', list(args))
+#        print('type(args):', type(args))
+#        print()
+        
+        OM = ObjectManager()
+        data = []
+                
+#        i = 0
+        
+        for di_objs in args:
+            
+#            i += 1
+            
+#            print(str(i), di_objs)
+            
+            if not isinstance(di_objs, list):
+                # arg should be a object uid.
+                di_objs = [di_objs]
+                
+            for di_obj in di_objs:
+                print('    Testing: ' + str(di_obj))
+                try:
+                    # Then, test if object exist this is a valid object uid.
+                    obj = OM.get(di_obj)
+                    if not obj.tid == 'data_index':
+                        raise Exception()
+                except:    
+                    print('\n\nDEU RUIM:', di_obj)
+                    msg = 'Error in objects informed as ' + \
+                                            'Data Indexes: {}.'.format(args)
+                    raise Exception(msg)
+            
+            data.append(di_objs)
+#            print('data array is Ready!')
+       
+        
+#        print('\nCreating data_index_map:', data)
+        di_map = OM.new('data_index_map', max_dims, data)
+#        print('Creating data_index_map - OK!!!')
+        
+        
+#        print('\nOM add:', di_map, self.uid)
+        try:
+            OM.add(di_map, self.uid)
+#            print('OM add - OK!!!')
+        except Exception as e:    
+            print('\nERROR:', e, '\n')
+            raise
+        
+
+
+
+    def get_data_indexes(self, dimension=None):
+        """
+        """
+        OM = ObjectManager()
+        data_index_map = OM.list('data_index_map', self.uid)[0]
+        data_indexes = data_index_map._get_data_indexes()  
+        if dimension is None:
+            return data_indexes
+        return data_indexes[dimension]    
+
+
+
+
+
+
+
+
+
+        
+
     """
 
-    def get_indexes_set(self):
-        OM = ObjectManager()
-        indexes_set = OM.list('index_set', self.uid)
-        ret = OrderedDict()
-        for index_set in indexes_set:
-            dis = OM.list('data_index', index_set.uid)
-            if not dis:
-                ret[index_set.uid] = None
-            else:
-                ret[index_set.uid] = index_set.get_data_indexes()
-        return ret
+
     
     def get_data_indexes(self, set_name):
         OM = ObjectManager()
@@ -180,17 +259,7 @@ class DataObject(OMBaseObject):
                     ret_vals.append(data_index)
         return ret_vals
    
-    def get_friendly_indexes_dict(self):
-        OM = ObjectManager()
-        ret_od = OrderedDict()
-        indexes_set = self.get_indexes_set()
-        for index_set_uid, indexes_ord_dict in indexes_set.items():
-            index_set = OM.get(index_set_uid)
-            for dim_idx, data_indexes in indexes_ord_dict.items():
-                for data_index in data_indexes:
-                    di_friendly_name = data_index.name + '@' + index_set.name
-                    ret_od[di_friendly_name] = data_index.uid       
-        return ret_od
+
     
     def get_z_axis_datatypes(self):
         OM = ObjectManager()

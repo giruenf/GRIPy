@@ -1,4 +1,6 @@
-# -*- coding: utf-8 -*-
+
+# TODO: modificar tudo isso abaixo
+
 """
 DataTypes
 =========
@@ -22,27 +24,8 @@ See Also
 OM.Objects : the base classes for the classes defined in this module.
 """
 
-
-
-from collections import OrderedDict
-
-import numpy as np
-#import wx
-
 from classes.om import DataObject
 from classes.om import ObjectManager
-#from classes.om import OMBaseObject
-
-#from classes.base import GripyObject
-
-#from app.app_utils import parse_string_to_uid
-
-from basic.colors import COLOR_CYCLE_RGB
-
-
-from classes.om.welldata_1d import WellData1D
-
-
 
 
 VALID_Z_AXIS_DATATYPES = [('MD', 'Measured Depth'), 
@@ -170,36 +153,12 @@ class Property(DataObject):
 ###############################################################################
                 
 
-class Density(DataObject):
-    tid = 'density'
 
-    def __init__(self, data, **attributes):
-        super().__init__(data, **attributes)
-
-    def get_data_indexes(self):
-        OM = ObjectManager()            
-        try:
-            index_set = OM.list('index_set', self.uid)[0]
-            return index_set.get_data_indexes()
-        except Exception as e:
-            print ('ERROR [Density.get_data_indexes]:', e, '\n')
-            raise e
-
-
-class Seismic(Density):
-    tid = 'seismic'
-    _FRIENDLY_NAME = 'Seismic'
-    _SHOWN_ATTRIBUTES = [
-                            ('_oid', 'Object Id')  
-    ]
-
-    def __init__(self, data, **attributes):
-        super().__init__(data, **attributes)
                 
-
+"""
 class WellGather(Density):
     tid = 'gather'
-    _FRIENDLY_NAME = 'Gather'
+    _TID_FRIENDLY_NAME = 'Gather'
     _SHOWN_ATTRIBUTES = [
                             ('_oid', 'Object Id')  
     ]
@@ -210,7 +169,7 @@ class WellGather(Density):
 
 class Scalogram(Density):
     tid = 'scalogram'
-    _FRIENDLY_NAME = 'Scalogram'
+    _TID_FRIENDLY_NAME = 'Scalogram'
     _SHOWN_ATTRIBUTES = [
                             ('_oid', 'Object Id'),
                             ('datatype', 'Type')                       
@@ -231,7 +190,7 @@ class GatherScalogram(Scalogram):
 
 class Angle(Density):
     tid = 'angle'
-    _FRIENDLY_NAME = 'Angle'
+    _TID_FRIENDLY_NAME = 'Angle'
     _SHOWN_ATTRIBUTES = [
                             ('_oid', 'Object Id'),
                             ('type', 'Type'),                             
@@ -251,7 +210,7 @@ class Angle(Density):
 
 class Velocity(Density):
     tid = 'velocity'
-    _FRIENDLY_NAME = 'Velocity'
+    _TID_FRIENDLY_NAME = 'Velocity'
     _SHOWN_ATTRIBUTES = [
                             ('_oid', 'Object Id'),
                             ('domain', 'Domain'),    
@@ -269,7 +228,7 @@ class Velocity(Density):
 
 class Spectogram(Density):
     tid = 'spectogram'
-    _FRIENDLY_NAME = 'Spectogram'
+    _TID_FRIENDLY_NAME = 'Spectogram'
     _SHOWN_ATTRIBUTES = [
                             ('_oid', 'Object Id'),
                             ('datatype', 'Type')                       
@@ -282,11 +241,13 @@ class Spectogram(Density):
 
 class GatherSpectogram(Spectogram):
     tid = 'gather_spectogram'
-    _FRIENDLY_NAME = 'Spectogram'
+    _TID_FRIENDLY_NAME = 'Spectogram'
     
     def __init__(self, data, **attributes):
         super().__init__(data, **attributes)
         
+"""
+
         
 ###############################################################################
 ###############################################################################
@@ -294,7 +255,7 @@ class GatherSpectogram(Spectogram):
 
 class Inversion(DataObject):
     tid = "inversion"
-    _FRIENDLY_NAME = 'Inversion'
+    _TID_FRIENDLY_NAME = 'Inversion'
     
     def __init__(self, **attributes):
         super().__init__(**attributes)
@@ -304,7 +265,7 @@ class Inversion(DataObject):
 class InversionParameter(DataObject):
                                  
     tid = "inversion_parameter"
-    _FRIENDLY_NAME = 'Parameter'
+    _TID_FRIENDLY_NAME = 'Parameter'
     _SHOWN_ATTRIBUTES = [
                             ('_oid', 'Object Id'),
                             ('datatype', 'Curve Type'),
@@ -327,10 +288,10 @@ class InversionParameter(DataObject):
 
         
 
-
+"""
 class Model1D(Density):
     tid = 'model1d'
-    _FRIENDLY_NAME = 'Model'
+    _TID_FRIENDLY_NAME = 'Model'
     _SHOWN_ATTRIBUTES = [
                             ('_oid', 'Object Id'),
                             ('datatype', 'Type')
@@ -358,7 +319,7 @@ class Model1D(Density):
 
 class ZoneSet(DataObject):
     tid = 'zone_set'
-    _FRIENDLY_NAME = 'Zone Sets'
+    _TID_FRIENDLY_NAME = 'Zone Sets'
     _SHOWN_ATTRIBUTES = [
                             ('_oid', 'Object Id'),
                             ('datatype', 'Type')
@@ -370,7 +331,7 @@ class ZoneSet(DataObject):
 
 class Zone(DataObject):
     tid = 'zone'
-    _FRIENDLY_NAME = 'Zones'
+    _TID_FRIENDLY_NAME = 'Zones'
     _SHOWN_ATTRIBUTES = [
                             ('_oid', 'Object Id'),
                             ('datatype', 'Type')
@@ -408,4 +369,4 @@ class Zone(DataObject):
     def end(self):
         raise Exception()    
     
-    
+"""    

@@ -35,7 +35,7 @@ class CrossPlotController(WorkPageController):
     
 class CrossPlot(WorkPage):
     tid = 'crossplot'
-    _FRIENDLY_NAME = 'Cross Plot'
+    _TID_FRIENDLY_NAME = 'Cross Plot'
 
 
     def __init__(self, controller_uid):   
@@ -92,7 +92,7 @@ class CrossPlot(WorkPage):
         
         UIM = UIManager()   
         controller = UIM.get(self._controller_uid)        
-        controller.title = self._FRIENDLY_NAME
+        controller.title = self._get_tid_friendly_name()
 
 
 
@@ -232,7 +232,7 @@ class CrossPlot(WorkPage):
         lpcs = UIM.list('crossplot_controller')
         for lpc in lpcs:
             idx += 1
-        controller.title = self._FRIENDLY_NAME + ' ['+ str(idx) + ']'    
+        controller.title = self._get_tid_friendly_name() + ' [' + str(idx) + ']'    
         
 
     def _on_choice_style(self, event):

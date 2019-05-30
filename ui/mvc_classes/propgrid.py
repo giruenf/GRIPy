@@ -485,7 +485,7 @@ class PropertyGridController(UIControllerObject):
     
         self.clear()
         title = toc.get_object().get_friendly_name()
-        #title = toc.get_object()._TID_FRIENDLY_NAME + ': ' + \
+        #title = toc.get_object()._get_tid_friendly_name() + ': ' + \
         #                                            toc.get_object().name
         self.view.Append(
             pg.PropertyCategory(title, name='title')

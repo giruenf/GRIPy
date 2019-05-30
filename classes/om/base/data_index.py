@@ -11,13 +11,13 @@ from classes.om import ObjectManager
 # Class for discrete dimensions of Data Objects
 class DataIndex(DataObject):
     tid = 'data_index'
-    _FRIENDLY_NAME = 'Index'
+    _TID_FRIENDLY_NAME = 'Index'
+    
     _ATTRIBUTES = OrderedDict()
     _ATTRIBUTES['dimension'] = {
         'default_value': -1,
         'type': int       
     }       
-    """
     _ATTRIBUTES['start'] = {
         'default_value': -1,
         'type': int       
@@ -34,11 +34,10 @@ class DataIndex(DataObject):
         'default_value': None,
         'type': int       
     }   
-    """
+
     
     _SHOWN_ATTRIBUTES = [
-                            #('_oid', 'Object Id'),
-                            ('dimension', 'Dimension'),
+                            ('_oid', 'Object Id'),
                             ('datatype', 'Type'),
                             ('unit', 'Unit'),
                             ('start', 'Start'),
@@ -49,26 +48,8 @@ class DataIndex(DataObject):
     
     
     def __init__(self, *args, **attributes):   
-
-        #print ('\n\nDataIndex:\n', attributes, '\n', args)        
-
         """
-        index = OM.new('data_index', 0, names[i], 
-                       sel_curvetypes[i].upper(), units[i].lower(), 
-                       data=data[i]
-        )
         """
-
-        if not args:
-            raise Exception('Args (DataIndex) not found!')
-
-        dim_idx = attributes['dimension']
-        
-        if dim_idx is None or dim_idx < 0 or not isinstance(dim_idx, int):
-            raise Exception('Wrong value for dimension_idx [{}]'.format(
-                                                                dim_idx)
-            )        
-
         data = None
         if args:
             data = args[0]
@@ -102,11 +83,13 @@ class DataIndex(DataObject):
         __doc__ = OMBaseObject._is_tree_tid_node_needed.__doc__
         return False
 
+
     def _on_OM_add(self, objuid):
         if objuid != self.uid:
             return
         OM = ObjectManager()        
         OM.unsubscribe(self._on_OM_add, 'add')
+    
     
     def get_data_indexes(self):
         ret_dict = OrderedDict()
@@ -117,12 +100,11 @@ class DataIndex(DataObject):
     @property
     def start(self):
         try:
-#            print ('\nproperty start:', self.data[0])
             return self._data[0]
         except Exception as e:
             print (e)
             raise
-#            return None
+
     
     @property
     def end(self):

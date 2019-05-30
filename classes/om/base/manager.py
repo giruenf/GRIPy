@@ -707,6 +707,37 @@ class ObjectManager(GripyManager):
         for objchilduid in objchildrenuid:
             self._load_object(pickledata, starts_with_uid=objchilduid, parent_uid=obj.uid)
         
+
+
+
+
+
+
+    def create_object_from_state(self, tid, **objdict):
+        class_ = self._types.get(tid)
+        if not class_:
+            raise Exception('Error.')
+        return class_._loadstate(**objdict)
+            
+    
+    @classmethod
+    def get_tid_friendly_name(cls, tid):
+        class_ = cls._types.get(tid)
+        if class_:
+            return class_._TID_FRIENDLY_NAME
+        return None
+
+
+    @classmethod
+    def get_tid(cls, tid_friendly_name):  
+        for tid, class_ in cls._types.items():
+            if class_._TID_FRIENDLY_NAME == tid_friendly_name:
+                return tid
+        return None
+        
+
+
+
         
         
         """
@@ -838,32 +869,7 @@ class ObjectManager(GripyManager):
         """
         
         
-    def create_object_from_state(self, tid, **objdict):
-        class_ = self._types.get(tid)
-        if not class_:
-            raise Exception('Error.')
-        return class_._loadstate(**objdict)
-            
-    @classmethod
-    def get_tid_friendly_name(cls, tid):
-        class_ = cls._types.get(tid)
-        if class_:
-            try:
-                return class_._TID_FRIENDLY_NAME
-            except:
-                pass
-        return None
 
-    @classmethod
-    def get_tid(cls, tid_friendly_name):  
-        for tid, class_ in cls._types.items():
-            try:
-                if class_._TID_FRIENDLY_NAME == tid_friendly_name:
-                    return tid
-            except AttributeError: # if class_ has no attribute '_TID_FRIENDLY_NAME' 
-                continue
-        return None
-        
         
         
         

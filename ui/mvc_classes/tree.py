@@ -78,7 +78,7 @@ class TreeController(UIControllerObject):
         obj = OM.get(objuid)
 
         
-#        print ('\ncreate_object_node', objuid)
+        print ('\n\ncreate_object_node', objuid)
         ####
         #   VERIFICA SE O OBJETO DEVE SER INCLUIDO NA ÁRVORE (NAO EH O TID!)
         #   O TID EH VERIFICADO PELA FUNCAO _is_tree_tid_node_needed ABAIXO.
@@ -89,50 +89,82 @@ class TreeController(UIControllerObject):
             return
         
         #print ()
-#        print ('node_props:', node_props)
+        print ('node_props:', node_props)
  
         try:
             parentuid = OM._getparentuid(objuid)
             # Find location to create tid node
-#            print (1)
+            
+            print ('\nparentuid:', parentuid)
+            
             if obj._is_tree_tid_node_needed():
-#                print (2)
+                
+                print ('\n\n1 - PROCURANDO TID:', objuid[0], 'FILHO DE:', parentuid)
+                
                 # Then, tid node will be object node parent
-                obj_parent_node = self.get_object_tree_item(ID_TYPE_TID, objuid[0], parentuid) 
-#                print ('obj_parent_node:', obj_parent_node)
+                obj_parent_node = self.get_object_tree_item(ID_TYPE_TID, 
+                                                        objuid[0], parentuid
+                ) 
+                
+                print ('\n\n2 - obj_parent_node:', obj_parent_node, ID_TYPE_TID, 
+                                                        objuid[0], parentuid)
+                
+                
+#                PAREI AQUI!!!!!!
+                
+                
                 if obj_parent_node is None:
+                    
+                    print ('\n\n2 - NÃO ACHOU O TID')
+                    
                     # It's necessary to create tid node
                     if parentuid is None:
                         # Create tid node as a root child
                         tid_parent_node = self.view.GetRootItem()
                     else:
                         # Create tid node as another object child
-                        tid_parent_node = self.get_object_tree_item(ID_TYPE_OBJECT, parentuid) 
-                    
+                        print('\n\n\nBUSCANDO PAI DO TID_NODE:', 
+                                                ID_TYPE_OBJECT, parentuid
+                        )
+                        tid_parent_node = self.get_object_tree_item(
+                                                ID_TYPE_OBJECT, parentuid
+                        ) 
+                        print('\n\n\ntid_parent_node:', tid_parent_node)
+                        
+                        print(self.view.GetItemData(tid_parent_node))
+                        
+                        
+                    print('objuid[0]:', objuid[0])    
                     # Create tid node    
                     class_ = OM._gettype(objuid[0])
-                    try:
-                        tid_label = class_._FRIENDLY_NAME
-                    except AttributeError:
-                        tid_label = class_.tid
+                    
+                    print('class_:', class_)
+                    
+                    
+                    tid_label = class_._get_tid_friendly_name()
+
+                    print('PRE')
+                    print(str(tid_label))
+                    print('    Tree 1 - ' +  str(tid_parent_node) + ' ' + tid_label)
                     obj_parent_node = self.view.AppendItem(tid_parent_node, 
                                                          tid_label)    
                     self.view.SetItemData(obj_parent_node, 
                                           (ID_TYPE_TID, objuid[0], parentuid))
                     
-#                    print ('Creating tid_node:',  (ID_TYPE_TID, objuid[0], parentuid))
+                    print ('Creating tid_node:',  (ID_TYPE_TID, objuid[0], parentuid))
                     
                     self.view.Expand(tid_parent_node)
             else:
-#                print (3)
+                print (3)
                 #Create direct link to parent object
                 obj_parent_node = self.get_object_tree_item(ID_TYPE_OBJECT, parentuid) 
             
             # Create object node itself
-#            print ('node_props 2:', node_props)
+            print ('node_props 2:', node_props)
             obj_repr = node_props.pop('name')
             #obj_repr, obj_props = node_props 
             obj_node = self.view.AppendItem(obj_parent_node, obj_repr)
+            
             #
             # TODO: Consider create (ID_TYPE_OBJECT, objuid, ('ATTRIBUTE','name') vs
             #                       (ID_TYPE_OBJECT, objuid, ('FUNCTION', 'function_name')
@@ -140,15 +172,16 @@ class TreeController(UIControllerObject):
             #
             
             self.view.SetItemData(obj_node, (ID_TYPE_OBJECT, objuid, 'name'))
-#            print ('Creating obj_node:', (ID_TYPE_OBJECT, objuid, 'name'))
+            print ('Creating obj_node:', (ID_TYPE_OBJECT, objuid, 'name'))
             self.view.Expand(obj_parent_node)
 
-#            print ()
+            print ()
             # Create item object attributes
             for attr, attr_label in node_props.items():
+                print ('Creating attr_node:',  (ID_TYPE_ATTRIBUTE, objuid, attr)) 
                 attr_node = self.view.AppendItem(obj_node, attr_label)
                 self.view.SetItemData(attr_node, (ID_TYPE_ATTRIBUTE, objuid, attr))      
-#                print ('Creating attr_node:',  (ID_TYPE_ATTRIBUTE, objuid, attr))   
+                print ('Creating attr_node:',  (ID_TYPE_ATTRIBUTE, objuid, attr))   
             #
             
             self.view.Expand(obj_node)
@@ -177,17 +210,20 @@ class TreeController(UIControllerObject):
             
             
     
-    def get_object_tree_item(self, node_type, node_main_info, node_extra_info=None, start_node_item=None):
+    def get_object_tree_item(self, node_type, node_main_info, 
+                                 node_extra_info=None, start_node_item=None):
         """Returns the wx.TreeItemId associated with Tree data given.
         """
-        #print ('\nget_object_tree_item:', node_type, node_main_info, node_extra_info, start_node_item)
+#        print ('\nget_object_tree_item:', node_type, node_main_info, 
+#                                           node_extra_info, start_node_item)
+        
         try:
             if start_node_item is None:
                 start_node_item = self.view.GetRootItem()
                 
             start_node_data = self.view.GetItemData(start_node_item)
             
-            #print (111, start_node_item, start_node_data)
+#            print ('111', start_node_item, start_node_data)
 
                 
             if start_node_data is not None:
@@ -212,11 +248,14 @@ class TreeController(UIControllerObject):
                     return ret_child_val         
                 (child_item, cookie) = self.view.GetNextChild(start_node_item,
                                                                         cookie)
+            
+#            print('RETORNOU NONE!!!!')
+            
             return None       
         
-        #except Exception as e:
-        #    print (e)
-        except:
+        except Exception as e:
+            print('\nERROR: get_object_tree_item:', e)
+        #except:
             raise
                 
             

@@ -432,7 +432,7 @@ class WellPlotController(WorkPageController):
         
 class WellPlot(WorkPage):  
     tid = 'wellplot'
-    _FRIENDLY_NAME = 'Well Plot'
+    _TID_FRIENDLY_NAME = 'Well Plot'
         
     def __init__(self, controller_uid):   
         super().__init__(controller_uid) 
@@ -652,7 +652,8 @@ class WellPlot(WorkPage):
                 if lpc.well_oid == controller.well_oid:
                     idx += 1
             idx += 1
-            controller.title = self._FRIENDLY_NAME + ': ' + well.name + \
+            
+            controller.title = self._get_tid_friendly_name() + ': ' + well.name + \
                                         ' ['+ str(idx) + ']'    
         except Exception as e:
             print ('ERROR _set_own_name:', e)

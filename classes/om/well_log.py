@@ -3,19 +3,16 @@ from collections import OrderedDict
 
 from classes.om import OMBaseObject
 from classes.om import DataObject
+from classes.om import ObjectManager
+
+
 
 
 class Log(DataObject):
-                                  
     tid = "log"
-    _FRIENDLY_NAME = 'Log'
+    _TID_FRIENDLY_NAME = 'Log'
     
-    _ATTRIBUTES = OrderedDict()
-    _ATTRIBUTES['index_uid'] = {
-        'default_value': None,
-        'type': str       
-    }  
-    
+
     _SHOWN_ATTRIBUTES = [
                             ('datatype', 'Curve Type'),
                             ('unit', 'Units'),
@@ -28,8 +25,15 @@ class Log(DataObject):
     ] 
     
     
-    def __init__(self, data, **attributes):
-        super().__init__(data, **attributes) 
+    def __init__(self, *args, **attributes):
+        super().__init__(*args, **attributes) 
+
+
+
+        
+        # np.array(depth), name='Depth', dimension=0, datatype='MD', unit='m')
+
+
 
                  
     @classmethod
@@ -48,13 +52,30 @@ class Log(DataObject):
     # neste caso eh a pagina Artist.set_clip_path do docs online.
     
 
+    def _get_max_dimensions(self):
+        return 1
+    
+
+    def get_friendly_name(self):
+        OM = ObjectManager()
+        parent_well_uid = OM._getparentuid(self.uid)
+        parent_well = OM.get(parent_well_uid)         
+        return self.name + '@' + parent_well.name
+
+
 
 
 
     
-    #def __init__(self, *args, **kwargs):   
+
+
+
+
+
+
+
+    '''  
     def __init__(self, data, **attributes):
-#        print ('\nattributes:', attributes)
         """
         index_set_uid = attributes.get('index_set_uid')
         try:    
@@ -69,6 +90,11 @@ class Log(DataObject):
 
 #        OM = ObjectManager()        
 #        OM.subscribe(self._on_OM_add, 'add')
+
+    '''
+
+
+
 
     """
     def _on_OM_add(self, objuid):
@@ -105,16 +131,7 @@ class Log(DataObject):
         return self.attributes['index_set_uid']
     """
 
-    def get_data_indexes(self):
-        ret_dict = OrderedDict()
-        OM = ObjectManager()
-#        print (self.__dict__)
-        
-        index_uid = parse_string_to_uid(self.index_uid)
-        index = OM.get(index_uid)
 
-        ret_dict[0] = [index]
-        return ret_dict  
 
     """
     def get_data_indexes(self):
@@ -127,18 +144,6 @@ class Log(DataObject):
         except:
             return None
     """    
-        
-#    def get_indexes(self):
-#        raise Exception('Invalid METHOD')   
-    
-    def get_friendly_name(self):
-        OM = ObjectManager()
-        parent_well_uid = OM._getparentuid(self.uid)
-        parent_well = OM.get(parent_well_uid)         
-        return self.name + '@' + parent_well.name
-
-
-
 
 
 

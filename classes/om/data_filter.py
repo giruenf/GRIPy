@@ -12,22 +12,29 @@ class DataFilter(OMBaseObject):
     tid = 'data_filter'
 
     
-    def __init__(self, objuid):
+    def __init__(self, toc_uid):
+        """
+        track_object_controller.uid
+        """
         try:
             super().__init__()
             self.data = []
             self.track_obj_ctrls_uids = []
-            self.append_objuid(objuid)
+            self.append_objuid(toc_uid)
         except Exception as e:
             print ('ERROR DataFilter:', e)
             raise
 
 
-    def _is_tree_tid_node_needed(self):
-        __doc__ = super()._is_tree_tid_node_needed.__doc__
-        return False
 
+    def teste(self, data_obj):
+        data_indexes = data_obj.get_data_indexes()
+        print(data_indexes)
+        
+        
 
+    def _get_tree_object_node_properties(self):    
+        return None
 
 
     def get_slicer(self):
@@ -54,6 +61,13 @@ class DataFilter(OMBaseObject):
         #data = data[slicer]
         return slicer
     
+
+
+    def append_objuid(self, track_obj_ctrl_uid):    
+        print('DataFilter.append_objuid:', track_obj_ctrl_uid)
+
+
+
 
         """
 
@@ -88,7 +102,7 @@ class DataFilter(OMBaseObject):
 
         """
     
-    
+    """
     def run(self, *objects):
         if not objects:
             return None
@@ -97,10 +111,9 @@ class DataFilter(OMBaseObject):
         if len(ret_list == 1):
             return ret_list[0]
         return ret_list
-    
+    """
 
-    def append_objuid(self, track_obj_ctrl_uid):    
-        print('DataFilter.append_objuid:', track_obj_ctrl_uid)
+
         
 
 

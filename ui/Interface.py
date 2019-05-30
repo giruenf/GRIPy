@@ -393,7 +393,16 @@ def load():
                 label=u'Calc Well Time from Depth curve', 
                 callback='app.menu_functions.calc_well_time_from_depth'
         ) 
-     
+ 
+        UIM.create('menu_item_controller', mc_debug.uid, 
+                       kind=wx.ITEM_SEPARATOR
+        )
+        
+        UIM.create('menu_item_controller', mc_debug.uid, 
+                label="Load Teste 2019", 
+                callback='app.menu_functions.on_load_teste_2019'
+        )  
+    
         # Fim Main Menu Bar
 
        

@@ -16,7 +16,6 @@ class OMBaseObject(GripyObject):
         Tree. General usage is return a dict with object name as main key and
         the object properties are represented as an OrderedDict. Returning None
         will make object invisible in Tree. 
-        
         """
         ret_od = OrderedDict()
         ret_od['name'] = self.name
@@ -44,19 +43,7 @@ class OMBaseObject(GripyObject):
         
         """
         return True
-
-    @classmethod
-    def _get_tree_tid_friendly_name(self):
-        """In general, classes tids are not adequated to be shown as a
-        tid node label. If class _TID_FRIENDLY_NAME is provided, it will be
-        used by TreeController as tid node label.
-        
-        """
-        try:
-            return self._TID_FRIENDLY_NAME
-        except:
-            return self.tid
-
+    
     def _get_tree_object_friendly_name(self):
         """Returns a name to be used by TreeController as object node label."""
         return self.name

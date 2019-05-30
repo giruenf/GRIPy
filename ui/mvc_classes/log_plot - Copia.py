@@ -286,7 +286,7 @@ class LogPlotModel(WorkPageModel):
 class LogPlot(WorkPage):
     
     tid = 'logplot'
-    _FRIENDLY_NAME = 'Well Plot'
+    _TID_FRIENDLY_NAME = 'Well Plot'
     
     """
     _ATTRIBUTES = OrderedDict()
@@ -457,7 +457,7 @@ class LogPlot(WorkPage):
                     idx += 1
             idx += 1
     
-            controller.title = self._FRIENDLY_NAME + ': ' + well.name + \
+            controller.title = self._TID_FRIENDLY_NAME + ': ' + well.name + \
                                         ' ['+ str(idx) + ']'    
         except Exception as e:
             print ('ERROR set_own_name:', e)

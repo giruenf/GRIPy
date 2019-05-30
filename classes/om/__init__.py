@@ -8,14 +8,17 @@ are defined.
 """
 
 from .base.manager import ObjectManager
-from .base.objects import OMBaseObject
-from .base.data_objects import DataObject
+from .base.object import OMBaseObject
+from .base.data_object import DataObject
+from .base.data_index_map import DataIndexMap
+from .base.data_index import DataIndex
 
 from .well import Well
 from .well_curve_set import CurveSet
 from .well_log import Log
 
-from .data_index import DataIndex
 from .data_filter import DataFilter
 
-from .datatypes_old import Density
+
+from .seismic import Seismic
+from .seismic import Density

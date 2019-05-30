@@ -280,7 +280,6 @@ class GripyObject(pubsub.PublisherMixin, metaclass=GripyWxMeta):
         return self._ATTRIBUTES.get(key, None)
             
 
-
     def get_state(self):
         print('\nGripyObject.get_state', self._ATTRIBUTES.keys())
         state = OrderedDict()  
@@ -289,6 +288,19 @@ class GripyObject(pubsub.PublisherMixin, metaclass=GripyWxMeta):
             state[attr_name] = self[attr_name]    
         return state  
           
-
-
-
+    
+    @classmethod
+    def _get_tid_friendly_name(cls):
+        """In general, classes tids are not adequated to be shown as a
+        label. If class _TID_FRIENDLY_NAME is provided,
+        it will be used by TreeController as tid node label.
+        """
+        tid_label = cls._TID_FRIENDLY_NAME
+        if tid_label is None:
+            # If _TID_FRIENDLY_NAME is not found, it will
+            # be None because super class OMBaseObject stats it.
+            tid_label = cls.tid
+        return tid_label
+    
+    
+    
