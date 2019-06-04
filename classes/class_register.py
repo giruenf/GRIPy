@@ -11,6 +11,8 @@ from classes.om import DataFilter
 from classes.om import CurveSet
 from classes.om import Seismic
 
+
+
 """
 from classes.dt.datatypes import Core
 from classes.dt.datatypes import Partition
@@ -27,7 +29,6 @@ from classes.dt.datatypes import Scalogram
 from classes.dt.datatypes import GatherScalogram
 from classes.dt.datatypes import Spectogram
 from classes.dt.datatypes import GatherSpectogram
-
 
 #from classes.dt.datatypes import Angle
 #from classes.dt.datatypes import Inversion
@@ -96,6 +97,8 @@ def register_OM_classes():
     #
     ObjectManager.register_class(DataFilter)
     ObjectManager.register_class(Seismic)
+    ObjectManager.register_class(DataIndex, Seismic)
+    ObjectManager.register_class(DataIndexMap, Seismic)
     #
     
     ObjectManager.register_class(DataIndexMap, Log)
@@ -121,7 +124,7 @@ def register_OM_classes():
     ObjectManager.register_class(Fluid)																			   
     #
     ObjectManager.register_class(Seismic)
-    ObjectManager.register_class(DataIndex, Seismic)
+    
 #    ObjectManager.register_class(IndexSet, Seismic)
     #
     ObjectManager.register_class(Scalogram, Seismic)

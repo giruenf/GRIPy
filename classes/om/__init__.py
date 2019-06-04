@@ -19,6 +19,5 @@ from .well_log import Log
 
 from .data_filter import DataFilter
 
-
 from .seismic import Seismic
 from .seismic import Density

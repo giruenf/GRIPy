@@ -121,8 +121,9 @@ class DataObject(OMBaseObject):
 
         super().__init__(**attributes)      
         self._data = data  
-        if isinstance(self._data, np.ndarray):
-            self._data.flags.writeable = False
+
+#        if isinstance(self._data, np.ndarray):
+#            self._data.flags.writeable = False
 
 
 

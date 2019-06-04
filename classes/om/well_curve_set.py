@@ -8,38 +8,17 @@ from classes.om import OMBaseObject
 
 class CurveSet(OMBaseObject):
     tid = 'curve_set'
-#    _TID_FRIENDLY_NAME = 'Curve Set'    
-    
-    
+ 
     def __init__(self, **attributes):
         super().__init__(**attributes)    
-        """
-        self.attributes = {}
-        OM = ObjectManager() 
-        vinculated = attrbutes.get('vinculated')
-        if vinculated:
-            try:
-                vinculated_index_set = OM.get(vinculated)
-                if vinculated_index_set.tid != self.tid:
-                    raise Exception('Wrong tid.')
-                self.attributes['name'] = vinculated_index_set.name
-                self.attributes['vinculated'] = vinculated
-            except:
-                raise
-        else:        
-            self.attributes['name'] = attrbutes.get('name')
-            self.attributes['vinculated'] = None
-#        OM.subscribe(self._on_OM_add, 'add')
-        """    
-
-
+        
     @classmethod
     def _is_tree_tid_node_needed(cls):
         __doc__ = OMBaseObject._is_tree_tid_node_needed.__doc__
         return False
 
 
-                 
+    """             
     def _on_OM_add(self, objuid):
         if objuid != self.uid:
             return
@@ -50,11 +29,10 @@ class CurveSet(OMBaseObject):
         for obj in OM.list(self.tid, parent_uid):
             if obj is not self and obj.name == self.name:
                 raise Exception('Parent object has another son with same name.')
+    """            
 
-#    @property
-#    def name(self):
-#        return self.attributes['name']
-
+                
+    """
     @property
     def vinculated(self):
         return self.attributes['vinculated']
@@ -87,8 +65,9 @@ class CurveSet(OMBaseObject):
             raise Exception('Invalid datatype={}. Valid values are: {}'.format(datatype, VALID_Z_AXIS_DATATYPES))
         z_axis_indexes = self.get_data_indexes()[0]
         return [data_index for data_index in z_axis_indexes if data_index.datatype == datatype]
-
-
+    """
+    
+    """
     def get_state(self):
         state = super().get_state()
         state.update(name=self.name)
@@ -106,3 +85,4 @@ class CurveSet(OMBaseObject):
         except Exception as e:
             print ('\nERROR:', e, '\n', state)
         return index_set        
+    """

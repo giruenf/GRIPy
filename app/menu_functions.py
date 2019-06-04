@@ -4466,64 +4466,75 @@ def calc_logs(event):
 
 def on_load_teste_2019(event):
     
+    try:
+        OM = ObjectManager()
+        
+        #data = np.arange(100000000).reshape(100, 100, 100, 100)
+        data = np.arange(10000).reshape(10, 10, 10, 10)
     
-    OM = ObjectManager()
+        seismic = OM.new('seismic', 
+                     data, 
+                     name='Sismica', 
+                     unit='amplitude', 
+                     datatype='seismic'
+        )
+        OM.add(seismic)
+        
     
-    data = np.arange(100000000).reshape(100, 100, 100, 100)
-
-
-    seismic = OM.new('seismic', 
-                 data, 
-                 name='Sismica', 
-                 unit='amplitude', 
-                 datatype='seismic'
-    )
-    OM.add(seismic)
-    
-
-    """    
-    
-    #
-    i_line_index = OM.new('data_index', 
-                   np.arange(100), 
-                   name='I_LINE', 
-                   unit='i_line', 
-                   datatype='idx'
-    )
-    OM.add(i_line_index, seismic.uid)
-    #
-    x_line_index = OM.new('data_index', 
-                   np.arange(100), 
-                   name='X_LINE', 
-                   unit='x_line', 
-                   datatype='idx'
-    )
-    OM.add(x_line_index, seismic.uid)
-    #
-    offset_index = OM.new('data_index', 
-                   np.arange(100), 
-                   name='OFFSET', 
-                   unit='offset', 
-                   datatype='idx'
-    )
-    OM.add(offset_index, seismic.uid)
-    #
-    time_index = OM.new('data_index', 
-                   np.arange(100), 
-                   name='TIME', 
-                   unit='time', 
-                   datatype='idx'
-    )
-    OM.add(time_index, seismic.uid)
-    #    
-    seismic._create_data_index_map([time_index.uid], 
-                                    [offset_index.uid], 
-                                    [x_line_index.uid], 
-                                    [i_line_index.uid]
-    )
-    
-    """
-                
+    #    """    
+        
+        #
+        i_line_index = OM.new('data_index', 
+                       #np.arange(100), 
+                       np.arange(10), 
+                       name='I_LINE', 
+                       unit='i_line', 
+                       datatype='idx'
+        )
+        b = OM.add(i_line_index, seismic.uid)
+        print('i_line_index:', b)
+        #
+        x_line_index = OM.new('data_index', 
+                       #np.arange(100), 
+                       np.arange(10), 
+                       name='X_LINE', 
+                       unit='x_line', 
+                       datatype='idx'
+        )
+        b = OM.add(x_line_index, seismic.uid)
+        print('x_line_index:', b)
+        #
+        offset_index = OM.new('data_index', 
+                       #np.arange(100), 
+                       np.arange(10), 
+                       name='OFFSET', 
+                       unit='offset', 
+                       datatype='idx'
+        )
+        b = OM.add(offset_index, seismic.uid)
+        print('offset_index:', b)
+        #
+        time_index = OM.new('data_index', 
+                       #np.arange(100), 
+                       np.arange(10), 
+                       name='TIME', 
+                       unit='time', 
+                       datatype='idx'
+        )
+        b = OM.add(time_index, seismic.uid)
+        print('time_index:', b)
+        #    
+        seismic._create_data_index_map(
+                                        [i_line_index.uid],
+                                        [x_line_index.uid],
+                                        [offset_index.uid],
+                                        [time_index.uid]
+        )
+        
+    #    """
+    except Exception as e:
+        print('\nERROU!!!', e)
+        raise
 
 '''
 
