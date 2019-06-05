@@ -173,25 +173,27 @@ class GripyObject(pubsub.PublisherMixin, metaclass=GripyWxMeta):
         # e.g., 'type': (tuple, float, 2) or 'type': (tuple, [str, int])  
         # In case we have 'type': tuple, the default threatment will be given.
         if isinstance(type_, Sequence):
-            if len(type_) >= 3:
-                seq_len = type_[2]   
-                if len(value) != seq_len:
-                    raise Exception('Wrong lenght on attribute {}.{}'.format(\
-                                    self.__class__.__name__, key)
-                    )
-            if len(type_) >= 2:
-                sequence_inner_type = type_[1]
-                if sequence_inner_type:
-                    if isinstance(sequence_inner_type, Sequence):
-                        if len(value) != len(sequence_inner_type):
-                            raise Exception('Wrong lenght on attribute {}.{}'.format(\
-                                            self.__class__.__name__, key)
-                            )    
-                        value = [sequence_inner_type[i](val) for i, val in enumerate(value)]    
-                    else:    
-                        value = [sequence_inner_type(val) for val in value]              
-            type_ = type_[0]
-            value = type_(value)
+            # When a tuple attribute is setted to None, bypass the checkage
+            if value is not None:
+                if len(type_) >= 3:
+                    seq_len = type_[2]   
+                    if len(value) != seq_len:
+                        raise Exception('Wrong lenght on attribute {}.{}'.format(\
+                                        self.__class__.__name__, key)
+                        )
+                if len(type_) >= 2:
+                    sequence_inner_type = type_[1]
+                    if sequence_inner_type:
+                        if isinstance(sequence_inner_type, Sequence):
+                            if len(value) != len(sequence_inner_type):
+                                raise Exception('Wrong lenght on attribute {}.{}'.format(\
+                                                self.__class__.__name__, key)
+                                )    
+                            value = [sequence_inner_type[i](val) for i, val in enumerate(value)]    
+                        else:    
+                            value = [sequence_inner_type(val) for val in value]              
+                type_ = type_[0]
+                value = type_(value)
                      
             
         # Special treatment for functions

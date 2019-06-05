@@ -137,11 +137,14 @@ class TrackObjectController(UIControllerObject):
 
     _ATTRIBUTES = OrderedDict()
     
-    _ATTRIBUTES['obj_uid'] = {
+    _ATTRIBUTES['obj_tid'] = {
             'default_value': None,
-            'type': (tuple, [str, int])
+            'type': str    
     }
-
+    _ATTRIBUTES['obj_oid'] = {
+            'default_value': None,
+            'type': int    
+    }    
     _ATTRIBUTES['plottype'] = {
             'default_value': None,
             'type': str    
@@ -162,15 +165,16 @@ class TrackObjectController(UIControllerObject):
             'type': bool    
     } 
     
-    _ATTRIBUTES['data_mask_uid'] = {
+    _ATTRIBUTES['data_filter_oid'] = {
             'default_value': None,
-            'type': (tuple, [str, int])
+            'type': int
     } 
     
     
     def __init__(self, **state):
         super().__init__(**state)
-        self.subscribe(self.on_change_obj_uid, 'change.obj_uid')        
+        self.subscribe(self.on_change_objtid, 'change.obj_tid')        
+        self.subscribe(self.on_change_objoid, 'change.obj_oid')
         self.subscribe(self.on_change_plottype, 'change.plottype')
    
     
@@ -184,9 +188,14 @@ class TrackObjectController(UIControllerObject):
     def PreDelete(self):
         print ('\nTrackObjectController PreDelete:')
         self.plottype = None
-
-
-    """
+#        print ('b4 get_object')
+#        obj = self.get_object()
+#        print ('representated object is:', obj)
+#        if obj:
+#            print ('Detaching', obj.uid, 'from', self.uid)
+#            self.detach(obj.uid)             
+#            self.detach() 
+    
     def get_object(self):
         # Get OM object from TrackObjectController
         # Returns None if there is no OM Object associate with it.    
@@ -198,49 +207,89 @@ class TrackObjectController(UIControllerObject):
         except:
             pass
         return None
-    """
 
 
-    def get_data_mask(self):
-        if self.data_mask_uid is None:
-            return None
-        OM = ObjectManager()
-        return OM.get(self.data_mask_uid)
-        
-    
-    # TODO: Passar somente data_mask, nao trabalhando mais com o obj_uid
-    def on_change_obj_uid(self, new_value, old_value):
+    def on_change_objtid(self, new_value, old_value):
+        if old_value is not None:
+            if self.obj_tid:
+#                self.detach((old_value, self.obj_oid))
+                self.detach()
+            self.obj_oid = None
+            # Exclude any representation, if exists
+            #self.plottype = None
+
+
+    def on_change_objoid(self, new_value, old_value):
         # Exclude any representation, if exists
-        print('\n\n\nTrackObjectController.on_change_obj_uid:', new_value, old_value)
-        OM = ObjectManager()
+        
+        
+        # TODO: VERIFICAR SE OCORRE DE OBJOID SER TROCADO PARA UM MESMO 
+        # REPRESENTATION - 27/8/2018
+        
+#        print ('\non_change_objoid {}, {}'.format(new_value, old_value))
         try:
+        
             if old_value is not None:
-                self.detach()   
-            obj = OM.get(new_value)    
+#                self.detach((self.obj_tid, old_value))
+                self.detach()
             self.plottype = None
+
+            obj = self.get_object()
+            
             if obj:
-                dm = OM.new('data_mask', obj.uid)
-                OM.add(dm)
-                self.data_mask_uid = dm.uid
-                #
-                plottype = _PREFERRED_PLOTTYPES.get(obj.uid[0])
+
+                self.set_filter()
+
+                plottype = _PREFERRED_PLOTTYPES.get(obj.tid)
+
                 self.plottype = plottype    
-                #
+
                 print ('\nAttaching', self.uid, 'to', obj.uid)
                 self.attach(obj.uid)
+
+
         except Exception as e:
-            print ('ERROR on_change_obj_oid:', e)
+            print ('ERROR on_change_objoid:', e)
             raise
 
 
+    def get_filter(self):
+        try:
+            OM = ObjectManager()
+            return OM.get(('data_filter', self.data_filter_oid))
+        except:
+            return None
 
+
+    def set_filter(self, filter_oid=None):
+        print ('\nset_filter:', filter_oid)
+        try:
+            if filter_oid is None:
+                OM = ObjectManager()
+                #
+                data_filter_ = OM.new('data_filter', self.uid)
+                OM.add(data_filter_)
+                #
+                self.data_filter_oid = data_filter_.oid
+
+            else:
+                if self.data_filter_oid:
+                    raise Exception('TRATAR EXCLUSAO FILTER')
+                self.data_filter_oid = filter_oid    
+                
+        except Exception as e:
+            msg = 'ERROR [TrackObjectController.set_filter]: {}'.format(e)
+            raise Exception(msg)
+    
+    
+    
+    
     def on_change_plottype(self, new_value, old_value):
-        print('on_change_plottype', new_value, old_value)
+#        print ('on_change_plottype', new_value, old_value)
         UIM = UIManager()
         repr_ctrl = self.get_representation()
         if repr_ctrl:
             UIM.remove(repr_ctrl.uid)  
-            
         if new_value is not None:
             repr_tid = _PLOTTYPES_REPRESENTATIONS.get(new_value)
             try:
@@ -273,9 +322,7 @@ class TrackObjectController(UIControllerObject):
     def _get_log_state(self):
         # TODO: Rever necessidade de obj.name - ParametersManager
         state = {}
-        OM = ObjectManager()
-        obj = OM.get(self.obj_uid)
-        
+        obj = self.get_object()
         if obj.tid == 'log':
             # TODO: Rever isso
             parms = ParametersManager.get().get_curvetype_visual_props(obj.datatype)     
@@ -311,6 +358,7 @@ class TrackObjectController(UIControllerObject):
             return None        
         return repr_ctrl.get_data_info(event)
     #'''
+    
 
     def get_representation(self):
         # Returns the real Impl_object LogPlot representation
@@ -320,8 +368,11 @@ class TrackObjectController(UIControllerObject):
             return None
         return children[0]
 
+
     def is_valid(self):
         return self.get_representation() is not None
+
+
 
     def redraw(self):
         if not self.get_representation():
@@ -361,19 +412,124 @@ class RepresentationController(UIControllerObject):
     
     def __init__(self, **state):
         super().__init__(**state)
-         
-    def get_represented_object_uid(self):
+        self._data = None
+        #self._indexes = None
+        self._fixed_indexes = None
+        
+        
+    def get_object(self):
         UIM = UIManager()
         toc_uid = UIM._getparentuid(self.uid)
         toc = UIM.get(toc_uid) 
-        return toc.obj_uid
+        return toc.get_object()
 
-    def get_data_mask(self):
+
+
+    def _prepare_data(self):
+        
+        print('\n\n_prepare_data')
+        
         UIM = UIManager()
         toc_uid = UIM._getparentuid(self.uid)
         toc = UIM.get(toc_uid)
-        return toc.get_data_mask()
-             
+        #
+        
+        try:
+        
+            filter_ = toc.get_filter()
+            data_indexes = filter_.data[::-1]
+            
+            print('data_indexes[-1]:', data_indexes[-1])
+            #
+            if data_indexes[-1][0] is None:
+                self._data = None
+                return            
+            #
+            obj = toc.get_object() 
+            data = obj._data
+            
+            #print '\nRepresentationController._prepare_data:', obj.uid
+            
+            slicer = OrderedDict()
+            for (di_uid, display, is_range, first, last) in data_indexes:
+              #  print di_uid, display, is_range, first, last
+                if not is_range:
+                    slicer[di_uid] = first
+                else:
+                    slicer[di_uid] = slice(first,last)
+            slicer = tuple(slicer.values())
+            
+            
+            data = data[slicer]
+            new_dim = 1
+            if len(data.shape) == 1 and isinstance(obj, Density):
+                data = data[np.newaxis, :]
+            elif len(data.shape) > 2:
+                for dim_value in data.shape[::-1][1::]:
+                    new_dim *= dim_value
+                data = data.reshape(new_dim, data.shape[-1])
+                
+                
+            """    
+            try:
+                if self.min_density is None:
+                    self.set_value_from_event('min_density', np.nanmin(data))
+                if self.max_density is None:    
+                    self.set_value_from_event('max_density', np.nanmax(data))
+                if self.min_wiggle is None:    
+                    self.set_value_from_event('min_wiggle', np.nanmin(data))
+                if self.max_wiggle is None:     
+                    self.set_value_from_event('max_wiggle', np.nanmax(data))
+            except:
+                pass
+            """
+            
+            self._data = data
+            
+            
+#            print (self._data)
+           # print
+#            print ('FIM _prepare_data\n\n')
+           
+           
+        except Exception as e:
+            print ('ERROR _prepare_data', e)
+            raise
+
+
+
+    def _get_z_index(self, ydata):   
+        
+        if self._data is None:
+            # When we have differents z_axis (e.g. Wellplot as TVD e Log with data_axis as MD)
+            return None
+        #
+        UIM = UIManager()
+        toc_uid = UIM._getparentuid(self.uid)
+        toc = UIM.get(toc_uid) 
+        #
+        OM = ObjectManager()
+        filter_ = toc.get_filter() #OM.get(('data_filter', toc.data_filter_oid))
+        z_data = filter_.data[0]
+        #
+        
+        #print 'filter_.data[0]:', z_data  
+        
+        di_uid, display, is_range, z_first, z_last = z_data
+        z_data_index = OM.get(di_uid)
+        z_data = z_data_index.data[z_first:z_last]
+        z_index = (np.abs(z_data-ydata)).argmin()
+        if z_index == 0:
+            if np.abs(ydata - z_data[z_index]) > np.abs(z_data[1] - z_data[0]):
+                return None
+        if z_index == self._data.shape[-1]-1:
+            if np.abs(ydata - z_data[z_index]) > np.abs(z_data[-1] - z_data[-2]):
+                return None
+            
+        #print '\n_get_z_index:', ydata, z_index    
+        return z_index
+
+       
     def get_data_info(self, event):
         return self.view.get_data_info(event)
 
@@ -386,7 +542,17 @@ class RepresentationController(UIControllerObject):
         #return self.view.draw_canvas()
     #"""    
         
-
+    '''
+    # TODO: rever esse nome horrivel
+    # TODO: tirar a duplicidade de chamadas e substituir por esse metodo nas ocorrencias abaixo
+    #       pesquisar por "argmin"
+    def get_index_idx(self, value):
+        obj = self.get_object()
+        index_data = obj.get_index().data
+        idx_index = (np.abs(index_data-value)).argmin()
+        return idx_index 
+    ''' 
+       
     
 class RepresentationView(UIViewObject):
     tid = 'representation_view'
@@ -405,15 +571,16 @@ class RepresentationView(UIViewObject):
         else:
             self.label = None
         
-        
     def PreDelete(self):
         self.clear()
         if self.label:
             self.label.destroy()
-             
+        
+        
         
     def get_data_info(self, event):
         raise NotImplemented('{}.get_data_info must be implemented.'.format(self.__class__))
+    
     
     
     def get_canvas(self):
@@ -454,7 +621,6 @@ class RepresentationView(UIViewObject):
         
     def draw_canvas(self):     
         canvas = self.get_canvas()
-        print(canvas)
         if canvas:
             canvas.draw()
             return True
@@ -526,7 +692,11 @@ class LineRepresentationController(RepresentationController):
             'pg_property': 'EnumProperty',
             'label': 'Width',
             'options_labels': ['0', '1', '2', '3', '4', '5'],
-            'options_values': [0, 1, 2, 3, 4, 5 ]       
+            'options_values': [0, 1, 2, 3, 4, 5 ]
+#            'default_value': 3,             
+#            'options_labels': ['2', '3', '4', '5'],
+#            'options_values': [2, 3, 4, 5]            
+            
     }
     _ATTRIBUTES['color'] = {
             'default_value': 'Black',
@@ -577,16 +747,13 @@ class LineRepresentationView(RepresentationView):
 
     #'''
     def get_data_info(self, event):
-        #print('get_data_info:', event)
-        return None
-        """
         UIM = UIManager()
         controller = UIM.get(self._controller_uid)
         z_index = controller._get_z_index(event.ydata)
         if z_index is None:
             return None
         return str(controller._data[z_index])
-        """
+
 
     def on_change_xscale(self, new_value, old_value):
         UIM = UIManager()
@@ -648,7 +815,7 @@ class LineRepresentationView(RepresentationView):
 
     
     def draw(self):
-
+#        print ('\nLineRepresentationView.draw()')
         
         try:
             
@@ -661,25 +828,23 @@ class LineRepresentationView(RepresentationView):
             
             
             OM = ObjectManager()
-            #obj_uid = controller.get_represented_object_uid()
-            #obj = OM.get
+            obj = controller.get_object()
             
-            #
-            dm = controller.get_data_mask()
+            
+#            print (controller, controller._data)
+#            print (obj)
             #
             if self.label:
                 self.label.set_plot_type('line')
                 self.label.set_xlim(
-                    (controller.left_scale, 
-                     controller.right_scale)
+                    (controller.left_scale, controller.right_scale)
                 ) 
                 self.label.set_color(controller.color)
                 self.label.set_thickness(controller.thickness)    
-            self.set_title(dm.get_data_name())
-            self.set_subtitle(dm.get_data_unit())          
+            self.set_title(obj.name)
+            self.set_subtitle(obj.unit)          
             #
-            data = dm.get_data(dimensions_desired=1)
-            if data is None:
+            if controller._data is None:
                 return
             #
             toc_uid = UIM._getparentuid(self._controller_uid)
@@ -687,57 +852,51 @@ class LineRepresentationView(RepresentationView):
             track_controller_uid = UIM._getparentuid(toc_uid)
             track_controller =  UIM.get(track_controller_uid)        
             #
-
-#            di_uid, display, is_range, z_first, z_last = z_data
+            OM = ObjectManager()
+            obj = controller.get_object()
             
-#            z_data_index = OM.get(di_uid)
-#            z_data = z_data_index._data[z_first:z_last]
- 
-           #
-            transformated_xdata = transform(data, controller.left_scale, 
+            filter_ = toc.get_filter()
+            z_data = filter_.data[0]
+            
+#            print (777, z_data)
+            
+            di_uid, display, is_range, z_first, z_last = z_data
+            
+            z_data_index = OM.get(di_uid)
+            z_data = z_data_index._data[z_first:z_last]
+            #
+            transformated_xdata = transform(controller._data, controller.left_scale, 
                         controller.right_scale, controller.x_scale)
             #
-            # TODO: mover-rever self.interpolate
-            #self.interpolate = True
-            self.interpolate = False
-            #
+            self.interpolate = True
             if self.interpolate:
-                f1 = interp1d(data, transformated_xdata)     
+                f1 = interp1d(z_data, transformated_xdata)     
                 depth_list = []
                 for depth_px in range(track_controller.view.track.GetSize()[1]):
                     depth = track_controller.view.track.get_depth_from_ypixel(depth_px)
                     
-                    if depth > np.nanmin(data) and depth < np.nanmax(data): 
+                    if depth > np.nanmin(z_data) and depth < np.nanmax(z_data): #obj.start and depth < obj.end:
                         depth_list.append(depth)
                         
                 if not self._mplot_objects.get('line'):
-                    line = track_controller.append_artist('Line2D', 
-                                f1(depth_list), 
-                                depth_list, 
-                                linewidth=controller.thickness,
+                    line = track_controller._append_artist('Line2D', f1(depth_list), 
+                                depth_list, linewidth=controller.thickness,
                                 color=controller.color
                     )
                 else:
                     line = self._mplot_objects.get('line')   
                     line.set_data(f1(depth_list), depth_list)
-            #        
             else:
                 if not self._mplot_objects.get('line'):
-                    line = track_controller.append_artist('Line2D', 
-                                transformated_xdata, 
-                                data, 
-                                linewidth=controller.thickness,
+                    line = track_controller._append_artist('Line2D', transformated_xdata, 
+                                z_data, linewidth=controller.thickness,
                                 color=controller.color
                     )
-                    print(transformated_xdata)  
-                    print(data) 
-                    
                 else:
                     line = self._mplot_objects.get('line')   
-                    line.set_data(transformated_xdata, data)
+                    line.set_data(transformated_xdata, z_data)
             #        
             line.set_label(toc_uid)
-            print(line)
             # When we set picker to True (to enable line picking) function
             # Line2D.set_picker sets pickradius to True, 
             # then we need to set it again.
@@ -748,14 +907,8 @@ class LineRepresentationView(RepresentationView):
             self._used_right_scale = controller.right_scale
             #
             self._mplot_objects['line'] = line
-            ok = self.draw_canvas() 
-            print(self._used_scale)
-            print(self._used_left_scale)
-            print(self._used_right_scale)
-            if ok:
-                print ('Ok\n\n')
-            else:
-                print ('DEU RUIM\n\n')
+            self.draw_canvas() 
+#            print ('Ok\n\n')
         #
         except Exception as e:
             print ('ERROR LineRepresentationView.draw', e)
@@ -951,7 +1104,7 @@ class IndexRepresentationView(RepresentationView):
                 
                 #print y_value, y_pos_index
                 y_pos = position_data[y_pos_index]
-                text = track_controller.append_artist('Text', 
+                text = track_controller._append_artist('Text', 
                                         controller.pos_x, y_pos,
                                         "%g"%y_value,
                                         color=controller.color,
@@ -1339,7 +1492,7 @@ class DensityRepresentationView(RepresentationView):
         if controller.type == 'density' or controller.type == 'both':
             # 0,0 and 1.0 are our fixed Axes x_lim
             extent = (0.0, 1.0, np.nanmax(z_data), np.nanmin(z_data))   
-            image = track_controller.append_artist('AxesImage',
+            image = track_controller._append_artist('AxesImage',
                                             cmap=controller.colormap,
                                             interpolation=controller.interpolation,
                                             extent=extent
@@ -1391,7 +1544,7 @@ class DensityRepresentationView(RepresentationView):
                 self._lines_center.append(pos_x + increment) 
                 xdata = data[idx]
                 xdata = self._transform_xdata_to_wiggledata(xdata, pos_x, pos_x + 2*increment)
-                line = track_controller.append_artist('Line2D', xdata, z_data,
+                line = track_controller._append_artist('Line2D', xdata, z_data,
                                             linewidth=controller.linewidth,
                                             color=controller.linecolor
                                             )
@@ -1665,13 +1818,13 @@ class PatchesRepresentationView(RepresentationView):
             patches = [] 
             mpl_color = [float(c)/255.0 for c in part.color]
             for start, end in vec:
-                patch = track_controller.append_artist('Rectangle',  (0.0, start),
+                patch = track_controller._append_artist('Rectangle',  (0.0, start),
                                     1.0, end-start,
                                     #color=mpl_color
                 )
                 patches.append(patch)
             
-            collection = track_controller.append_artist('PatchCollection', 
+            collection = track_controller._append_artist('PatchCollection', 
                                                          patches, 
                                                          color=mpl_color
             )
@@ -1775,7 +1928,7 @@ class ContourfRepresentationView(RepresentationView):
         data = np.rot90(data, 1)
         #data = data.T
         
-        contourf = track_controller.append_artist('contourf', 
+        contourf = track_controller._append_artist('contourf', 
                                                    data, #, 20,
                                                    extent=extent
         )

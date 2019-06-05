@@ -10,8 +10,7 @@ from classes.om import ObjectManager
 from classes.ui import UIManager
 from classes.ui import UIControllerObject 
 from classes.ui import UIViewObject 
-from ui.mvc_classes.mpl_base import TrackFigureCanvas
-from ui.mvc_classes.mpl_base import VisDataLabel
+
 from app.app_utils import WellPlotState, parse_string_to_uid  
 from app.gripy_function_manager import FunctionManager
 from app import log
@@ -70,17 +69,17 @@ class TrackController(UIControllerObject):
     def append_object(self, obj_uid):
         UIM = UIManager()
         try:
-#            print (111, obj_uid, type(obj_uid))
+            print('\n\n\n')
+            print (111, obj_uid, type(obj_uid))
+            print (222, self.uid, type(self.uid))
             toc = UIM.create('track_object_controller', self.uid)  
-#            print (222)
+            print (333)
             if isinstance(obj_uid, str):
                 obj_uid = parse_string_to_uid(obj_uid)
-            tid, oid = obj_uid
-#            print (333)
-            toc.obj_tid = tid
-#            print (444)
-            toc.obj_oid = oid
+            print (444, obj_uid)
+            toc.obj_uid = obj_uid
 #            print (555)
+
             return toc
         except Exception as e:
             print ('ERRO TrackController.append_object', e)
@@ -124,9 +123,9 @@ class TrackController(UIControllerObject):
         tlc = self._get_label_controller()
         return tlc.view.append_object()
 
-    def _append_artist(self, artist_type, *args, **kwargs):
+    def append_artist(self, artist_type, *args, **kwargs):
         tcc = self._get_canvas_controller()
-        return tcc.view._append_artist(artist_type, *args, **kwargs)
+        return tcc.append_artist(artist_type, *args, **kwargs)
     
     
     """
@@ -348,8 +347,8 @@ class TrackView(UIViewObject):
                 str_x = '{:0.2f}'.format(data)
             else:
                 str_x = str(data)
-            uid = (toc.obj_tid, toc.obj_oid)
-            obj = OM.get(uid)
+
+            obj = OM.get(toc.obj_uid)
             info += ', {}: {}'.format(obj.name, str_x)    
         
         
@@ -847,6 +846,8 @@ class TrackView(UIViewObject):
         return UIM.list('track_label_controller', self._controller_uid)[0]    
      
         
+    
+    
     def _get_canvas_controller(self):
         """
         """

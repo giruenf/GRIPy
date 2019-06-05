@@ -25,6 +25,6 @@ class Seismic(Density):
         super().__init__(data, **attributes)
         
     def _get_max_dimensions(self):
-        return 4
+        return 5
     
         

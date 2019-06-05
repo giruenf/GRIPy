@@ -34,7 +34,6 @@ class DataIndex(DataObject):
         'default_value': None,
         'type': int       
     }   
-
     
     _SHOWN_ATTRIBUTES = [
                             ('_oid', 'Object Id'),
@@ -45,8 +44,7 @@ class DataIndex(DataObject):
                             ('step', 'Step'),
                             ('samples', 'Samples')
     ]   
-    
-    
+     
     def __init__(self, *args, **attributes):   
         """
         """
@@ -77,12 +75,10 @@ class DataIndex(DataObject):
                                  samples=samples, **attributes
         )
         
-
     @classmethod
     def _is_tree_tid_node_needed(cls):
         __doc__ = OMBaseObject._is_tree_tid_node_needed.__doc__
         return False
-
 
     def _on_OM_add(self, objuid):
         if objuid != self.uid:
@@ -90,13 +86,11 @@ class DataIndex(DataObject):
         OM = ObjectManager()        
         OM.unsubscribe(self._on_OM_add, 'add')
     
-    
-    def get_data_indexes(self):
-        ret_dict = OrderedDict()
-        ret_dict[0] = [self]
-        return ret_dict        
-
-    
+#    def get_data_indexes(self):
+#        ret_dict = OrderedDict()
+#        ret_dict[0] = [self]
+#        return ret_dict        
+  
     @property
     def start(self):
         try:
@@ -104,8 +98,7 @@ class DataIndex(DataObject):
         except Exception as e:
             print (e)
             raise
-
-    
+   
     @property
     def end(self):
         try:

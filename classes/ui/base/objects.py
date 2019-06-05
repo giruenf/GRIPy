@@ -147,7 +147,7 @@ class UIControllerObject(UIBaseObject):
         
         
     
-    def attach(self, OM_objuid):
+    def attach(self, OM_obj_uid):
         """Attaches this object to a ObjectManager object.
         
         Example: 
@@ -159,7 +159,7 @@ class UIControllerObject(UIBaseObject):
         try:
             OM = ObjectManager()
             # Is OM_objuid valid?
-            obj = OM.get(OM_objuid)
+            obj = OM.get(OM_obj_uid)
             if obj:
                 OM.subscribe(self._check_OM_removals, 'pre_remove')
                 self._attached_to = obj.uid

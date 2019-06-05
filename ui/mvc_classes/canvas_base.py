@@ -1,9 +1,9 @@
 # -*- coding: utf-8 -*-
 
+import matplotlib
 from matplotlib.axes import Axes
 from matplotlib.figure import Figure
 from matplotlib.backends.backend_wxagg import FigureCanvasWxAgg as FigureCanvas
-
 
 from matplotlib.ticker import NullLocator
 from matplotlib.ticker import MultipleLocator
@@ -1591,5 +1591,43 @@ class CanvasBaseView(UIViewObject, FigureCanvas):
         return self.base_axes.transAxes    
     
     
-    
+
+    def append_artist(self, artist_type, *args, **kwargs):
+        if artist_type == 'Line2D':
+            line = matplotlib.lines.Line2D(*args, **kwargs)
+            return self.plot_axes.add_line(line)
+        
+        elif artist_type == 'Text':
+            return self.plot_axes.text(*args, **kwargs)
+        
+        elif artist_type == 'AxesImage':
+            image = matplotlib.image.AxesImage(self.plot_axes, *args, **kwargs)
+            self.plot_axes.add_image(image)
+            return image
+        
+        elif artist_type == 'Rectangle':
+            rect = matplotlib.patches.Rectangle(*args, **kwargs)
+            return rect
+        
+        elif artist_type == 'PatchCollection':
+            collection = matplotlib.collections.PatchCollection(*args, **kwargs)
+            return self.plot_axes.add_collection(collection)
+        
+        elif artist_type == 'contourf':
+            #contours = mcontour.QuadContourSet(self.plot_axes, *args, **kwargs)
+            #self.plot_axes.autoscale_view()
+            image = self.plot_axes.contourf(*args, **kwargs)
+            #self.plot_axes.add_image(image)
+            return image
+        
+        elif artist_type == 'scatter':
+            # TODO: rever linha abaixo, colocando de forma similar as de cima
+            return self.plot_axes.scatter(*args, **kwargs)
+            #def scatter(self, x, y, s=None, c=None, marker=None, cmap=None, norm=None,
+            #    vmin=None, vmax=None, alpha=None, linewidths=None,
+            #    verts=None, edgecolors=None,
+            #    **kwargs):
+        
+        else:
+            raise Exception('artist_type not known.')  
     

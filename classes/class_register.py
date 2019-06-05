@@ -7,7 +7,7 @@ from classes.om import Well
 from classes.om import DataIndex
 from classes.om import DataIndexMap
 from classes.om import Log
-from classes.om import DataFilter
+from classes.om import DataMask
 from classes.om import CurveSet
 from classes.om import Seismic
 
@@ -95,7 +95,7 @@ def register_OM_classes():
     ObjectManager.register_class(DataIndex, CurveSet)
     ObjectManager.register_class(Log, CurveSet)
     #
-    ObjectManager.register_class(DataFilter)
+    ObjectManager.register_class(DataMask)
     ObjectManager.register_class(Seismic)
     ObjectManager.register_class(DataIndex, Seismic)
     ObjectManager.register_class(DataIndexMap, Seismic)

@@ -96,7 +96,7 @@ class ObjectManager(GripyManager):
 
        
     def _reset(self):
-        # TODO: Resolver DataFilter tid 'data_filter'
+        # TODO: Resolver DataMask tid 'data_filter'
     
         temp_parentuidmap = copy.deepcopy(self._parentuidmap)
         
@@ -252,7 +252,7 @@ class ObjectManager(GripyManager):
             print ('ERROR in dealing with object creation [ObjectManager.add]:', obj.uid, e)
             return False
 
-        # TODO: Rever isso: UI.mvc_classes.track_object@DataFilter 
+        # TODO: Rever isso: UI.mvc_classes.track_object@DataMask 
         try:
             nsc = obj._NO_SAVE_CLASS
         except:

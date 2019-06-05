@@ -4470,7 +4470,7 @@ def on_load_teste_2019(event):
         OM = ObjectManager()
         
         #data = np.arange(100000000).reshape(100, 100, 100, 100)
-        data = np.arange(10000).reshape(10, 10, 10, 10)
+        data = np.arange(100000).reshape(10, 10, 10, 10, 10)
     
         seismic = OM.new('seismic', 
                      data, 
@@ -4487,9 +4487,9 @@ def on_load_teste_2019(event):
         i_line_index = OM.new('data_index', 
                        #np.arange(100), 
                        np.arange(10), 
-                       name='I_LINE', 
-                       unit='i_line', 
-                       datatype='idx'
+                       name='I_line', 
+                       unit=None, 
+                       datatype='I_LINE'
         )
         b = OM.add(i_line_index, seismic.uid)
         print('i_line_index:', b)
@@ -4497,9 +4497,9 @@ def on_load_teste_2019(event):
         x_line_index = OM.new('data_index', 
                        #np.arange(100), 
                        np.arange(10), 
-                       name='X_LINE', 
-                       unit='x_line', 
-                       datatype='idx'
+                       name='X_line', 
+                       unit=None, 
+                       datatype='X_LINE'
         )
         b = OM.add(x_line_index, seismic.uid)
         print('x_line_index:', b)
@@ -4507,28 +4507,50 @@ def on_load_teste_2019(event):
         offset_index = OM.new('data_index', 
                        #np.arange(100), 
                        np.arange(10), 
-                       name='OFFSET', 
-                       unit='offset', 
-                       datatype='idx'
+                       name='Offset', 
+                       unit='m', 
+                       datatype='OFFSET'
         )
         b = OM.add(offset_index, seismic.uid)
         print('offset_index:', b)
         #
+        freq_index = OM.new('data_index', 
+                       #np.arange(100), 
+                       np.arange(10), 
+                       name='Frequency', 
+                       unit='Hz', 
+                       datatype='FREQUENCY'
+        )
+        b = OM.add(freq_index, seismic.uid)
+        print('freq_index:', b)
+        #
         time_index = OM.new('data_index', 
                        #np.arange(100), 
                        np.arange(10), 
-                       name='TIME', 
+                       name='Time', 
                        unit='time', 
-                       datatype='idx'
+                       datatype='TWT'
         )
         b = OM.add(time_index, seismic.uid)
         print('time_index:', b)
+        #    
+        prof_index = OM.new('data_index', 
+                       #np.arange(100), 
+                       np.arange(0, -10, -1), 
+                       name='Depth', 
+                       unit='m', 
+                       datatype='TVD'
+        )
+        b = OM.add(prof_index, seismic.uid)
+        #
+        print('prof_index:', b)
         #    
         seismic._create_data_index_map(
                                         [i_line_index.uid],
                                         [x_line_index.uid],
                                         [offset_index.uid],
-                                        [time_index.uid]
+                                        [freq_index.uid],
+                                        [time_index.uid, prof_index.uid]
         )
         
     #    """
