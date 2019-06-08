@@ -449,7 +449,7 @@ class TrackCanvas(CanvasBaseView, SelectablePanelMixin):
 
         elif scale == 'log':
             min_ = controller.leftscale
-            max_ = controller.leftscale*10.0**controller.decades +\
+            max_ = controller.leftscale*10.0**controller.decades + \
                                                                     XMAX_PLUS
             controller.xlim = (min_, max_)
 

@@ -1,5 +1,8 @@
 # -*- coding: utf-8 -*-
 
+import numpy as np
+np.set_printoptions(suppress=True)
+
 import matplotlib
 from matplotlib.axes import Axes
 from matplotlib.figure import Figure
@@ -1010,7 +1013,7 @@ class CanvasBaseView(UIViewObject, FigureCanvas):
         #
         self._postpone_draw = False
         #
-        share_x = True
+        share_x = False
         #
         self.base_axes = Axes(self.figure, controller.rect,
                                   facecolor=None,
@@ -1039,9 +1042,25 @@ class CanvasBaseView(UIViewObject, FigureCanvas):
                              sharey=self.base_axes, 
                              frameon=False
             )
-            self.plot_axes.set_xlim(xlim=controller.xlim,
-                                            ylim=controller.ylim
-            )
+            self.plot_axes.set_xlim(controller.xlim)
+
+              
+        #
+        """
+        _PLOT_XMIN = 0.0
+        _PLOT_XMAX = 1.0            
+      
+        self.plot_axes = GripyMPLAxes(self.figure, 
+                         rect=self.base_axes.get_position(True), 
+                         sharey=self.base_axes, 
+                         frameon=False
+        )
+        self.figure.add_axes(self.plot_axes)
+        self.plot_axes.set_xlim(self._PLOT_XMIN, self._PLOT_XMAX)
+        self.plot_axes.xaxis.set_visible(False)
+        self.plot_axes.yaxis.set_visible(False)        
+        self.plot_axes.set_zorder(1)            
+        """    
         #
         self.figure.add_axes(self.plot_axes)
         #
@@ -1457,9 +1476,10 @@ class CanvasBaseView(UIViewObject, FigureCanvas):
         self.base_axes.set_axisbelow(b)
         
 
-
+    #TODO: tirar isso 
     def teste(self, color):
         self.base_axes.patch.set_edgecolor(color)
+        
         
     def set_axes_facecolor(self, color):
         self.base_axes.set_facecolor(color)
@@ -1589,9 +1609,35 @@ class CanvasBaseView(UIViewObject, FigureCanvas):
     
     def get_transaxes(self):
         return self.base_axes.transAxes    
-    
-    
 
+
+##############################################################################
+##############################################################################
+##############################################################################
+        
+    
+    # Only for plot_axes
+    def set_plot_lim(self, axis, lim):
+        print('\nset_plot_lim:', axis, lim)
+        if axis == 'x':
+            return self.plot_axes.set_xlim(lim)
+        elif axis == 'y':
+            return self.plot_axes.set_ylim(lim)
+        else:
+            raise Exception('Invalid axis [{}].'.format(axis))        
+
+
+    # Only for plot_axes
+    def set_plot_scale(self, axis, scale):            
+        if axis == 'x':
+            return self.plot_axes.set_xscale(scale)
+        elif axis == 'y':
+            return self.plot_axes.set_yscale(scale)
+        else:
+            raise Exception('Invalid axis [{}].'.format(axis))  
+    
+    
+    # TODO: separar create e add
     def append_artist(self, artist_type, *args, **kwargs):
         if artist_type == 'Line2D':
             line = matplotlib.lines.Line2D(*args, **kwargs)
@@ -1630,4 +1676,82 @@ class CanvasBaseView(UIViewObject, FigureCanvas):
         
         else:
             raise Exception('artist_type not known.')  
+    
+    
+    def transform(self, value, left_scale, right_scale, scale=0):
+        """
+        Transform data to a virtual X axis and scale.
+                
+        Usado em um cenario onde plot_axes recebe multiplos artists de forma 
+        virtual. 
+        Nesta ideia, plot_axes eh sempre linear.
+        left_scale e right_scale sao os limites do eixo virtual.
+        scale eh a escala virtual (0=linear, 1=log)
+        """
+        if left_scale is None or right_scale is None:
+            raise Exception('Left or Right scales cannot be None.')
+        if scale not in [0, 1]:
+            raise Exception('Scale must be 0 or 1.')
+        invalid_err = np.geterr().get('invalid')
+        invalid_err = np.geterr().get('invalid')
+        np.seterr(invalid='ignore')
+        #
+        plot_axis_left_xlim, plot_axis_right_xlim = self.plot_axes.get_xlim()
+        # Linear scale
+        if scale == 0:
+            range_ = np.absolute(right_scale - left_scale)
+            translated_value = np.abs(value - left_scale)    
+            ret_val =  (translated_value / range_)
+        # Log scale    
+        else:
+            if left_scale <= 0.0:
+                raise Exception('left_scale <= 0.0')
+            ls = np.log10(left_scale)    
+            rs = np.log10(right_scale)
+            range_ = rs - ls
+            data = np.copy(value)
+            data[data == 0] = left_scale
+            translated_value = np.log10(data) - ls   
+            ret_val =  (translated_value / range_)     
+        real_range_ = np.absolute(plot_axis_right_xlim - plot_axis_left_xlim)
+        ret_val = ret_val * real_range_
+        ret_val = ret_val + plot_axis_left_xlim 
+        np.seterr(invalid=invalid_err)
+        return ret_val   
+     
+    
+    def inverse_transform(self, value, left_scale, right_scale, scale=0):
+        """
+        Inverse transform data to a virtual X axis and scale.
+        
+        Usado em um cenario onde plot_axes recebe multiplos artists de forma 
+        virtual. 
+        Nesta ideia, plot_axes eh sempre linear.
+        left_scale e right_scale sao os limites do eixo virtual.
+        scale eh a escala virtual (0=linear, 1=log)
+        """    
+        if left_scale is None or right_scale is None:
+            raise Exception('Left or Right scales cannot be None.')
+        if scale not in [0, 1]:
+            raise Exception('Scale must be 0 or 1.')
+        invalid_err = np.geterr().get('invalid')
+        np.seterr(invalid='ignore')
+        #
+        plot_axis_left_xlim, plot_axis_right_xlim = self.plot_axes.get_xlim()
+        #
+        ret_val = value - plot_axis_left_xlim
+        real_range_ = np.absolute(plot_axis_right_xlim - plot_axis_left_xlim) 
+        ret_val = ret_val / real_range_
+        if scale == 0:
+            range_ = np.absolute(right_scale - left_scale)
+            ret_val = ret_val * range_
+            ret_val = ret_val + left_scale
+        else:
+            ls = np.log10(left_scale)    
+            rs = np.log10(right_scale)
+            range_ = rs - ls
+            translated_value = ret_val * range_
+            ret_val = np.power(10.0, translated_value)
+        np.seterr(invalid=invalid_err)
+        return ret_val     
     

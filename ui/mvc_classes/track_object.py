@@ -1,6 +1,5 @@
 # -*- coding: utf-8 -*-
 
-
 from collections import OrderedDict   
 from collections import Sequence
 
@@ -65,67 +64,6 @@ _PREFERRED_PLOTTYPES = {
     'angle': 'contourf',
     'model1d': 'density'
 }
-
-
-###############################################################################
-###############################################################################
-
-
-def transform(value, left_scale, right_scale, scale=0):
-    if left_scale is None or right_scale is None:
-        raise Exception('Left or Right scales cannot be None.')
-    if scale not in [0, 1]:
-        raise Exception('Scale must be 0 or 1.')
-    invalid_err = np.geterr().get('invalid')
-    invalid_err = np.geterr().get('invalid')
-    np.seterr(invalid='ignore')    
-    # Linear scale
-    if scale == 0:
-        range_ = np.absolute(right_scale - left_scale)
-        translated_value = np.abs(value - left_scale)    
-        ret_val =  (translated_value / range_)
-    # Log scale    
-    else:
-        if left_scale <= 0.0:
-            raise Exception('left_scale <= 0.0')
-        ls = np.log10(left_scale)    
-        rs = np.log10(right_scale)
-        range_ = rs - ls
-        
-        data = np.copy(value)
-        data[data == 0] = left_scale
-        translated_value = np.log10(data) - ls   
-        ret_val =  (translated_value / range_)
-    np.seterr(invalid=invalid_err)
-    return ret_val      
-        
-
-def inverse_transform(value, left_scale, right_scale, scale=0):
-    if left_scale is None or right_scale is None:
-        raise Exception('Left or Right scales cannot be None.')
-    if scale not in [0, 1]:
-        raise Exception('Scale must be 0 or 1.')
-    invalid_err = np.geterr().get('invalid')
-    np.seterr(invalid='ignore')    
-    if scale == 0:
-        range_ = np.absolute(right_scale - left_scale)
-        translated_value = value * range_
-        if (left_scale > right_scale):
-            ret_val = left_scale - translated_value
-        else:    
-            ret_val = left_scale + translated_value
-    else:
-        ls = np.log10(left_scale)    
-        rs = np.log10(right_scale)
-        range_ = rs - ls
-        translated_value = value * range_
-        translated_value = np.round(translated_value, 3)
-        translated_value = translated_value + ls
-        ret_val = np.power(10, translated_value)
-    np.seterr(invalid=invalid_err)
-    return ret_val  
- 
-    
 
 ###############################################################################
 ###############################################################################
@@ -235,7 +173,7 @@ class TrackObjectController(UIControllerObject):
 
 
     def on_change_plottype(self, new_value, old_value):
-        print('on_change_plottype', new_value, old_value)
+        print('\n\non_change_plottype', new_value, old_value)
         UIM = UIManager()
         repr_ctrl = self.get_representation()
         if repr_ctrl:
@@ -246,7 +184,7 @@ class TrackObjectController(UIControllerObject):
             try:
 #                print ('b1')
                 state = self._get_log_state()
-#                print ('b2', state)
+                print ('state:', state)
                 UIM.create(repr_tid, self.uid, **state)
 #                print ('b3')
                 self._do_draw()
@@ -300,6 +238,7 @@ class TrackObjectController(UIControllerObject):
                     ls, rs = calculate_extremes(obj)
                 state['left_scale'] = ls
                 state['right_scale'] = rs
+                
         return state
     
     
@@ -377,15 +316,11 @@ class RepresentationController(UIControllerObject):
     def get_data_info(self, event):
         return self.view.get_data_info(event)
 
-    #"""
     def redraw(self):
         if isinstance(self, LineRepresentationController):
             self.view.draw()
         else:
             return False
-        #return self.view.draw_canvas()
-    #"""    
-        
 
     
 class RepresentationView(UIViewObject):
@@ -404,39 +339,20 @@ class RepresentationView(UIViewObject):
             self.label.set_object_uid(self._controller_uid)
         else:
             self.label = None
-        
-        
+            
     def PreDelete(self):
         self.clear()
         if self.label:
             self.label.destroy()
              
-        
     def get_data_info(self, event):
         raise NotImplemented('{}.get_data_info must be implemented.'.format(self.__class__))
     
     
     def get_canvas(self):
         try:
-            # Getting canvas from MPL.Artist
-            # All _mplot_objects are on the same FigureCanvas
-            # (TrackFigureCanvas.plot_axes)
-            
-            """
-            vals = self._mplot_objects.values()
-            print(vals, type(vals))
-            
-            val = vals[0]
-            print(val, type(val))
-            
-            canvas = val.figure.canvas
-            """
-            
             first_mpl_object = list(self._mplot_objects.values())[0]
             canvas = first_mpl_object.figure.canvas        
-            
-            
-            
             return canvas
         except:
             # TODO: Rever linhas abaixo
@@ -453,12 +369,12 @@ class RepresentationView(UIViewObject):
         
         
     def draw_canvas(self):     
-        canvas = self.get_canvas()
-        print(canvas)
+        canvas = self.get_canvas()   
         if canvas:
             canvas.draw()
             return True
         return False
+
 
     def draw_after(self, func, *args, **kwargs):
         if callable(func):
@@ -509,13 +425,13 @@ class LineRepresentationController(RepresentationController):
 
     _ATTRIBUTES = OrderedDict()
     _ATTRIBUTES['left_scale'] = {
-            'default_value': None,
+            'default_value': 0.0,
             'type': float,
             'pg_property': 'FloatProperty',
             'label': 'Left value'        
     }
     _ATTRIBUTES['right_scale'] = {
-            'default_value': None,
+            'default_value': 1.0,
             'type': float,
             'pg_property': 'FloatProperty',
             'label': 'Right value'
@@ -541,24 +457,24 @@ class LineRepresentationController(RepresentationController):
             'label': 'X axis scale',
             'options_labels': ['Linear', 'Logarithmic'],
             'options_values': [0, 1]
-    }
-    
+    } 
+    _ATTRIBUTES['interpolate'] = {
+            'default_value': True,
+            'type': bool,
+            'pg_property': 'BoolProperty',
+            'label': 'Interpolate line'
+    }       
+
     def __init__(self, **state):
         super().__init__(**state)
 
 
-    
 class LineRepresentationView(RepresentationView):
     tid = 'line_representation_view'
     _picked_color = 'MediumSpringGreen'
 
-
     def __init__(self, controller_uid):
         super(LineRepresentationView, self).__init__(controller_uid)
-        self._used_scale = None
-        self._used_left_scale = None
-        self._used_right_scale = None
-
 
     def PostInit(self):
         UIM = UIManager()
@@ -569,16 +485,31 @@ class LineRepresentationView(RepresentationView):
         controller.subscribe(self.set_color, 'change.color')
         controller.subscribe(self.set_zorder, 'change.zorder')
         controller.subscribe(self.on_change_xscale, 'change.x_scale')
+        controller.subscribe(self.on_change_interpolate, 'change.interpolate')
         #
         parent_uid = UIM._getparentuid(self._controller_uid)
         parent = UIM.get(parent_uid)
         parent.subscribe(self.set_picked, 'change.selected') 
 
 
-    #'''
     def get_data_info(self, event):
-        #print('get_data_info:', event)
-        return None
+        UIM = UIManager()
+        controller = UIM.get(self._controller_uid)
+        dm = controller.get_data_mask()
+        dm_y_data = dm.get_last_dimension_index_data() 
+        dm_y_data_index = (np.abs(dm_y_data-event.ydata)).argmin()
+        print('get_data_info:', dm_y_data_index)
+        
+        if dm_y_data_index == 0:
+            if np.abs(event.ydata - dm_y_data[dm_y_data_index]) > np.abs(dm_y_data[1] - dm_y_data[0]):
+                return None
+        #if dm_y_data_index == self._data.shape[-1]-1:
+        #    if np.abs(event.ydata - dm_y_data[dm_y_data_index]) > np.abs(dm_y_data[-1] - dm_y_data[-2]):
+        #        return None
+        return str(dm_y_data[dm_y_data_index])
+        #
+        #print('get_data_info:', event.xdata, event.ydata)
+        #return None
         """
         UIM = UIManager()
         controller = UIM.get(self._controller_uid)
@@ -588,6 +519,30 @@ class LineRepresentationView(RepresentationView):
         return str(controller._data[z_index])
         """
 
+    """
+    def _get_z_index(self, ydata):     
+        UIM = UIManager()
+        toc_uid = UIM._getparentuid(self.uid)
+        toc = UIM.get(toc_uid) 
+        #
+        OM = ObjectManager(self)
+        filter_ = OM.get(('data_filter', toc.model.data_filter_oid))
+        z_data = filter_.data[0]
+        di_uid, display, is_range, z_first, z_last = z_data
+        z_data_index = OM.get(di_uid)
+        z_data = z_data_index.data[z_first:z_last]
+        #
+        #
+        z_index = (np.abs(z_data-ydata)).argmin()
+        if z_index == 0:
+            if np.abs(ydata - z_data[z_index]) > np.abs(z_data[1] - z_data[0]):
+                return None
+        if z_index == self._data.shape[-1]-1:
+            if np.abs(ydata - z_data[z_index]) > np.abs(z_data[-1] - z_data[-2]):
+                return None
+        return z_index
+    """
+
     def on_change_xscale(self, new_value, old_value):
         UIM = UIManager()
         controller =  UIM.get(self._controller_uid)
@@ -596,6 +551,11 @@ class LineRepresentationView(RepresentationView):
                                             controller.left_scale <= 0.0:
                 controller.set_value_from_event('left_scale', 0.2)
         self.set_xscale(new_value) 
+
+
+    def on_change_interpolate(self, new_value, old_value):
+        self.draw()
+
 
     def set_zorder(self, new_value, old_value):
         if len(self._mplot_objects.values()) == 1:
@@ -638,6 +598,7 @@ class LineRepresentationView(RepresentationView):
     def set_xscale(self, xscale):
         self.draw()
 
+
         
     def set_xlim(self, new_value, old_value):
         UIM = UIManager()
@@ -648,117 +609,108 @@ class LineRepresentationView(RepresentationView):
 
     
     def draw(self):
-
-        
-        try:
-            
-            if len(self._mplot_objects.values()) == 1:
-                self.clear()
-            #     
-            UIM = UIManager()
-            controller = UIM.get(self._controller_uid)
-            #
-            
-            
-            OM = ObjectManager()
-            #obj_uid = controller.get_represented_object_uid()
-            #obj = OM.get
-            
-            #
-            dm = controller.get_data_mask()
-            #
-            if self.label:
-                self.label.set_plot_type('line')
-                self.label.set_xlim(
-                    (controller.left_scale, 
-                     controller.right_scale)
-                ) 
-                self.label.set_color(controller.color)
-                self.label.set_thickness(controller.thickness)    
-            self.set_title(dm.get_data_name())
-            self.set_subtitle(dm.get_data_unit())          
-            #
-            data = dm.get_data(dimensions_desired=1)
-            if data is None:
-                return
-            #
-            toc_uid = UIM._getparentuid(self._controller_uid)
-            toc = UIM.get(toc_uid)
-            track_controller_uid = UIM._getparentuid(toc_uid)
-            track_controller =  UIM.get(track_controller_uid)        
-            #
-
-#            di_uid, display, is_range, z_first, z_last = z_data
-            
-#            z_data_index = OM.get(di_uid)
-#            z_data = z_data_index._data[z_first:z_last]
- 
-           #
-            transformated_xdata = transform(data, controller.left_scale, 
-                        controller.right_scale, controller.x_scale)
-            #
-            # TODO: mover-rever self.interpolate
-            #self.interpolate = True
-            self.interpolate = False
-            #
-            if self.interpolate:
-                f1 = interp1d(data, transformated_xdata)     
-                depth_list = []
-                for depth_px in range(track_controller.view.track.GetSize()[1]):
-                    depth = track_controller.view.track.get_depth_from_ypixel(depth_px)
-                    
-                    if depth > np.nanmin(data) and depth < np.nanmax(data): 
-                        depth_list.append(depth)
-                        
-                if not self._mplot_objects.get('line'):
-                    line = track_controller.append_artist('Line2D', 
-                                f1(depth_list), 
-                                depth_list, 
-                                linewidth=controller.thickness,
-                                color=controller.color
-                    )
-                else:
-                    line = self._mplot_objects.get('line')   
-                    line.set_data(f1(depth_list), depth_list)
-            #        
-            else:
-                if not self._mplot_objects.get('line'):
-                    line = track_controller.append_artist('Line2D', 
-                                transformated_xdata, 
-                                data, 
-                                linewidth=controller.thickness,
-                                color=controller.color
-                    )
-                    print(transformated_xdata)  
-                    print(data) 
-                    
-                else:
-                    line = self._mplot_objects.get('line')   
-                    line.set_data(transformated_xdata, data)
-            #        
-            line.set_label(toc_uid)
-            print(line)
-            # When we set picker to True (to enable line picking) function
-            # Line2D.set_picker sets pickradius to True, 
-            # then we need to set it again.
-            self._set_picking(line)
-            #
-            self._used_scale = controller.x_scale
-            self._used_left_scale = controller.left_scale
-            self._used_right_scale = controller.right_scale
-            #
-            self._mplot_objects['line'] = line
-            ok = self.draw_canvas() 
-            print(self._used_scale)
-            print(self._used_left_scale)
-            print(self._used_right_scale)
-            if ok:
-                print ('Ok\n\n')
-            else:
-                print ('DEU RUIM\n\n')
+        print('\n\nLineRepresentationView.draw')
         #
-        except Exception as e:
-            print ('ERROR LineRepresentationView.draw', e)
+        if self._mplot_objects:
+            self.clear()
+        #     
+        UIM = UIManager()
+        controller = UIM.get(self._controller_uid)
+        dm = controller.get_data_mask()
+        #
+        # Deals with WellPlot label
+        if self.label:
+            self.label.set_plot_type('line')
+            self.label.set_xlim(
+                (controller.left_scale, 
+                 controller.right_scale)
+            ) 
+            self.label.set_color(controller.color)
+            self.label.set_thickness(controller.thickness)    
+        self.set_title(dm.get_data_name())
+        self.set_subtitle(dm.get_data_unit())          
+        #
+        xdata = dm.get_data(dimensions_desired=1)
+        if xdata is None:
+            return
+        canvas = self.get_canvas()
+        transformated_xdata = canvas.transform(xdata, controller.left_scale, 
+                    controller.right_scale, controller.x_scale)
+        y_data = dm.get_last_dimension_index_data()
+        #
+        print(controller.left_scale, 
+                    controller.right_scale, controller.x_scale)            
+        #
+        toc_uid = UIM._getparentuid(self._controller_uid)
+        track_controller_uid = UIM._getparentuid(toc_uid)
+        track_controller =  UIM.get(track_controller_uid)        
+        #
+        if controller.interpolate:
+            f1 = interp1d(y_data, transformated_xdata)     
+            depth_list = []
+            #
+            for depth_px in range(track_controller.view.track.GetSize()[1]):
+                depth = track_controller.view.track.get_depth_from_ypixel(depth_px)   
+                if depth > np.nanmin(y_data) and depth < np.nanmax(y_data): 
+                    depth_list.append(depth)
+            #        
+            if not self._mplot_objects.get('line'):
+                line = track_controller.append_artist('Line2D', 
+                            f1(depth_list), 
+                            depth_list, 
+                            linewidth=controller.thickness,
+                            color=controller.color
+                )
+            else:
+                line = self._mplot_objects.get('line')   
+                line.set_data(f1(depth_list), depth_list)
+        #        
+        else:
+            if not self._mplot_objects.get('line'):
+                line = track_controller.append_artist('Line2D', 
+                            transformated_xdata, 
+                            y_data, 
+                            linewidth=controller.thickness,
+                            color=controller.color
+                )
+                #
+                print('\nxdata:', #xdata, 
+                      np.nanmin(xdata),
+                      np.nanmax(xdata)
+                )                      
+                print('\ntransformated_xdata:', #transformated_xdata, 
+                      np.nanmin(transformated_xdata),
+                      np.nanmax(transformated_xdata)
+                )  
+                print('\ny_data:', #y_data, 
+                      np.nanmin(y_data), np.nanmax(y_data)
+                ) 
+                #
+            else:
+                line = self._mplot_objects.get('line')   
+                line.set_data(transformated_xdata, y_data)
+        #        
+        line.set_label(toc_uid)
+        print(line)
+        # When we set picker to True (to enable line picking) function
+        # Line2D.set_picker sets pickradius to True, 
+        # then we need to set it again.
+        self._set_picking(line)
+        #
+#            self._used_scale = controller.x_scale
+#            self._used_left_scale = controller.left_scale
+#            self._used_right_scale = controller.right_scale
+        #
+        self._mplot_objects['line'] = line
+        ok = self.draw_canvas() 
+#            print(self._used_scale)
+#            print(self._used_left_scale)
+#            print(self._used_right_scale)
+        if ok:
+            print ('Ok\n\n')
+        else:
+            print ('DEU RUIM\n\n')
+
         
         
 ###############################################################################

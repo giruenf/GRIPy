@@ -60,6 +60,7 @@ class DataMask(OMBaseObject):
     def get_data_unit(self):
         return self._data_unit
 
+    # TODO: rename to set_dimension_data
     def set_dimension(self, dim_idx=-1, **kwargs):
         """
         dim_idx here refers to object actual data indexes.
@@ -106,7 +107,7 @@ class DataMask(OMBaseObject):
             else:                
                 slicer.append(slice(start, stop))            
         slicer = tuple(slicer)
-        print('_get_slicer:', slicer)
+#        print('_get_slicer:', slicer)
         return slicer
     
     
@@ -150,6 +151,20 @@ class DataMask(OMBaseObject):
             # Possivel uso alem 2-D ou algum erro nao mapeado.
             raise Exception('get_data - Tratar isso.')
         return data    
+
+
+    def get_index_data_for_dimension(self, dim_idx):
+        OM = ObjectManager()
+        dim_data = self._data[dim_idx]     
+        dim_di_uid = dim_data[0]
+        dim_di = OM.get(dim_di_uid)  
+        slicer = self._get_slicer()
+        return dim_di.data[slicer[dim_idx]]
+    
+    
+    def get_last_dimension_index_data(self):
+        return self.get_index_data_for_dimension(-1)
+     
     
     
     def get_data_info(self, x_idx, y_idx, dimensions_plotted=None):

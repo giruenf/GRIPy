@@ -28,6 +28,10 @@ Versão 0.8.beta:
   De forma conjunta, a classe WellData1D também deixa de existir.
 - Fim do carregamento do LASheader para o objeto Well.  
 - DataFilter passa a se chamar DataMask.
+- Melhorado o sistema de "Virtual Axes". Os métodos transform e inverse_transform foram movidos do arquivo track_object.py para o canvas_base.py.
+  Assim, poderao ser utilizados também para os CrossPlots (ou em qualquer objeto onde plot_axes se comportar de forma virtual).
+  Ver arquivo canvas_base.py.
+  
 
 Versão 0.7:
 ===========

@@ -73,6 +73,19 @@ WAVELET_MODES['Phase (unwrap)'] = 3
 
 
 
+def no_well_found_dialog(*args):
+    msg = 'This project has not a well. Create one?'
+    ret_val = wx.MessageBox(msg, 'Warning', wx.ICON_EXCLAMATION | wx.YES_NO)    
+    if ret_val == wx.YES:
+        try:
+            well = on_create_well()
+            return well
+        except:
+            pass
+    return None
+
+
+
 
 def calc_well_time_from_depth(event):
     
@@ -107,7 +120,7 @@ def calc_well_time_from_depth(event):
 
 
 
-def on_new_wellplot(event):
+def on_new_wellplot(*args):
     try:
         OM = ObjectManager() 
         wells = OrderedDict()
@@ -115,14 +128,9 @@ def on_new_wellplot(event):
             wells[well.name] = well.uid
         #    
         if not wells: 
-            msg = 'This project has not a well. Create one?'
-            ret_val = wx.MessageBox(msg, 'Warning', wx.ICON_EXCLAMATION | wx.YES_NO)    
-            if ret_val == wx.YES:
-                ret_val = on_create_well(event)
-                if not ret_val:
-                    return
-                for well in OM.list('well'):
-                    wells[well.name] = well.uid
+            well = no_well_found_dialog()
+            if well:
+                wells[well.name] = well.uid
             else:
                 return
     except:
@@ -2820,7 +2828,7 @@ def on_import_las(event):
                                data[index_idx], 
                                name=names[index_idx], 
                                unit=units[index_idx].lower(), 
-                               datatype=sel_curvetypes[index_idx].upper()
+                               datatype=sel_curvetypes[index_idx]
                 )
                 OM.add(index, curve_set.uid)
                 indexes_uid.append(index.uid)
@@ -2831,7 +2839,7 @@ def on_import_las(event):
                              data[log_idx], 
                              name=names[log_idx], 
                              unit=units[log_idx].lower(), 
-                             datatype=sel_curvetypes[log_idx].upper()
+                             datatype=sel_curvetypes[log_idx]
                 )
                 OM.add(log, curve_set.uid)
                 log._create_data_index_map(indexes_uid)
@@ -3310,8 +3318,7 @@ def on_createrock(event):
         UIM.remove(dlg.uid)        
         
     
-def on_create_well(event):
-    
+def on_create_well(*args):
     OM = ObjectManager() 
     UIM = UIManager()
     dlg = UIM.create('dialog_controller', title='Create Well')
@@ -3389,8 +3396,7 @@ def on_create_well(event):
     #
     dlg.view.SetSize((280, 360))
     result = dlg.view.ShowModal()
-    ret_val = False
-    
+    #
     try:
         disableAll = wx.WindowDisabler()
         wait = wx.BusyInfo("Creating new well. Wait...")
@@ -3411,14 +3417,16 @@ def on_create_well(event):
             #
             #
             well = OM.new('well', name=well_name) 
-            OM.add(well)
+            if not OM.add(well):
+                raise Exception('Well was not created.')    
             #   
             curve_set = well.create_new_curve_set()
             #
             index = OM.new('data_index', name=index_name, datatype=datatype, 
                            unit=unit, start=start, samples=samples, step=ts
             )            
-            ret_val = OM.add(index, curve_set.uid)
+            if not OM.add(index, curve_set.uid):
+                raise Exception('DataIndex was not created.')  
     except Exception as e:
         print ('ERROR [on_create_well]:', str(e))
         raise
@@ -3426,17 +3434,27 @@ def on_create_well(event):
         del wait
         del disableAll
         UIM.remove(dlg.uid)   
-    return ret_val
+    return well
     
 
 def on_create_synthetic(event):
     OM = ObjectManager() 
+    wells = OM.list('well')
+    #
+    if not wells: 
+        well = no_well_found_dialog()
+        if well:
+            wells[well.name] = well.uid
+        else:
+            return
+    #
     UIM = UIManager()
     dlg = UIM.create('dialog_controller', title='Create Synthetic Log')
-    wells = OrderedDict()
-    for well in OM.list('well'):
-        wells[well.name] = well.uid
+    wells_od = OrderedDict()
+    for well in wells:
+        wells_od[well.name] = well.uid
     #
+
     def on_change_well(name, old_value, new_value, **kwargs):
         choice = dlg.view.get_object('indexuid')
         opt = OrderedDict()
@@ -3448,7 +3466,7 @@ def on_create_synthetic(event):
         choice.set_value(0, True)
     #
     c1 = dlg.view.AddCreateContainer('StaticBox', label='Well', orient=wx.VERTICAL, proportion=0, flag=wx.EXPAND|wx.TOP, border=5)
-    dlg.view.AddChoice(c1, proportion=0, flag=wx.EXPAND|wx.TOP, border=5, widget_name='welluid', options=wells)
+    dlg.view.AddChoice(c1, proportion=0, flag=wx.EXPAND|wx.TOP, border=5, widget_name='welluid', options=wells_od)
     choice_well = dlg.view.get_object('welluid')
     choice_well.set_trigger(on_change_well) 
     #
@@ -3642,7 +3660,6 @@ def on_create_synthetic(event):
 
 
 def on_create_model(event):
-
     OM = ObjectManager() 
     UIM = UIManager()
     dlg = UIM.create('dialog_controller', title='Create 2/3 layers model')
@@ -3651,14 +3668,9 @@ def on_create_model(event):
         wells[well.name] = well.uid
     #
     if not wells: 
-        msg = 'This project has not a well. Create one?'
-        ret_val = wx.MessageBox(msg, 'Warning', wx.ICON_EXCLAMATION | wx.YES_NO)    
-        if ret_val == wx.YES:
-            ret_val = on_create_well(event)
-            if not ret_val:
-                return
-            for well in OM.list('well'):
-                wells[well.name] = well.uid
+        well = no_well_found_dialog()
+        if well:
+            wells[well.name] = well.uid
         else:
             return
     #
