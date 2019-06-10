@@ -74,11 +74,6 @@ class Well(OMBaseObject):
         return (min_, max_)
         
         
-        
-        
-        
-        
-        
     def get_curve_sets(self):
         OM = ObjectManager()
         curve_sets = OM.list('curve_set', self.uid)

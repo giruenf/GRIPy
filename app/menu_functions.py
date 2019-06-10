@@ -2761,8 +2761,6 @@ def on_import_las(event):
     hedlg = HeaderEditor.Dialog(wx.App.Get().GetTopWindow())
     hedlg.set_header(las_file.header)
 
-
-
     if hedlg.ShowModal() == wx.ID_OK:
         
         las_file.header = hedlg.get_header()
@@ -3975,41 +3973,54 @@ def on_create_model(event):
                     owt.append(value)
 
 
-            index_set_uid = OM._getparentuid(index.uid)
-
+            curve_set = index.get_curve_set()
+            logs = []
+            
             if vp:
                 vp = np.array(vp)
                 if np.count_nonzero(~np.isnan(vp)):
-                    log = OM.new('log', vp, index_set_uid=index_set_uid, name='Vp_model', unit='m/s', datatype='Velocity')
-                    OM.add(log, welluid)     
+                    log = OM.new('log', vp, name='Vp_model', unit='m/s', datatype='Velocity')
+                    OM.add(log, curve_set.uid)     
+                    logs.append(log)
             if vs:
                 vs = np.array(vs)
                 if np.count_nonzero(~np.isnan(vs)):
-                    log = OM.new('log', vs, index_set_uid=index_set_uid, name='Vs_model', unit='m/s', datatype='ShearVel')
-                    OM.add(log, welluid)
+                    log = OM.new('log', vs, name='Vs_model', unit='m/s', datatype='ShearVel')
+                    OM.add(log, curve_set.uid)  
+                    logs.append(log)
             if rho:
                 rho = np.array(rho)
                 if np.count_nonzero(~np.isnan(rho)):
-                    log = OM.new('log', rho, index_set_uid=index_set_uid, name='Rho_model', unit='g/cm3', datatype='Density')
-                    OM.add(log, welluid)                     
+                    log = OM.new('log', rho, name='Rho_model', unit='g/cm3', datatype='Density')
+                    OM.add(log, curve_set.uid)    
+                    logs.append(log)
             if q:
                 q = np.array(q)
                 if np.count_nonzero(~np.isnan(q)):
-                    log = OM.new('log', q, index_set_uid=index_set_uid, name='Q_model', unit=None, datatype='QFactor')
-                    OM.add(log, welluid)  
+                    log = OM.new('log', q, name='Q_model', unit=None, datatype='QFactor')
+                    OM.add(log, curve_set.uid)  
+                    logs.append(log)
             
             if calc_owt:        
                 owt = np.array(owt)       
                 twt = owt * 2.0
             #    
-            owt_index = OM.new('data_index', 0, 'One Way Time', 'TIME', 'ms', data=owt)
-            OM.add(owt_index, index_set_uid)
+            owt_index = OM.new('data_index', owt, name='One Way Time', unit='ms', datatype='TIME')
+            OM.add(owt_index, curve_set.uid)  
             #
-            twt_index = OM.new('data_index', 0, 'Two Way Time', 'TWT', 'ms', data=twt)
-            OM.add(twt_index, index_set_uid)
-            #                   
+            twt_index = OM.new('data_index', twt, name='Two Way Time', unit='ms', datatype='TWT')
+            OM.add(twt_index, curve_set.uid)  
+            #     
+            for log in logs:
+                log._create_data_index_map([index.uid, owt_index.uid, twt_index.uid])
+            
+            #
+
+
+              
     except Exception as e:
         print ('ERROR [on_create_model]:', str(e))
+        raise
     finally:
         del wait
         del disableAll

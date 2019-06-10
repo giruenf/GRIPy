@@ -491,57 +491,30 @@ class LineRepresentationView(RepresentationView):
         parent = UIM.get(parent_uid)
         parent.subscribe(self.set_picked, 'change.selected') 
 
-
     def get_data_info(self, event):
-        UIM = UIManager()
-        controller = UIM.get(self._controller_uid)
-        dm = controller.get_data_mask()
-        dm_y_data = dm.get_last_dimension_index_data() 
-        dm_y_data_index = (np.abs(dm_y_data-event.ydata)).argmin()
-        print('get_data_info:', dm_y_data_index)
-        
-        if dm_y_data_index == 0:
-            if np.abs(event.ydata - dm_y_data[dm_y_data_index]) > np.abs(dm_y_data[1] - dm_y_data[0]):
-                return None
-        #if dm_y_data_index == self._data.shape[-1]-1:
-        #    if np.abs(event.ydata - dm_y_data[dm_y_data_index]) > np.abs(dm_y_data[-1] - dm_y_data[-2]):
-        #        return None
-        return str(dm_y_data[dm_y_data_index])
-        #
-        #print('get_data_info:', event.xdata, event.ydata)
-        #return None
         """
-        UIM = UIManager()
-        controller = UIM.get(self._controller_uid)
-        z_index = controller._get_z_index(event.ydata)
-        if z_index is None:
+        Retorna o valor (float) do dado exibido em tela, de acordo com a 
+        posicao do mouse no eixo y (event.ydata).
+        """
+        line = self._mplot_objects.get('line', None)
+        if not line :
             return None
-        return str(controller._data[z_index])
-        """
-
-    """
-    def _get_z_index(self, ydata):     
+        ydata = line.get_ydata()
+        if event.ydata < ydata[0] or event.ydata > ydata[-1]:
+            return None
+        #
+        ydata_index = (np.abs(ydata-event.ydata)).argmin()
+        transformated_xdata = line.get_xdata()
+        transformated_xvalue = transformated_xdata[ydata_index]
+        canvas = self.get_canvas() 
         UIM = UIManager()
-        toc_uid = UIM._getparentuid(self.uid)
-        toc = UIM.get(toc_uid) 
-        #
-        OM = ObjectManager(self)
-        filter_ = OM.get(('data_filter', toc.model.data_filter_oid))
-        z_data = filter_.data[0]
-        di_uid, display, is_range, z_first, z_last = z_data
-        z_data_index = OM.get(di_uid)
-        z_data = z_data_index.data[z_first:z_last]
-        #
-        #
-        z_index = (np.abs(z_data-ydata)).argmin()
-        if z_index == 0:
-            if np.abs(ydata - z_data[z_index]) > np.abs(z_data[1] - z_data[0]):
-                return None
-        if z_index == self._data.shape[-1]-1:
-            if np.abs(ydata - z_data[z_index]) > np.abs(z_data[-1] - z_data[-2]):
-                return None
-        return z_index
-    """
+        controller = UIM.get(self._controller_uid)
+        xvalue = canvas.inverse_transform(transformated_xvalue, 
+                                               controller.left_scale, 
+                                               controller.right_scale, 
+                                               controller.x_scale
+        )        
+        return xvalue
 
     def on_change_xscale(self, new_value, old_value):
         UIM = UIManager()
@@ -552,10 +525,8 @@ class LineRepresentationView(RepresentationView):
                 controller.set_value_from_event('left_scale', 0.2)
         self.set_xscale(new_value) 
 
-
     def on_change_interpolate(self, new_value, old_value):
         self.draw()
-
 
     def set_zorder(self, new_value, old_value):
         if len(self._mplot_objects.values()) == 1:
@@ -563,7 +534,7 @@ class LineRepresentationView(RepresentationView):
             self.draw_canvas()
                 
     def set_picked(self, new_value, old_value):
-        #print 'set_picked:', new_value
+        print('set_picked:', new_value)
         if len(self._mplot_objects.values()) == 0:
             self.draw()
         if new_value:
@@ -573,8 +544,7 @@ class LineRepresentationView(RepresentationView):
             controller = UIM.get(self._controller_uid)
             self._mplot_objects['line'].set_color(controller.color)
         self.draw_canvas()     
-            
-        
+                
     def set_thickness(self, new_value, old_value):
         if len(self._mplot_objects.values()) == 1:
             self._mplot_objects['line'].set_linewidth(new_value)
@@ -583,8 +553,7 @@ class LineRepresentationView(RepresentationView):
                 self.label.set_thickness(new_value) 
         else:
             self.draw()
-            
-            
+                       
     def set_color(self, new_value, old_value):
         if len(self._mplot_objects.values()) == 1:
             self._mplot_objects['line'].set_color(new_value)
@@ -593,12 +562,9 @@ class LineRepresentationView(RepresentationView):
                 self.label.set_color(new_value)
         else:
             self.draw()
-                     
-            
+                               
     def set_xscale(self, xscale):
         self.draw()
-
-
         
     def set_xlim(self, new_value, old_value):
         UIM = UIManager()
@@ -606,18 +572,13 @@ class LineRepresentationView(RepresentationView):
         if not controller.get_object():
             return
         self.draw()
-
-    
+  
     def draw(self):
-        print('\n\nLineRepresentationView.draw')
-        #
         if self._mplot_objects:
-            self.clear()
-        #     
+            self.clear() 
         UIM = UIManager()
         controller = UIM.get(self._controller_uid)
         dm = controller.get_data_mask()
-        #
         # Deals with WellPlot label
         if self.label:
             self.label.set_plot_type('line')
@@ -633,27 +594,25 @@ class LineRepresentationView(RepresentationView):
         xdata = dm.get_data(dimensions_desired=1)
         if xdata is None:
             return
+        ydata = dm.get_last_dimension_index_data()
+        xdata_valid_idxs = ~np.isnan(xdata)
+        xdata = xdata[xdata_valid_idxs]
+        ydata = ydata[xdata_valid_idxs]
+        #
         canvas = self.get_canvas()
         transformated_xdata = canvas.transform(xdata, controller.left_scale, 
-                    controller.right_scale, controller.x_scale)
-        y_data = dm.get_last_dimension_index_data()
-        #
-        print(controller.left_scale, 
-                    controller.right_scale, controller.x_scale)            
+                    controller.right_scale, controller.x_scale)           
         #
         toc_uid = UIM._getparentuid(self._controller_uid)
         track_controller_uid = UIM._getparentuid(toc_uid)
         track_controller =  UIM.get(track_controller_uid)        
         #
         if controller.interpolate:
-            f1 = interp1d(y_data, transformated_xdata)     
-            depth_list = []
+            f1 = interp1d(ydata, transformated_xdata)   
             #
-            for depth_px in range(track_controller.view.track.GetSize()[1]):
-                depth = track_controller.view.track.get_depth_from_ypixel(depth_px)   
-                if depth > np.nanmin(y_data) and depth < np.nanmax(y_data): 
-                    depth_list.append(depth)
-            #        
+            tcc = track_controller._get_canvas_controller()
+            depth_list = tcc.get_one_depth_per_pixel(np.nanmin(ydata),
+                                                             np.nanmax(ydata))     
             if not self._mplot_objects.get('line'):
                 line = track_controller.append_artist('Line2D', 
                             f1(depth_list), 
@@ -669,50 +628,23 @@ class LineRepresentationView(RepresentationView):
             if not self._mplot_objects.get('line'):
                 line = track_controller.append_artist('Line2D', 
                             transformated_xdata, 
-                            y_data, 
+                            ydata, 
                             linewidth=controller.thickness,
                             color=controller.color
                 )
-                #
-                print('\nxdata:', #xdata, 
-                      np.nanmin(xdata),
-                      np.nanmax(xdata)
-                )                      
-                print('\ntransformated_xdata:', #transformated_xdata, 
-                      np.nanmin(transformated_xdata),
-                      np.nanmax(transformated_xdata)
-                )  
-                print('\ny_data:', #y_data, 
-                      np.nanmin(y_data), np.nanmax(y_data)
-                ) 
-                #
             else:
                 line = self._mplot_objects.get('line')   
-                line.set_data(transformated_xdata, y_data)
+                line.set_data(transformated_xdata, ydata)
         #        
         line.set_label(toc_uid)
-        print(line)
         # When we set picker to True (to enable line picking) function
         # Line2D.set_picker sets pickradius to True, 
         # then we need to set it again.
         self._set_picking(line)
-        #
-#            self._used_scale = controller.x_scale
-#            self._used_left_scale = controller.left_scale
-#            self._used_right_scale = controller.right_scale
-        #
         self._mplot_objects['line'] = line
-        ok = self.draw_canvas() 
-#            print(self._used_scale)
-#            print(self._used_left_scale)
-#            print(self._used_right_scale)
-        if ok:
-            print ('Ok\n\n')
-        else:
-            print ('DEU RUIM\n\n')
+        return self.draw_canvas() 
 
-        
-        
+          
 ###############################################################################
 ###############################################################################
     
@@ -722,7 +654,7 @@ class IndexRepresentationController(RepresentationController):
 
     _ATTRIBUTES = OrderedDict()
     _ATTRIBUTES['step'] = {
-            'default_value': 50.0,
+            'default_value': 100.0,
             'type': float,
             'pg_property': 'FloatProperty',
             'label': 'Step'        
@@ -748,7 +680,6 @@ class IndexRepresentationController(RepresentationController):
             'type': str,
             'pg_property': 'MPLColorsProperty',
             'label': 'Color'
-#            'options_labels': list(MPL_COLORS.keys())
     }    
     _ATTRIBUTES['bbox'] = {
             'default_value': True ,
@@ -840,6 +771,11 @@ class IndexRepresentationView(RepresentationView):
         
         
     def get_data_info(self, event):
+        #ydata = dm.get_last_dimension_index_data()
+        #print('get_data_info:', event.ydata)
+        return None
+        
+        
         OM = ObjectManager()
         UIM = UIManager()
         controller = UIM.get(self._controller_uid)
@@ -860,51 +796,46 @@ class IndexRepresentationView(RepresentationView):
     
     
     def draw(self):
-#        print ('\nIndexRepresentationView.draw')
-        
+        print ('\nIndexRepresentationView.draw')
         try:
-        
-            self.clear()
-            self._mplot_objects['text'] = []
-            OM = ObjectManager()
+            if self._mplot_objects:
+                self.clear() 
+            self._mplot_objects['text'] = []    
+            UIM = UIManager()
+            controller = UIM.get(self._controller_uid)
+            dm = controller.get_data_mask()
+            # Deals with WellPlot label
+            if self.label:
+                self.label.set_plot_type('index')               
+            self.set_title(dm.get_data_name())
+            self.set_subtitle(dm.get_data_unit())          
+            #
+            ydata = dm.get_last_dimension_index_data()
+            if ydata is None:
+                return
+            #            
+            y_min, y_max = np.nanmin(ydata), np.nanmax(ydata)
+            if y_min%controller.step:
+                y_min = (y_min//controller.step + 1) * controller.step  
+            y_values = np.arange(y_min, y_max, controller.step)         
+            #
             UIM = UIManager()
             controller = UIM.get(self._controller_uid)
             toc_uid = UIM._getparentuid(self._controller_uid)
-            toc = UIM.get(toc_uid)
             track_controller_uid = UIM._getparentuid(toc_uid)
-            track_controller =  UIM.get(track_controller_uid)
-                    
-            obj = controller.get_object()
+            track_controller =  UIM.get(track_controller_uid)   
+            #
+            canvas = self.get_canvas()
+            transformated_pos_x = canvas.transform(controller.pos_x, 0.0, 1.0)         
+            #
+            print('y_values:', y_values)
             
-            
-            ### Z axis Conversion 
-            filter_ = toc.get_filter()
-            di_uid, display, is_range, z_first, z_last = filter_.data[0]
-            z_data_index = OM.get(di_uid)
-            position_data = z_data_index._data[z_first:z_last]    
-            ### END - Z axis Conversion 
-            
-            
-            
-            y_min = controller._data[0] 
-            y_max = controller._data[-1]  
-            
-            
-            if y_min%controller.step:
-                y_min = (y_min//controller.step + 1) * controller.step  
-            y_values = np.arange(y_min, y_max, controller.step)
-    
-    
             for y_value in y_values:
-                
-                y_pos_index = (np.abs(controller._data - y_value)).argmin()
-                
-                #y_pos_index = controller._get_z_index(y_value)
-                
-                #print y_value, y_pos_index
-                y_pos = position_data[y_pos_index]
+                print('\ny_value:', y_value)
+                y_pos_index = (np.abs(ydata - y_value)).argmin()
+                y_pos = ydata[y_pos_index]
                 text = track_controller.append_artist('Text', 
-                                        controller.pos_x, y_pos,
+                                        transformated_pos_x, y_pos,
                                         "%g"%y_value,
                                         color=controller.color,
                                         horizontalalignment=controller.ha,
@@ -924,14 +855,7 @@ class IndexRepresentationView(RepresentationView):
                     )                    
                 #text.zorder = controller.zorder
                 self._mplot_objects['text'].append(text)
-            try:
-                #obj = controller.get_object()
-                self.set_title(obj.name)
-                self.set_subtitle(obj.unit)
-            except:
-                pass
             self.draw_canvas()   
-
         except Exception as e:
             print ('ERROR IndexRepresentationView.draw', e)
             raise
@@ -1247,22 +1171,22 @@ class DensityRepresentationView(RepresentationView):
         z_data_index = OM.get(di_uid)
         z_data = z_data_index.data[z_first:z_last]
         #
-        x_data = filter_.data[1]
-        di_uid, display, is_range, x_first, x_last = x_data
-        x_data_index = OM.get(di_uid)
-        x_data = x_data_index.data[z_first:z_last]
+        xdata = filter_.data[1]
+        di_uid, display, is_range, x_first, x_last = xdata
+        xdata_index = OM.get(di_uid)
+        xdata = xdata_index.data[z_first:z_last]
         #
-        #print x_data_index.dimension, x_data_index.name, display, is_range, x_first, x_last, x_data
+        #print xdata_index.dimension, xdata_index.name, display, is_range, x_first, x_last, xdata
         #
         if self.label:
             #print '\n\n\n'
             self.label.set_plot_type(controller.type)
             self.set_title(controller.get_object().name)
             if controller.type == 'wiggle':
-                self.label.set_zlabel(x_data_index.name)
-                #self.set_subtitle(x_data_index.name)
-                #self.label.set_offsets(x_data)
-                self.label.set_xlim((x_data[0], x_data[-1]))
+                self.label.set_zlabel(xdata_index.name)
+                #self.set_subtitle(xdata_index.name)
+                #self.label.set_offsets(xdata)
+                self.label.set_xlim((xdata[0], xdata[-1]))
 
                 
             #print '\n\n\n'

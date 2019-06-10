@@ -203,8 +203,8 @@ class TrackView(UIViewObject):
         try:
             UIM = UIManager()
             controller = UIM.get(self._controller_uid)
-            wp_ctrl_uid = UIM._getparentuid(self._controller_uid)
-            wp_ctrl =  UIM.get(wp_ctrl_uid)
+            well_plot_ctrl_uid = UIM._getparentuid(self._controller_uid)
+            well_plot_ctrl =  UIM.get(well_plot_ctrl_uid)
             #
             tcc = UIM.create('track_canvas_controller', self._controller_uid)
             # TODO: Verificar se os mpl_connect devem ser desfeitos no PreDelete
@@ -218,7 +218,7 @@ class TrackView(UIViewObject):
             tcc.view.SetDropTarget(drop_target_track_canvas)            
             #   
             if controller.overview:             
-                wp_ctrl._place_as_overview(tcc.view)
+                well_plot_ctrl._place_as_overview(tcc.view)
             
             else:
                 tlc = UIM.create('track_label_controller', 
@@ -233,7 +233,7 @@ class TrackView(UIViewObject):
             #  
             if controller.pos == -1:
                 # aqui controller.size jah inclui track
-                controller.pos = len(wp_ctrl) - 1
+                controller.pos = len(well_plot_ctrl) - 1
             #
             #track.view.track.update_multicursor(controller.multicursor)
             #track_canvas_controller.view.update_multicursor(controller.multicursor)
@@ -241,30 +241,30 @@ class TrackView(UIViewObject):
 
             # When a new Track is inserted, others with position >= must have
             # theirs position incremented by 1.
-            wp_ctrl._increment_tracks_positions(
+            well_plot_ctrl._increment_tracks_positions(
                                         pos=controller.pos,
                                         exclude_track_uid=self._controller_uid, 
             )
             #            
             if not controller.overview:
                 # Pass windows to WellPlot to be inserted on track panel.
-                wp_ctrl._insert_windows_on_track_panel(
+                well_plot_ctrl._insert_windows_on_track_panel(
                         pos=controller.pos, label_window=tlc.view, 
                         canvas_window=tcc.view, 
                         initial_width=controller.width
                 )
                 # Track with position greater than inserted must have their 
                 # titles updated.
-                wp_ctrl._reload_tracks_titles(pos=controller.pos,
+                well_plot_ctrl._reload_tracks_titles(pos=controller.pos,
                                         exclude_track_uid=self._controller_uid, 
                 )              
                 # 
-                self.set_ylim(wp_ctrl.shown_ylim[0], 
-                                                  wp_ctrl.shown_ylim[1]
+                self.set_ylim(well_plot_ctrl.shown_ylim[0], 
+                                                  well_plot_ctrl.shown_ylim[1]
                 )
             else:
-                self.set_ylim(wp_ctrl.wellplot_ylim[0], 
-                                              wp_ctrl.wellplot_ylim[1]
+                self.set_ylim(well_plot_ctrl.wellplot_ylim[0], 
+                                              well_plot_ctrl.wellplot_ylim[1]
                 )
 
             # TODO: Verificar se isso ficarah
@@ -320,7 +320,25 @@ class TrackView(UIViewObject):
         #    if controller.overview:    
         #        parent_controller._pre_delete_overview_track()
 
-
+        
+        
+    def _get_label_controller(self):     
+        """
+        """
+        UIM = UIManager()
+        controller = UIM.get(self._controller_uid)
+        if controller.overview:
+            return None
+        return UIM.list('track_label_controller', self._controller_uid)[0]    
+     
+        
+    def _get_canvas_controller(self):
+        """
+        """
+        UIM = UIManager()
+        return UIM.list('track_canvas_controller', self._controller_uid)[0]
+        
+        
 
     def _on_track_move(self, event):
         axes = event.inaxes
@@ -834,27 +852,7 @@ class TrackView(UIViewObject):
         return tlc, tcc
     '''    
         
-        
-        
-    def _get_label_controller(self):     
-        """
-        """
-        UIM = UIManager()
-        controller = UIM.get(self._controller_uid)
-        if controller.overview:
-            return None
-        return UIM.list('track_label_controller', self._controller_uid)[0]    
-     
-        
-    
-    
-    def _get_canvas_controller(self):
-        """
-        """
-        UIM = UIManager()
-        return UIM.list('track_canvas_controller', self._controller_uid)[0]
-        
-        
+
         
         
         

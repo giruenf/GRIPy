@@ -12,18 +12,12 @@ from app.app_utils import WellPlotState
 from app.app_utils import GripyBitmap  
 from app import log  
 
-
-
-
 WP_FLOAT_PANEL = wx.NewId() 
 WP_NORMAL_TOOL = wx.NewId()        
 WP_SELECTION_TOOL = wx.NewId()     
 WP_ADD_TRACK = wx.NewId()     
 WP_REMOVE_TRACK = wx.NewId()     
     
-  
-
-
 
 class WellPlotController(WorkPageController):    
     """
@@ -31,6 +25,7 @@ class WellPlotController(WorkPageController):
     """    
     
     tid = 'wellplot_controller'
+
 
     _ATTRIBUTES = {            
         'well_oid': {
@@ -526,7 +521,6 @@ class WellPlot(WorkPage):
                                  self._controller_uid,
                                  overview=True, plotgrid=False                            
         )
-
 
 
     def PreDelete(self):

@@ -531,15 +531,22 @@ class ObjectManager(GripyManager):
         """
         
         dirname, filename = os.path.split(archivepath)
-        basefilename = filename.rsplit('.', 1)[0]
-        picklefilename =  basefilename + ".pkl"
-        npzfilename = basefilename + ".npz"
         
+        #basefilename = filename.rsplit('.', 1)[0]
+        #picklefilename =  basefilename + ".pkl"
+        #npzfilename = basefilename + ".npz"
         pickledata = OrderedDict()
-        npzdata = OrderedDict()
+        npzdata = OrderedDict()        
+        
+        #
+        pickle_proj_data = OrderedDict()
+        basefilename = filename.rsplit('.', 1)[0]
+        pickle_proj_data['GRIPY_PROJ_NAME'] = basefilename
+        pickle_proj_data['OBJECTS'] = []
+        #
         
         for uid, obj in self._data.items():
-            objdict = {} #OrderedDict()
+            objdict = {}
             
             for key, value in obj.get_state().items():
                 if isinstance(value, np.ndarray):
@@ -549,10 +556,7 @@ class ObjectManager(GripyManager):
                 else:
                     objdict[key] = value
             
-#            for key in obj._READ_ONLY:
-#                objdict[key] = obj[key]
-
-                        
+      
             objdict ['__children'] = self._childrenuidmap[uid]
             pickledata[uid] = objdict  
         
@@ -567,7 +571,6 @@ class ObjectManager(GripyManager):
         
 
         picklefile = open(os.path.join(tempfile.gettempdir(), picklefilename), 'wb')
-#        pickle.dump(dict(data=pickledata, parentmap=self._parentuidmap), picklefile, protocol=2)
         pickle.dump(pickledata, picklefile, protocol=2)
         picklefile.close()
 
@@ -586,10 +589,12 @@ class ObjectManager(GripyManager):
                                  compression=zipfile.ZIP_DEFLATED) as pgg_zip:
             pgg_zip.write(os.path.join(tempfile.gettempdir(), picklefilename), arcname=picklefilename)
             pgg_zip.write(os.path.join(tempfile.gettempdir(), npzfilename), arcname=npzfilename) 
-                                              
+             
+                                 
         os.remove(os.path.join(tempfile.gettempdir(), picklefilename))
         os.remove(os.path.join(tempfile.gettempdir(), npzfilename))    
         
+
 
 
     def load(self, archivepath):
@@ -621,7 +626,6 @@ class ObjectManager(GripyManager):
         
         # Load pickle dict
         picklefile = open(os.path.join(tempfile.gettempdir(), picklefilename), 'rb')
-#        pickledict = pickle.load(picklefile)
         pickledata = pickle.load(picklefile)
         picklefile.close()
         
@@ -634,25 +638,32 @@ class ObjectManager(GripyManager):
 #        parentuidmap = pickledict['parentmap']
 
         print ('\n\n\nload')
-        print ()
-        print ('pickledata:', pickledata)
-        print ()
+
+        print ('\npickledata:', pickledata, type(pickledata))
+
 #        print ('parentuidmap:', parentuidmap)
 #        print () 
-        print ('npzdata:', npzdata)
-        print ()
+        print ('\nnpzdata:', npzdata, type(npzdata))
+        print(npzdata.files)
+        print ('\n')
 
 
-        self._load_object(pickledata)
         
-        """
+
+#        self._load_object(pickledata, npzdata)
+        
+        
+        
+        #"""
 #        newuidsmap = {}
+        
         for uid, objdict in pickledata.items():
             
             print ('\n{}: {}'.format(uid, objdict))
             
             tid = uid[0]
             for key, value in objdict.items():
+                
                 if isinstance(value, str) and value.startswith(self._NPZIDENTIFIER):
                     objdict[key] = npzdata[value.lstrip(self._NPZIDENTIFIER)]
                     
@@ -666,7 +677,7 @@ class ObjectManager(GripyManager):
             except Exception as e:
                 print (e)
                 raise 
-        """    
+        #"""    
         
 #        os.remove(os.path.join(tempfile.gettempdir(), picklefilename))
 #        os.remove(os.path.join(tempfile.gettempdir(), npzfilename))  
@@ -677,10 +688,13 @@ class ObjectManager(GripyManager):
         
     
     # for recursion
-    def _load_object(self, pickledata, **kwargs):
+    def _load_object(self, pickledata, npzdata, **kwargs):
         if not pickledata:
             return
-        
+        print()
+        print('_load_object:')   
+        print('pickledata:', pickledata)
+        print('kwargs:', kwargs)
         parent_uid = kwargs.get('parent_uid', None)
         starts_with_uid = kwargs.get('starts_with_uid', None)
         
@@ -688,24 +702,30 @@ class ObjectManager(GripyManager):
             starts_with_uid = next(iter(pickledata))
             parent_uid = None
         
-        
         objattr = pickledata.pop(starts_with_uid)
         objchildrenuid = objattr.pop('__children')
         
-        print ()
-        print ('_load_object:')
+        #
+        data = None
+        obj_npz_data_id = objattr.pop('_data', None)
+        if isinstance(obj_npz_data_id, str) and obj_npz_data_id.startswith(self._NPZIDENTIFIER):
+            data = npzdata[obj_npz_data_id.lstrip(self._NPZIDENTIFIER)]      
+        #            
         print (starts_with_uid, parent_uid)
         print (objattr, objchildrenuid)
         
         try:
-            obj = self.new(starts_with_uid[0], oid=starts_with_uid[1], **objattr)
+            if data is None:
+                obj = self.new(starts_with_uid[0], oid=starts_with_uid[1], **objattr)
+            else:
+                obj = self.new(starts_with_uid[0], data, oid=starts_with_uid[1], **objattr)
             self.add(obj, parent_uid)
         except Exception as e:
             print (e)
             raise         
         
         for objchilduid in objchildrenuid:
-            self._load_object(pickledata, starts_with_uid=objchilduid, parent_uid=obj.uid)
+            self._load_object(pickledata, npzdata, starts_with_uid=objchilduid, parent_uid=obj.uid)
         
 
 

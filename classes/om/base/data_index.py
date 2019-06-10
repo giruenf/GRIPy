@@ -86,11 +86,29 @@ class DataIndex(DataObject):
         OM = ObjectManager()        
         OM.unsubscribe(self._on_OM_add, 'add')
     
-#    def get_data_indexes(self):
-#        ret_dict = OrderedDict()
-#        ret_dict[0] = [self]
-#        return ret_dict        
-  
+    
+    def get_data_indexes(self, dimension=None):
+        """
+        Metodo de conveniencia.
+        
+        Overrides DataObject.get_data_indexes.
+        """
+        return [[self.uid]]    
+ 
+    
+    def get_curve_set(self):
+        """
+        Metodo de conveniencia.
+        
+        Se o objeto possui curve_set, o retorna. Senão retorna None.
+        
+        Metodo duplicado em DataIndex e Log.
+        """
+        OM = ObjectManager()
+        curve_set_uid = OM._getparentuid(self.uid)
+        return OM.get(curve_set_uid)
+     
+    
     @property
     def start(self):
         try:

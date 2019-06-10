@@ -6,6 +6,9 @@ import numpy as np
 from classes.om import OMBaseObject
 from classes.om import ObjectManager
 
+
+
+
 class DataMask(OMBaseObject):
     _NO_SAVE_CLASS = True   # TODO: Melhorar isso! @ObjectManager.save
     tid = 'data_mask'
@@ -30,29 +33,33 @@ class DataMask(OMBaseObject):
          
     
     def _init_data(self):
-        OM = ObjectManager()
-        data_obj = OM.get(self._data_obj_uid)
-        #
-        # No need to get unit from data_obj if it not changed.
-        self._data_name = data_obj.name
-        self._data_unit = data_obj.unit 
-        #
-        data_indexes = data_obj.get_data_indexes() 
-        
-        for dim_idx in range(len(data_indexes)):
-            indexes_per_dim_uid = data_indexes[dim_idx]
-            print(dim_idx, indexes_per_dim_uid)
-            di_uid = indexes_per_dim_uid[0]  # Chosing the first one!
-            di = OM.get(di_uid)
-            if (len(data_indexes) - dim_idx) <= 2:    
-                # Sempre exibe as 2 ultimas dimensoes do dado.
-                # Ex: sismica 3-d stacked (iline, xline, tempo) serah exibido
-                # xline e tempo, em principio.
-                # (di_uid, is_ranged, start, stop)
-                self._data.append([di_uid, True, 0, len(di.data)])
-            else:
-                self._data.append([di_uid, False, 0, len(di.data)])            
-            # 
+        try:
+            OM = ObjectManager()
+            data_obj = OM.get(self._data_obj_uid)
+            #
+            # No need to get unit from data_obj if it not changed.
+            self._data_name = data_obj.name
+            self._data_unit = data_obj.unit 
+            #
+            data_indexes = data_obj.get_data_indexes() 
+            
+            for dim_idx in range(len(data_indexes)):
+                indexes_per_dim_uid = data_indexes[dim_idx]
+                print(dim_idx, indexes_per_dim_uid)
+                di_uid = indexes_per_dim_uid[0]  # Chosing the first one!
+                di = OM.get(di_uid)
+                if (len(data_indexes) - dim_idx) <= 2:    
+                    # Sempre exibe as 2 ultimas dimensoes do dado.
+                    # Ex: sismica 3-d stacked (iline, xline, tempo) serah exibido
+                    # xline e tempo, em principio.
+                    # (di_uid, is_ranged, start, stop)
+                    self._data.append([di_uid, True, 0, len(di.data)])
+                else:
+                    self._data.append([di_uid, False, 0, len(di.data)])            
+                # 
+        except Exception as e:
+            print('ERROR _init_data:', e)
+            raise
 
     def get_data_name(self):
         return self._data_name

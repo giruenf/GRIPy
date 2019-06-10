@@ -435,10 +435,25 @@ class TrackCanvas(CanvasBaseView, SelectablePanelMixin):
 
 
 
+    def get_one_depth_per_pixel(self, depth_min, depth_max):
+        """
+        Retorna uma lista contendo uma profundidade por pixel, respeitando os
+        limites de depth_min e depth_max.
+        
+        Este metodo eh usado em track_object.py, no processo de interpolacao 
+        de linhas (classe LineRepresentation).       
+        """
+        y_px_size = self.GetSize()[1] 
+        depth_list = []
+        for depth_px in range(y_px_size):
+            depth = self._get_depth_from_ypixel(depth_px)   
+            if depth > depth_min and depth < depth_max: 
+                depth_list.append(depth)
+        return depth_list        
+
+
 #    def change_selection(self, selected):
 #        change_selection(new_value)
-
-
 
 
     def adjust_scale_xlim(self, scale):
@@ -452,10 +467,6 @@ class TrackCanvas(CanvasBaseView, SelectablePanelMixin):
             max_ = controller.leftscale*10.0**controller.decades + \
                                                                     XMAX_PLUS
             controller.xlim = (min_, max_)
-
-
-
-
 
  
     # Log properties            
@@ -608,7 +619,35 @@ class TrackCanvas(CanvasBaseView, SelectablePanelMixin):
         if self._depth_canvas:
             self._depth_canvas.reposition_depth_canvas()
 
+
+    # TODO: rever duplicidade com metodo da classe DepthCanvas
+    def _get_max_min_pixels(self):             
+        # Because we have Y axis from top to bottom, our Axes coordinated
+        # inverted too. 
+        #   Top-left: (0.0, 0.0)
+        #   Bottom-right: (1.0, 1.0)
+        #
+        # Get minimum y pixel (considering top of canvas)
+        _, min_y_px = self.get_transaxes().transform((0.0, 0.0))
+        # Get maximum y pixel (considering top of canvas)
+        _, max_y_px = self.get_transaxes().transform((1.0, 1.0))
+        return int(min_y_px), int(max_y_px)
   
+    # TODO: rever duplicidade com metodo da classe DepthCanvas
+    def _get_ypixel_from_depth(self, depth):
+        min_y_px, max_y_px = self._get_max_min_pixels()
+        transdata = self.get_transdata()
+        y_px = transdata.transform((0, depth))[1]
+        y_px = (max_y_px - y_px) + min_y_px
+        return y_px
+
+    # TODO: rever duplicidade com metodo da classe DepthCanvas
+    def _get_depth_from_ypixel(self, y_px):
+        min_y_px, max_y_px = self._get_max_min_pixels()
+        transdata_inv = self.get_transdata().inverted() 
+        depth = transdata_inv.transform((0.0, max_y_px + min_y_px - y_px))[1]
+        return depth     
+
     
 
     """
@@ -816,7 +855,7 @@ class DepthCanvas():
             x, y = self._in_canvas.GetPosition()  
             new_pos = y + inc
             #
-            min_y_px, max_y_px = self._get_max_min_pixels()
+            min_y_px, max_y_px = self.tc._get_max_min_pixels()
 
 
             
@@ -842,9 +881,9 @@ class DepthCanvas():
             #new_pos = max_y_px + min_y_px - new_pos
 
             if self._in_canvas.GetName() == 'D1':
-                new_depth = self._get_depth_from_ypixel(new_pos)           
+                new_depth = self.tc._get_depth_from_ypixel(new_pos)           
             else:    
-                new_depth = self._get_depth_from_ypixel(new_pos + 
+                new_depth = self.tc._get_depth_from_ypixel(new_pos + 
                                                            self.canvas_height)    
 
             self.tc.SetToolTip(wx.ToolTip('{0:.2f}'.format(new_depth)))
@@ -855,7 +894,7 @@ class DepthCanvas():
 
              
             
-            
+    """        
     def _get_max_min_pixels(self):             
         # Because we have Y axis from top to bottom, our Axes coordinated
         # inverted too. 
@@ -867,7 +906,7 @@ class DepthCanvas():
         # Get maximum y pixel (considering top of canvas)
         _, max_y_px = self.tc.get_transaxes().transform((1.0, 1.0))
         return int(min_y_px), int(max_y_px)
-    
+    """
     
 
     def end_dragging(self):
@@ -888,7 +927,7 @@ class DepthCanvas():
         #       
         transdata_inv = self.tc.get_transdata().inverted()
         #
-        min_y_px, max_y_px = self._get_max_min_pixels()
+        min_y_px, max_y_px = self.tc._get_max_min_pixels()
         #
         top_canvas_px = self.d1_canvas.GetPosition()[1]
         bottom_canvas_px = self.d2_canvas.GetPosition()[1]
@@ -919,12 +958,12 @@ class DepthCanvas():
         if top_canvas_px == min_y_px:
             min_depth = granpa_controller.wellplot_ylim[0]
         else:
-            min_depth = self._get_depth_from_ypixel(top_canvas_px)         
+            min_depth = self.tc._get_depth_from_ypixel(top_canvas_px)         
 
         if bottom_canvas_px == max_y_px:
             max_depth = granpa_controller.wellplot_ylim[1]
         else:
-            max_depth = self._get_depth_from_ypixel(bottom_canvas_px + 
+            max_depth = self.tc._get_depth_from_ypixel(bottom_canvas_px + 
                                                             self.canvas_height) 
       
 
@@ -952,21 +991,22 @@ class DepthCanvas():
 
 
 
-
+    """
     def _get_ypixel_from_depth(self, depth):
-        min_y_px, max_y_px = self._get_max_min_pixels()
+        min_y_px, max_y_px = self.tc._get_max_min_pixels()
         transdata = self.tc.get_transdata()
         y_px = transdata.transform((0, depth))[1]
         y_px = (max_y_px - y_px) + min_y_px
         return y_px
+    """
 
-
+    """
     def _get_depth_from_ypixel(self, y_px):
-        min_y_px, max_y_px = self._get_max_min_pixels()
+        min_y_px, max_y_px = self.tc._get_max_min_pixels()
         transdata_inv = self.tc.get_transdata().inverted() 
         depth = transdata_inv.transform((0.0, max_y_px + min_y_px - y_px))[1]
         return depth                
-
+    """
 
 
     """
@@ -1012,8 +1052,8 @@ class DepthCanvas():
         xmin, xmax = self.tc.get_xlim()
         depth_min, depth_max = granpa_controller.shown_ylim
         #
-        top_px = self._get_ypixel_from_depth(depth_min)
-        bottom_px = self._get_ypixel_from_depth(depth_max)
+        top_px = self.tc._get_ypixel_from_depth(depth_min)
+        bottom_px = self.tc._get_ypixel_from_depth(depth_max)
         #
         transaxes = self.tc.get_transaxes()
         #

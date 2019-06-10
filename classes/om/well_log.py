@@ -64,12 +64,19 @@ class Log(DataObject):
 
 
 
-
-
     
-
-
-
+    def get_curve_set(self):
+        """
+        Metodo de conveniencia.
+        
+        Se o objeto possui curve_set, o retorna. Senão retorna None.
+        
+        Metodo duplicado em DataIndex e Log.
+        """
+        OM = ObjectManager()
+        curve_set_uid = OM._getparentuid(self.uid)
+        return OM.get(curve_set_uid)
+     
 
 
 

@@ -89,6 +89,10 @@ class DataObject(OMBaseObject):
     tid = None
 
     _ATTRIBUTES = OrderedDict()
+    _ATTRIBUTES['_data'] = {
+        'default_value': None,
+        'type': np.ndarray      
+    }    
     _ATTRIBUTES['unit'] = {
         'default_value': wx.EmptyString,
         'type': str        
@@ -98,30 +102,16 @@ class DataObject(OMBaseObject):
         'type': str        
     }           
 
-    def __init__(self, data, **attributes):
+    def __init__(self, *args, **kwargs):
           
         # TODO: 29/8/2018
         # CHECAR FLAG HIDDEN PARA ATRIBUTO NAO EXIBIDO NO TREE
         # POR EXEMPLO DATA.
-            
-    
-        #print ('\n\nDataObject:\n', attributes, '\n', data)  
-        
-        # TODO: 26/9/2018
-        # Retornar com a verificação abaixo
-        '''
-        try:
-            datatype = attributes.get('datatype')
-            unit = attributes.get('unit')
-            check_data_index(datatype, unit)
-        except:
-            raise     
-        '''
 
-
-        super().__init__(**attributes)      
-        self._data = data  
-
+        if '_data' not in kwargs:
+            if args[0]:
+                kwargs['_data'] = args[0]
+        super().__init__(**kwargs)      
 #        if isinstance(self._data, np.ndarray):
 #            self._data.flags.writeable = False
 
@@ -179,7 +169,7 @@ class DataObject(OMBaseObject):
                 di_objs = [di_objs]
                 
             for di_obj in di_objs:
-                print('    Testing: ' + str(di_obj))
+                #print('    Testing: ' + str(di_obj))
                 try:
                     # Then, test if object exist this is a valid object uid.
                     obj = OM.get(di_obj)
@@ -219,17 +209,10 @@ class DataObject(OMBaseObject):
         data_indexes = data_index_map._get_data_indexes()  
         if dimension is None:
             return data_indexes
-        return data_indexes[dimension]    
+        return data_indexes[dimension] 
 
 
-
-
-
-
-
-
-
-        
+      
 
     """
 

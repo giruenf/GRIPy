@@ -3,6 +3,7 @@ import types
 from collections import OrderedDict
 from collections import Sequence
 
+import numpy as np
 import wx
 
 from app import app_utils
@@ -195,7 +196,12 @@ class GripyObject(pubsub.PublisherMixin, metaclass=GripyWxMeta):
                 type_ = type_[0]
                 value = type_(value)
                      
-            
+        # Special treatment for numpy arrays. No events are generated.
+        elif type_ == np.ndarray:
+            value = np.asarray(value)
+            self.__dict__[key] = value
+            return
+                     
         # Special treatment for functions
         elif type_ == types.FunctionType:
             if isinstance(value, str):
@@ -283,14 +289,14 @@ class GripyObject(pubsub.PublisherMixin, metaclass=GripyWxMeta):
             
 
     def get_state(self):
-        print('\nGripyObject.get_state', self._ATTRIBUTES.keys())
-        state = OrderedDict()  
+        print('\nGripyObject.get_state:', self.uid, self._ATTRIBUTES.keys())
+        state = OrderedDict()
         for attr_name in self._ATTRIBUTES.keys():
             print(attr_name, self[attr_name])
             state[attr_name] = self[attr_name]    
         return state  
-          
-    
+
+
     @classmethod
     def _get_tid_friendly_name(cls):
         """In general, classes tids are not adequated to be shown as a

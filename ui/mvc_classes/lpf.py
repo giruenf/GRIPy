@@ -722,16 +722,7 @@ class VarNodeDropData(wx.CustomDataObject):
     def GetFormat():
         return wx.DataFormat(VarNodeDropData.NAME)
 
-    """
-    def _get_object_uid(self):
-        if self.GetData(): 
-            obj_uid_bytes = self.data.GetData().tobytes()   
-            obj_uid_str = obj_uid_bytes.decode()
-            if obj_uid_str:
-                obj_uid = parse_string_to_uid(obj_uid_str)
-                return obj_uid
-        return None    
-    """
+
         
 
 ###############################################################################
@@ -876,9 +867,9 @@ class LPEObjectsPanelModel(dv.PyDataViewModel):
                     print ('\nERRO! O objeto nao possui model: ' + str(obj.uid) + '\n')
                     return ''
             elif col == 2:    
-                om_obj = obj.get_object()
-                if om_obj:
-                    return om_obj.name
+                dm = obj.get_data_mask()
+                if dm:
+                    return dm.name
                 return 'Select...' 
         else:
             raise RuntimeError("unknown node type")
