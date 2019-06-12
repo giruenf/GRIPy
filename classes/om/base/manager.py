@@ -12,6 +12,7 @@ import zipfile
 import os
 
 import tempfile
+import shutil
 
 from app import app_utils
 
@@ -529,71 +530,76 @@ class ObjectManager(GripyManager):
         -----
             Callbacks are not saved.
         """
-        
-        dirname, filename = os.path.split(archivepath)
-        
-        #basefilename = filename.rsplit('.', 1)[0]
-        #picklefilename =  basefilename + ".pkl"
-        #npzfilename = basefilename + ".npz"
-        pickledata = OrderedDict()
-        npzdata = OrderedDict()        
-        
         #
-        pickle_proj_data = OrderedDict()
-        basefilename = filename.rsplit('.', 1)[0]
-        pickle_proj_data['GRIPY_PROJ_NAME'] = basefilename
-        pickle_proj_data['OBJECTS'] = []
+        old_dir = os.getcwd()
+        temp_dir = tempfile.mkdtemp(prefix='griPy_')
+        print('\nSaving griPy project at temp directory: {}'.format(temp_dir))
         #
-        
-        for uid, obj in self._data.items():
-            objdict = {}
-            
-            for key, value in obj.get_state().items():
-                if isinstance(value, np.ndarray):
-                    npzname = "{}_{}_{}".format(uid[0], uid[1], key)
-                    npzdata[npzname] = value
-                    objdict[key] = self._NPZIDENTIFIER + npzname
-                else:
-                    objdict[key] = value
-            
-      
-            objdict ['__children'] = self._childrenuidmap[uid]
-            pickledata[uid] = objdict  
-        
-        print ('\nsave')
+        try:
+            os.chdir(temp_dir)
+            #
+            dirname, filename = os.path.split(archivepath)
+            pickle_proj_data = OrderedDict()
+            basefilename = filename.rsplit('.', 1)[0]
+            pickle_proj_data['_PROJ_NAME'] = basefilename
+            om_objs_uids = OrderedDict()
+            pickle_proj_data['_OM_OBJECTS_UIDS'] = om_objs_uids
+            #
+            for idx, (uid, obj) in enumerate(self._data.items()):
+                str_idx = '{:06d}'.format(idx+1)
+                om_objs_uids[uid] = str_idx
+                pickle_obj_state = {}
+                npzdata = {}
+    
+                for key, value in obj.get_state().items():
+                    if isinstance(value, np.ndarray):
+                        npzname = "{}_{}".format(str_idx, key)
+                        npzdata[npzname] = value
+                        pickle_obj_state[key] = self._NPZIDENTIFIER + npzname
+                    else:
+                        pickle_obj_state[key] = value
+                pickle_obj_state ['__children'] = self._childrenuidmap[uid]
+                print('\npickle_obj_state [{}]: {}'.format(str_idx, 
+                                                          pickle_obj_state))
+                # Write object state to a pickle file
+                picklefilename =  str_idx + ".pkl"
+                picklefile = open(picklefilename, 'wb')
+                pickle.dump(pickle_obj_state, picklefile, protocol=2)
+                picklefile.close()
+                #
+                if npzdata:
+                    npzfilename =  str_idx + ".npz"
+                    npzfile = open(npzfilename, 'wb')
+                    with zipfile.ZipFile(npzfile, mode='w', 
+                                    compression=zipfile.ZIP_DEFLATED) as npz_zip:        
+                        for key, val in npzdata.items():
+                            print (key + '.npy')
+                            with npz_zip.open(key + '.npy', 'w') as buf:
+                                np.lib.npyio.format.write_array(buf, np.asanyarray(val), 
+                                                                allow_pickle=False)
+                    #
+                    npzfile.close()                 
+            # Write griPy project state to a pickle file
+            picklefilename = "project.dat"
+            picklefile = open(picklefilename, 'wb')
+            pickle.dump(pickle_proj_data, picklefile, protocol=2)
+            picklefile.close()
+            #
+            print('\nSaving griPy project at: {}'.format(archivepath))
+            #
+            with zipfile.ZipFile(archivepath, mode='w', compression=zipfile.ZIP_DEFLATED) as pgg_zip:
+                for file in os.listdir(temp_dir):
+                    print('writing:', file)
+                    pgg_zip.write(file)
+            #        
+        except Exception as e:
+            print('\n\n\nERROR OM.save:', e)            
+        finally:
+            os.chdir(old_dir)
+            shutil.rmtree(temp_dir)
+        #    
+        print ('\npickle_proj_data:', pickle_proj_data)
         print ()
-        print ('pickledata:', pickledata)
-        print ()
-#        print ('parentuidmap:', self._parentuidmap)
-#        print () 
-        print ('npzdata:', npzdata)
-        print ()
-        
-
-        picklefile = open(os.path.join(tempfile.gettempdir(), picklefilename), 'wb')
-        pickle.dump(pickledata, picklefile, protocol=2)
-        picklefile.close()
-
-        npzfile = open(os.path.join(tempfile.gettempdir(), npzfilename), 'wb')
-        with zipfile.ZipFile(npzfile, mode='w', 
-                                 compression=zipfile.ZIP_DEFLATED) as npz_zip:        
-            for key, val in npzdata.items():
-                print (key + '.npy')
-                with npz_zip.open(key + '.npy', 'w') as buf:
-                    np.lib.npyio.format.write_array(buf, np.asanyarray(val), 
-                                                    allow_pickle=False)
-        
-        npzfile.close()
-        
-        with zipfile.ZipFile(archivepath, mode='w', 
-                                 compression=zipfile.ZIP_DEFLATED) as pgg_zip:
-            pgg_zip.write(os.path.join(tempfile.gettempdir(), picklefilename), arcname=picklefilename)
-            pgg_zip.write(os.path.join(tempfile.gettempdir(), npzfilename), arcname=npzfilename) 
-             
-                                 
-        os.remove(os.path.join(tempfile.gettempdir(), picklefilename))
-        os.remove(os.path.join(tempfile.gettempdir(), npzfilename))    
-        
 
 
 
@@ -613,74 +619,63 @@ class ObjectManager(GripyManager):
         """
         
         self._LOADING_STATE = True
-        
-        dirname, filename = os.path.split(archivepath)
-        picklefilename = filename.rsplit('.', 1)[0] + ".pkl"
-        npzfilename = filename.rsplit('.', 1)[0] + ".npz"
 
-        # Unzip and get 2 inner files
-        archivefile = zipfile.ZipFile(archivepath, mode='r')
-        archivefile.extract(picklefilename, path=tempfile.gettempdir())
-        archivefile.extract(npzfilename, path=tempfile.gettempdir())
-        archivefile.close()
-        
-        # Load pickle dict
-        picklefile = open(os.path.join(tempfile.gettempdir(), picklefilename), 'rb')
-        pickledata = pickle.load(picklefile)
-        picklefile.close()
-        
-        # Load NumPy's NpzFile object
-        npzfile = open(os.path.join(tempfile.gettempdir(), npzfilename), 'rb')
-        npzdata = np.lib.npyio.NpzFile(npzfile, allow_pickle=False)
-        npzfile.close()
-        
-#        pickledata = pickledict['data']
-#        parentuidmap = pickledict['parentmap']
-
-        print ('\n\n\nload')
-
-        print ('\npickledata:', pickledata, type(pickledata))
-
-#        print ('parentuidmap:', parentuidmap)
-#        print () 
-        print ('\nnpzdata:', npzdata, type(npzdata))
-        print(npzdata.files)
-        print ('\n')
-
-
-        
-
-#        self._load_object(pickledata, npzdata)
-        
-        
-        
-        #"""
-#        newuidsmap = {}
-        
-        for uid, objdict in pickledata.items():
+        old_dir = os.getcwd()
+        temp_dir = tempfile.mkdtemp(prefix='griPy_')
+        print('\nLoading griPy project at temp directory: {}'.format(temp_dir))
+        #
+        try:
+            os.chdir(temp_dir)
+            # Exploding Zip file to temp_dir
+            archivefile = zipfile.ZipFile(archivepath, mode='r')
+            archivefile.extractall()
+            archivefile.close()
+            # Write griPy project data to a pickle file
+            picklefilename = "project.dat"
+            picklefile = open(picklefilename, 'rb')
+            pickle_proj_data = pickle.load(picklefile)
+            picklefile.close()
+            #
+            print ('\npickle_proj_data:', pickle_proj_data)
             
-            print ('\n{}: {}'.format(uid, objdict))
+            print('\n\n_PROJ_NAME:', pickle_proj_data['_PROJ_NAME'])
             
-            tid = uid[0]
-            for key, value in objdict.items():
-                
-                if isinstance(value, str) and value.startswith(self._NPZIDENTIFIER):
-                    objdict[key] = npzdata[value.lstrip(self._NPZIDENTIFIER)]
-                    
-            print ()
-            print (tid, objdict)
+            pickle_proj_data['_OM_OBJECTS_UIDS']
             
-            try:
-                obj = self.new(tid, oid=uid[1], **objdict)
-#                newuidsmap[olduid] = obj.uid
-#                self.add(obj, newuidsmap.get(parentuidmap[olduid]))
-            except Exception as e:
-                print (e)
-                raise 
-        #"""    
-        
-#        os.remove(os.path.join(tempfile.gettempdir(), picklefilename))
-#        os.remove(os.path.join(tempfile.gettempdir(), npzfilename))  
+            for uid, str_idx in pickle_proj_data['_OM_OBJECTS_UIDS'].items():
+                # Read object state from a pickle file
+                picklefilename =  str_idx + ".pkl"
+                picklefile = open(picklefilename, 'rb')
+                pickle_obj_state = pickle.load(picklefile)
+                picklefile.close()
+                #
+                #print('\npickle_obj_state [{}]: {}'.format(str_idx, 
+                #                                          pickle_obj_state))
+                #
+                npz_dict = {}
+                #
+                for key, value in pickle_obj_state.items():
+                    if isinstance(value, str) and value.startswith(self._NPZIDENTIFIER):
+                        npz_dict[key] = value.lstrip(self._NPZIDENTIFIER)
+                        print('NPZ NAME FOUND:', value)
+                #
+                if npz_dict:
+                    #pickle_obj_state[key] = npzdata[value.lstrip(self._NPZIDENTIFIER)]                
+                    npzfilename =  str_idx + ".npz"
+                    npzfile = open(npzfilename, 'rb')
+                    npzdata = np.lib.npyio.NpzFile(npzfile, allow_pickle=False)
+                    print('NPZ DATA:', npzdata.files, type(npzdata))
+                    for key, value in npz_dict.items():
+                        pickle_obj_state[key] = npzdata[value]
+                    npzfile.close()
+                #    
+                print('\npickle_obj_state 2 [{}]: {}'.format(str_idx, 
+                                                          pickle_obj_state))                      
+        except Exception as e:
+            print('\n\n\nERROR OM.load:', e)            
+        finally:
+            os.chdir(old_dir)
+            shutil.rmtree(temp_dir)
         
         self._LOADING_STATE = False
         
@@ -689,6 +684,7 @@ class ObjectManager(GripyManager):
     
     # for recursion
     def _load_object(self, pickledata, npzdata, **kwargs):
+        """
         if not pickledata:
             return
         print()
@@ -727,7 +723,7 @@ class ObjectManager(GripyManager):
         for objchilduid in objchildrenuid:
             self._load_object(pickledata, npzdata, starts_with_uid=objchilduid, parent_uid=obj.uid)
         
-
+        """
 
 
 

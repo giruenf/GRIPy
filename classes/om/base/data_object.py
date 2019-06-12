@@ -102,20 +102,16 @@ class DataObject(OMBaseObject):
         'type': str        
     }           
 
-    def __init__(self, *args, **kwargs):
-          
+    def __init__(self, *args, **kwargs):       
         # TODO: 29/8/2018
         # CHECAR FLAG HIDDEN PARA ATRIBUTO NAO EXIBIDO NO TREE
         # POR EXEMPLO DATA.
-
-        if '_data' not in kwargs:
-            if args[0]:
+        if kwargs.get('_data') is None:    
+            if args:
                 kwargs['_data'] = args[0]
         super().__init__(**kwargs)      
 #        if isinstance(self._data, np.ndarray):
 #            self._data.flags.writeable = False
-
-
 
 
     @property

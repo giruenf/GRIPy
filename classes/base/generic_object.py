@@ -289,10 +289,10 @@ class GripyObject(pubsub.PublisherMixin, metaclass=GripyWxMeta):
             
 
     def get_state(self):
-        print('\nGripyObject.get_state:', self.uid, self._ATTRIBUTES.keys())
+        #print('\nGripyObject.get_state:', self.uid, self._ATTRIBUTES.keys())
         state = OrderedDict()
         for attr_name in self._ATTRIBUTES.keys():
-            print(attr_name, self[attr_name])
+            #print(attr_name, self[attr_name])
             state[attr_name] = self[attr_name]    
         return state  
 

@@ -338,12 +338,15 @@ class GripyApp(wx.App):
             dir_name, file_name = os.path.split(self.get_project_filename())
         style = wx.FD_SAVE | wx.FD_OVERWRITE_PROMPT
         wildcard = "Arquivo de projeto do GRIPy (*.pgg)|*.pgg"
+        
         fdlg = wx.FileDialog(self.GetTopWindow(), 
                              'Escolha o arquivo PGG', 
                             #dir_name, file_name, 
                             wildcard=wildcard, style=style
         )
+        
         if fdlg.ShowModal() == wx.ID_OK:
+            
             file_name = fdlg.GetFilename()
             dir_name = fdlg.GetDirectory()
             if not file_name.endswith('.pgg'):
@@ -353,6 +356,7 @@ class GripyApp(wx.App):
             self.save_project_data(os.path.join(dir_name, file_name))
             del wait
             del disableAll
+            
         fdlg.Destroy()   
 
 
