@@ -57,6 +57,9 @@ class Log(DataObject):
     
 
     def get_friendly_name(self):
+        """
+        Metodo duplicado em Log e DataIndex
+        """
         OM = ObjectManager()
         parent_well_uid = OM._getparentuid(self.uid)
         parent_well = OM.get(parent_well_uid)         

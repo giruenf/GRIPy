@@ -781,7 +781,9 @@ class LPEObjectsPanelController(UIControllerObject):
     def update_dvc(self):
         self.view.dvc.Refresh()
         
-        
+
+
+       
 ###############################################################################
 
 
@@ -828,6 +830,7 @@ class LPEObjectsPanelModel(dv.PyDataViewModel):
         #print obj.uid, '- not TrackController - False'
         return False         
     
+    
     def GetParent(self, item):
         #print '\nGetParent:'
         if not item:
@@ -843,21 +846,25 @@ class LPEObjectsPanelModel(dv.PyDataViewModel):
             item = self.ObjectToItem(track_ctrl)
             return item
              
+        
     def GetValue(self, item, col):
+        
         obj = self.ItemToObject(item)    
+        
         if isinstance(obj, TrackController):
             if col == 0:
                 if obj.label:
                     return obj.label
                 return 'Track ' + str(obj.pos + 1)
             return wx.EmptyString     
+        
         elif isinstance(obj, TrackObjectController):
             if col == 0:
                 return wx.EmptyString 
             elif col == 1:
                 try:
-                    if obj.obj_tid:
-                        ret = ObjectManager.get_tid_friendly_name(obj.obj_tid)
+                    if obj.obj_uid:
+                        ret = ObjectManager.get_tid_friendly_name(obj.obj_uid[0])
                         if ret:
                             return ret
                         return wx.EmptyString
@@ -869,7 +876,7 @@ class LPEObjectsPanelModel(dv.PyDataViewModel):
             elif col == 2:    
                 dm = obj.get_data_mask()
                 if dm:
-                    return dm.name
+                    return dm.get_data_name()
                 return 'Select...' 
         else:
             raise RuntimeError("unknown node type")
@@ -881,15 +888,15 @@ class LPEObjectsPanelModel(dv.PyDataViewModel):
         obj = self.ItemToObject(item)    
         if isinstance(obj, TrackController):
             raise Exception()  
-            
-            
+                       
         #TODO: rever isso, pois esta horrivel    
         if isinstance(obj, TrackObjectController):
             UIM = UIManager()
             ctrl = UIM.get(self._controller_uid)
             if col == 1 or col == 2:
                 print ('SetValue:', col, value)
-                pgcs = UIM.list('property_grid_controller', self._controller_uid)
+                pgcs = UIM.list('property_grid_controller', 
+                                                        self._controller_uid)
                 if pgcs:
                     pgc = pgcs[0]
                     ctrl.view.splitter.Unsplit(pgc.view)  
@@ -1098,11 +1105,11 @@ class LPEObjectsPanel(UIViewObject, wx.Panel):
                     #print
                     pgc = UIM.create('property_grid_controller', 
                                            self._controller_uid,
-                                           obj_uid=toc_obj.uid
+                                           obj_uid=toc_obj.get_representation().uid
                     )
                 else:
                     pgc = pgcs[0]   
-                #pgc.set_object_uid(toc_obj.uid)    
+                    pgc.obj_uid = toc_obj.get_representation().uid
                 if not self.splitter.IsSplit():
                     self.splitter.SplitVertically(self.dvc, pgc.view)
                 pg_shown = True
@@ -1150,7 +1157,8 @@ class LPEObjectsPanel(UIViewObject, wx.Panel):
         return tracks, track_objs           
         
              
-
+    def _get_wx_parent(self, *args, **kwargs):
+        return self.splitter
         
 
 ###############################################################################        
@@ -1229,9 +1237,9 @@ class ObjectNameRenderer(TextChoiceRenderer):
         OM = ObjectManager()
         obj = self.ItemToObject(self.item)
         self._options = OrderedDict()
-        #print 'ObjectNameRenderer:', obj.obj_tid
-        if obj.obj_tid in LogPlotController.get_acceptable_tids():
-            for om_obj in OM.list(obj.obj_tid):
+        #print 'ObjectNameRenderer:', obj.obj_uid[0]
+        if obj.obj_uid[0] in LogPlotController.get_acceptable_tids():
+            for om_obj in OM.list(obj.obj_uid[0]):
                 #print '   Adding:', om_obj.uid, om_obj.name  
                 self._options[om_obj.uid] = om_obj.name    
         _editor = wx.Choice(parent, 

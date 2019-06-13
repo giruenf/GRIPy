@@ -48,36 +48,40 @@ class DataIndex(DataObject):
 
 
      
-    def __init__(self, *args, **attributes):   
+    def __init__(self, *args, **kwargs):   
         """
         """
-        data = None
-        if args:
-            data = args[0]
-             
-        start = attributes.pop('start', None) 
-        end = attributes.pop('end', None) 
-        step = attributes.pop('step', None)    
-            
+#        print('\nDataIndex:', kwargs)  
+        #
+        if kwargs.get('_data') is None:    
+            if args:
+                kwargs['_data'] = args[0]        
+        #     
+        start = kwargs.pop('start', None) 
+        end = kwargs.pop('end', None) 
+        step = kwargs.pop('step', None)    
+        samples = kwargs.pop('samples', None)
+        #
+        data = kwargs.get('_data')
+        #
         if data is None or not isinstance(data, np.ndarray):
             try:
                 if end is None:
-                    samples = attributes.pop('samples')
                     end = start + step * samples
                 data = np.arange(start, end, step)
             except:
                 raise Exception('Data values were provided wrongly.')
-      
+        #
         if start is None:        
             start = data[0]
         if end is None:
             end = data[-1]
         samples = len(data)
-
+        #
         super().__init__(data, start=start, end=end, step=step, 
-                                 samples=samples, **attributes
+                                 samples=samples, **kwargs
         )
-
+        #
             
         
     @classmethod
@@ -112,7 +116,17 @@ class DataIndex(DataObject):
         OM = ObjectManager()
         curve_set_uid = OM._getparentuid(self.uid)
         return OM.get(curve_set_uid)
-     
+
+
+    def get_friendly_name(self):
+        """
+        Metodo duplicado em Log e DataIndex
+        """
+        OM = ObjectManager()
+        parent_well_uid = OM._getparentuid(self.uid)
+        parent_well = OM.get(parent_well_uid)         
+        return self.name + '@' + parent_well.name 
+    
     
     @property
     def start(self):

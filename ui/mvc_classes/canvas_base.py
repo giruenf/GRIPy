@@ -552,7 +552,7 @@ class CanvasBaseController(UIControllerObject):
         
     def PostInit(self):
         
-        print('CanvasBaseController.PostInit')
+#        print('CanvasBaseController.PostInit')
         #
         self.subscribe(self.on_change_figure_facecolor, 
                        'change.figure_facecolor')
@@ -707,7 +707,7 @@ class CanvasBaseController(UIControllerObject):
         self.subscribe(self.on_change_minor_tick_visibility, 
                                                'change.ytick_minor_visible')
         #
-        print('CanvasBaseController.PostInit fim')
+#        print('CanvasBaseController.PostInit fim')
 
 
     def on_change_axes_properties(self, old_value, new_value, 

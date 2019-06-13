@@ -69,14 +69,14 @@ class TrackController(UIControllerObject):
     def append_object(self, obj_uid):
         UIM = UIManager()
         try:
-            print('\n\n\n')
-            print (111, obj_uid, type(obj_uid))
-            print (222, self.uid, type(self.uid))
+#            print('\n\n\n')
+#            print (111, obj_uid, type(obj_uid))
+#            print (222, self.uid, type(self.uid))
             toc = UIM.create('track_object_controller', self.uid)  
-            print (333)
+#            print (333)
             if isinstance(obj_uid, str):
                 obj_uid = parse_string_to_uid(obj_uid)
-            print (444, obj_uid)
+#            print (444, obj_uid)
             toc.obj_uid = obj_uid
 #            print (555)
 
@@ -84,6 +84,7 @@ class TrackController(UIControllerObject):
         except Exception as e:
             print ('ERRO TrackController.append_object', e)
             raise
+            
             
     def reload_track_title(self):
         self.view.update_title(None, None)

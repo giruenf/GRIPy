@@ -77,7 +77,7 @@ class TrackObjectController(UIControllerObject):
     
     _ATTRIBUTES['obj_uid'] = {
             'default_value': None,
-            'type': (tuple, [str, int])
+            'type': 'uid'
     }
 
     _ATTRIBUTES['plottype'] = {
@@ -102,7 +102,7 @@ class TrackObjectController(UIControllerObject):
     
     _ATTRIBUTES['data_mask_uid'] = {
             'default_value': None,
-            'type': (tuple, [str, int])
+            'type': 'uid'
     } 
     
     
@@ -145,11 +145,20 @@ class TrackObjectController(UIControllerObject):
         OM = ObjectManager()
         return OM.get(self.data_mask_uid)
         
+
+    def get_well_plot_index_type(self):
+        UIM = UIManager()
+        track_ctrl_uid = UIM._getparentuid(self.uid)
+        well_plot_ctrl_uid = UIM._getparentuid(track_ctrl_uid)
+        well_plot_ctrl = UIM.get(well_plot_ctrl_uid)
+        return well_plot_ctrl.index_type
+
+
     
     # TODO: Passar somente data_mask, nao trabalhando mais com o obj_uid
     def on_change_obj_uid(self, new_value, old_value):
         # Exclude any representation, if exists
-        print('\n\n\nTrackObjectController.on_change_obj_uid:', new_value, old_value)
+#        print('\n\n\nTrackObjectController.on_change_obj_uid:', new_value, old_value)
         OM = ObjectManager()
         try:
             if old_value is not None:
@@ -159,12 +168,18 @@ class TrackObjectController(UIControllerObject):
             if obj:
                 dm = OM.new('data_mask', obj.uid)
                 OM.add(dm)
+                #
+                # TODO: Verificar isso
+                # Setando datatype do eixo Z
+                index_type = self.get_well_plot_index_type()
+                dm.set_dimension(dim_idx=-1, datatype=index_type)
+                #
                 self.data_mask_uid = dm.uid
                 #
                 plottype = _PREFERRED_PLOTTYPES.get(obj.uid[0])
                 self.plottype = plottype    
                 #
-                print ('\nAttaching', self.uid, 'to', obj.uid)
+#                print ('\nAttaching', self.uid, 'to', obj.uid)
                 self.attach(obj.uid)
         except Exception as e:
             print ('ERROR on_change_obj_oid:', e)
@@ -198,12 +213,6 @@ class TrackObjectController(UIControllerObject):
     def _do_draw(self):
 #        print ('\nTrackObjectController._do_draw')
         repr_ctrl = self.get_representation() 
-        """
-        if self.get_object().tid != 'partition':
-#            print ('b4 CALL draw')   
-            repr_ctrl._prepare_data() 
-#        print ('CALL draw') 
-        """    
         repr_ctrl.view.draw()       
 #        print ('CALL end')
 
@@ -322,7 +331,17 @@ class RepresentationController(UIControllerObject):
         else:
             return False
 
+    def get_data_object_uid(self):
+        dm = self.get_data_mask()
+        return dm.get_data_object_uid()
+        
+    def get_friendly_name(self):
+        do_uid = self.get_data_object_uid()
+        OM = ObjectManager()
+        do = OM.get(do_uid)
+        return do.get_friendly_name()
     
+   
 class RepresentationView(UIViewObject):
     tid = 'representation_view'
 
@@ -775,7 +794,7 @@ class IndexRepresentationView(RepresentationView):
         #print('get_data_info:', event.ydata)
         return None
         
-        
+        """
         OM = ObjectManager()
         UIM = UIManager()
         controller = UIM.get(self._controller_uid)
@@ -791,12 +810,12 @@ class IndexRepresentationView(RepresentationView):
         
         y_pos_index = (np.abs(position_data - event.ydata)).argmin()
         return str(controller._data[y_pos_index])
-
+        """
            
     
     
     def draw(self):
-        print ('\nIndexRepresentationView.draw')
+#        print ('\nIndexRepresentationView.draw')
         try:
             if self._mplot_objects:
                 self.clear() 
@@ -810,29 +829,44 @@ class IndexRepresentationView(RepresentationView):
             self.set_title(dm.get_data_name())
             self.set_subtitle(dm.get_data_unit())          
             #
-            ydata = dm.get_last_dimension_index_data()
-            if ydata is None:
-                return
-            #            
-            y_min, y_max = np.nanmin(ydata), np.nanmax(ydata)
-            if y_min%controller.step:
-                y_min = (y_min//controller.step + 1) * controller.step  
-            y_values = np.arange(y_min, y_max, controller.step)         
-            #
             UIM = UIManager()
             controller = UIM.get(self._controller_uid)
             toc_uid = UIM._getparentuid(self._controller_uid)
+            toc = UIM.get(toc_uid)
+            index_type = toc.get_well_plot_index_type()
+            #
+            ydata = dm.get_last_dimension_index_data()
+            if ydata is None:
+                return
+            equivalent_ydata = dm.get_equivalent_index_data(datatype=index_type)
+            if equivalent_ydata is None:
+                # There is no equivalent data to be plotted. For example, 
+                # we have a TWT index_type and do not have TWT indexed data.
+                # Then, no plot!
+                return
+            #
+            '''
+            y_min, y_max = np.nanmin(ydata), np.nanmax(ydata)
+            if y_min%controller.step:
+                y_min = (y_min//controller.step + 1) * controller.step  
+            y_values = np.arange(y_min, y_max, controller.step)   
+            '''
+            y_min, y_max = np.nanmin(equivalent_ydata), np.nanmax(equivalent_ydata)
+            if y_min%controller.step:
+                y_min = (y_min//controller.step + 1) * controller.step  
+            y_values = np.arange(y_min, y_max, controller.step)               
+            #
             track_controller_uid = UIM._getparentuid(toc_uid)
             track_controller =  UIM.get(track_controller_uid)   
             #
             canvas = self.get_canvas()
             transformated_pos_x = canvas.transform(controller.pos_x, 0.0, 1.0)         
             #
-            print('y_values:', y_values)
+#            print('y_values:', y_values)
             
             for y_value in y_values:
-                print('\ny_value:', y_value)
-                y_pos_index = (np.abs(ydata - y_value)).argmin()
+#                print('\ny_value:', y_value)
+                y_pos_index = (np.abs(equivalent_ydata - y_value)).argmin()
                 y_pos = ydata[y_pos_index]
                 text = track_controller.append_artist('Text', 
                                         transformated_pos_x, y_pos,

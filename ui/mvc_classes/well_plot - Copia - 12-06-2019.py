@@ -12,16 +12,12 @@ from app.app_utils import WellPlotState
 from app.app_utils import GripyBitmap  
 from app import log  
 
-
-
 WP_FLOAT_PANEL = wx.NewId() 
 WP_NORMAL_TOOL = wx.NewId()        
 WP_SELECTION_TOOL = wx.NewId()     
 WP_ADD_TRACK = wx.NewId()     
 WP_REMOVE_TRACK = wx.NewId()     
     
-
-
 
 class WellPlotController(WorkPageController):    
     """
@@ -32,9 +28,9 @@ class WellPlotController(WorkPageController):
 
 
     _ATTRIBUTES = {            
-        'obj_uid': {
+        'well_oid': {
                 'default_value': None,
-                'type': 'uid'
+                'type': int    
         },
                 
         'wellplot_ylim': {
@@ -66,15 +62,12 @@ class WellPlotController(WorkPageController):
     }
         
     def __init__(self, **state):
-        super().__init__(**state)
-        # TODO: ver se este metodo esta na melhor posicao
-        self._reload_ylims_from_index_type()
+        super().__init__(**state)  
 
     def PostInit(self):
         self.subscribe(self._on_change_cursor_state, 'change.cursor_state')
         self.subscribe(self._on_change_shown_ylim, 'change.shown_ylim')
-        self.subscribe(self._on_change_wellplot_ylim, 'change.wellplot_ylim')
-        self.subscribe(self._on_change_index_type, 'change.index_type')
+        #self.subscribe(self._reload_ylims, 'change.y_max_shown')
         # Then subscribe to UIManager in order to adjust Notebook page name 
         # after another WellPlot was removed.
         UIM = UIManager()
@@ -116,62 +109,7 @@ class WellPlotController(WorkPageController):
             for track in selected_tracks:
                 track.selected = False
                     
-
-
-    def _reload_ylims_from_index_type(self):
-        """
-        Given a y axis datatype (e.g. MD), reload its limits.
-        """
-        OM = ObjectManager()
-        try:
-            well = OM.get(self.obj_uid)
-        except:
-            raise    
-        ylim = well.get_z_axis_datatype_range(self.index_type)
-        self.wellplot_ylim = ylim
-        self.shown_ylim = ylim
-                
-        
-              
-    def _on_change_index_type(self, new_value, old_value=None):     
-        print ('\n_on_change_index_type:', new_value, old_value)
-        UIM = UIManager() 
-        try:
-            self._reload_ylims_from_index_type()
-
-            # TODO: Find a more Pythonic way to write aboxe
-            for track_ctrl in UIM.list('track_controller', self.uid):
-                if track_ctrl.overview:
-                    continue
-                    """    
-#                    print ('overview')
-                    try:
-                        if self.ot_toc:
-                            UIM.remove(self.ot_toc.uid) 
-                    except Exception as e:
-                        print ('UIM.remove(self.ot_toc.uid):', e)
-#                    print (self.zaxis_uid)    
-        
-#                    self.ot_toc = self._overview_track.append_object(self.zaxis_uid) 
-             
-                    #ot_toc = self._overview_track.append_object(self.zaxis_uid)
-                    #ot_toc_repr_ctrl = self.ot_toc.get_representation()
-                    # TODO: Update Adaptative
-                    #ot_toc_repr_ctrl.step = 200
-                    """
-                else:
-                    for toc_ctrl in UIM.list('track_object_controller', track_ctrl.uid):
-                        dm = toc_ctrl.get_data_mask()
-                        dm.set_dimension(datatype=new_value)
-                        toc_ctrl._do_draw() 
-                                      
-        except Exception as e: 
-            print ('ERROR _on_change_index_type:', e)
-            raise        
-        
-        
-        
-
+    # TODO: y or z???
     def _on_change_shown_ylim(self, new_value, old_value):
         ymin, ymax = new_value
         if ymin < 0 or ymax < 0:
@@ -181,22 +119,11 @@ class WellPlotController(WorkPageController):
             if not track.overview:
                 track.set_ylim(ymin, ymax)
             else:
-                track.reposition_depth_canvas()        
+                track.reposition_depth_canvas()
+                
         self.view._reload_z_axis_textctrls()   
 
-    def _on_change_wellplot_ylim(self, new_value, old_value):
-        ymin, ymax = new_value
-        symin, symax = self.shown_ylim
-        changed = False
-        if ymin > symin:
-            symin = ymin
-            changed = True
-        if ymax < symax:  
-            symax = ymax
-            changed = True        
-        if changed:
-            self.shown_ylim = (symin, symax)
-            
+     
         
     def _on_post_remove_well_plot(self, objuid):
         """
@@ -533,7 +460,7 @@ class WellPlot(WorkPage):
         # Overview
         self._overview = None
         self._overview_border = 1
-        self._overview_width = 120
+        self._overview_width = 120#60
         self._overview_base_panel = wx.Panel(self._main_panel)
         self._overview_base_panel.SetBackgroundColour('black')
         self._overview_base_panel.SetInitialSize((0, 0))
@@ -566,27 +493,29 @@ class WellPlot(WorkPage):
         controller = UIM.get(self._controller_uid)
         controller.subscribe(self.set_fit, 'change.fit')
         controller.subscribe(self.set_multicursor, 'change.multicursor')
+        controller.subscribe(self.set_index_type, 'change.index_type')
         #
-        well = OM.get(controller.obj_uid) 
+        # TODO: check function below
+        self._prepare_index_data()
+        #
+        well = OM.get(('well', controller.well_oid))      
         controller.attach(well.uid)
-        #
-        
-        # Populate index type Choice
+
         for z_axis_dt in well.get_z_axis_datatypes().keys():
             self._tool_bar.choice_IT.Append(z_axis_dt)
-        # Setting index type Choice
+        
         idx_index_type = self._tool_bar.choice_IT.GetItems().index(controller.index_type)
         self._tool_bar.choice_IT.SetSelection(idx_index_type)
-        #
-        
-        
-#        self.set_index_type(controller.index_type)  
+
+        self.set_index_type(controller.index_type)  
         self._tool_bar.choice_IT.Bind(wx.EVT_CHOICE , self._on_index_type) 
         
-        
-        
-        # Setting min and max Z axis TextCtrls
+        controller.subscribe(self._reload_z_axis_textctrls, 
+                                                     'change.wellplot_ylim')
+ 
         self._reload_z_axis_textctrls()
+
+
         # Create Overview Track
         UIM.create('track_controller', 
                                  self._controller_uid,
@@ -651,7 +580,7 @@ class WellPlot(WorkPage):
         """Places a TrackCanvas window at overview place.
         It is a inner function and should (must) be used only by WellPlot.    
         """
-#        print ('\n\n_place_as_overview')
+        print ('\n\n_place_as_overview')
         
         if not self._overview_sizer.IsEmpty():
             raise Exception('Overview sizer is not empty.')
@@ -660,7 +589,7 @@ class WellPlot(WorkPage):
                                 wx.EXPAND|wx.ALL, self._overview_border
         )     
         self._hbox.Layout()
-#        print ('_place_as_overview FINISHED')
+        print ('_place_as_overview FINISHED')
 
 
 
@@ -709,14 +638,15 @@ class WellPlot(WorkPage):
             UIM = UIManager()   
             controller = UIM.get(self._controller_uid)
             idx = 0
-            well = OM.get(controller.obj_uid)
-            wpcs = UIM.list('wellplot_controller')
-            for wpc in wpcs:
-                if wpc == controller:
+            well = OM.get(('well', controller.well_oid))
+            lpcs = UIM.list('wellplot_controller')
+            for lpc in lpcs:
+                if lpc == controller:
                     break
-                if wpc.obj_uid == controller.obj_uid:
+                if lpc.well_oid == controller.well_oid:
                     idx += 1
-            idx += 1            
+            idx += 1
+            
             controller.title = self._get_tid_friendly_name() + ': ' + well.name + \
                                         ' ['+ str(idx) + ']'    
         except Exception as e:
@@ -724,8 +654,27 @@ class WellPlot(WorkPage):
     
     
 
+    def _prepare_index_data(self):
+#        print ('\nWellPlot._prepare_index_data')
+        OM = ObjectManager()
+        UIM = UIManager()        
+        controller = UIM.get(self._controller_uid)
+        try:
+            well = OM.get(('well', controller.well_oid))
+        except:
+            raise
+            
+        ylim = well.get_z_axis_datatype_range(controller.index_type)
+        controller.wellplot_ylim = ylim
+        controller.shown_ylim = ylim
+
+
+    """
+    def on_change_wellplot_ylim(self, new_value, old_value):
+        #raise Exception('Cannot do it!')
+        self._reload_z_axis_textctrls()
+    """    
         
-    
     def _reload_z_axis_textctrls(self, *args):    
         UIM = UIManager()        
         controller = UIM.get(self._controller_uid)
@@ -899,33 +848,33 @@ class WellPlot(WorkPage):
         lp_editor_ctrl.view.Show()							  
 
 
+    def _OnResetZAxis(self, event): 
+        #UIM = UIManager()
+        self._prepare_index_data()
 
-    def _OnResetZAxis(self, event):
-        """
-        Reset based on controller.wellplot_ylim, not on a new DataIndex inclusion.
-        """
-        UIM = UIManager()
-        controller = UIM.get(self._controller_uid)
-        controller.shown_ylim = controller.wellplot_ylim
-        
 
     def _OnSetZAxis(self, event): 
         UIM = UIManager()
         controller = UIM.get(self._controller_uid)
         ymin, ymax = controller.wellplot_ylim
-        z_start_str = self._tool_bar.z_start.GetValue()
-        z_end_str = self._tool_bar.z_end.GetValue()
-        ok = True
-        if not round(float(z_start_str), 2) >= round(ymin, 2):
-            self._tool_bar.z_start.SetValue(z_start_str)   
-            ok = False
-        if not round(float(z_end_str), 2) <= round(ymax, 2):
-            self._tool_bar.z_start.SetValue(z_end_str)
-            ok = False
-        if ok:  
-            controller.shown_ylim((float(z_start_str), float(z_end_str)))
-
+        try:
+            zstart = float(self._tool_bar.z_start.GetValue())
+            zend = float(self._tool_bar.z_end.GetValue())
+            if not round(zstart, 2) >= round(ymin, 2):
+                
+                raise Exception('AAA: ', str(zstart) + '   '+ str(ymin))
+                
+            if not round(zend, 2) <= round(ymax, 2):
+                raise Exception('BBB: ', str(zend) + '   '+ str(ymax))              
+        except Exception as e:
+            print ('ERROR:', e)
+            self._reload_z_axis_textctrls()
+            return
+        #
+        controller.set_value_from_event('shown_ylim', (zstart, zend))
+        controller._reload_ylims()
             
+
 
     def _on_fit(self, event): 
         UIM = UIManager()
@@ -967,6 +916,72 @@ class WellPlot(WorkPage):
 
 
 
+    def set_index_type(self, new_value, old_value=None):     
+        
+        print ('\n\n\nset_index_type:', new_value, old_value)
+
+        UIM = UIManager() 
+        
+        try:
+            
+            #self._prepare_index_data()
+            print ('\nWellPlot._prepare_index_data')
+            OM = ObjectManager()
+            #UIM = UIManager()        
+            controller = UIM.get(self._controller_uid)
+            try:
+                well = OM.get(('well', controller.well_oid))
+            except:
+                raise
+                
+            ylim = well.get_z_axis_datatype_range(new_value)
+            
+            
+            controller.wellplot_ylim = ylim
+            controller.shown_ylim = ylim
+
+            
+    
+            #self.zaxis_uid = zaxis[0].uid
+            print ('WellPlot._prepare_index_data FIM\n')            
+            
+            # TODO: Find a more Pythonic way to write aboxe
+            for track_ctrl in UIM.list('track_controller', self._controller_uid):
+                
+                if not track_ctrl.overview:
+                    """    
+#                    print ('overview')
+                    try:
+                        if self.ot_toc:
+                            UIM.remove(self.ot_toc.uid) 
+                    except Exception as e:
+                        print ('UIM.remove(self.ot_toc.uid):', e)
+#                    print (self.zaxis_uid)    
+        
+
+
+#                    self.ot_toc = self._overview_track.append_object(self.zaxis_uid) 
+                    
+                    
+                    
+                    #ot_toc = self._overview_track.append_object(self.zaxis_uid)
+                    #ot_toc_repr_ctrl = self.ot_toc.get_representation()
+                    # TODO: Update Adaptative
+                    #ot_toc_repr_ctrl.step = 200
+                    
+                    else:
+                    """    
+                    for toc_ctrl in UIM.list('track_object_controller', track_ctrl.uid):
+                        filter_ = toc_ctrl.get_filter()
+                        filter_.reload_z_dimension_indexes()
+                        toc_ctrl._do_draw() 
+                        
+#            print ('FIM set_index_type:', new_value, old_value, '\n\n')                
+        except Exception as e: 
+            print ('ERROR set_index_type:', e)
+            raise
+      
+        
         
     """    
     def show_cursor(self, event_on_track_ctrl_uid, xdata, ydata):

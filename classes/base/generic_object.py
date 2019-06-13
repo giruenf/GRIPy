@@ -168,7 +168,12 @@ class GripyObject(pubsub.PublisherMixin, metaclass=GripyWxMeta):
         attr = self.find_attribute(key)
         type_ = attr.get('type')
          
-        
+             
+        # Special treatment for objects uids.     
+        if type_ == 'uid':
+            type_ = (tuple, [str, int])   
+
+ 
         # Special treatment for some Sequences attributes like 
         # _ATTRIBUTES.type: (sequence, sequence_inner_type, sequence_lenght)
         # e.g., 'type': (tuple, float, 2) or 'type': (tuple, [str, int])  

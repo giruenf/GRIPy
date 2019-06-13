@@ -13,6 +13,11 @@ from classes.ui import UIViewObject
 import app.pubsub as pub
 from app.app_utils import MPL_COLORS, MPL_COLORMAPS
 
+
+from ui.mvc_classes.wxgripy import FrameController
+from ui.mvc_classes.wxgripy import Frame
+
+
 ###############################################################################
 ###############################################################################
 
@@ -383,97 +388,71 @@ def _get_pg_property(obj_uid, obj_attr, obj_attr_props):
 
 
 
-
 class PropertyGridController(UIControllerObject):
     tid = 'property_grid_controller'
 
     _ATTRIBUTES = OrderedDict()
     _ATTRIBUTES['obj_uid'] = {
         'default_value': None,
-        'type': (tuple, [str, int])
+        'type': 'uid'
     }      
 
     def __init__(self, **state):
         super().__init__(**state)  
-        print('PropertyGridController.__init__:', state, self.get_state())
-        #
+        print('\n\nPropertyGridController.__init__:', state)
         self._properties = OrderedDict()
-
-
+        self.subscribe(self.on_change_obj_uid, 'change.obj_uid') 
+       
     def PostInit(self):
-        self._draw()
-        
-        
-    def _get_object(self):
+        if self.obj_uid is not None:
+            self.on_change_obj_uid(self.obj_uid, None)
+                   
+    def _get_object(self, obj_uid=None):
+        if obj_uid is None:
+            obj_uid = self.obj_uid
         app = wx.App.Get()
-        print(self.obj_uid[0])
-        Manager = app.get_manager_class(self.obj_uid[0])
+        Manager = app.get_manager_class(obj_uid[0])
         manager = Manager()
-        obj = manager.get(self.obj_uid)
+        obj = manager.get(obj_uid)
         return obj
 
 
+    def on_change_obj_uid(self, new_value, old_value):
+        if old_value is not None:
+            self.remove_properties(old_value)
+        obj = self._get_object() 
+        title = obj.get_friendly_name()
+        self.view.Append(pg.PropertyCategory(title, name='title'))
+        for key, key_props in obj._ATTRIBUTES.items():
+            try:
+                property_ = _get_pg_property(obj.uid, key, key_props)
+                self._properties[key] = property_
+                self.view.Append(property_)
+                obj.subscribe(self.refresh_property, 'change.' + key)     
+            except:
+                pass        
 
-    def _draw(self):
-        obj = self._get_object()  
-        # TODO: rever isso
-        title = obj.get_object().get_friendly_name()    
-        #
-        self.view.Append(
-            pg.PropertyCategory(title, name='title')
-        )
-        # TODO: rever isso
-        repr_ctrl = obj.get_representation()
-        if repr_ctrl.tid != 'patches_representation_controller':
-            
-#            print()
-#            print(repr_ctrl._ATTRIBUTES.items(), type(repr_ctrl._ATTRIBUTES.items()))
-#            print()
-            
-            for key, key_props in repr_ctrl._ATTRIBUTES.items():
-#                print('\n', repr_ctrl.uid, key, key_props)
-                
-                try:
-                    property_ = _get_pg_property(repr_ctrl.uid, key, key_props)
 
-                    self._properties[key] = property_
-                    self.view.Append(property_)
-                    repr_ctrl.subscribe(self.refresh_property, 'change.' + key)
-                    
-                except:
-                    pass
-        else:  
-            raise Exception('patches_representation_controller')
-            
-            
-        
-
-    def clear(self):
+    def remove_properties(self, obj_uid):        
         UIM = UIManager()
         parent_controller_uid = UIM._getparentuid(self.uid)
         parent_controller =  UIM.get(parent_controller_uid)
         if parent_controller.view.splitter.IsSplit():  
-            parent_controller.view.splitter.Unsplit(self.view)               
-        if self._properties:    
-            old_obj = UIM.get(self._toc_obj_uid)
-            old_repr_ctrl = old_obj.get_representation()
-            if old_repr_ctrl.tid != 'patches_representation_controller':
-                for key in self._properties.keys():
-                    old_repr_ctrl.unsubscribe(self.refresh_property, \
-                                              'change.' + key
-                    )                     
+            parent_controller.view.splitter.Unsplit(self.view)  
+        #             
+        if self._properties: 
+            obj = self._get_object(obj_uid)
+            for key in self._properties.keys():
+                obj.unsubscribe(self.refresh_property, \
+                                          'change.' + key
+                )                     
         self._properties.clear()
         self.view.Clear()
-        self._toc_obj_uid = None
- 
-
-      
-#    def get_object_uid(self):
-#        return self._toc_obj_uid
-
-    """
+       
+        
+    """    
     def set_object_uid(self, toc_obj_uid): 
-        if toc_obj_uid == self._toc_obj_uid:
+        if toc_obj_uid == self.obj_uid:
             self.view.Refresh()
             return
         UIM = UIManager()    
@@ -484,7 +463,10 @@ class PropertyGridController(UIControllerObject):
             return  
     
         self.clear()
-        title = toc.get_object().get_friendly_name()
+        
+        OM = ObjectManager()
+        obj = OM.get(toc.obj_uid)
+        title = obj.get_friendly_name()
         #title = toc.get_object()._get_tid_friendly_name() + ': ' + \
         #                                            toc.get_object().name
         self.view.Append(
@@ -492,61 +474,36 @@ class PropertyGridController(UIControllerObject):
         )
         
         repr_ctrl = toc.get_representation()
-        if repr_ctrl.tid != 'patches_representation_controller':
-            
-            print()
-            print(repr_ctrl._ATTRIBUTES.items(), type(repr_ctrl._ATTRIBUTES.items()))
-            print()
-            
-            for key, key_props in repr_ctrl._ATTRIBUTES.items():
-                print('\n', repr_ctrl.uid, key, key_props)
-                
-                try:
-                    property_ = _get_pg_property(repr_ctrl.uid, key, key_props)
 
-                    self._properties[key] = property_
-                    self.view.Append(property_)
-                    repr_ctrl.subscribe(self.refresh_property, 'change.' + key)
-                    
-                except:
-                    pass
-        else:
-            obj = toc.get_object()
-            OM = ObjectManager()
-            parts =  OM.list('part', obj.uid)
-            parts_name = [part.name for part in parts]
-            parts_uid = [part.uid for part in parts]
-            property_ = DynamicEnumProperty(self.cb, label='Select part',
-                        labels=parts_name,
-                        values=parts_uid,
-                        value=len(parts_uid)-1
-            )  
-            self._properties['part'] = property_
-            self.view.Append(property_)
-        self._toc_obj_uid = toc_obj_uid
-    
-    """    
-    
-    
-    def cb(self, value):
-        OM = ObjectManager()
-        part = OM.get(value)
-        color_prop = self._properties.get('color')
-        if color_prop:
-            self.view.DeleteProperty(color_prop.GetName())
-        mpl_color = part.color #[float(c)/255.0 for c in part.color]
-        print (value, '-', mpl_color)
-        color_prop = pg.ColourProperty(label='Part color', value=mpl_color)
-        self._properties['color'] = color_prop
-        self.view.Append(color_prop)
+        print()
+        print(repr_ctrl._ATTRIBUTES.items(), type(repr_ctrl._ATTRIBUTES.items()))
+        print()
+        
+        for key, key_props in repr_ctrl._ATTRIBUTES.items():
+            print('\n', repr_ctrl.uid, key, key_props)
+            
+            try:
+                property_ = _get_pg_property(repr_ctrl.uid, key, key_props)
+
+                self._properties[key] = property_
+                self.view.Append(property_)
+                repr_ctrl.subscribe(self.refresh_property, 'change.' + key)
+                
+            except:
+                pass
+
+        self.obj_uid = toc_obj_uid
+    """
         
         
     def refresh_property(self, topicObj=pub.AUTO_TOPIC, 
                                               new_value=None, old_value=None):
-        #obj_uid = pub.pubuid_to_uid(topicObj.getName().split('.')[0])
+        """
+        Refresh a property, when it is changed.
+        """
         key = topicObj.getName().split('.')[-1]
-        p = self._properties[key]
-        self.view.RefreshProperty(p)
+        prop = self._properties[key]
+        self.view.RefreshProperty(prop)
 
 
 
@@ -558,596 +515,12 @@ class PropertyGridView(UIViewObject, pg.PropertyGrid):
         UIM = UIManager()
         parent_controller_uid = UIM._getparentuid(self._controller_uid)
         parent_controller =  UIM.get(parent_controller_uid)
-        
-        pg.PropertyGrid.__init__(self, parent_controller.view.splitter, 
+        wx_parent = parent_controller._get_wx_parent(self.tid)
+        #
+        pg.PropertyGrid.__init__(self, wx_parent, 
                         style=pg.PG_SPLITTER_AUTO_CENTER|pg.PG_HIDE_MARGIN
         )
+        #
         self.SetCaptionBackgroundColour(wx.Colour(0, 128, 192))
         self.SetCaptionTextColour('white')       
 
-
-    
-"""    
-# Index
-
-    def get_propgrid(self, parent):
-        propgrid = self._get_propgrid(parent)
-        propgrid.Append( 
-            FloatProperty(self._controller_uid, 'step', 
-                            label='Step'
-            )
-        )
-        propgrid.Append(              
-            EnumProperty(self._controller_uid, 'pos_x',
-                         label='Horizontal Alignment',
-                         labels=['Left', 'Center', 'Right'],
-                         values=[0.1, 0.5, 0.9]
-            ) 
-        ) 
-        propgrid.Append(
-            EnumProperty(self._controller_uid, 'fontsize', 
-                         label='Font Size',
-                         labels=['7', '8', '9', '10', '11', '12', '13'],
-                         values=[7, 8, 9, 10, 11, 12, 13]
-            )             
-        )            
-        propgrid.Append(
-            EnumProperty(self._controller_uid, 'color', 
-                         label='Color',
-                         labels=ColorSelectorComboBox.get_colors()            
-            )             
-        )    
-        propgrid.Append(  
-            BoolProperty(self._controller_uid, 'bbox', 
-                         label='Bbox'
-            )    
-        )  
-        propgrid.Append(              
-            EnumProperty(self._controller_uid, 'bbox_style',
-                         label='Bbox Style',
-                         labels=['Circle', 'DArrow', 'LArrow', 'RArrow', 
-                                 'Round', 'Round4', 'Roundtooth', 'Sawtooth',
-                                 'Square'],
-                         values=['circle', 'darrow', 'larrow', 'rarrow',
-                                 'round', 'round4', 'roundtooth', 'sawtooth',
-                                 'square']
-            ) 
-        ) 
-        propgrid.Append(
-            EnumProperty(self._controller_uid, 'bbox_color', 
-                         label='Bbox Color',
-                         labels=ColorSelectorComboBox.get_colors()            
-            )             
-        )        
-        propgrid.Append( 
-            FloatProperty(self._controller_uid, 'bbox_alpha', 
-                            label='Bbox Alpha'
-            )
-        )            
-        propgrid.Append(              
-            EnumProperty(self._controller_uid, 'ha',
-                         label='Horizontal Alignment in the TextBox',
-                         labels=['Left', 'Center', 'Right'],
-                         values=['left', 'center', 'right']
-            ) 
-        )
-        propgrid.Append(
-            EnumProperty(self._controller_uid, 'va',
-                         label='Vertical Alignment in the TextBox',
-                         labels=['Top', 'Center', 'Bottom', 'Baseline'],
-                         values=['top', 'center', 'bottom', 'baseline']
-            ) 
-        )            
-        return propgrid  
-
-
-#Density
-
-
-
-    def get_propgrid(self, parent):
-        propgrid = self._get_propgrid(parent)
-        propgrid.Append(
-            EnumProperty(self._controller_uid, 'type', 
-                         label='Plot type',
-                         labels=['Density', 'Wiggle', 'Both'],     
-                         values=['density', 'wiggle', 'both']
-            )             
-        ) 
-        propgrid.Append(
-            EnumProperty(self._controller_uid, 'colormap', 
-                         label='Colormap',
-                         labels=MPL_COLORMAPS            
-            )             
-        )
-        propgrid.Append(
-            EnumProperty(self._controller_uid, 'interpolation', 
-                         label='Colormap interpolation',
-                         labels=['none', 'nearest', 'bilinear', 'bicubic',
-                                  'spline16', 'spline36', 'hanning', 'hamming',
-                                  'hermite', 'kaiser', 'quadric', 'catrom',
-                                  'gaussian', 'bessel', 'mitchell', 'sinc',
-                                  'lanczos'
-                         ]         
-            )             
-        )            
-            # Interpolation values accepted
-            # ‘none’, ‘nearest’, ‘bilinear’, ‘bicubic’, ‘spline16’,
-            # ‘spline36’, ‘hanning’, ‘hamming’, ‘hermite’, ‘kaiser’, ‘quadric’, ‘catrom’,
-            # ‘gaussian’, ‘bessel’, ‘mitchell’, ‘sinc’, ‘lanczos’            
-        propgrid.Append( 
-            FloatProperty(self._controller_uid, 'min_density', 
-                            label='Colormap min value'
-            )
-        )   
-        propgrid.Append( 
-            FloatProperty(self._controller_uid, 'max_density', 
-                            label='Colormap max value'
-            )
-        )   
-
-        propgrid.Append( 
-            FloatProperty(self._controller_uid, 'density_alpha', 
-                            label='Colormap alpha'
-            )
-        )  
-
-        propgrid.Append(
-            EnumProperty(self._controller_uid, 'linewidth', 
-                         label='Wiggle line width',
-                         labels=['0', '1', '2', '3'], #, '10', '11', '12', '13'],
-                         values=[0, 1, 2, 3]#, 10, 11, 12, 13]
-            )             
-        )            
-        propgrid.Append(
-            EnumProperty(self._controller_uid, 'linecolor', 
-                         label='Wiggle line color',
-                         labels=ColorSelectorComboBox.get_colors()            
-            )             
-        )   
-        propgrid.Append( 
-            FloatProperty(self._controller_uid, 'min_wiggle', 
-                            label='Wiggle min value'
-            )
-        )   
-        propgrid.Append( 
-            FloatProperty(self._controller_uid, 'max_wiggle', 
-                            label='Wiggle max value'
-            )
-        )      
-        propgrid.Append( 
-            FloatProperty(self._controller_uid, 'wiggle_alpha', 
-                            label='Wiggle alpha'
-            )
-        )  
-        propgrid.Append(  
-            EnumProperty(self._controller_uid, 'fill', 
-                         label='Wiggle fill type',
-                         labels=['None', 'Left', 'Right', 'Both'],     
-                         values=[None, 'left', 'right', 'both']
-            )          
-        )  
-
-        propgrid.Append(
-            EnumProperty(self._controller_uid, 'fill_color_left', 
-                         label='Wiggle left fill color',
-                         labels=ColorSelectorComboBox.get_colors()            
-            )             
-        )   
-        propgrid.Append(
-            EnumProperty(self._controller_uid, 'fill_color_right', 
-                         label='Wiggle right fill color',
-                         labels=ColorSelectorComboBox.get_colors()            
-            )             
-        )            
-        return propgrid  
-    
-    
-# Partitions
-       
-    def get_propgrid(self, parent):
-        propgrid = self._get_propgrid(parent)
-         
-        return propgrid           
-    
-    
-    
-"""
-
-
-   
-
-
-
-'''
-class ColorSelectorComboBox(OwnerDrawnComboBox):
-    colors = OrderedDict()
-    colors['Black'] = None
-    colors['Maroon'] = None
-    colors['Green'] = wx.Colour(0, 100, 0) # Dark Green
-    colors['Olive'] = wx.Colour(128, 128, 0)
-    colors['Navy'] = None
-    colors['Purple'] = None
-    colors['Teal'] = wx.Colour(0, 128, 128)
-    colors['Gray'] = None
-    colors['Silver'] = wx.Colour(192, 192, 192)
-    colors['Red'] = None
-    colors['Lime'] = wx.Colour(0, 255, 0) # Green
-    colors['Yellow'] = None
-    colors['Blue'] = None
-    colors['Fuchsia'] = wx.Colour(255, 0, 255)
-    colors['Aqua'] = wx.Colour(0, 255, 255)
-    colors['White'] = None
-    colors['SkyBlue'] = wx.Colour(135, 206, 235)
-    colors['LightGray'] = wx.Colour(211, 211, 211)
-    colors['DarkGray'] = wx.Colour(169, 169, 169)
-    colors['SlateGray'] = wx.Colour(112, 128, 144)
-    colors['DimGray'] = wx.Colour(105, 105, 105)
-    colors['BlueViolet'] = wx.Colour(138, 43, 226)
-    colors['DarkViolet'] = wx.Colour(148, 0, 211)
-    colors['Magenta'] = None
-    colors['DeepPink'] = wx.Colour(148, 0, 211)
-    colors['Brown'] = None
-    colors['Crimson'] = wx.Colour(220, 20, 60)
-    colors['Firebrick'] = None
-    colors['DarkRed'] = wx.Colour(139, 0, 0)
-    colors['DarkSlateGray'] = wx.Colour(47, 79, 79)
-    colors['DarkSlateBlue'] = wx.Colour(72, 61, 139)
-    colors['Wheat'] = None
-    colors['BurlyWood'] = wx.Colour(222, 184, 135)
-    colors['Tan'] = None
-    colors['Gold'] = None
-    colors['Orange'] = None
-    colors['DarkOrange'] = wx.Colour(255, 140, 0)
-    colors['Coral'] = None
-    colors['DarkKhaki'] = wx.Colour(189, 183, 107)
-    colors['GoldenRod'] = None
-    colors['DarkGoldenrod'] = wx.Colour(184, 134, 11)
-    colors['Chocolate'] = wx.Colour(210, 105, 30)
-    colors['Sienna'] = None
-    colors['SaddleBrown'] = wx.Colour(139, 69, 19)
-    colors['GreenYellow'] = wx.Colour(173, 255, 47)
-    colors['Chartreuse'] = wx.Colour(127, 255, 0)
-    colors['SpringGreen'] = wx.Colour(0, 255, 127)
-    colors['MediumSpringGreen'] = wx.Colour(0, 250, 154)
-    colors['MediumAquamarine'] = wx.Colour(102, 205, 170)
-    colors['LimeGreen'] = wx.Colour(50, 205, 50)
-    colors['LightSeaGreen'] = wx.Colour(32, 178, 170)
-    colors['MediumSeaGreen'] = wx.Colour(60, 179, 113)
-    colors['DarkSeaGreen'] = wx.Colour(143, 188, 143)
-    colors['SeaGreen'] = wx.Colour(46, 139, 87)
-    colors['ForestGreen'] = wx.Colour(34, 139, 34)
-    colors['DarkOliveGreen'] = wx.Colour(85, 107, 47)
-    colors['DarkGreen'] = wx.Colour(1, 50, 32)
-    colors['LightCyan'] = wx.Colour(224, 255, 255)
-    colors['Thistle'] = None
-    colors['PowderBlue'] = wx.Colour(176, 224, 230)
-    colors['LightSteelBlue'] = wx.Colour(176, 196, 222)
-    colors['LightSkyBlue'] = wx.Colour(135, 206, 250)
-    colors['MediumTurquoise'] = wx.Colour(72, 209, 204)
-    colors['Turquoise'] = None
-    colors['DarkTurquoise'] = wx.Colour(0, 206, 209)
-    colors['DeepSkyBlue'] = wx.Colour(0, 191, 255)
-    colors['DodgerBlue'] = wx.Colour(30, 144, 255)
-    colors['CornflowerBlue'] = wx.Colour(100, 149, 237)
-    colors['CadetBlue'] = wx.Colour(95, 158, 160)
-    colors['DarkCyan'] = wx.Colour(0, 139, 139)
-    colors['SteelBlue'] = wx.Colour(70, 130, 180)
-    colors['RoyalBlue'] = wx.Colour(65, 105, 225)
-    colors['SlateBlue'] = wx.Colour(106, 90, 205)
-    colors['DarkBlue'] = wx.Colour(0, 0, 139)
-    colors['MediumBlue'] = wx.Colour(0, 0, 205)
-    colors['SandyBrown'] = wx.Colour(244, 164, 96)
-    colors['DarkSalmon'] = wx.Colour(233, 150, 122)
-    colors['Salmon'] = None
-    colors['Tomato'] = wx.Colour(255, 99, 71) 
-    colors['Violet'] = wx.Colour(238, 130, 238)
-    colors['HotPink'] = wx.Colour(255, 105, 180)
-    colors['RosyBrown'] = wx.Colour(188, 143, 143)
-    colors['MediumVioletRed'] = wx.Colour(199, 21, 133)
-    colors['DarkMagenta'] = wx.Colour(139, 0, 139)
-    colors['DarkOrchid'] = wx.Colour(153, 50, 204)
-    colors['Indigo'] = wx.Colour(75, 0, 130)
-    colors['MidnightBlue'] = wx.Colour(25, 25, 112)
-    colors['MediumSlateBlue'] = wx.Colour(123, 104, 238)
-    colors['MediumPurple'] = wx.Colour(147, 112, 219)
-    colors['MediumOrchid'] = wx.Colour(186, 85, 211)        
-  
-    
-    def __init__(self, *args, **kwargs): 
-        print 'ColorSelectorComboBox.__init__'
-        kwargs['choices'] = self.colors.keys()
-        OwnerDrawnComboBox.__init__(self, *args, **kwargs)
-        print 'ColorSelectorComboBox.__init__ ENDED'
-        #super(ColorSelectorComboBox, self).SetSelection().#SetSelection()
-        
-    """    
-    def OnDrawItem(self, dc, rect, item, flags):
-        print 'OnDrawItem:' , item, flags
-        if wx.adv.ODCB_PAINTING_CONTROL == flags:
-            print 'wx.adv.ODCB_PAINTING_CONTROL'
-        elif wx.adv.ODCB_PAINTING_SELECTED == flags:
-            print 'ODCB_PAINTING_SELECTED'
-        if item == wx.NOT_FOUND:
-            # painting the control, but there is no valid item selected yet
-            return 
-        font = wx.Font(8, wx.FONTFAMILY_DEFAULT, wx.FONTSTYLE_NORMAL, wx.FONTWEIGHT_NORMAL, False, 'Segoe UI')             
-        dc.SetFont(font)
-        
-        if flags == 3:
-            margin = 3    
-        else:
-            margin = 1
-        r = wx.Rect(*rect)  # make a copy
-        r.Deflate(margin, margin)
-        tam = self.OnMeasureItem(item)-2
-        dc.SetPen(wx.Pen("grey", style=wx.TRANSPARENT))
-        color_name = self.GetString(item)     
-        color = self.colors.get(color_name)
-        if not color:
-            color = wx.Colour(color_name)
-        dc.SetBrush(wx.Brush(color))
-        dc.DrawRectangle(r.x, r.y, tam, tam)
-        dc.DrawText(self.GetString(item), r.x + tam + 2, r.y)            
-    """   
-        
-    def OnMeasureItem(self, item):
-        #print 'OnMeasureItem'
-        return 15
-
-
-    @staticmethod
-    def get_colors():
-        return ColorSelectorComboBox.colors.keys()
-
-'''    
-
-
-'''
-class ColorPropertyEditor(pg.PGEditor):
-
-    def __init__(self):
-        print 'ColorPropertyEditor.__init__'
-        pg.PGEditor.__init__(self)
-        print 'ColorPropertyEditor.__init__ ENDED'
-        
-        
-    def CreateControls(self, propgrid, property, pos, size):
-        print '\nCreateControls'
-        csc = ColorSelectorComboBox(propgrid.GetPanel(), pos=pos, size=size)
-        idx = ColorSelectorComboBox.get_colors().index(property.get_value())
-        csc.SetSelection(idx)
-        window_list = pg.PGWindowList(csc)
-        return window_list
-
-
-    def GetName(self):
-        return 'ColorPropertyEditor'
-    
-    
-    def UpdateControl(self, property, ctrl):
-        idx = ColorSelectorComboBox.get_colors().index(property.get_value())
-        print 'UpdateControl:', idx
-        ctrl.SetSelection(idx)
-
-
-    def DrawValue(self, dc, rect, property, text):        
-        print 'DrawValue:', text
-        #dc.SetPen( wxPen(propertyGrid->GetCellTextColour(), 1, wxSOLID) )
-        #pen = dc.GetPen()
-        #print pen.GetColour(), pen.GetStyle(), wx.PENSTYLE_SOLID
-        #dc.SetPen(wx.Pen(wx.Colour(0, 0, 255, 255), 1, wx.SOLID))
-        cell_renderer = property.GetCellRenderer(1)
-        cell_renderer.DrawText(dc, rect, 0, text) # property.get_value())#rect.x+15, rect.y)
-        #dc.DrawText(property.get_value(), rect.x+15, rect.y)
-    #    if not property.IsValueUnspecified():
-    #        dc.DrawText(property.get_value(), rect.x+5, rect.y)
-
-
-    def OnEvent(self, propgrid, property, ctrl, event):
-        if isinstance(event, wx.CommandEvent):
-            if event.GetEventType() == wx.EVT_COMBOBOX:
-                print 'COMBAO DA MASSA\n\n\n'
-            if event.GetString():
-                print 'VALUE:', event.GetString(), '\n'
-                return True
-        return False
-
-
-    def GetValueFromControl(self, variant, property, ctrl):
-        """ Return tuple (wasSuccess, newValue), where wasSuccess is True if
-            different value was acquired succesfully.
-        """
-        print '\nGetValueFromControl:', ctrl.GetValue()
-        if property.UsesAutoUnspecified() and not ctrl.GetValue():
-            return True
-        ret_val = property.StringToValue(ctrl.GetValue(), pg.PG_EDITABLE_VALUE)
-        return ret_val
-
-
-    def SetValueToUnspecified(self, property, ctrl):
-        print '\nSetValueToUnspecified'
-        ctrl.SetSelection(0) #Remove(0, len(ctrl.GetValue()))
-
-
-    """
-    def SetControlIntValue(self, property, ctrl, value):
-        print 'SetControlIntValue:', value
-
-    def SetControlStringValue(self, property, ctrl, text):
-        print 'SetControlStringValue'
-        ctrl.SetValue(text)
-    """     
-
-    """
-    def SetControlAppearance(self, pg, property, ctrl, cell, old_cell, unspecified):
-        print 'SetControlAppearance' 
-        """
-        cb = ctrl
-        tc = ctrl.GetTextCtrl()
-        
-        changeText = False
-        
-        if cell.HasText() and not pg.IsEditorFosuced():
-            print '   ENTROU A'
-            tcText = cell.GetText()
-            changeText = True
-        elif old_cell.HasText():
-            print '   ENTROU B'
-            tcText = property.get_value()
-            changeText = True
-        else:
-            print '   NEM A NEM B'
-        if changeText:
-            if tc:
-                print '   ENTROU C'
-                pg.SetupTextCtrlValue(tcText)
-                tc.SetValue(tcText)
-            else:
-                print '   ENTROU D'
-                cb.SetText(tcText)
-        else:
-            print '   NEM C NEM D'
-        """    
-        """    
-        # Do not make the mistake of calling GetClassDefaultAttributes()
-        # here. It is static, while GetDefaultAttributes() is virtual
-        # and the correct one to use.
-        vattrs = ctrl.GetDefaultAttributes()
-    
-        #Foreground colour
-        fgCol = cell.GetFgCol()
-        if fgCol.IsOk():
-            ctrl.SetForegroundColour(fgCol)
-            print 'fgCol:', fgCol
-        
-        elif old_cell.GetFgCol().IsOk():
-            ctrl.SetForegroundColour(vattrs.colFg)
-            print 'vattrs.colFg:', vattrs.colFg
-    
-        # Background colour
-        bgCol = cell.GetBgCol()
-        if bgCol.IsOk():
-            ctrl.SetBackgroundColour(bgCol)
-        elif old_cell.GetBgCol().IsOk():
-            ctrl.SetBackgroundColour(vattrs.colBg)
-    
-        # Font
-        font = cell.GetFont()
-        if font.IsOk():
-            ctrl.SetFont(font)
-        elif old_cell.GetFont().IsOk():
-            ctrl.SetFont(vattrs.font)
-        """  
-        # Also call the old SetValueToUnspecified()
-        #if unspecified
-        #    SetValueToUnspecified(property, ctrl);
-
-                
-        #print 'cell.GetText():', cell.GetText()
-        #print 'old_cell.GetText():', old_cell.GetText()
-        
-        #print tc#, tc.GetText()
-        super(ColorPropertyEditor, self).SetControlAppearance(pg, property, ctrl, cell, old_cell, unspecified)
-    """    
-
-    def InsertItem(self, ctrl, label, index):
-        print 'InsertItem:', label, index
-        
-        
-    def CanContainCustomImage(self):
-        print 'CanContainCustomImage'
-        return True
-    
-    def OnFocus(self, property, ctrl):
-        #print 'OnFocus:' #, property, ctrl
-        #ctrl.SetSelection(-1)#,-1)
-        ctrl.SetFocus()
-
-
-
-class ColorProperty(pg.PGProperty):
-    # All arguments of this ctor should have a default value -
-    # use wx.propgrid.PG_LABEL for label and name
-    def __init__(self, controller_uid, obj_attr, 
-             label = pg.PG_LABEL,
-             name = pg.PG_LABEL):
-        print 'ColorProperty.__init__'
-        self._controller_uid = controller_uid
-        self._obj_attr = obj_attr
-        super(pg.PGProperty, self).__init__(label, name)
-        self.SetValue(self.get_value())
-        print 'ColorProperty.__init__ ENDED'
-        
-        
-    #def OnSetValue(self):
-    #    print 'ColorProperty.OnSetValue'
-        
-    def DoGetEditorClass(self):
-        #print 'ColorProperty.DoGetEditorClass'
-        return pg.PropertyGridInterface.GetEditorByName('ColorPropertyEditor')
-        #_CPEditor #ColorPropertyEditor #wx.PGEditor_TextCtrl
-
-    def ValueToString(self, value, flags):
-        print '\nColorProperty.ValueToString'
-        value = self.get_value()
-        return value
-
-    def StringToValue(self, text, flags):
-        print 'ColorProperty.StringToValue:', text
-        value = self.set_value(text) 
-        self.SetValue(value)
-        return value      
-    
-    def get_value(self):
-        UIM = UIManager()
-        controller = UIM.get(self._controller_uid)
-        print 'ColorProperty.get_value:', controller[self._obj_attr]
-        return controller[self._obj_attr]
-
-
-    def set_value(self, new_value):
-        print 'ColorProperty.set_value', new_value
-        try:
-            UIM = UIManager()
-            controller = UIM.get(self._controller_uid)
-            controller[self._obj_attr] = new_value  
-            return True
-        except:
-            return False
-
-
-    def GetDisplayedString(self):
-        print 'GetDisplayedString'
-        return self.get_value()
-
-    def GetChoiceSelection(self):
-        idx = ColorSelectorComboBox.get_colors().index(self.get_value())
-        print 'GetChoiceSelection:', idx
-        return idx
-
-    def IsTextEditable(self):
-        ret = super(pg.PGProperty, self).IsTextEditable()
-        print 'IsTextEditable'
-        return ret
-
-    def IsValueUnspecified(self):
-        print '\n\nColorProperty.IsValueUnspecified\n\n'
-        return False
-  
-    def SetLabel(self, label):
-        print 'SetLabel:', label
-        super(pg.PGProperty, self).SetLabel(label)
-    
- 
-'''
-
-
-
-  
-        
-
-                       
-    
-    
-    

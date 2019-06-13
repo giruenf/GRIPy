@@ -22,16 +22,12 @@ class DataMask(OMBaseObject):
         self._data_obj_uid = data_obj_uid
         self._data_unit = None
         self._data_name = None
-#        self.track_obj_ctrls_uids = []
-#        self.append_objuid(toc_uid)
         self._init_data()
-
 
     # It will not be shown in Tree
     def _get_tree_object_node_properties(self):    
         return None
          
-    
     def _init_data(self):
         try:
             OM = ObjectManager()
@@ -45,7 +41,7 @@ class DataMask(OMBaseObject):
             
             for dim_idx in range(len(data_indexes)):
                 indexes_per_dim_uid = data_indexes[dim_idx]
-                print(dim_idx, indexes_per_dim_uid)
+#                print(dim_idx, indexes_per_dim_uid)
                 di_uid = indexes_per_dim_uid[0]  # Chosing the first one!
                 di = OM.get(di_uid)
                 if (len(data_indexes) - dim_idx) <= 2:    
@@ -67,6 +63,9 @@ class DataMask(OMBaseObject):
     def get_data_unit(self):
         return self._data_unit
 
+    def get_data_object_uid(self):
+        return self._data_obj_uid
+
     # TODO: rename to set_dimension_data
     def set_dimension(self, dim_idx=-1, **kwargs):
         """
@@ -77,6 +76,10 @@ class DataMask(OMBaseObject):
         #dim_idx here refers to DataMask current dimension, not object
         #data indexes.
         #"""
+        
+#        print('\nset_dimension:', kwargs)
+#        print('self._data[dim_idx]:', self._data[dim_idx])
+        
         datatype = kwargs.pop('datatype', None)
         name = kwargs.pop('name', None)
         di_uid = kwargs.pop('di_uid', None)
@@ -87,22 +90,28 @@ class DataMask(OMBaseObject):
         OM = ObjectManager()
         data_obj = OM.get(self._data_obj_uid)        
         data_indexes = data_obj.get_data_indexes()
-        dim_dis_uids = data_indexes[dim_idx]    
+        dim_dis_uids = data_indexes[dim_idx] 
+#        print('dim_dis_uids:', dim_dis_uids)
         ret_datatypes = []
         #
         for dim_di_uid in dim_dis_uids:
             if dim_di_uid == di_uid:
                 self._data[dim_idx][0] = di_uid
+#                print('self._data[dim_idx] 2.1:', self._data[dim_idx])
                 return True
             dim_di = OM.get(dim_di_uid)
+#            print(dim_di.datatype, datatype)
             if dim_di.name == name:
                 self._data[dim_idx][0] = dim_di_uid
+#                print('self._data[dim_idx] 2.2:', self._data[dim_idx])
                 return True                
             elif dim_di.datatype == datatype:
                 ret_datatypes.append(dim_di_uid)
         if ret_datatypes:
             self._data[dim_idx][0] = ret_datatypes[0] # Sets with the first one
+#            print('self._data[dim_idx] 2.3:', self._data[dim_idx])
             return True
+#        print('set_dimension DEU FALSE')
         return False
     
     
@@ -114,7 +123,6 @@ class DataMask(OMBaseObject):
             else:                
                 slicer.append(slice(start, stop))            
         slicer = tuple(slicer)
-#        print('_get_slicer:', slicer)
         return slicer
     
     
@@ -127,8 +135,8 @@ class DataMask(OMBaseObject):
         slicer = self._get_slicer()
         data = data_obj.data[slicer]
         #
-        print('get_data - len(data.shape):', len(data.shape), 
-                                  ' dimensions_desired:', dimensions_desired)
+#        print('get_data - len(data.shape):', len(data.shape), 
+#                                  ' dimensions_desired:', dimensions_desired)
         if (dimensions_desired is None or 
                                     (dimensions_desired == len(data.shape))):
             return data
@@ -160,30 +168,75 @@ class DataMask(OMBaseObject):
         return data    
 
 
-    def get_index_data_for_dimension(self, dim_idx):
+    def get_index_for_dimension(self, dim_idx=-1):
+        """
+        Returns the DataIndex being applied to some dimension. 
+        """
         OM = ObjectManager()
         dim_data = self._data[dim_idx]     
         dim_di_uid = dim_data[0]
-        dim_di = OM.get(dim_di_uid)  
+        return OM.get(dim_di_uid)
+        
+    
+    def get_index_data_for_dimension(self, dim_idx=-1):
+        """
+        Returns the DataIndex data being applied to some dimension. 
+        """
+        dim_di = self.get_index_for_dimension(dim_idx=-1)
         slicer = self._get_slicer()
         return dim_di.data[slicer[dim_idx]]
     
-    
+
+    def get_last_dimension_index(self):
+        return self.get_index_for_dimension()
+  
     def get_last_dimension_index_data(self):
-        return self.get_index_data_for_dimension(-1)
+        return self.get_index_data_for_dimension()
      
-    
-    
+  
+    def get_equivalent_index(self, datatype, dim_idx=-1):
+        """
+        Metodo usado para se obter um DataIndex de equivalencia (e.g. obter
+        um TWT quando self.datatype == 'MD').
+        
+        Valido somente para dados de pocos, devido a busca por CurveSet.
+        
+        Retorna uma tupla onde o primeiro elemento informa se foi encontrado
+        objeto equivalente diferente o DataIndex mask sendo aplicado. Em caso 
+        afirmativo, o segundo elemento da tupla contem o objeto encontrado.
+        Caso nao tenha sido obtido index equivalente, o segundo elemento 
+        retornara o proprio objeto, se este tiver o datatype procurado. 
+        Se o datatype desejado nao for encontrado, sera retornado (False, None).
+        """
+        di = self.get_index_for_dimension(dim_idx)
+        if di.datatype == datatype:
+            return False, di
+        OM = ObjectManager()
+        curve_set_uid = OM._getparentuid(di.uid)
+        if curve_set_uid[0] != 'curve_set':
+            msg = 'ERROR DataIndex.get_equivalent_data_index: curve_set not found.'
+            raise Exception(msg)
+        for possible_di in OM.list('data_index', curve_set_uid):
+            if possible_di.uid == di.uid:
+                continue
+            if possible_di.datatype == datatype:
+                # Found it!
+                return True, possible_di
+        return False, None
+
+
+    def get_equivalent_index_data(self, datatype, dim_idx=-1):
+        found, equivalent_di = self.get_equivalent_index(datatype, dim_idx)
+        if equivalent_di is None:
+            return None
+        slicer = self._get_slicer()
+        return equivalent_di.data[slicer[dim_idx]]   
+        
+   
+    """
     def get_data_info(self, x_idx, y_idx, dimensions_plotted=None):
         #
         OM = ObjectManager()
-        #data_obj = OM.get(self._data_obj_uid)     
-        #slicer = self._get_slicer()
-        #data = data_obj.data[slicer]
-        #
-        
-#        x_idx += 1          # vERIFICAR ISSO, SE PRECISA DESTA LINHA
-#        y_idx -= 1          # vERIFICAR ISSO, SE PRECISA DESTA LINHA
         #
         x_index = 0
         multiplier = 1
@@ -252,7 +305,7 @@ class DataMask(OMBaseObject):
             msg += ' ' + self._data_unit
         msg += ': ' + str(value)     
         return (msg, value)      
-    
+    """
     
     """
     # Gets info to be shown in WellPlot StatusBar

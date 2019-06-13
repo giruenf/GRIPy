@@ -17,7 +17,6 @@ Versão 0.8.beta:
     - Reorganizacao dos modulos contidos nos pacotes om, dt e ui. Os modulos desses pacotes estao no novo pacote classes. 
     - Mudança de nome das classes UIControllerBase, UIViewBase  para UIControllerObject, UIViewObject.
     - Mudança de nome das classes GenericDataType para DataTypeObject.
-- Reescrita dos métodos save e load do ObjectManager em função da mudança para Python 3 (método np.load não funcionava adequadamente).
 - Criação de sistema de janelas de trabalho flutuantes (com inserção da logo do Gripy como background).
 - Reescrita total do CrossPlot no modelo Gripy (M)VC.
 - Novos icones para a MainWindow.
@@ -31,7 +30,11 @@ Versão 0.8.beta:
 - Melhorado o sistema de "Virtual Axes". Os métodos transform e inverse_transform foram movidos do arquivo track_object.py para o canvas_base.py.
   Assim, poderao ser utilizados também para os CrossPlots (ou em qualquer objeto onde plot_axes se comportar de forma virtual).
   Ver arquivo canvas_base.py.
-  
+- Reescrita dos métodos save e load do ObjectManager em função da mudança para Python 3 (método np.load não funcionava adequadamente).
+  Com isso, optou-se em reformular a forma de save e load. Agora sao gerados pastas temporarias onde para cada objeto sao criados um arquivo
+  pickle e um arquivo npz (se necessario). As informacoes gerais do projeto griPy sao salvas em um arquivo pickle de nome project.dat.
+  Por fim, todos arquivos sao salvos em um ZipFile com a tradicional extensao .pgg, na pasta informada pelo usuario.
+   
 
 Versão 0.7:
 ===========

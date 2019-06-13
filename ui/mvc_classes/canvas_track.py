@@ -1062,7 +1062,7 @@ class DepthCanvas():
 #        xmax_px, _ = transaxes.transform((1.0, 1.0))
         xmax_px, bottom_px_ax = transaxes.transform((1.0, 1.0))
         #
-        print ('\nMin Max Y:', top_px, top_px_ax, bottom_px, bottom_px_ax)
+#        print ('\nMin Max Y:', top_px, top_px_ax, bottom_px, bottom_px_ax)
         #
         self.d1_canvas.SetSize(int(xmin_px), int(top_px),
                                        xmax_px-xmin_px, self.canvas_height

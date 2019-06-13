@@ -154,7 +154,7 @@ class UIControllerObject(UIBaseObject):
             self.attach(('log', 1))
             OM.remove(('log', 1))     -> self will be removed by UIManager 
         """
-        print ('ATTACHING...')       
+#        print ('ATTACHING...')       
         #obj = OM.get(OM_objuid)
         try:
             OM = ObjectManager()
@@ -163,11 +163,10 @@ class UIControllerObject(UIBaseObject):
             if obj:
                 OM.subscribe(self._check_OM_removals, 'pre_remove')
                 self._attached_to = obj.uid
-                print ('{} IS NOW ATTACHED TO {} \n'.format(self.uid, self._attached_to))
+#                print ('{} IS NOW ATTACHED TO {} \n'.format(self.uid, self._attached_to))
         except Exception as e:
             print ('ERROR WHILE ATTACHING:', e)
-            #raise
-            #pass
+
            
             
     def detach(self):
@@ -178,16 +177,15 @@ class UIControllerObject(UIBaseObject):
         """
         if self._attached_to is None:
             return
-        print ('DETACHING...')
+#        print ('DETACHING...')
         try:
             OM = ObjectManager()
             OM.unsubscribe(self._check_OM_removals, 'pre_remove')
-            print ('DETACHED {} FROM {}! \n'.format(self.uid, self._attached_to))
+#            print ('DETACHED {} FROM {}! \n'.format(self.uid, self._attached_to))
             self._attached_to = None
         except Exception as e:
             print ('ERROR WHILE DETACHING:', e) 
-            #raise
-            #pass    
+ 
 
 
         

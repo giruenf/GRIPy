@@ -171,7 +171,7 @@ def on_new_wellplot(*args):
             #
             mwc = Interface.get_main_window_controller()
             UIM.create('wellplot_controller', mwc.uid, 
-                       well_oid=welluid[1], index_type=zaxis_type
+                       obj_uid=welluid, index_type=zaxis_type
             )
             #
         #
