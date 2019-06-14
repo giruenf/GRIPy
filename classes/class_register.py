@@ -82,7 +82,9 @@ from ui.mvc_classes.canvas_track import TrackCanvasController, TrackCanvas
 from ui.mvc_classes.track_label import TrackLabelController, TrackLabel
                    
 #
-
+from ui.mvc_classes.dialog_obj_props import \
+        ObjectPropertiesDialogController,ObjectPropertiesDialog
+        
 
 def register_app_classes():
     register_OM_classes()
@@ -220,6 +222,10 @@ def register_UIManager_classes():
     #
     UIManager.register_class(TrackCanvasController, TrackCanvas, TrackController)
     UIManager.register_class(TrackLabelController, TrackLabel, TrackController)
-    
-    
+    #
+    UIManager.register_class(ObjectPropertiesDialogController, 
+                                                 ObjectPropertiesDialog)
+    UIManager.register_class(PropertyGridController,
+                             PropertyGridView, ObjectPropertiesDialogController
+    )    
     

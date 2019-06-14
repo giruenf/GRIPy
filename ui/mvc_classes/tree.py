@@ -399,6 +399,7 @@ class TreeView(UIViewObject, wx.TreeCtrl):
             item = self.popupmenu.Append(wx.NewId(), 'Rename object')
             self.Bind(wx.EVT_MENU, self.OnRenameObject, item)
             self.popupmenu.AppendSeparator()
+            #
             if self._is_convertible(node_main_info):
                 item = self.popupmenu.Append(wx.NewId(), 'Convert unit')
                 self.Bind(wx.EVT_MENU, self.OnUnitConvert, item)
@@ -406,14 +407,16 @@ class TreeView(UIViewObject, wx.TreeCtrl):
             # Exclude a specific object
             obj = OM.get(node_main_info)
             menu_option_str = 'Exclude object ['
-            menu_option_str = menu_option_str + str(obj.name) + ']'    
-            
+            menu_option_str = menu_option_str + str(obj.name) + ']'                
         elif node_type == ID_TYPE_TID:  
             # Exclude all objects from a class
             menu_option_str = 'Exclude all objects [{}]'.format(node_main_info) 
-
         item = self.popupmenu.Append(wx.NewId(), menu_option_str)
         self.Bind(wx.EVT_MENU, self.OnPopupItemSelected, item)
+        #
+        self.popupmenu.AppendSeparator()
+        item = self.popupmenu.Append(wx.NewId(), 'Properties')
+        self.Bind(wx.EVT_MENU, self.on_object_properties, item)
         #
         pos = event.GetPoint()
         self.PopupMenu(self.popupmenu, pos)
@@ -429,7 +432,26 @@ class TreeView(UIViewObject, wx.TreeCtrl):
         return False
 
 
-
+    def on_object_properties(self, event):
+        print ('on_object_properties', self.popup_obj)
+        (node_type, node_main_info, node_extra_info) = self.popup_obj
+        
+        UIM = UIManager()
+        dlg = UIM.create('object_properties_dialog_controller')
+        dlg.obj_uid = node_main_info
+        #
+        try:          
+            #    
+            dlg.view.SetSize((300, 330))
+            dlg.view.ShowModal()
+            #                
+        except Exception as e:
+            print ('\nERROR OnRenameObject:', e)
+            raise
+        finally:
+            UIM.remove(dlg.uid)             
+            
+            
     def OnPopupItemSelected(self, event):
         print ('OnPopupItemSelected', self.popup_obj)
         

@@ -567,9 +567,11 @@ class Dialog(TopLevel, wx.Dialog):
         self.mainpanel = self.AddCreateContainer('BoxSizer', self, proportion=1, 
                             flag=wx.TOP|wx.LEFT|wx.RIGHT|wx.EXPAND, border=10
         )
-        button_sizer = self.CreateButtonSizer(controller.flags)
-        dialog_box.Add(button_sizer, flag=wx.ALIGN_CENTER|wx.TOP|wx.BOTTOM, border=10)    
+        if controller.flags is not None:
+            button_sizer = self.CreateButtonSizer(controller.flags)
+            dialog_box.Add(button_sizer, flag=wx.ALIGN_CENTER|wx.TOP|wx.BOTTOM, border=10)    
         dialog_box.Layout()  
+
 
     def get_topic(self):
         return 'dialog_' + str(self._controller_uid[1])
