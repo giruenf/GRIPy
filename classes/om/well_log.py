@@ -12,30 +12,18 @@ class Log(DataObject):
     tid = "log"
     _TID_FRIENDLY_NAME = 'Log'
     
-
     _SHOWN_ATTRIBUTES = [
                             ('datatype', 'Curve Type'),
                             ('unit', 'Units'),
                             ('min', 'Min Value'),
                             ('max', 'Max Value')
-                            #('index_name', 'Index'),
-                            #('start', 'Start'),
-                            #('end', 'End'),
-                            #('step', 'Step'),
     ] 
     
     
     def __init__(self, *args, **attributes):
         super().__init__(*args, **attributes) 
 
-
-
-        
-        # np.array(depth), name='Depth', dimension=0, datatype='MD', unit='m')
-
-
-
-                 
+           
     @classmethod
     def _is_tree_tid_node_needed(cls):
         #From matplotlib.docstring.py 
@@ -55,7 +43,6 @@ class Log(DataObject):
     def _get_max_dimensions(self):
         return 1
     
-
     def get_friendly_name(self):
         """
         Metodo duplicado em Log e DataIndex
@@ -65,9 +52,6 @@ class Log(DataObject):
         parent_well = OM.get(parent_well_uid)         
         return self.name + '@' + parent_well.name
 
-
-
-    
     def get_curve_set(self):
         """
         Metodo de conveniencia.
@@ -81,80 +65,31 @@ class Log(DataObject):
         return OM.get(curve_set_uid)
      
 
-
-
-
-    '''  
-    def __init__(self, data, **attributes):
+    def _get_pg_properties_dict(self):
         """
-        index_set_uid = attributes.get('index_set_uid')
-        try:    
-            tid, oid = index_set_uid 
-        except:
-            print (index_set_uid, type(index_set_uid))										
-            raise Exception('Object attribute \"index_set_uid\" must be a \"uid\" tuple.')    
-        if tid != 'index_set':
-            raise Exception('Object attribute \"index_set_uid\" must have its first argument as \"index_set\".')
         """
-        super().__init__(data, **attributes) 
-
-#        OM = ObjectManager()        
-#        OM.subscribe(self._on_OM_add, 'add')
-
-    '''
-
-
-
-
-    """
-    def _on_OM_add(self, objuid):
-        if objuid != self.uid:
-            return
-        #print 'WellData1D._on_OM_add:', objuid
-        OM = ObjectManager()
-        try:
-            OM.unsubscribe(self._on_OM_add, 'add')     
-        except Exception as e:
-            print ('Deu ruim no unsub:', e)
-        try:
-            parent_uid = OM._getparentuid(self.uid)
-            # TODO: remover esse armengue
-            if self.tid == 'part':
-                parent_well_uid = OM._getparentuid(parent_uid)
-            else:
-                parent_well_uid = parent_uid
-            # FIM - Armengue    
-        #    print 'parent_well_uid:', parent_well_uid
-            my_index_set = OM.get(self.index_set_uid)
-        #    print 'my_index_set:', my_index_set
-        #    print 'list:'
-        #    for obj_is in OM.list('index_set', parent_well_uid):
-        #        print obj_is
-            if my_index_set not in OM.list('index_set', parent_well_uid):
-                print ('DEU RUIM')
-                raise Exception('Invalid attribute \"index_set\"={}'.format(self.index_set_uid))
-        except:
-            raise
-
-    @property
-    def index_set_uid(self):
-        return self.attributes['index_set_uid']
-    """
-
-
-
-    """
-    def get_data_indexes(self):
-        OM = ObjectManager()    
-        
-        
-        try:
-            index_set = OM.get(self.index_set_uid)
-            return index_set.get_data_indexes()
-        except:
-            return None
-    """    
-
+        props = OrderedDict()
+        props['datatype'] = {
+            'type': str,
+            'label': 'Datatype',
+            'enabled': False
+        }    
+        props['unit'] = {
+            'type': str,
+            'label': 'Unit',
+            'enabled': False
+        }
+        props['min'] = {
+            'type': str,
+            'label': 'Min Value',
+            'enabled': False
+        }    
+        props['max'] = {
+            'type': str,
+            'label': 'Max Value',
+            'enabled': False
+        }        
+        return props
 
 
     

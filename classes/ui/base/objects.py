@@ -111,10 +111,9 @@ class UIControllerObject(UIBaseObject):
     
     
     def _PostInit(self):
-        """Redirects post init call made by UIManager.create to model, 
-        view and controller objects.
+        """Redirects post init call made by UIManager.create to view and 
+        controller objects.
         """
-
         try:    
             if self.view:        
                 self.view.PostInit()

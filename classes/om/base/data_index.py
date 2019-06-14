@@ -14,10 +14,10 @@ class DataIndex(DataObject):
     _TID_FRIENDLY_NAME = 'Index'
     
     _ATTRIBUTES = OrderedDict()
-    _ATTRIBUTES['dimension'] = {
-        'default_value': -1,
-        'type': int       
-    }       
+#    _ATTRIBUTES['dimension'] = {
+#        'default_value': -1,
+#        'type': int       
+#    }       
     _ATTRIBUTES['start'] = {
         'default_value': -1,
         'type': int       
@@ -36,7 +36,7 @@ class DataIndex(DataObject):
     }   
     
     _SHOWN_ATTRIBUTES = [
-                            ('_oid', 'Object Id'),
+                            #('_oid', 'Object Id'),
                             ('datatype', 'Type'),
                             ('unit', 'Unit'),
                             ('start', 'Start'),
@@ -127,6 +127,43 @@ class DataIndex(DataObject):
         parent_well = OM.get(parent_well_uid)         
         return self.name + '@' + parent_well.name 
     
+
+    def _get_pg_properties_dict(self):
+        """
+        """
+        props = OrderedDict()
+        props['datatype'] = {
+            'type': str,
+            'label': 'Datatype',
+            'enabled': False
+        }    
+        props['unit'] = {
+            'type': str,
+            'label': 'Unit',
+            'enabled': False
+        }
+        props['start'] = {
+            'type': str,
+            'label': 'Start',
+            'enabled': False
+        }    
+        props['end'] = {
+            'type': str,
+            'label': 'End',
+            'enabled': False
+        }  
+        props['step'] = {
+            'type': str,
+            'label': 'Step',
+            'enabled': False
+        }    
+        props['samples'] = {
+            'type': str,
+            'label': 'Samples',
+            'enabled': False
+        }            
+        return props
+
     
     @property
     def start(self):

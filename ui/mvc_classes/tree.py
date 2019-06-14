@@ -11,6 +11,7 @@ from classes.om import ObjectManager
 from classes.ui import UIManager
 from classes.ui import UIControllerObject 
 from classes.ui import UIViewObject 
+from ui import Interface
 from app import log 
 
 #
@@ -434,23 +435,10 @@ class TreeView(UIViewObject, wx.TreeCtrl):
 
     def on_object_properties(self, event):
         print ('on_object_properties', self.popup_obj)
-        (node_type, node_main_info, node_extra_info) = self.popup_obj
-        
-        UIM = UIManager()
-        dlg = UIM.create('object_properties_dialog_controller')
-        dlg.obj_uid = node_main_info
-        #
-        try:          
-            #    
-            dlg.view.SetSize((300, 330))
-            dlg.view.ShowModal()
-            #                
-        except Exception as e:
-            print ('\nERROR OnRenameObject:', e)
-            raise
-        finally:
-            UIM.remove(dlg.uid)             
-            
+        # node_main_info is the obj_uid
+        _, obj_uid, _ = self.popup_obj
+        Interface.create_properties_dialog(obj_uid)
+                      
             
     def OnPopupItemSelected(self, event):
         print ('OnPopupItemSelected', self.popup_obj)

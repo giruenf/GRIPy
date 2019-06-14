@@ -17,7 +17,7 @@ from app import log
 
 from ui.mvc_classes.mpl_base import PlotLabel
 from app.app_utils import DropTarget
-
+from ui import Interface
 
 
 
@@ -860,43 +860,8 @@ class TrackView(UIViewObject):
         
 
     def _on_button_press(self, event):
-        
-        """
-        
-        ### From: http://stackoverflow.com/questions/14617722/matplotlib-and-wxpython-popupmenu-cooperation     
-        #print
-        #if event.guiEvent.GetEventObject().HasCapture():            
-        #    event.guiEvent.GetEventObject().ReleaseMouse()        
-        ###
-        #print '\nTrackView.process_event:', event     
-        #
-        OM = ObjectManager()
         UIM = UIManager()
-        controller = UIM.get(self._controller_uid)        
         if isinstance(event, wx.MouseEvent):        
-            gui_evt = event
-        else:
-            gui_evt = event.guiEvent
-        #
-        if gui_evt.GetEventObject() and gui_evt.GetEventObject().HasCapture():            
-            gui_evt.GetEventObject().ReleaseMouse()  
-        #    
-        if gui_evt.GetButton() == 1:
-            if controller.get_cursor_state() == LogPlotState.SELECTION_TOOL:
-                controller.selected = not controller.selected
-        #   
-        elif gui_evt.GetButton() == 2: 
-            print ('entrou 2')
-            self.track.mark_vertical(event.xdata)
-        #    
-        
-        
-        """
-        #
-        UIM = UIManager()
-           
-        # 
-        if isinstance(event, wx.MouseEvent):
             # wx.MouseEvent events
             gui_evt = event
             canvas = event.GetEventObject()
@@ -904,15 +869,12 @@ class TrackView(UIViewObject):
             # Matplotlib events: redirect to inner wx.MouseEvent
             gui_evt = event.guiEvent
             canvas = event.canvas
-
-            
-        """    
+        #
         if gui_evt.GetEventObject() and gui_evt.GetEventObject().HasCapture():            
             gui_evt.GetEventObject().ReleaseMouse()  
-        #  
-        """
-        
-        #print ('\nTrackView._on_button_press:', gui_evt.GetEventObject(), canvas) 
+        #          
+     
+        print ('\nTrackView._on_button_press:', event, gui_evt, canvas) 
         
         if gui_evt.GetButton() == 1:
             controller = UIM.get(self._controller_uid)
@@ -920,14 +882,18 @@ class TrackView(UIViewObject):
                 controller.selected = not controller.selected
 
         elif gui_evt.GetButton() == 2: 
-            #print ('BOTAO 2')
+            print('BOTAO 2')
             return
+        
         elif gui_evt.GetButton() == 3:
-
-            #controller = UIM.get(self._controller_uid)  
-            tcc = UIM.list('track_canvas_controller', self._controller_uid)[0]
+            print('BOTAO 3')
+            #controller = UIM.get(self._controller_uid) 
+            
             menu = wx.Menu()
             #
+            self._create_selected_obj_menus(menu)
+            #
+            tcc = self._get_canvas_controller()
             grid_submenu = wx.Menu()
             grid_submenu.AppendRadioItem(ShowGridId, 'Show')
             canvas.Bind(wx.EVT_MENU, self._menu_selection, id=ShowGridId)
@@ -1082,7 +1048,101 @@ class TrackView(UIViewObject):
             menu.Destroy() # destroy to avoid mem leak
             # If Menu was displayed, return True to TrackFigureCanvas.on_press    
             #return True
-                    
+ 
+
+
+    def _create_selected_obj_menus(self, menu):
+        self._ids_functions = {}
+        selected_obj_menus = OrderedDict()
+        UIM = UIManager()
+        OM = ObjectManager()
+        tcc = self._get_canvas_controller()
+        tocs = UIM.list('track_object_controller', self._controller_uid)
+        for toc in tocs:
+            if toc.selected:
+                obj = OM.get(toc.obj_uid)
+                if obj:
+                    obj_submenu = wx.Menu()
+                    #
+                    funcs = FunctionManager.functions_available_for_class(obj.__class__)
+                    for f in funcs:
+
+                        print('\n', f['name'])
+                        print(f['friendly_name'])
+                        print(f['function'])
+                        print(f['args'])
+                        print(f['kwargs'], '\n') 
+                        
+                        id_ = wx.NewId() 
+                        obj_submenu.Append(id_, f['friendly_name'])
+                        tcc.Bind(wx.EVT_MENU, self._object_menu_selection, id=id_) 
+                        self._ids_functions[id_] = (f['function'], (obj))
+                    #
+                    obj_submenu.AppendSeparator() 
+                    id_ = wx.NewId() 
+                    obj_submenu.Append(id_, 'Remove from track')
+                    tcc.Bind(wx.EVT_MENU, self._object_menu_selection, id=id_)    
+                    self._ids_functions[id_] = (self._remove_object_helper, 
+                                                   (toc.uid)
+                    )
+                    #
+                    obj_submenu.AppendSeparator() 
+                    id_ = wx.NewId() 
+                    obj_submenu.Append(id_, 'Properties')
+                    tcc.Bind(wx.EVT_MENU, self._object_menu_selection, id=id_)    
+                    self._ids_functions[id_] = (self._properties_object_helper, 
+                                                   (toc.uid)
+                    )
+                    #
+                    obj_submenu.AppendSeparator() 
+                    id_ = wx.NewId() 
+                    obj_submenu.Append(id_, 'Delete object')
+                    tcc.Bind(wx.EVT_MENU, self._object_menu_selection, id=id_)    
+                    self._ids_functions[id_] = (self._delete_object_helper, 
+                                                   (obj.uid)
+                    )
+                    #
+                    selected_obj_menus[obj] = obj_submenu 
+        if selected_obj_menus:
+            for obj, obj_submenu in selected_obj_menus.items():
+                menu.AppendSubMenu(obj_submenu, obj.get_friendly_name())
+            menu.AppendSeparator()    
+   
+    
+    def _object_menu_selection(self, event):
+        func, args = self._ids_functions.get(event.GetId())
+        if isinstance(func, staticmethod):
+            func = func.__func__ 
+        #print '_object_menu_selection', func, args
+        if callable(func):
+            #print 'callable'
+            func(args)
+        #else:
+        #    print 'not callable'
+            #print func.__dict__
+            #print 
+        #    print func.__func__ 
+        #    print 
+            
+            
+    def _remove_object_helper(self, *args):
+        UIM = UIManager()
+        UIM.remove(args[0])
+ 
+    
+    def _properties_object_helper(self, *args):
+        UIM = UIManager()
+        toc = UIM.get(args[0])    
+        repr_ctrl = toc.get_representation()
+        Interface.create_properties_dialog(repr_ctrl.uid)
+        
+        
+    def _delete_object_helper(self, *args):
+        print ('_delete_object_helper:', args[0])
+        OM = ObjectManager()
+        OM.remove(args[0])    
+
+                   
               
     def _menu_selection(self, event):
         UIM = UIManager()

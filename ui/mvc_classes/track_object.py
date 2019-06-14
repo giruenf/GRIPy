@@ -94,11 +94,6 @@ class TrackObjectController(UIControllerObject):
             'default_value': False,
             'type': bool    
     }     
-
-    _ATTRIBUTES['selected'] = {
-            'default_value': False,
-            'type': bool    
-    } 
     
     _ATTRIBUTES['data_mask_uid'] = {
             'default_value': None,
@@ -110,8 +105,9 @@ class TrackObjectController(UIControllerObject):
         super().__init__(**state)
         self.subscribe(self.on_change_obj_uid, 'change.obj_uid')        
         self.subscribe(self.on_change_plottype, 'change.plottype')
-   
-    
+        self.subscribe(self.on_change_picked, 'change.selected')
+
+
     def PostInit(self):
         UIM = UIManager()
         if self.pos == -1:
@@ -124,37 +120,6 @@ class TrackObjectController(UIControllerObject):
         self.plottype = None
 
 
-    """
-    def get_object(self):
-        # Get OM object from TrackObjectController
-        # Returns None if there is no OM Object associate with it.    
-        OM = ObjectManager() 
-        try:
-            obj = OM.get((self.obj_tid, self.obj_oid))
-            if obj: 
-                return obj
-        except:
-            pass
-        return None
-    """
-
-
-    def get_data_mask(self):
-        if self.data_mask_uid is None:
-            return None
-        OM = ObjectManager()
-        return OM.get(self.data_mask_uid)
-        
-
-    def get_well_plot_index_type(self):
-        UIM = UIManager()
-        track_ctrl_uid = UIM._getparentuid(self.uid)
-        well_plot_ctrl_uid = UIM._getparentuid(track_ctrl_uid)
-        well_plot_ctrl = UIM.get(well_plot_ctrl_uid)
-        return well_plot_ctrl.index_type
-
-
-    
     # TODO: Passar somente data_mask, nao trabalhando mais com o obj_uid
     def on_change_obj_uid(self, new_value, old_value):
         # Exclude any representation, if exists
@@ -186,7 +151,6 @@ class TrackObjectController(UIControllerObject):
             raise
 
 
-
     def on_change_plottype(self, new_value, old_value):
         print('\n\non_change_plottype', new_value, old_value)
         UIM = UIManager()
@@ -208,13 +172,55 @@ class TrackObjectController(UIControllerObject):
                 print ('ERROR on_change_plottype', e)
                 self.plottype = None    
                 raise
-                            
+
+
+    def on_change_picked(self, new_value, old_value):
+        self.get_representation().set_picked(new_value, old_value) 
+        
+        
+    def is_picked(self):
+        return self.picked
+
+    # Picking with event that generates pick... 
+    # Event(PickEvent) maybe useful in future
+    def pick_event(self, event):
+        """
+        Quando o usuario clica em um objeto Representation, 
+        ocorre o redirect para ca.
+        """
+        '''
+        toc = None
+        if event.artist:
+            toc_uid = event.artist.get_label()
+            UIM = UIManager()
+            toc = UIM.get(toc_uid)
+        '''    
+        print('\npick_event:', event.artist.get_label())
+        if event.mouseevent.button == 1:
+            self.selected = not self.selected                             
                 
+        
+        
     def _do_draw(self):
 #        print ('\nTrackObjectController._do_draw')
         repr_ctrl = self.get_representation() 
         repr_ctrl.view.draw()       
 #        print ('CALL end')
+
+
+    def get_data_mask(self):
+        if self.data_mask_uid is None:
+            return None
+        OM = ObjectManager()
+        return OM.get(self.data_mask_uid)
+        
+
+    def get_well_plot_index_type(self):
+        UIM = UIManager()
+        track_ctrl_uid = UIM._getparentuid(self.uid)
+        well_plot_ctrl_uid = UIM._getparentuid(track_ctrl_uid)
+        well_plot_ctrl = UIM.get(well_plot_ctrl_uid)
+        return well_plot_ctrl.index_type
 
 
     def _get_log_state(self):
@@ -261,7 +267,7 @@ class TrackObjectController(UIControllerObject):
     #'''
 
     def get_representation(self):
-        # Returns the real Impl_object LogPlot representation
+        # Returns the real OM.object representation
         UIM = UIManager()
         children = UIM.list(None, self.uid)
         if len(children) == 0:
@@ -278,24 +284,7 @@ class TrackObjectController(UIControllerObject):
 
     
 
-    # TODO: Picking
-    # TODO: Get data
-
-    """
-    def is_picked(self):
-        return self.picked
-
-    def on_change_picked(self, new_value, old_value):
-        self.get_representation().view.set_picked(new_value) 
-    """  
-            
-    # Picking with event that generates pick... 
-    # Event(PickEvent) maybe useful in future
-    def pick_event(self, event):
-        print (event)
-        self.selected = not self.selected 
       
-
 
 
 
@@ -471,22 +460,61 @@ class LineRepresentationController(RepresentationController):
     }
     _ATTRIBUTES['x_scale'] = {
             'default_value': 0, 
-            'type': int,
-            'pg_property': 'EnumProperty',
-            'label': 'X axis scale',
-            'options_labels': ['Linear', 'Logarithmic'],
-            'options_values': [0, 1]
+            'type': int#,
+            #'pg_property': 'EnumProperty',
+            #'label': 'X axis scale',
+            #'options_labels': ['Linear', 'Logarithmic'],
+            #'options_values': [0, 1]
     } 
     _ATTRIBUTES['interpolate'] = {
             'default_value': True,
-            'type': bool,
-            'pg_property': 'BoolProperty',
-            'label': 'Interpolate line'
+            'type': bool#,
+            #'pg_property': 'BoolProperty',
+            #'label': 'Interpolate line'
     }       
 
     def __init__(self, **state):
         super().__init__(**state)
 
+
+    def _get_pg_properties_dict(self):
+        """
+        """
+        props = OrderedDict()
+        props['left_scale'] = {
+            'pg_property': 'FloatProperty',
+            'label': 'Left value'  
+        } 
+        """
+        props['right_scale'] = {
+            'pg_property': 'FloatProperty',
+            'label': 'Right value'
+        }
+        props['thickness'] = {
+            'pg_property': 'EnumProperty',
+            'label': 'Width',
+            'options_labels': ['0', '1', '2', '3', '4', '5'],
+            'options_values': [0, 1, 2, 3, 4, 5 ]
+        }    
+        props['color'] = {
+            'pg_property': 'EnumProperty',
+            'label': 'X axis scale',
+            'options_labels': ['Linear', 'Logarithmic'],
+            'options_values': [0, 1]
+        }     
+        props['x_scale'] = {
+            'pg_property': 'EnumProperty',
+            'label': 'X axis scale',
+            'options_labels': ['Linear', 'Logarithmic'],
+            'options_values': [0, 1]
+        }                
+        props['interpolate'] = {
+            'pg_property': 'BoolProperty',
+            'label': 'Interpolate line'
+        }  
+        """              
+        return props
+    
 
 class LineRepresentationView(RepresentationView):
     tid = 'line_representation_view'
@@ -506,9 +534,9 @@ class LineRepresentationView(RepresentationView):
         controller.subscribe(self.on_change_xscale, 'change.x_scale')
         controller.subscribe(self.on_change_interpolate, 'change.interpolate')
         #
-        parent_uid = UIM._getparentuid(self._controller_uid)
-        parent = UIM.get(parent_uid)
-        parent.subscribe(self.set_picked, 'change.selected') 
+#        parent_uid = UIM._getparentuid(self._controller_uid)
+#        parent = UIM.get(parent_uid)
+#        parent.subscribe(self.set_picked, 'change.selected') 
 
     def get_data_info(self, event):
         """
@@ -659,7 +687,9 @@ class LineRepresentationView(RepresentationView):
         # When we set picker to True (to enable line picking) function
         # Line2D.set_picker sets pickradius to True, 
         # then we need to set it again.
+        toc = UIM.get(toc_uid)
         self._set_picking(line)
+        canvas.mpl_connect('pick_event', toc.pick_event)
         self._mplot_objects['line'] = line
         return self.draw_canvas() 
 

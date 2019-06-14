@@ -47,4 +47,4 @@ class OMBaseObject(GripyObject):
     def _get_tree_object_friendly_name(self):
         """Returns a name to be used by TreeController as object node label."""
         return self.name
-    
+      

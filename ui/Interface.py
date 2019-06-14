@@ -8,6 +8,20 @@ from classes.ui import UIManager
 #from Algo.Modeling.Reflectivity import Reflectivity2
 
 
+def create_properties_dialog(obj_uid):
+    UIM = UIManager()
+    dlg = UIM.create('object_properties_dialog_controller')
+    dlg.obj_uid = obj_uid
+    try:          
+        dlg.view.SetSize((300, 330))
+        dlg.view.ShowModal()            
+    except Exception as e:
+        print ('\nERROR create_properties_dialog:', e)
+        raise
+    finally:
+        UIM.remove(dlg.uid)    
+
+
 """
 Load interface data.
 """

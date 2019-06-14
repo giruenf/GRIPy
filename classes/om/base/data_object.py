@@ -101,7 +101,7 @@ class DataObject(OMBaseObject):
         'default_value': wx.EmptyString,
         'type': str        
     }           
-
+   
     def __init__(self, *args, **kwargs):       
         # TODO: 29/8/2018
         # CHECAR FLAG HIDDEN PARA ATRIBUTO NAO EXIBIDO NO TREE
