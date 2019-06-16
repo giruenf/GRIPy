@@ -72,7 +72,8 @@ from ui.mvc_classes.track_object import \
     DensityRepresentationController, DensityRepresentationView, \
     PatchesRepresentationController, PatchesRepresentationView, \
     ContourfRepresentationController, ContourfRepresentationView                          
-from ui.mvc_classes.lpf import WellPlotEditorController, WellPlotEditor        
+from ui.mvc_classes.lpf import WellPlotEditorController, WellPlotEditor  
+from ui.mvc_classes.lpf import LPEWellPlotPanelController, LPEWellPlotPanel      
 from ui.mvc_classes.lpf import LPETrackPanelController, LPETrackPanel
 from ui.mvc_classes.lpf import LPEObjectsPanelController, LPEObjectsPanel
 from ui.mvc_classes.propgrid import PropertyGridController, PropertyGridView
@@ -201,6 +202,9 @@ def register_UIManager_classes():
     UIManager.register_class(PatchesRepresentationController,
                               PatchesRepresentationView, TrackObjectController
     )
+    UIManager.register_class(LPEWellPlotPanelController, LPEWellPlotPanel, 
+                             WellPlotEditorController
+    )    
     UIManager.register_class(LPETrackPanelController, LPETrackPanel, 
                              WellPlotEditorController
     )
@@ -228,4 +232,6 @@ def register_UIManager_classes():
     UIManager.register_class(PropertyGridController,
                              PropertyGridView, ObjectPropertiesDialogController
     )    
-    
+    UIManager.register_class(PropertyGridController,
+                             PropertyGridView, LPEWellPlotPanelController
+    )       

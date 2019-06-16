@@ -59,7 +59,7 @@ def create_text(figure, to_print, props):
     text = figure.text(props.get('x'), props.get('y'), str(to_print),
                        ha=props.get('ha'), fontsize=props.get('fontsize')
     )
-    vertical_alignment = props.get('va', None)
+    vertical_alignment = props.get('va')
     if vertical_alignment:
         text.update({'va': vertical_alignment})
     return text
@@ -344,6 +344,7 @@ class VisDataLabel(FigureCanvas):
             
 
     def set_xlim(self, xlim):
+        print('label.set_xlim:', xlim)
         if self.xlim == xlim:
             return
         xmin, xmax = xlim
@@ -479,13 +480,19 @@ class VisDataLabel(FigureCanvas):
         
         
         if plottype == 'line':
-            self._properties['title'] = {'x': 0.5, 'y':0.64, 'ha':'center', 'fontsize':10}
-            self._properties['sub_title'] = {'x': 0.5, 'y':0.19, 'ha':'center', 'fontsize':9}        
+            self._properties['title'] = {'x': 0.5, 'y':0.64, 
+                            'ha':'center', 'fontsize':10
+            }
+            self._properties['sub_title'] = {'x': 0.5, 'y':0.19, 
+                            'ha':'center', 'fontsize':9
+            }        
             self._properties['xmin'] = {'x': self._properties['xleft'],
-                             'y':0.33, 'ha':'left', 'va':'center', 'fontsize':9
+                             'y':0.33, 'ha':'left', 'va':'center', 
+                             'fontsize':9
             }     
             self._properties['xmax'] = {'x': self._properties['xright'],
-                             'y':0.33, 'ha':'right', 'va':'center', 'fontsize':9
+                             'y':0.33, 'ha':'right', 'va':'center', 
+                             'fontsize':9
             }
             self._properties['line_axes_extent'] = [self._properties['xleft'],
                         0.05, 

@@ -37,6 +37,7 @@ Versão 0.8.beta:
 - Redefinição na forma de se exibir as propriedades dos objetos. O metodo _get_pg_properties_dict de cada classe
   fornecerá os dados a serem utilizados para popular o PropertyGridController.
 - Foi criada uma nova classe de Dialog (ObjectPropertiesDialogController) para exibir as propriedades de qualquer objeto griPy.  
+- Insercao das propriedades do WellPlot na janela de edicao 'WellPlotEditor'
    
 
 Versão 0.7:

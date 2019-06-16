@@ -28,7 +28,7 @@ class ObjectPropertiesDialogController(DialogController):
         # after View.PostInit
         UIM = UIManager()
         pgc = UIM.create('property_grid_controller', self.uid)
-        self.view.mainpanel.GetSizer().Add(pgc.view, proportion=1, 
+        self.view.mainpanel.GetSizer().Add(pgc.view, proportion=1,
                             flag=wx.TOP|wx.LEFT|wx.RIGHT|wx.EXPAND, border=10
         )
         self.view.mainpanel.GetSizer().Layout()
@@ -39,8 +39,7 @@ class ObjectPropertiesDialogController(DialogController):
         pgc = UIM.list('property_grid_controller', parent_uid=self.uid)[0]      
         pgc.obj_uid = new_value
         
-    def _get_wx_parent(self, *args, **kwargs):
-        return self.view.mainpanel
+
         
     
 class ObjectPropertiesDialog(Dialog):
@@ -49,5 +48,6 @@ class ObjectPropertiesDialog(Dialog):
     def __init__(self, controller_uid):
         super().__init__(controller_uid)        
 
-        
+    def _get_wx_parent(self, *args, **kwargs):
+        return self.view.mainpanel        
         

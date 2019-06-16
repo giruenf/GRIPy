@@ -1,4 +1,3 @@
-
 from collections import OrderedDict
 
 from classes.om import OMBaseObject
@@ -6,24 +5,18 @@ from classes.om import DataObject
 from classes.om import ObjectManager
 
 
-
-
 class Log(DataObject):
     tid = "log"
     _TID_FRIENDLY_NAME = 'Log'
-    
-    _SHOWN_ATTRIBUTES = [
-                            ('datatype', 'Curve Type'),
-                            ('unit', 'Units'),
-                            ('min', 'Min Value'),
-                            ('max', 'Max Value')
-    ] 
-    
+    _SHOWN_ATTRIBUTES = [('datatype', 'Curve Type'),
+                         ('unit', 'Units'),
+                         ('min', 'Min Value'),
+                         ('max', 'Max Value')
+    ]
     
     def __init__(self, *args, **attributes):
         super().__init__(*args, **attributes) 
-
-           
+     
     @classmethod
     def _is_tree_tid_node_needed(cls):
         #From matplotlib.docstring.py 
@@ -64,7 +57,6 @@ class Log(DataObject):
         curve_set_uid = OM._getparentuid(self.uid)
         return OM.get(curve_set_uid)
      
-
     def _get_pg_properties_dict(self):
         """
         """

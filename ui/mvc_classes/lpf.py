@@ -35,6 +35,7 @@ class WellPlotEditorController(UIControllerObject):
 
     def PostInit(self):
         UIM = UIManager()
+        UIM.create('lpe_wellplot_panel_controller', self.uid)
         UIM.create('lpe_track_panel_controller', self.uid)
         UIM.create('lpe_objects_panel_controller', self.uid)
         #
@@ -46,8 +47,8 @@ class WellPlotEditorController(UIControllerObject):
             track.subscribe(self._on_change_prop, 'change')
             for toc in UIM.list('track_object_controller', track.uid):
                 toc.subscribe(self._on_change_prop, 'change')
-            
         
+    
     def PreDelete(self):
         UIM = UIManager()
 #        UIM.unsubscribe(self.object_created, 'create')
@@ -224,10 +225,55 @@ class WellPlotEditor(UIViewObject, wx.Frame):
         wx.CallAfter(UIM.remove, self._controller_uid)
         self.Unbind(wx.EVT_CLOSE)
 
+    def _get_wx_parent(self, *args, **kwargs):
+        return self.note
+    
+    
 
 
+class LPEWellPlotPanelController(UIControllerObject):
+    tid = 'lpe_wellplot_panel_controller'
+    
+    def __init__(self):
+        super(LPEWellPlotPanelController, self).__init__()
+        
+        
+class LPEWellPlotPanel(UIViewObject, wx.Panel):
+    tid = 'lpe_wellplot_panel'
 
+    def __init__(self, controller_uid):
+        UIViewObject.__init__(self, controller_uid)
+        UIM = UIManager()
+        wpe_ctrl_uid = UIM._getparentuid(self._controller_uid)
+        wpe_ctrl = UIM.get(wpe_ctrl_uid)
+        wx.Panel.__init__(self, 
+                          wpe_ctrl._get_wx_parent(), 
+                          -1, 
+                          style=wx.SIMPLE_BORDER
+        )   
 
+    def PostInit(self):
+        self.base_panel = wx.Panel(self)
+        base_sizer = wx.BoxSizer(wx.VERTICAL) 
+        #
+        UIM = UIManager()
+        pgc = UIM.create('property_grid_controller', self._controller_uid)
+        wpe_ctrl_uid = UIM._getparentuid(self._controller_uid)
+        wp_ctrl_uid = UIM._getparentuid(wpe_ctrl_uid)
+        pgc.obj_uid = wp_ctrl_uid
+        base_sizer.Add(pgc.view, 1, wx.EXPAND)
+        self.base_panel.SetSizer(base_sizer)
+        #
+        sizer_grid_panel = wx.BoxSizer(wx.VERTICAL)
+        sizer_grid_panel.Add(self.base_panel, 1, wx.EXPAND|wx.ALL, border=10)
+        self.SetSizer(sizer_grid_panel)
+        #
+        wpe_ctrl = UIM.get(wpe_ctrl_uid)
+        wpe_ctrl._get_wx_parent().AddPage(self, "WellPlot", True)
+        
+        
+    def _get_wx_parent(self, *args, **kwargs):
+        return self.base_panel
 
 
 class LPETrackPanelController(UIControllerObject):
@@ -441,15 +487,22 @@ class LPETrackPanel(UIViewObject, wx.Panel):
 
     def __init__(self, controller_uid):
         UIViewObject.__init__(self, controller_uid)
-        wx.Panel.__init__(self, self._get_lpeview_notebook(), -1, style=wx.SIMPLE_BORDER)       
+        UIM = UIManager()
+        wpe_ctrl_uid = UIM._getparentuid(self._controller_uid)
+        wpe_ctrl = UIM.get(wpe_ctrl_uid)
+        wx.Panel.__init__(self, 
+                          wpe_ctrl._get_wx_parent(), 
+                          -1, 
+                          style=wx.SIMPLE_BORDER
+        )       
 
 
     def PostInit(self):
         self.base_panel = wx.Panel(self)
         self.dvc = self.create_data_view_ctrl()
-        
-        self.base_panel.Sizer = wx.BoxSizer(wx.VERTICAL) 
-        self.base_panel.Sizer.Add(self.dvc, 1, wx.EXPAND)
+        #
+        base_sizer = wx.BoxSizer(wx.VERTICAL)
+        base_sizer.Add(self.dvc, 1, wx.EXPAND)
         button_add_track = wx.Button(self.base_panel, label="Add track")
         self.Bind(wx.EVT_BUTTON, self.OnInsertTrack, button_add_track)
         button_delete_track = wx.Button(self.base_panel, label="Delete track(s)")
@@ -463,11 +516,12 @@ class LPETrackPanel(UIViewObject, wx.Panel):
         btnbox.Add(button_delete_track, 0, wx.LEFT|wx.RIGHT, 5)
         btnbox.Add(button_select_all, 0, wx.LEFT|wx.RIGHT, 5)
         btnbox.Add(button_select_none, 0, wx.LEFT|wx.RIGHT, 5)
-        self.base_panel.Sizer.Add(btnbox, 0, wx.TOP|wx.BOTTOM, 5)
-        
+        base_sizer.Add(btnbox, 0, wx.TOP|wx.BOTTOM, 5)
+        self.base_panel.SetSizer(base_sizer)
+        #
         self.dvc.EnableDragSource(VarNodeDropData.GetFormat())
         self.dvc.EnableDropTarget(VarNodeDropData.GetFormat())
-        
+        #
         self.dvc.Bind(dv.EVT_DATAVIEW_ITEM_BEGIN_DRAG, self.OnItemBeginDrag)
         self.dvc.Bind(dv.EVT_DATAVIEW_ITEM_DROP_POSSIBLE, self.OnItemDropPossible)
         self.dvc.Bind(dv.EVT_DATAVIEW_SELECTION_CHANGED, self.OnSelectionChanged)          
@@ -475,15 +529,13 @@ class LPETrackPanel(UIViewObject, wx.Panel):
         sizer_grid_panel = wx.BoxSizer(wx.VERTICAL)
         sizer_grid_panel.Add(self.base_panel, 1, wx.EXPAND|wx.ALL, border=10)
         self.SetSizer(sizer_grid_panel)
-        self._get_lpeview_notebook().AddPage(self, "Tracks", True)
+        #
+        UIM = UIManager()
+        wpe_ctrl_uid = UIM._getparentuid(self._controller_uid)
+        wpe_ctrl = UIM.get(wpe_ctrl_uid)
+        wpe_ctrl._get_wx_parent().AddPage(self, "Tracks", True)
   
 
-    def _get_lpeview_notebook(self):
-        UIM = UIManager()
-        parent_controller_uid = UIM._getparentuid(self._controller_uid) 
-        lpe_ctrl = UIM.get(parent_controller_uid)
-        return lpe_ctrl.view.note
-        
 
     def create_data_view_ctrl(self):
         dvc = dv.DataViewCtrl(self.base_panel, style=wx.BORDER_THEME | \
@@ -968,7 +1020,14 @@ class LPEObjectsPanel(UIViewObject, wx.Panel):
     
     def __init__(self, controller_uid):
         UIViewObject.__init__(self, controller_uid)
-        wx.Panel.__init__(self, self._get_lpeview_notebook(), -1, style=wx.SIMPLE_BORDER)       
+        UIM = UIManager()
+        wpe_ctrl_uid = UIM._getparentuid(self._controller_uid)
+        wpe_ctrl = UIM.get(wpe_ctrl_uid)
+        wx.Panel.__init__(self, 
+                          wpe_ctrl._get_wx_parent(),
+                          -1, 
+                          style=wx.SIMPLE_BORDER
+        )       
         self.splitter = None
         self.dvc = None
         self.Sizer= None
@@ -1024,19 +1083,17 @@ class LPEObjectsPanel(UIViewObject, wx.Panel):
         #sizer_grid_panel = wx.BoxSizer(wx.VERTICAL)
         #sizer_grid_panel.Add(self.splitter, 1, wx.EXPAND|wx.ALL, border=10)
         self.SetSizer(self.Sizer)
-        self._get_lpeview_notebook().AddPage(self, "Objects", True)
+        #
+        UIM = UIManager()
+        wpe_ctrl_uid = UIM._getparentuid(self._controller_uid)
+        wpe_ctrl = UIM.get(wpe_ctrl_uid)
+        wpe_ctrl._get_wx_parent().AddPage(self, "Objects", True)
 
 
         #self.dvc.Bind(wx.EVT_IDLE, self._dvc_idle)
         
     #def _dvc_idle(self, event):
     #    print 'DVC IDLE'
-
-    def _get_lpeview_notebook(self):
-        UIM = UIManager()
-        parent_controller_uid = UIM._getparentuid(self._controller_uid) 
-        lpe_ctrl = UIM.get(parent_controller_uid)
-        return lpe_ctrl.view.note
 
 
     def create_data_view_ctrl(self):

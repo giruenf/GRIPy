@@ -1,17 +1,16 @@
-# -*- coding: utf-8 -*-
+from collections import OrderedDict
 
 import wx
 
-from classes.om import ObjectManager
-from ui.mvc_classes.workpage import WorkPageController
-from ui.mvc_classes.workpage import WorkPage
-from classes.ui import UIManager
-from ui.plotstatusbar import PlotStatusBar
-from ui.wellplot_internal import WellPlotInternal
+from app import log
 from app.app_utils import WellPlotState   
 from app.app_utils import GripyBitmap  
-from app import log  
-
+from classes.om import ObjectManager
+from classes.ui import UIManager
+from ui.mvc_classes.workpage import WorkPageController
+from ui.mvc_classes.workpage import WorkPage
+from ui.plotstatusbar import PlotStatusBar
+from ui.wellplot_internal import WellPlotInternal
 
 
 WP_FLOAT_PANEL = wx.NewId() 
@@ -21,22 +20,16 @@ WP_ADD_TRACK = wx.NewId()
 WP_REMOVE_TRACK = wx.NewId()     
     
 
-
-
 class WellPlotController(WorkPageController):    
     """
     The :class:`WellPlotController` ...
-    """    
-    
+    """        
     tid = 'wellplot_controller'
-
-
     _ATTRIBUTES = {            
         'obj_uid': {
                 'default_value': None,
                 'type': 'uid'
-        },
-                
+        },      
         'wellplot_ylim': {
                 'default_value': (-9999.25, -9999.25), 
                 'type': (tuple, float, 2)  
@@ -45,24 +38,30 @@ class WellPlotController(WorkPageController):
                 'default_value': (-9999.25, -9999.25), 
                 'type': (tuple, float, 2)  
         },                 
-        'y_major_grid_lines': {'default_value': 500.0, 
-                               'type': float
+        'y_major_grid_lines': {
+                'default_value': 500.0, 
+                'type': float
         },
-        'y_minor_grid_lines': {'default_value': 100.0, 
-                               'type': float
+        'y_minor_grid_lines': {
+                'default_value': 100.0, 
+                'type': float
         },       
-        'cursor_state': {'default_value': WellPlotState.NORMAL_TOOL, 
-                         'type': WellPlotState
+        'cursor_state': {
+                'default_value': WellPlotState.NORMAL_TOOL, 
+                'type': WellPlotState
         },
-        'fit': {'default_value': False, 
+        'fit': {
+                'default_value': False, 
                 'type': bool
         },
-        'multicursor': {'default_value': 'None', 
+        'multicursor': {
+                'default_value': 'None', 
                 'type': str
         },
-        'index_type': {'default_value': None, 
+        'index_type': {
+                'default_value': None, 
                 'type': str
-        }   
+        }
     }
         
     def __init__(self, **state):
@@ -93,6 +92,61 @@ class WellPlotController(WorkPageController):
         UIM = UIManager()
         return len(UIM.list('track_controller', self.uid))   
 
+
+    def _get_pg_properties_dict(self):
+        """
+        """
+        props = OrderedDict()
+        props['obj_uid'] = {
+            'label': 'Well uid',
+            'pg_property': 'StringProperty',
+            'enabled': False
+        }    
+        props['wellplot_ylim'] = {
+            'label': 'Wellplot ylim',
+            'pg_property': 'StringProperty',
+            'enabled': False
+        }
+        props['shown_ylim'] = {
+            'label': 'Shown ylim',
+            'pg_property': 'StringProperty',
+            'enabled': False
+        }    
+        props['y_major_grid_lines'] = {
+            'label': 'Major grid lines',
+            'pg_property': 'FloatProperty'
+        }   
+        props['y_minor_grid_lines'] = {
+            'label': 'Minor grid lines',
+            'pg_property': 'FloatProperty'
+        }   
+        props['fit'] = {
+            'label': 'Fit',
+            'pg_property': 'BoolProperty',
+        }
+        props['multicursor'] = { 
+            'label': 'Multicursor',   
+            'pg_property': 'StringProperty',
+            'enabled': False
+        }
+        props['index_type'] = {
+            'label': 'Index type',   
+            'pg_property': 'StringProperty',
+            'enabled': False
+        }
+        #'cursor_state': {
+        #        'default_value': WellPlotState.NORMAL_TOOL, 
+        #        'type': WellPlotState
+        #},
+
+        #'multicursor': {
+        #        'default_value': 'None', 
+        #        'type': str
+        #},
+
+        return props
+
+
     def _on_change_cursor_state(self, new_value, old_value):
         """
         Unselect all tracks when WellPlotState.NORMAL_TOOL is trigged.
@@ -116,8 +170,6 @@ class WellPlotController(WorkPageController):
             for track in selected_tracks:
                 track.selected = False
                     
-
-
     def _reload_ylims_from_index_type(self):
         """
         Given a y axis datatype (e.g. MD), reload its limits.
@@ -169,9 +221,6 @@ class WellPlotController(WorkPageController):
             print ('ERROR _on_change_index_type:', e)
             raise        
         
-        
-        
-
     def _on_change_shown_ylim(self, new_value, old_value):
         ymin, ymax = new_value
         if ymin < 0 or ymax < 0:
@@ -212,11 +261,6 @@ class WellPlotController(WorkPageController):
             # Call view object function using bypass (see 
             # UIControllerObject.__getattribute__)
             self._set_own_name()
-
-
-#    def on_change_ylim(self, new_value, old_value):
-#        self._reload_ylim()
-
 
     def insert_track(self):
         """
@@ -267,7 +311,6 @@ class WellPlotController(WorkPageController):
         for track in selected_tracks:
             UIM.remove(track.uid)  
 
-
     def get_overview_track(self):
         """
         Returns the overview TrackController, if it exists. 
@@ -285,7 +328,6 @@ class WellPlotController(WorkPageController):
         if query_list:
             track = query_list[0]
         return track
-
 
     def _adjust_positions_after_track_deletion(self, pos):
         """
@@ -306,8 +348,7 @@ class WellPlotController(WorkPageController):
         for track in tracks:
             track.set_value_from_event('pos', track.pos-1)   
             track.reload_track_title()        
-                    
-            
+                              
     def _change_width_for_selected_tracks(self, dragged_track_uid):
         """
         Change width for a group of selected tracks.
@@ -329,7 +370,6 @@ class WellPlotController(WorkPageController):
         for track in selected:
             if track.uid != dragged_track_uid:
                 track.width = dragged_track.width 
-
 
     def _increment_tracks_positions(self, pos, exclude_track_uid=None):
         """
@@ -399,7 +439,7 @@ class WellPlotController(WorkPageController):
             track.reload_track_title() 
 
 
-          
+
 
 
     # TODO: REVER ESSA FUNCAO
@@ -419,12 +459,10 @@ class WellPlotController(WorkPageController):
             Spacing in points between the label and the x-axis.        
         
         """
-        
         UIM = UIManager()
         track_pos = UIM.get(track_uid)
         pos = old_pos
-        
-        
+        #
         if new_pos == self.view.get_adjusted_absolute_track_position(track_pos.uid):
             return
         if new_pos < old_pos:
@@ -440,15 +478,15 @@ class WellPlotController(WorkPageController):
                     if new_pos != self.view.get_track_position(track_pos.uid, False):
                         self.view.change_absolute_track_position_on_splitter(track_pos.uid, new_pos)
                 track_next_pos.pos += 1
-                pos -= 1
-        
+                pos -= 1  
         else:
             while pos < new_pos: 
-                tracks_next_pos = UIM.exec_query('track_controller',  self.uid, 
-                                      'pos='+str(pos+1))
+                tracks_next_pos = UIM.exec_query('track_controller',  
+                                                 self.uid, 
+                                                 'pos='+str(pos+1)
+                )
                 if track_pos in tracks_next_pos:
-                    tracks_next_pos.remove(track_pos)
-                    
+                    tracks_next_pos.remove(track_pos)     
                 if len(tracks_next_pos) == 0:
                     return
                 track_next_pos = tracks_next_pos[0]
@@ -469,19 +507,13 @@ class WellPlotController(WorkPageController):
         track.visible = show
         self.view.show_track(track_uid, show)
     """
-    
-    
-
 
     # TODO: REVER ESSA FUNCAO
     """
     def _pre_delete_overview_track(self):
         self.view._remove_from_overview_panel()
     """
-
-                  
-
-
+    
     """
     def get_shown_ylim(self):
         ymin, ymax = self.shown_ylim
@@ -489,13 +521,6 @@ class WellPlotController(WorkPageController):
             raise Exception()                                                                      
         return shown_ylim
     """
-    
-
-
-
-   
-                
-     
         
         
 class WellPlot(WorkPage):  
@@ -558,8 +583,6 @@ class WellPlot(WorkPage):
                                             self._on_change_sash_pos
         )      
 
-
-
     def PostInit(self):
         OM = ObjectManager()
         UIM = UIManager()        
@@ -569,8 +592,6 @@ class WellPlot(WorkPage):
         #
         well = OM.get(controller.obj_uid) 
         controller.attach(well.uid)
-        #
-        
         # Populate index type Choice
         for z_axis_dt in well.get_z_axis_datatypes().keys():
             self._tool_bar.choice_IT.Append(z_axis_dt)
@@ -578,30 +599,17 @@ class WellPlot(WorkPage):
         idx_index_type = self._tool_bar.choice_IT.GetItems().index(controller.index_type)
         self._tool_bar.choice_IT.SetSelection(idx_index_type)
         #
-        
-        
-#        self.set_index_type(controller.index_type)  
         self._tool_bar.choice_IT.Bind(wx.EVT_CHOICE , self._on_index_type) 
-        
-        
-        
         # Setting min and max Z axis TextCtrls
         self._reload_z_axis_textctrls()
         # Create Overview Track
         UIM.create('track_controller', 
-                                 self._controller_uid,
-                                 overview=True, plotgrid=False                            
+                   self._controller_uid,
+                   overview=True, 
+                   plotgrid=False                            
         )
 
-
     def PreDelete(self):
-        """
-        try:
-            self._overview_sizer.Detach(self._overview_track.view.track)
-        except:
-            pass
-        """
-        
         try:
             self.sizer.Remove(0)
             del self._tool_bar
@@ -612,23 +620,19 @@ class WellPlot(WorkPage):
             print (msg)                                
             raise       
              
-
     def _on_change_sash_pos(self, event):
         idx = event.GetSashIdx()
         new_width = event.GetSashPosition()
         track_ctrl = self.get_track_on_position(idx)
         track_ctrl.width = new_width
   
-
     def _on_change_float_panel(self, event):
         # TODO: Integrar binds de toggle buttons...
         if event.GetId() == WP_FLOAT_PANEL:
             UIM = UIManager()   
             controller = UIM.get(self._controller_uid)
             controller.float_mode = event.IsChecked()    
-            
-      
-        
+                 
     # Posicao absoluta considera os tracks invisiveis
     # Posicao relativa considera somente os tracks visiveis
     # Posicao -1 retorna overview track ou None se nao existir overview
@@ -645,14 +649,11 @@ class WellPlot(WorkPage):
                 track_ctrl_uid = UIM._getparentuid(tcc.uid)
                 return UIM.get(track_ctrl_uid)   
         raise Exception('Informed position [{}] is invalid.'.format(pos))    
-
-                       
+                    
     def _place_as_overview(self, track_canvas_window):
         """Places a TrackCanvas window at overview place.
         It is a inner function and should (must) be used only by WellPlot.    
         """
-#        print ('\n\n_place_as_overview')
-        
         if not self._overview_sizer.IsEmpty():
             raise Exception('Overview sizer is not empty.')
         self._overview_base_panel.SetInitialSize((self._overview_width, 10))
@@ -660,9 +661,6 @@ class WellPlot(WorkPage):
                                 wx.EXPAND|wx.ALL, self._overview_border
         )     
         self._hbox.Layout()
-#        print ('_place_as_overview FINISHED')
-
-
 
     def _remove_from_overview(self):
         """Remove track is at overview place."""
@@ -682,11 +680,6 @@ class WellPlot(WorkPage):
         self._overview_base_panel.SetInitialSize((0, 0))
         self._hbox.Layout()       
 
-
-
-  
-
-
     def _get_wx_parent(self, flag):
         """
         """
@@ -701,30 +694,33 @@ class WellPlot(WorkPage):
         )
 
 
+    def get_friendly_name(self):
+        OM = ObjectManager()
+        UIM = UIManager()
+        controller = UIM.get(self._controller_uid)
+        idx = 0
+        well = OM.get(controller.obj_uid)
+        wpcs = UIM.list('wellplot_controller')
+        for wpc in wpcs:
+            if wpc == controller:
+                break
+            if wpc.obj_uid == controller.obj_uid:
+                idx += 1
+        idx += 1      
+        name = self._get_tid_friendly_name() \
+                               + ': ' + well.name + ' ['+ str(idx) + ']' 
+        return name
+
     def _set_own_name(self):
         """
         """
-        try:
-            OM = ObjectManager()
-            UIM = UIManager()   
-            controller = UIM.get(self._controller_uid)
-            idx = 0
-            well = OM.get(controller.obj_uid)
-            wpcs = UIM.list('wellplot_controller')
-            for wpc in wpcs:
-                if wpc == controller:
-                    break
-                if wpc.obj_uid == controller.obj_uid:
-                    idx += 1
-            idx += 1            
-            controller.title = self._get_tid_friendly_name() + ': ' + well.name + \
-                                        ' ['+ str(idx) + ']'    
-        except Exception as e:
-            print ('ERROR _set_own_name:', e)
-    
-    
+        UIM = UIManager()   
+        controller = UIM.get(self._controller_uid)
+        print('\n\n_set_own_name')
+        title = self.get_friendly_name()
+        print('title:', title)
+        controller.title = title   
 
-        
     
     def _reload_z_axis_textctrls(self, *args):    
         UIM = UIManager()        
@@ -735,21 +731,12 @@ class WellPlot(WorkPage):
         z_end_str = "{0:.2f}".format(ymax)
         self._tool_bar.z_end.SetValue(z_end_str)
         
-
     def on_change_z_start(self, event):
         print ('on_change_z_start:', event.GetString())
 
     def on_change_z_end(self, event):
         print ('on_change_z_end:', event.GetString())
         
-    
-      
-            
-        
-
-
-
-    
     # Posicao absoluta considera os tracks invisiveis
     # Posicao relativa considera somente os tracks visiveis
     # retorna -1 se o track for overview
@@ -760,10 +747,8 @@ class WellPlot(WorkPage):
             raise Exception()
         track = UIM.get(track_uid)    
         if track.overview:
-            return -1 
-        
-        tcc = track._get_canvas_controller()
-        
+            return -1         
+        tcc = track._get_canvas_controller()        
         #if relative_position:
         #    return self._tracks_panel.bottom_splitter.GetVisibleIndexOf(bottom)
         #return self._tracks_panel.bottom_splitter.IndexOf(bottom)
@@ -774,8 +759,6 @@ class WellPlot(WorkPage):
         #print 'get_track_position({}, {}): {}'.format(track_uid, relative_position, ret)    
         return ret    
 
-#    """
-        
     # Posicao absoluta, considerando overview
     def get_adjusted_absolute_track_position(self, track_uid):  
         pos = self.get_track_position(track_uid, False)
@@ -827,7 +810,6 @@ class WellPlot(WorkPage):
         except:
             raise
 
-
     def show_track(self, track_uid, show):
         UIM = UIManager()
         track = UIM.get(track_uid)
@@ -837,40 +819,28 @@ class WellPlot(WorkPage):
             self._tracks_panel.bottom_splitter.ShowWindow(track.view.track, show)
         else:
             raise Exception('show_track overview track???')
-            
-
         tracks_affected= UIM.exec_query('track_controller',  
                                             self._controller_uid,
                                             'pos>='+str(track.pos)
         )    
-
         for track_affected in tracks_affected:
             if track_affected.uid != track.uid:
                 #print 'track_affected.uid:', track_affected.uid
                 track_affected.reload_track_title() 
            
-        
-
-
-
-
     def _on_bottom_splitter_size(self, event):
         UIM = UIManager()
         controller = UIM.get(self._controller_uid) 
         controller.update_adaptative()
-        
-        
+               
     def _do_change_width(self, idx, width, event_object=None):
-        
         self._tracks_panel.top_splitter._sashes[idx] = width
         self._tracks_panel.bottom_splitter._sashes[idx] = width
-        
         if self._tracks_panel.top_splitter._windows[idx].IsShown():
             self._tracks_panel.top_splitter._SizeComponent()  
         if self._tracks_panel.bottom_splitter._windows[idx].IsShown():
             self._tracks_panel.bottom_splitter._SizeComponent()              
     
-
     def _on_toolbar_insert_track(self, event):
         UIM = UIManager()
         controller = UIM.get(self._controller_uid)
@@ -898,8 +868,6 @@ class WellPlot(WorkPage):
         )
         lp_editor_ctrl.view.Show()							  
 
-
-
     def _OnResetZAxis(self, event):
         """
         Reset based on controller.wellplot_ylim, not on a new DataIndex inclusion.
@@ -908,7 +876,6 @@ class WellPlot(WorkPage):
         controller = UIM.get(self._controller_uid)
         controller.shown_ylim = controller.wellplot_ylim
         
-
     def _OnSetZAxis(self, event): 
         UIM = UIManager()
         controller = UIM.get(self._controller_uid)
@@ -925,18 +892,14 @@ class WellPlot(WorkPage):
         if ok:  
             controller.shown_ylim((float(z_start_str), float(z_end_str)))
 
-            
-
     def _on_fit(self, event): 
         UIM = UIManager()
         controller = UIM.get(self._controller_uid) 
         controller.fit = event.IsChecked()
- 
-    
+     
     def set_fit(self, new_value, old_value):
         self._tracks_panel.top_splitter._SetFit(new_value)
         self._tracks_panel.bottom_splitter._SetFit(new_value)        
-
             
     def _on_multicursor(self, event):
         UIM = UIManager()
@@ -948,14 +911,11 @@ class WellPlot(WorkPage):
         controller = UIM.get(self._controller_uid) 
         controller.index_type = event.GetString()
         
-
-
     def _insert_windows_on_track_panel(self, pos, label_window, 
                                            canvas_window, initial_width=200):
         self._tracks_panel.insert(pos, label_window, canvas_window,
                                                               initial_width
         )
-
 
     def set_multicursor(self, new_value, old_value):        
         UIM = UIManager() 
@@ -964,9 +924,6 @@ class WellPlot(WorkPage):
             return               
         for track in tracks:
             track.view.track.update_multicursor(new_value)
-
-
-
         
     """    
     def show_cursor(self, event_on_track_ctrl_uid, xdata, ydata):
@@ -982,14 +939,8 @@ class WellPlot(WorkPage):
         
     """
 
-
-
-
-
     def show_status_message(self, msg):
         self._status_bar.SetStatusText(msg, 0)
-
-
         
     def _build_tool_bar(self):
         self.fp_item = self._tool_bar.AddTool(WP_FLOAT_PANEL, 
@@ -1006,8 +957,7 @@ class WellPlot(WorkPage):
                   WP_FLOAT_PANEL
         )                
         self._tool_bar.AddSeparator()
-        
-        
+        #        
         self._tool_bar.AddTool(WP_NORMAL_TOOL, 
                       wx.EmptyString,
                       GripyBitmap('cursor_24.png'), 

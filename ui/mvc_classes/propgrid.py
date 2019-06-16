@@ -95,12 +95,12 @@ class FloatProperty(pg.FloatProperty, GripyPgProperty):
 
 
     def ValueToString(self, *args):
-        print('FloatProperty.ValueToString:', str(self._get_value()))
+#        print('FloatProperty.ValueToString:', str(self._get_value()))
         return str(self._get_value())
 
 
     def StringToValue(self, variant, text, flag):
-        print('FloatProperty.StringToValue:', self._obj_attr, text)
+#        print('FloatProperty.StringToValue:', self._obj_attr, text)
         return self._set_value(text)  
 
 
@@ -409,7 +409,8 @@ def _get_pg_property(obj_uid, obj_attr, obj_attr_props):
                             label=obj_attr_props.get('label')
         )   
         
-    elif obj_attr_props.get('type') == str:
+    elif obj_attr_props.get('pg_property') == 'StringProperty' or \
+                                            obj_attr_props.get('type') == str:
         prop = StringProperty(obj_uid, obj_attr, 
                                            label=obj_attr_props.get('label')
         )
@@ -450,7 +451,7 @@ class PropertyGridController(UIControllerObject):
         manager = Manager()
         obj = manager.get(obj_uid)
         return obj
-
+        
 
     def on_change_obj_uid(self, new_value, old_value):
         if old_value is not None:
@@ -473,7 +474,7 @@ class PropertyGridController(UIControllerObject):
                 self.view.Append(property_)
                 obj.subscribe(self.refresh_property, 'change.' + key)     
             except Exception as e:
-                print ('ERRO:', e)
+                print ('\nERRO loading properties:', e)
                 pass        
 
 

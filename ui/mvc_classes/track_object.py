@@ -74,7 +74,6 @@ class TrackObjectController(UIControllerObject):
     tid = 'track_object_controller'
 
     _ATTRIBUTES = OrderedDict()
-    
     _ATTRIBUTES['obj_uid'] = {
             'default_value': None,
             'type': 'uid'
@@ -89,7 +88,6 @@ class TrackObjectController(UIControllerObject):
             'default_value': -1,
             'type': int    
     }      
-
     _ATTRIBUTES['selected'] = {
             'default_value': False,
             'type': bool    
@@ -99,26 +97,22 @@ class TrackObjectController(UIControllerObject):
             'default_value': None,
             'type': 'uid'
     } 
-    
-    
+        
     def __init__(self, **state):
         super().__init__(**state)
         self.subscribe(self.on_change_obj_uid, 'change.obj_uid')        
         self.subscribe(self.on_change_plottype, 'change.plottype')
         self.subscribe(self.on_change_picked, 'change.selected')
 
-
     def PostInit(self):
         UIM = UIManager()
         if self.pos == -1:
             track_ctrl_uid = UIM._getparentuid(self.uid)
             self.pos = len(UIM.list(self.tid, track_ctrl_uid))     
-
-                 
+               
     def PreDelete(self):
         print ('\nTrackObjectController PreDelete:')
         self.plottype = None
-
 
     # TODO: Passar somente data_mask, nao trabalhando mais com o obj_uid
     def on_change_obj_uid(self, new_value, old_value):
@@ -149,7 +143,6 @@ class TrackObjectController(UIControllerObject):
         except Exception as e:
             print ('ERROR on_change_obj_oid:', e)
             raise
-
 
     def on_change_plottype(self, new_value, old_value):
         print('\n\non_change_plottype', new_value, old_value)
@@ -435,28 +428,28 @@ class LineRepresentationController(RepresentationController):
     _ATTRIBUTES['left_scale'] = {
             'default_value': 0.0,
             'type': float,
-            'pg_property': 'FloatProperty',
-            'label': 'Left value'        
+            #'pg_property': 'FloatProperty',
+            #'label': 'Left value'        
     }
     _ATTRIBUTES['right_scale'] = {
             'default_value': 1.0,
             'type': float,
-            'pg_property': 'FloatProperty',
-            'label': 'Right value'
+            #'pg_property': 'FloatProperty',
+            #'label': 'Right value'
     }
     _ATTRIBUTES['thickness'] = {
             'default_value': 1, 
             'type': int,
-            'pg_property': 'EnumProperty',
-            'label': 'Width',
-            'options_labels': ['0', '1', '2', '3', '4', '5'],
-            'options_values': [0, 1, 2, 3, 4, 5 ]       
+            #'pg_property': 'EnumProperty',
+            #'label': 'Width',
+            #'options_labels': ['0', '1', '2', '3', '4', '5'],
+            #'options_values': [0, 1, 2, 3, 4, 5 ]       
     }
     _ATTRIBUTES['color'] = {
             'default_value': 'Black',
             'type': str,
-            'pg_property': 'MPLColorsProperty',
-            'label': 'Color'            
+            #'pg_property': 'MPLColorsProperty',
+            #'label': 'Color'            
     }
     _ATTRIBUTES['x_scale'] = {
             'default_value': 0, 
@@ -614,19 +607,21 @@ class LineRepresentationView(RepresentationView):
         self.draw()
         
     def set_xlim(self, new_value, old_value):
-        UIM = UIManager()
-        controller = UIM.get(self._controller_uid)        
-        if not controller.get_object():
-            return
+#        UIM = UIManager()
+#        controller = UIM.get(self._controller_uid)        
+#        if not controller.get_object():
+#            return
         self.draw()
   
     def draw(self):
+        print('\nLineRepresentationView.draw')
         if self._mplot_objects:
             self.clear() 
         UIM = UIManager()
         controller = UIM.get(self._controller_uid)
         dm = controller.get_data_mask()
         # Deals with WellPlot label
+        print('self.label:', self.label)
         if self.label:
             self.label.set_plot_type('line')
             self.label.set_xlim(
@@ -655,21 +650,24 @@ class LineRepresentationView(RepresentationView):
         track_controller =  UIM.get(track_controller_uid)        
         #
         if controller.interpolate:
-            f1 = interp1d(ydata, transformated_xdata)   
+            print('minmax xdata:', np.nanmin(xdata), np.nanmax(xdata))
+            print('minmax trans_xdata:', np.nanmin(transformated_xdata), np.nanmax(transformated_xdata))
+            interpolator = interp1d(ydata, transformated_xdata)   
             #
             tcc = track_controller._get_canvas_controller()
             depth_list = tcc.get_one_depth_per_pixel(np.nanmin(ydata),
                                                              np.nanmax(ydata))     
             if not self._mplot_objects.get('line'):
                 line = track_controller.append_artist('Line2D', 
-                            f1(depth_list), 
+                            interpolator(depth_list), 
                             depth_list, 
                             linewidth=controller.thickness,
                             color=controller.color
                 )
             else:
-                line = self._mplot_objects.get('line')   
-                line.set_data(f1(depth_list), depth_list)
+                print('else')
+                line = self._mplot_objects['line']  
+                line.set_data(interpolator(depth_list), depth_list)
         #        
         else:
             if not self._mplot_objects.get('line'):
