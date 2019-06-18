@@ -76,7 +76,7 @@ class GripyObject(pubsub.PublisherMixin, metaclass=GripyWxMeta):
                 try:
                     return self[key]
                 except Exception as e:
-                    raise AttributeError('Invalid attribute: {}.'.format(key))
+                    raise AttributeError('Invalid attribute: {} for object {}.'.format(key, self.uid))
 
     def __getitem__(self, key):
         # https://docs.python.org/3.6/reference/datamodel.html#object.__getitem__

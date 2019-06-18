@@ -120,7 +120,7 @@ def load_segy(event, filename, new_obj_name='', comparators_list=None,
     wait = wx.BusyInfo("Loading SEG-Y file...")
     #
     try:
-        segy_file = fileio.SEGY.SEGYFile(filename)    
+        segy_file = fileio.segy.SEGYFile(filename)    
         #segy_file.print_dump()
         #"""
         segy_file.read(comparators_list)

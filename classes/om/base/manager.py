@@ -330,10 +330,7 @@ class ObjectManager(GripyManager):
         True
         >>> om.get(obj.uid)
         KeyError: obj.uid
-        """
-        
-        print ('\nOM Removing', uid)
-        
+        """     
         obj = self._data.pop(uid)
         #
         # TODO: Ver se deve permanecer da forma abaixo
@@ -341,7 +338,7 @@ class ObjectManager(GripyManager):
         #obj.send_message('pre_remove')
         
         self.send_message('pre_remove', objuid=uid)
-        print ('\nReturning to OM.revove...')
+        #print ('\nReturning to OM.revove...')
         #
         for childuid in self._childrenuidmap[uid][::-1]:
             self.remove(childuid) 

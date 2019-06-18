@@ -115,7 +115,7 @@ def do_STFT(*args, **kwargs):
                 
     except Exception as e:
         print ('ERROR:', e)
-        pass
+        #pass
     finally:
         UIM.remove(dlg.uid)        
     

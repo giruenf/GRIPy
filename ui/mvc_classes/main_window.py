@@ -63,8 +63,10 @@ class MainWindow(Frame):
         self._mgr.Update()    
         #
 #        self.Bind(wx.EVT_CLOSE, self.on_close)     
-        self.Bind(aui.EVT_AUINOTEBOOK_PAGE_CLOSE, self.on_page_close, self._notebook)
-        self.Bind(aui.EVT_AUINOTEBOOK_PAGE_CHANGED, self.on_page_changed)
+        self.Bind(aui.EVT_AUINOTEBOOK_PAGE_CLOSE, 
+                  self.on_page_close, self._notebook)
+        self.Bind(aui.EVT_AUINOTEBOOK_PAGE_CHANGED, 
+                  self.on_page_changed)
 
 
     def _get_wx_parent(self, *args, **kwargs):
@@ -142,9 +144,7 @@ class MainWindow(Frame):
         event.Skip()
 
 
-
     def on_page_close(self, event):
-        
         panel = self._notebook.GetPage(event.GetSelection())
         # Remove page without destruct
         self.remove_notebook_page(panel)
@@ -154,9 +154,7 @@ class MainWindow(Frame):
         # Line below must exist in order to prevent SystemError
         wx.CallAfter(self.adjust_background_panel)
         
-
-     
-        
+      
     def insert_notebook_page(self, *args, **kwargs):
         try:
             page = None

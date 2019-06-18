@@ -18,6 +18,7 @@ from classes.ui import UIManager
 from app import log
 from app.app_utils import GripyBitmap  
 
+from ui import Interface
 
 
 CP_NORMAL_TOOL = wx.NewId()        
@@ -32,16 +33,16 @@ class CrossPlotController(WorkPageController):
     def __init__(self, **state):
         super().__init__(**state)
 
+ 
+    
     
 class CrossPlot(WorkPage):
     tid = 'crossplot'
     _TID_FRIENDLY_NAME = 'Cross Plot'
 
-
     def __init__(self, controller_uid):   
         super().__init__(controller_uid) 
-
-  
+ 
     def PostInit(self):
 
         try:
@@ -86,13 +87,17 @@ class CrossPlot(WorkPage):
             pass       
 
 
+
+    def get_friendly_name(self):   
+        return self._get_tid_friendly_name()
+
+
     def _set_own_name(self):
         """
-        """
-        
+        """  
         UIM = UIManager()   
-        controller = UIM.get(self._controller_uid)        
-        controller.title = self._get_tid_friendly_name()
+        controller = UIM.get(self._controller_uid)   
+        controller.title = self.get_friendly_name()
 
 
 
@@ -114,6 +119,11 @@ class CrossPlot(WorkPage):
         self._status_bar.SetStatusText(msg)
     
 
+    
+    def get_canvas_plotter_controller(self):
+        UIM = UIManager()
+        return UIM.list('canvas_plotter_controller', 
+                                        self._controller_uid)[0]
 
 
     def _on_change_tool(self, event):
@@ -133,8 +143,13 @@ class CrossPlot(WorkPage):
             controller.float_mode = event.IsChecked()            
 
 
-    def _build_tool_bar(self):
 
+    def _OnEditFormat(self, event): 
+        cpc = self.get_canvas_plotter_controller()
+        Interface.create_properties_dialog(cpc.uid, size=(600, 600))
+
+
+    def _build_tool_bar(self):
         self.fp_item = self._tool_bar.AddTool(CP_FLOAT_PANEL, 
                       wx.EmptyString,
                       GripyBitmap('restore_window-25.png'), 
@@ -218,8 +233,15 @@ class CrossPlot(WorkPage):
         #self._tool_bar.choice_IT.SetSelection(idx_index_type)
         self._tool_bar.choice_Style.Bind(wx.EVT_CHOICE , self._on_choice_style) 
         self._tool_bar.AddControl(self._tool_bar.choice_Style, '')
-        
+
+  
         self._tool_bar.AddSeparator()
+
+        button_edit_format = wx.Button(self._tool_bar, label='Edit Crossplot')
+        button_edit_format.Bind(wx.EVT_BUTTON , self._OnEditFormat)
+        self._tool_bar.AddControl(button_edit_format, '')
+        self._tool_bar.AddSeparator()    
+        #  
         
         self._tool_bar.Realize()  
 

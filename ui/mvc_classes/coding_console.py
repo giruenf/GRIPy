@@ -6,10 +6,10 @@ import wx
 
 from app.app_utils import Chronometer
 from app.app_utils import GripyBitmap 
-from classes.om import ObjectManager
 from classes.ui import UIManager
 from ui.mvc_classes.workpage import WorkPageController
 from ui.mvc_classes.workpage import WorkPage
+
 
 # TODO: rever isso... replicado em WellPlot
 WP_FLOAT_PANEL = wx.NewId() 
@@ -41,10 +41,6 @@ class InteractiveConsole(code.InteractiveConsole):
         super().__init__(locals=None) #, filename=self._output) # locals=None, filename="<console>"
         self.prompt = ">>>"
         
-        
-        
-        
-        
     def _set_prompt(self, prompt):
         self._prompt = prompt
         self._setPrompt(prompt)
@@ -52,25 +48,21 @@ class InteractiveConsole(code.InteractiveConsole):
     def _get_prompt(self):
         return self._prompt
 
-
     def write(self, data):
         self._output(data)
 
-
     def _show_error_info(self, exectype, value, tb):
-        print('\nError found!')
-        print('Error type:', exectype.__name__)
-        print('Description:', value)
+        msg = '\nError found! \nError type: ' + exectype.__name__ \
+                                    + '\nDescription: ' + str(value) + '\n'
         #print('Traceback:', tb)
-        
-        
+        self.write(msg)
+                
     def push(self, data):
         lines = data.split('\n')
         if self._echo:
             for line in lines:
                 self._echo("%s %s\n" % (self.prompt, line))
-            c = Chronometer()   
-            
+            c = Chronometer()               
         # Capture stdout/stderr output as well as code interaction.
         stdout, stderr = sys.stdout, sys.stderr
         temp_excepthook = sys.excepthook
@@ -87,8 +79,7 @@ class InteractiveConsole(code.InteractiveConsole):
         #    
         sys.excepthook = temp_excepthook
         sys.stdout, sys.stderr = stdout, stderr
-
-        
+       
     def flush(self):
         self._flush()
         

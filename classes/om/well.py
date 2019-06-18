@@ -103,8 +103,6 @@ class Well(OMBaseObject):
                 ret_od[di_friendly_name] = data_index.uid 
         return ret_od        
                 
- 
-        
         
         
         

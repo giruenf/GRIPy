@@ -279,7 +279,7 @@
             "Density": 66
         },
         "dept": {
-            "MD": 331
+            "MD": 333
         },
         "depth": {
             "MD": 111
@@ -330,7 +330,7 @@
             "Sonic": 0
         },
         "dtco": {
-            "Sonic": 325
+            "Sonic": 327
         },
         "dtco_": {
             "Sonic": 10
@@ -429,7 +429,7 @@
             "GammaRay": 0
         },
         "gr": {
-            "GammaRay": 422
+            "GammaRay": 424
         },
         "gr_": {
             "GammaRay": 10
@@ -495,7 +495,7 @@
             "Azimuth": 0
         },
         "hcal": {
-            "Caliper": 278
+            "Caliper": 280
         },
         "hden": {
             "Density": 0
@@ -612,7 +612,7 @@
             "LoadFactor": 0
         },
         "lito": {
-            "Partition": 221
+            "Partition": 223
         },
         "lld": {
             "DeepRes": 22
@@ -885,7 +885,7 @@
             "Density": 30
         },
         "rhob": {
-            "Density": 160
+            "Density": 162
         },
         "rhoc": {
             "Density": 9
@@ -1377,7 +1377,7 @@
             "Log": 66
         },
         "dept": {
-            "Index": 331
+            "Index": 333
         },
         "depth": {
             "Index": 107
@@ -1404,7 +1404,7 @@
             "Log": 1
         },
         "dtco": {
-            "Log": 325
+            "Log": 327
         },
         "dtco_": {
             "Log": 11
@@ -1452,7 +1452,7 @@
             "Log": 20
         },
         "gr": {
-            "Log": 422
+            "Log": 424
         },
         "gr_": {
             "Log": 11
@@ -1467,7 +1467,7 @@
             "Log": 4
         },
         "hcal": {
-            "Log": 278
+            "Log": 280
         },
         "hd1_ppc": {
             "Log": 8
@@ -1524,7 +1524,7 @@
             "Log": 4
         },
         "lito": {
-            "Partition": 294
+            "Partition": 296
         },
         "lld": {
             "Log": 22
@@ -1632,7 +1632,7 @@
             "Log": 30
         },
         "rhob": {
-            "Log": 160
+            "Log": 162
         },
         "rhoc": {
             "Log": 9

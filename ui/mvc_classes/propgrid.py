@@ -208,6 +208,10 @@ class EnumProperty(pg.EnumProperty, GripyPgProperty):
             try:
                 idx = self._opt_values.index(val)
             except ValueError:
+                print()
+                print('ERRO idx = self._opt_values.index(val)')          
+                print(self._opt_values)
+                print(val)
                 raise
             #    
 #            print('idx:', idx)
@@ -439,10 +443,12 @@ class PropertyGridController(UIControllerObject):
         self._properties = OrderedDict()
         self.subscribe(self.on_change_obj_uid, 'change.obj_uid') 
        
+        
     def PostInit(self):
         if self.obj_uid is not None:
             self.on_change_obj_uid(self.obj_uid, None)
-                   
+              
+            
     def _get_object(self, obj_uid=None):
         if obj_uid is None:
             obj_uid = self.obj_uid
@@ -452,7 +458,7 @@ class PropertyGridController(UIControllerObject):
         obj = manager.get(obj_uid)
         return obj
         
-
+    
     def on_change_obj_uid(self, new_value, old_value):
         if old_value is not None:
             self.remove_properties(old_value)
@@ -558,16 +564,22 @@ class PropertyGridView(UIViewObject, pg.PropertyGrid):
     tid = 'property_grid_view'
 
     def __init__(self, controller_uid):
-        UIViewObject.__init__(self, controller_uid)      
-        UIM = UIManager()
-        parent_controller_uid = UIM._getparentuid(self._controller_uid)
-        parent_controller =  UIM.get(parent_controller_uid)
-        wx_parent = parent_controller._get_wx_parent(self.tid)
-        #
-        pg.PropertyGrid.__init__(self, wx_parent, 
-                        style=pg.PG_SPLITTER_AUTO_CENTER|pg.PG_HIDE_MARGIN
-        )
-        #
-        self.SetCaptionBackgroundColour(wx.Colour(0, 128, 192))
-        self.SetCaptionTextColour('white')       
-
+        try:
+            UIViewObject.__init__(self, controller_uid)      
+            UIM = UIManager()
+        
+            parent_controller_uid = UIM._getparentuid(self._controller_uid)
+            parent_controller =  UIM.get(parent_controller_uid)
+            print()
+            print('parent_controller:', parent_controller)
+            wx_parent = parent_controller._get_wx_parent(self.tid)
+            print('wx_parent:', wx_parent)
+            #
+            pg.PropertyGrid.__init__(self, wx_parent, 
+                            style=pg.PG_SPLITTER_AUTO_CENTER|pg.PG_HIDE_MARGIN
+            )
+            #
+            self.SetCaptionBackgroundColour(wx.Colour(0, 128, 192))
+            self.SetCaptionTextColour('white')       
+        except Exception as e:
+            print('ERRO PropertyGridView.__init__:', e)

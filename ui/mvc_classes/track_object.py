@@ -478,7 +478,6 @@ class LineRepresentationController(RepresentationController):
             'pg_property': 'FloatProperty',
             'label': 'Left value'  
         } 
-        """
         props['right_scale'] = {
             'pg_property': 'FloatProperty',
             'label': 'Right value'
@@ -490,10 +489,8 @@ class LineRepresentationController(RepresentationController):
             'options_values': [0, 1, 2, 3, 4, 5 ]
         }    
         props['color'] = {
-            'pg_property': 'EnumProperty',
-            'label': 'X axis scale',
-            'options_labels': ['Linear', 'Logarithmic'],
-            'options_values': [0, 1]
+            'pg_property': 'MPLColorsProperty',
+            'label': 'Color'
         }     
         props['x_scale'] = {
             'pg_property': 'EnumProperty',
@@ -504,8 +501,7 @@ class LineRepresentationController(RepresentationController):
         props['interpolate'] = {
             'pg_property': 'BoolProperty',
             'label': 'Interpolate line'
-        }  
-        """              
+        }              
         return props
     
 

@@ -47,4 +47,12 @@ class OMBaseObject(GripyObject):
     def _get_tree_object_friendly_name(self):
         """Returns a name to be used by TreeController as object node label."""
         return self.name
+
+    def get_friendly_name(self): 
+        tid_friendly_name = self._get_tid_friendly_name()
+        name = self.name
+        if isinstance(name, tuple): # Name is a uid 
+            name = '[' + str(self.oid) + ']' 
+        return tid_friendly_name + ': ' + name    
+    
       

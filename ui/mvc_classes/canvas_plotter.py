@@ -32,8 +32,14 @@ class CanvasPlotterController(CanvasBaseController):
         print ('CanvasPlotterController.PostInit')
         super().PostInit()
      
+        
+    def get_friendly_name(self):
+        UIM = UIManager()
+        parent_uid = UIM._getparentuid(self.uid)
+        parent = UIM.get(parent_uid)
+        return parent.get_friendly_name()
     
-    
+        
 class CanvasPlotter(CanvasBaseView):  
     tid = 'canvas_plotter'
 

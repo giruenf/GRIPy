@@ -54,23 +54,23 @@ class TreeController(UIControllerObject):
           
         
     def _on_OM_object_added(self, objuid):  
-        OM = ObjectManager()
-        obj = OM.get(objuid)
-        obj.subscribe(self.teste, 'change')
+        #OM = ObjectManager()
+        #obj = OM.get(objuid)
+        #obj.subscribe(self.teste, 'change')
         self.create_object_node(objuid)
 
 
     def _on_OM_object_removed(self, objuid):  
-        OM = ObjectManager()
-        obj = OM.get(objuid)
-        obj.unsubscribe(self.teste, 'change')
+        #OM = ObjectManager()
+        #obj = OM.get(objuid)
+        #obj.unsubscribe(self.teste, 'change')
         self.remove_object_node(objuid)
 
-    
+    """
     def teste(self, old_value, new_value, topic=app.pubsub.AUTO_TOPIC):
         key = topic.getName().split('.')[2]
         print ('\nTESTE:',topic.getName(), key, old_value, new_value)
-        
+    """    
         
         
         
@@ -210,7 +210,8 @@ class TreeController(UIControllerObject):
                 # If parent node is a tid node and there is no other child, del it!
                 self.view.Delete(treeitem_parent)
         except:
-            raise   
+            pass
+            #raise   
             
             
     
