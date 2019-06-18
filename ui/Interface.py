@@ -379,16 +379,15 @@ def load():
         #)            
 
 
-
-        # Debug Menu
-        UIM.create('menu_item_controller', mc_debug.uid, 
-                label=u"Debug Console", help=u"Gripy Debug Console", 
-                callback='app.menu_functions.on_debugconsole'
+        # Tools Menu
+        UIM.create('menu_item_controller', mc_tools.uid, 
+                label="Coding Console", help=u"Gripy Coding Console", 
+                callback='app.menu_functions.on_coding_console'
         )  
         #
-        UIM.create('menu_item_controller', mc_debug.uid, 
-                       kind=wx.ITEM_SEPARATOR
-        )
+
+
+        # Debug Menu
         UIM.create('menu_item_controller', mc_debug.uid, 
                 label=u"Load Wilson Synthetics", 
                 callback='app.menu_functions.on_load_wilson'

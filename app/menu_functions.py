@@ -19,7 +19,7 @@ from fileio import segy
 
 
 from app import app_utils
-from app.gripy_debug_console import DebugConsoleFrame
+
 from algo.spectral.Spectral import STFT, WaveletTransform, MorletWavelet, \
     PaulWavelet, DOGWavelet, RickerWavelet
 from algo.spectral.Hilbert import HilbertTransform												  
@@ -2737,11 +2737,11 @@ def on_new_crossplot(event):
     """
     
     
-def on_debugconsole(event):
-    consoleUI = DebugConsoleFrame(wx.App.Get().GetTopWindow())
-    consoleUI.Show()    
-    
 
+def on_coding_console(event):
+    UIM = UIManager()      
+    mwc = Interface.get_main_window_controller()
+    UIM.create('console_controller', mwc.uid)
 
 
 def on_import_las(event):

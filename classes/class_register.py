@@ -12,7 +12,6 @@ from classes.om import CurveSet
 from classes.om import Seismic
 
 
-
 """
 from classes.dt.datatypes import Core
 from classes.dt.datatypes import Partition
@@ -48,7 +47,6 @@ from classes.inference.dtrock import Fluid
 #
 
 #
-
 from ui.mvc_classes.wxgripy import FrameController, Frame
 from ui.mvc_classes.wxgripy import DialogController, Dialog
 from ui.mvc_classes.main_window import MainWindowController,MainWindow
@@ -86,6 +84,9 @@ from ui.mvc_classes.track_label import TrackLabelController, TrackLabel
 from ui.mvc_classes.dialog_obj_props import \
         ObjectPropertiesDialogController,ObjectPropertiesDialog
         
+from ui.mvc_classes.coding_console import ConsoleController, Console
+
+
 
 def register_app_classes():
     register_OM_classes()
@@ -183,6 +184,9 @@ def register_UIManager_classes():
     #
     UIManager.register_class(CrossPlotController, CrossPlot, MainWindowController)
     UIManager.register_class(CrossPlotController, CrossPlot, FrameController)
+    # 
+    UIManager.register_class(ConsoleController, Console, MainWindowController)
+    UIManager.register_class(ConsoleController, Console, FrameController)
     #    
     UIManager.register_class(TrackController, TrackView, WellPlotController)
     UIManager.register_class(TrackObjectController, None,

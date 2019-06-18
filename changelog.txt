@@ -1,5 +1,5 @@
 ﻿Gripy Change log - (pt-br only)
-Atualizado em 25/1/2019 por Adriano (@adrianopls)
+Atualizado em 17/6/2019 por Adriano (@adrianopls)
 
 
 Versão 0.8.beta:
@@ -38,8 +38,11 @@ Versão 0.8.beta:
   fornecerá os dados a serem utilizados para popular o PropertyGridController.
 - Foi criada uma nova classe de Dialog (ObjectPropertiesDialogController) para exibir as propriedades de qualquer objeto griPy.  
 - Insercao das propriedades do WellPlot na janela de edicao 'WellPlotEditor'
-   
-
+- O DebugConsole foi integrado ao sistema (M)VC e passou a se chamar ConsoleController.
+  Seu objeto View (Console) passou a integrar o sistema de janelas de trabalho flutuantes.
+  Seu acesso passou a ser através do Menu Tools.
+ 
+  
 Versão 0.7:
 ===========
 - Fim do ParentObject. A tarefa de 'sinalizar' se um objeto tem filhos e quais são seus filhos fica (totalmente) a cargo do ObjectManager.

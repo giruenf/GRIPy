@@ -77,6 +77,34 @@ class WorkPage(UIViewObject, wx.Panel):
         mwc = Interface.get_main_window_controller()
         mwc.remove_notebook_page(self)
         
+    def _set_own_name(self):
+        """
+        """
+        UIM = UIManager()   
+        controller = UIM.get(self._controller_uid)
+        print('\n\n_set_own_name')
+        title = self.get_friendly_name()
+        print('title:', title)
+        controller.title = title  
+
+
+    def _get_sequence_number(self):
+        """
+        Retorna o numero de ordem considerando a existencia de multiplos 
+        objetos do mesmo tipo.
+        """
+        UIM = UIManager()
+        controller = UIM.get(self._controller_uid)
+        idx = 0
+        wpcs = UIM.list(self._controller_uid[0])
+        for wpc in wpcs:
+            if wpc == controller:
+                break
+            if wpc.obj_uid == controller.obj_uid:
+                idx += 1
+        idx += 1      
+        return idx
+
                               
     def _set_title(self, new_value, old_value):
         UIM = UIManager()

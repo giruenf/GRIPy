@@ -465,7 +465,7 @@ class PropertyGridController(UIControllerObject):
         except:
             od = obj._ATTRIBUTES
         #    
-        print('on_change_obj_uid:', od)
+        #print('on_change_obj_uid:', od)
         #
         for key, key_props in od.items():
             try:
@@ -474,7 +474,9 @@ class PropertyGridController(UIControllerObject):
                 self.view.Append(property_)
                 obj.subscribe(self.refresh_property, 'change.' + key)     
             except Exception as e:
-                print ('\nERRO loading properties:', e)
+                print ('\nERRO loading properties:', obj.name, 
+                       key, key_props, e
+                )
                 pass        
 
 

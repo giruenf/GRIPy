@@ -185,7 +185,7 @@ class WellPlotController(WorkPageController):
                 
         
               
-    def _on_change_index_type(self, new_value, old_value=None):     
+    def _on_change_index_type(self, new_value, old_value):     
         print ('\n_on_change_index_type:', new_value, old_value)
         UIM = UIManager() 
         try:
@@ -695,32 +695,14 @@ class WellPlot(WorkPage):
 
 
     def get_friendly_name(self):
-        OM = ObjectManager()
         UIM = UIManager()
         controller = UIM.get(self._controller_uid)
-        idx = 0
+        OM = ObjectManager()
         well = OM.get(controller.obj_uid)
-        wpcs = UIM.list('wellplot_controller')
-        for wpc in wpcs:
-            if wpc == controller:
-                break
-            if wpc.obj_uid == controller.obj_uid:
-                idx += 1
-        idx += 1      
+        idx = self._get_sequence_number()     
         name = self._get_tid_friendly_name() \
                                + ': ' + well.name + ' ['+ str(idx) + ']' 
         return name
-
-    def _set_own_name(self):
-        """
-        """
-        UIM = UIManager()   
-        controller = UIM.get(self._controller_uid)
-        print('\n\n_set_own_name')
-        title = self.get_friendly_name()
-        print('title:', title)
-        controller.title = title   
-
     
     def _reload_z_axis_textctrls(self, *args):    
         UIM = UIManager()        
