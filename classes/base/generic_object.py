@@ -90,11 +90,11 @@ class GripyObject(pubsub.PublisherMixin, metaclass=GripyWxMeta):
                     prop = cls.__dict__[key]      
                     break
             if not prop:
-                raise Exception ('ERROR __getitem__({}, {}): property not found.'.format(self, key)) 
+                raise Exception ('ERROR __getitem__({}, {}): property not found.'.format(self, key))
             try:
                 return prop.__get__(self, key)
             except Exception:
-                raise Exception ('ERROR __getitem__({}, {}): property cannot be obtained.'.format(self, key)) 
+                raise Exception ('ERROR __getitem__({}, {}): property cannot be obtained.'.format(self, key))
                                  
     def __delitem__(self, key):
         self._do_del(key)

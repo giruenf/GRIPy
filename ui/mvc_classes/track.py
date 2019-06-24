@@ -4,7 +4,6 @@ from collections import OrderedDict
 
 import numpy as np
 import wx
-import matplotlib.pyplot as plt
 
 from classes.om import ObjectManager
 from classes.ui import UIManager
@@ -15,14 +14,8 @@ from app.app_utils import WellPlotState, parse_string_to_uid
 from app.gripy_function_manager import FunctionManager
 from app import log
 
-from ui.mvc_classes.mpl_base import PlotLabel
 from app.app_utils import DropTarget
 from ui import Interface
-
-
-
-
-
 
 
 class TrackController(UIControllerObject):
@@ -120,9 +113,9 @@ class TrackController(UIControllerObject):
     def redraw(self):
         self.view.track.draw() 
            
-    def _append_track_label(self): 
+    def _append_track_label(self, *args, **kwargs): 
         tlc = self._get_label_controller()
-        return tlc.view.append_object()
+        return tlc.append_object(*args, **kwargs)
 
     def append_artist(self, artist_type, *args, **kwargs):
         tcc = self._get_canvas_controller()
@@ -359,6 +352,8 @@ class TrackView(UIViewObject):
         info = parent_controller.index_type + ': {:0.2f}'.format(event.ydata)
 
         for toc in UIM.list('track_object_controller', self._controller_uid):
+            
+            
             data = toc.get_data_info(event)
             if data is None:
                 continue
@@ -787,12 +782,13 @@ class TrackView(UIViewObject):
         try:
             if controller.overview:
                 return
-            tlc = self._get_label_controller()
             if not controller.label:
                 splitter_pos = controller.get_position(relative_position=True)
-                tlc.update_title(text=str(splitter_pos+1))
-            else:  
-                tlc.update_title(text=controller.label)       
+                text=str(splitter_pos+1)
+            else:   
+                text=controller.label   
+            tlc = self._get_label_controller()    
+            tlc.title = text    
         except Exception as e:
             print ('ERROR @ Track.update_title:', e)
             raise
@@ -1065,18 +1061,21 @@ class TrackView(UIViewObject):
                     obj_submenu = wx.Menu()
                     #
                     funcs = FunctionManager.functions_available_for_class(obj.__class__)
-                    for f in funcs:
-
-                        print('\n', f['name'])
-                        print(f['friendly_name'])
-                        print(f['function'])
-                        print(f['args'])
-                        print(f['kwargs'], '\n') 
+                    for func in funcs:
+                        print('\nfunction name:', func['name'])
+                        print('function friendly name:', func['friendly_name'])
+                        print('function object:', func['function'])
+                        print('types accepted:', func['args'])
+                        print('kwargs accepted:', func['kwargs'], '\n') 
                         
                         id_ = wx.NewId() 
-                        obj_submenu.Append(id_, f['friendly_name'])
-                        tcc.Bind(wx.EVT_MENU, self._object_menu_selection, id=id_) 
-                        self._ids_functions[id_] = (f['function'], (obj))
+                        obj_submenu.Append(id_, func['friendly_name'])
+                        tcc.Bind(wx.EVT_MENU, 
+                                         self._object_menu_selection, id=id_
+                        ) 
+                        self._ids_functions[id_] = (func['function'], (obj), 
+                                    {'data_mask': toc.get_data_mask()}
+                        )
                     #
                     obj_submenu.AppendSeparator() 
                     id_ = wx.NewId() 
@@ -1110,13 +1109,20 @@ class TrackView(UIViewObject):
    
     
     def _object_menu_selection(self, event):
-        func, args = self._ids_functions.get(event.GetId())
+        func, args, kwargs = self._ids_functions.get(event.GetId())
         if isinstance(func, staticmethod):
             func = func.__func__ 
         #print '_object_menu_selection', func, args
+        
         if callable(func):
-            #print 'callable'
-            func(args)
+            print('_object_menu_selection callable:', args, kwargs)
+            
+            try:
+                func(args, **kwargs)
+                
+            except Exception as e:
+                print('ERROR _object_menu_selection:', e)
+                raise
         #else:
         #    print 'not callable'
             #print func.__dict__

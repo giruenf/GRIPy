@@ -135,6 +135,7 @@ class DataObject(OMBaseObject):
     def _get_max_dimensions(self):
         raise NotImplementedError('Must be implemented by a subclass.')
 
+
     def _create_data_index_map(self, *args):
         """
         args: List of lists of DataIndex uids. 
@@ -152,6 +153,7 @@ class DataObject(OMBaseObject):
         max_dims = self._get_max_dimensions()
         if len(args) > max_dims:
             msg = 'Exceed number of dimensions [{}] - {}.'.format(max_dims, args)
+            print('\n' + msg)
             raise Exception(msg)
         
         OM = ObjectManager()
@@ -174,19 +176,33 @@ class DataObject(OMBaseObject):
                     raise Exception(msg)
             
             data.append(di_objs)
-        di_map = OM.new('data_index_map', data)
+            
+      
         try:
-            OM.add(di_map, self.uid)
-        except Exception as e:    
-            print('\nERROR:', e, '\n')
+            di_map = OM.new('data_index_map', data)       
+        except Exception as e:  
+            msg = 'ERROR DataObject._create_data_index_map: {} - data: {}'.format(e, data)
+            print('\n' + msg)
             raise
-        
+
+        if not OM.add(di_map, self.uid):
+            msg = 'Cannot add {} to {}.'.format(di_map, self.uid)
+            print('\n' + msg)
+            raise Exception(msg)
+            
+        msg = 'Criado {} com sucesso.'.format(di_map)
+        print('\n' + msg)
+
+
 
     def get_data_indexes(self, dimension=None):
         """
         """
         OM = ObjectManager()
-        data_index_map = OM.list('data_index_map', self.uid)[0]
+        data_index_maps = OM.list('data_index_map', self.uid)
+        if not data_index_maps:
+            raise Exception('Object without DataIndexMap: {}'.format(self.uid))
+        data_index_map = data_index_maps[0]    
         data_indexes = data_index_map._get_data_indexes()  
         if dimension is None:
             return data_indexes

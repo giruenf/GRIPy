@@ -7,10 +7,9 @@ from classes.om import Well
 from classes.om import DataIndex
 from classes.om import DataIndexMap
 from classes.om import Log
-from classes.om import DataMask
 from classes.om import CurveSet
 from classes.om import Seismic
-
+from classes.om import Spectogram
 
 """
 from classes.dt.datatypes import Core
@@ -47,6 +46,7 @@ from classes.inference.dtrock import Fluid
 #
 
 #
+from classes.ui import DataMaskController, DataMask
 from ui.mvc_classes.wxgripy import FrameController, Frame
 from ui.mvc_classes.wxgripy import DialogController, Dialog
 from ui.mvc_classes.main_window import MainWindowController,MainWindow
@@ -99,14 +99,16 @@ def register_OM_classes():
     ObjectManager.register_class(DataIndex, CurveSet)
     ObjectManager.register_class(Log, CurveSet)
     #
-    ObjectManager.register_class(DataMask)
     ObjectManager.register_class(Seismic)
     ObjectManager.register_class(DataIndex, Seismic)
     ObjectManager.register_class(DataIndexMap, Seismic)
     #
-    
     ObjectManager.register_class(DataIndexMap, Log)
-    
+    #
+    ObjectManager.register_class(Spectogram, Log)
+    ObjectManager.register_class(DataIndexMap, Spectogram)
+    ObjectManager.register_class(DataIndex, Spectogram)
+    #
     """
 #    ObjectManager.register_class(IndexSet, Well)
     ObjectManager.register_class(Core, Well)
@@ -238,4 +240,6 @@ def register_UIManager_classes():
     )    
     UIManager.register_class(PropertyGridController,
                              PropertyGridView, LPEWellPlotPanelController
-    )       
+    ) 
+    #
+    UIManager.register_class(DataMaskController, DataMask, TrackObjectController)      

@@ -9,7 +9,7 @@ class Log(DataObject):
     tid = "log"
     _TID_FRIENDLY_NAME = 'Log'
     _SHOWN_ATTRIBUTES = [('datatype', 'Curve Type'),
-                         ('unit', 'Units'),
+                         ('unit', 'Unit'),
                          ('min', 'Min Value'),
                          ('max', 'Max Value')
     ]

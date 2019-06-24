@@ -530,7 +530,7 @@ class ObjectManager(GripyManager):
         #
         old_dir = os.getcwd()
         temp_dir = tempfile.mkdtemp(prefix='griPy_')
-#        print('\nSaving griPy project at temp directory: {}'.format(temp_dir))
+        print('\nSaving griPy project at temp directory: {}'.format(temp_dir))
         #
         try:
             os.chdir(temp_dir)
@@ -556,37 +556,36 @@ class ObjectManager(GripyManager):
                     else:
                         pickle_obj_state[key] = value
                 pickle_obj_state['__children'] = self._childrenuidmap[uid]
-#                print('\npickle_obj_state [{}]: {}'.format(str_idx, 
-#                                                          pickle_obj_state))
+                print('\npickle_obj_state [{}]: {}'.format(str_idx, 
+                                                          pickle_obj_state))
                 # Write object state to a pickle file
                 picklefilename =  str_idx + ".pkl"
-                picklefile = open(picklefilename, 'wb')
-                pickle.dump(pickle_obj_state, picklefile, protocol=2)
-                picklefile.close()
+                with open(picklefilename, 'wb') as picklefile:
+                    pickle.dump(pickle_obj_state, picklefile, protocol=2)
                 #
                 if npzdata:
                     npzfilename =  str_idx + ".npz"
-                    npzfile = open(npzfilename, 'wb')
-                    with zipfile.ZipFile(npzfile, mode='w', 
-                                    compression=zipfile.ZIP_DEFLATED) as npz_zip:        
-                        for key, val in npzdata.items():
-#                            print (key + '.npy')
-                            with npz_zip.open(key + '.npy', 'w') as buf:
-                                np.lib.npyio.format.write_array(buf, np.asanyarray(val), 
-                                                                allow_pickle=False)
+                    with open(npzfilename, 'wb') as npzfile:
+                        with zipfile.ZipFile(npzfile, mode='w', 
+                                        compression=zipfile.ZIP_DEFLATED) as npz_zip:        
+                            for key, val in npzdata.items():
+                                print (key + '.npy')
+                                with npz_zip.open(key + '.npy', 'w') as buf:
+                                    np.lib.npyio.format.write_array(buf, np.asanyarray(val), 
+                                                                    allow_pickle=False)
                     #
-                    npzfile.close()                 
+               
             # Write griPy project state to a pickle file
             picklefilename = "project.dat"
-            picklefile = open(picklefilename, 'wb')
-            pickle.dump(pickle_proj_data, picklefile, protocol=2)
-            picklefile.close()
+            with open(picklefilename, 'wb') as picklefile:
+                pickle.dump(pickle_proj_data, picklefile, protocol=2)
+
             #
-#            print('\nSaving griPy project at: {}'.format(archivepath))
+            print('\nSaving griPy project at: {}'.format(archivepath))
             #
             with zipfile.ZipFile(archivepath, mode='w', compression=zipfile.ZIP_DEFLATED) as pgg_zip:
                 for file in os.listdir(temp_dir):
-#                    print('writing:', file)
+                    print('writing:', file)
                     pgg_zip.write(file)
             #        
         except Exception as e:
@@ -595,9 +594,9 @@ class ObjectManager(GripyManager):
             os.chdir(old_dir)
             shutil.rmtree(temp_dir)
         #    
-#        print ('\npickle_proj_data:', pickle_proj_data)
-#        print ()
-
+        print ('\npickle_proj_data:', pickle_proj_data)
+        print ()
+        print('\nProjeto {} salvo com sucesso!'.format(archivepath))
 
 
     def load(self, archivepath):
@@ -659,103 +658,78 @@ class ObjectManager(GripyManager):
         
         dir was changed to temp_dir. Don't forget it!
         """
-        
-#        print('\n_load_objects:', uids_dict)
-        #
         if not uids_dict:
             return
-        #
         starts_with_uid = kwargs.get('starts_with_uid')
         parent_uid = kwargs.get('parent_uid')  
-        #
+        # For first iteration
         if starts_with_uid is None:
             starts_with_uid = list(uids_dict.keys())[0]
+        # Gets the identification string   
         str_idx = uids_dict.pop(starts_with_uid)
-        #
-        
-#        print('Tratando de {}'.format(starts_with_uid))
-        
-        
         # Load the object state from a pickle file
         picklefilename =  str_idx + ".pkl"
-        picklefile = open(picklefilename, 'rb')
-        pickle_obj_state = pickle.load(picklefile)
-        picklefile.close()
+        
+        if starts_with_uid == ('data_index_map', 1):
+            print()
+            print(7)
+        
+        with open(picklefilename, 'rb') as picklefile:
+            pickle_obj_state = pickle.load(picklefile)
         #
         npz_dict = {}
         #
+        if starts_with_uid == ('data_index_map', 1):
+            print(77)
         for key, value in pickle_obj_state.items():
             # Check for attributes keys stored in a NPZs file.
             if isinstance(value, str) and value.startswith(self._NPZIDENTIFIER):
                 npz_dict[key] = value.lstrip(self._NPZIDENTIFIER)
 #                print('NPZ NAME FOUND:', value)
+        if starts_with_uid == ('data_index_map', 1):
+            print(777)                
         #
         if npz_dict:
-            # Then, retrive attributes keys stored in a NPZs file.            
+            # Then, retrive attributes keys stored in a NPZs file.      
             npzfilename =  str_idx + ".npz"
-            npzfile = open(npzfilename, 'rb')
-            npzdata = np.lib.npyio.NpzFile(npzfile, allow_pickle=False)
-#            print('NPZ DATA:', npzdata.files, type(npzdata))
-            # And give then back to the object state
-            for key, value in npz_dict.items():
-                pickle_obj_state[key] = npzdata[value]
-            npzfile.close()
-        #    
-#        print('pickle_obj_state[{}]: {}'.format(str_idx, pickle_obj_state))        
-                  
+            with open(npzfilename, 'rb') as npzfile:
+                npzdata = np.lib.npyio.NpzFile(npzfile, allow_pickle=False)
+#               print('NPZ DATA:', npzdata.files, type(npzdata))
+                # And give then back to the object state
+                for key, value in npz_dict.items():
+                    pickle_obj_state[key] = npzdata[value]
+                    
+        if starts_with_uid == ('data_index_map', 1):
+            print(7777) 
+            
         # Object does not exist yet, than let`s create it!
-        if starts_with_uid not in self._data: 
-            obj = self.new(starts_with_uid[0], oid=starts_with_uid[1], **pickle_obj_state)
-            if not self.add(obj, parent_uid):
-                raise Exception('Error adding object: {}, {}'.format(starts_with_uid, parent_uid)) 
-#            print('Cria filhos:', pickle_obj_state['__children'])
-            for child_uid in pickle_obj_state['__children']:
-                self._load_objects(uids_dict, starts_with_uid=child_uid, parent_uid=obj.uid)
+        if starts_with_uid not in self._data:
+            try:
+                obj = self.new(starts_with_uid[0], oid=starts_with_uid[1], **pickle_obj_state)
+            except Exception as e:
+                msg = 'ERROR Creating object: tid={}, oid={}, state={}: {}'.format(starts_with_uid[0], starts_with_uid[1], pickle_obj_state, e)
+                print('\n' + msg)
+                raise                
         else:
-            raise Exception('Object existed in the Project.')
-        
-        
-        """
-        if not pickledata:
-            return
-        print()
-        print('_load_object:')   
-        print('pickledata:', pickledata)
-        print('kwargs:', kwargs)
-        parent_uid = kwargs.get('parent_uid', None)
-        starts_with_uid = kwargs.get('starts_with_uid', None)
-        
-        if starts_with_uid is None:
-            starts_with_uid = next(iter(pickledata))
-            parent_uid = None
-        
-        objattr = pickledata.pop(starts_with_uid)
-        objchildrenuid = objattr.pop('__children')
-        
+            obj = self.get(starts_with_uid)
+            
+        print('\nobject:' + str(obj))    
+        #    
+        if not self.add(obj, parent_uid):
+            msg = 'Error adding object: {} to parent_uid: {}'.format(starts_with_uid, parent_uid)
+            print('\n' + msg)
+            raise Exception(msg) 
         #
-        data = None
-        obj_npz_data_id = objattr.pop('_data', None)
-        if isinstance(obj_npz_data_id, str) and obj_npz_data_id.startswith(self._NPZIDENTIFIER):
-            data = npzdata[obj_npz_data_id.lstrip(self._NPZIDENTIFIER)]      
-        #            
-        print (starts_with_uid, parent_uid)
-        print (objattr, objchildrenuid)
-        
-        try:
-            if data is None:
-                obj = self.new(starts_with_uid[0], oid=starts_with_uid[1], **objattr)
-            else:
-                obj = self.new(starts_with_uid[0], data, oid=starts_with_uid[1], **objattr)
-            self.add(obj, parent_uid)
-        except Exception as e:
-            print (e)
-            raise         
-        
-        for objchilduid in objchildrenuid:
-            self._load_object(pickledata, npzdata, starts_with_uid=objchilduid, parent_uid=obj.uid)
-        
-        """
-
+        for child_uid in pickle_obj_state['__children']:
+            print('child_uid:', child_uid, 'parent_uid:', obj.uid)
+            try: 
+                self._load_objects(uids_dict, starts_with_uid=child_uid, parent_uid=obj.uid)
+            except Exception as e:
+                msg = 'ERROR Loading object dict: {}, starts_with_uid={}, parent_uid={}: {}'.format(uids_dict, child_uid, obj.uid, e)
+                print('\n' + msg)
+                print()
+                print(self._data)
+                raise
 
 
 

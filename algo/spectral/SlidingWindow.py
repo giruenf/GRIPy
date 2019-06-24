@@ -35,10 +35,15 @@ def rolling_window_lastaxis(a, window_size, noverlap):
         noverlap = window_size - 1 
     step = window_size - noverlap 
     if noverlap > window_size:
-        raise Exception('Overlap cannot be greater than window size.')
-    shape = a.shape[:-1] + ((a.shape[-1]-window_size)/step+1, window_size)
-    strides =  a.strides[:-1] + (a.strides[-1]*step,) + a.strides[-1:]
-    return np.lib.stride_tricks.as_strided(a, shape=shape, strides=strides)
+        raise Exception('Overlap cannot be greater than window size.')    
+    try:    
+        # // for integer division in Python 3
+        shape = a.shape[:-1] + ((a.shape[-1]-window_size)//step+1, window_size) 
+        strides = a.strides[:-1] + (a.strides[-1]*step,) + a.strides[-1:]
+        ret = np.lib.stride_tricks.as_strided(a, shape=shape, strides=strides)
+    except Exception as e:
+        print('rolling_window_lastaxis:', e)
+    return ret
 
 
 def SlidingWindow(a, window_size, noverlap=None):

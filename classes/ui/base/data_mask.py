@@ -3,43 +3,53 @@ from collections import OrderedDict
 
 import numpy as np
 
-from classes.om import OMBaseObject
 from classes.om import ObjectManager
+from classes.ui import UIManager
+from classes.ui import UIControllerObject 
+from classes.ui import UIViewObject 
 
 
 
+class DataMaskController(UIControllerObject):
+    tid = 'data_mask_controller'
 
-class DataMask(OMBaseObject):
-    _NO_SAVE_CLASS = True   # TODO: Melhorar isso! @ObjectManager.save
-    tid = 'data_mask'
+    _ATTRIBUTES = OrderedDict()
+            
+    _ATTRIBUTES['data_obj_uid'] = {
+            'default_value': None,
+            'type': 'uid'
+    }             
+  
+   
+    def __init__(self, **state):     
+        super().__init__(**state)
 
-    def __init__(self, data_obj_uid):
-        """
-        track_object_controller.uid
-        """
-        super().__init__()
         self._data = []
-        self._data_obj_uid = data_obj_uid
-        self._data_unit = None
-        self._data_name = None
+        
+#        OM = ObjectManager()
+#        data_obj = OM.get(self.data_obj_uid)  
+        
         self._init_data()
 
-    # It will not be shown in Tree
-    def _get_tree_object_node_properties(self):    
-        return None
-         
+
     def _init_data(self):
+        print('\n\n_init_data')
         try:
             OM = ObjectManager()
-            data_obj = OM.get(self._data_obj_uid)
+            data_obj = OM.get(self.data_obj_uid)
+            print(data_obj)
             #
             # No need to get unit from data_obj if it not changed.
             self._data_name = data_obj.name
             self._data_unit = data_obj.unit 
             #
+            print('b4 data_obj.get_data_indexes()')
             data_indexes = data_obj.get_data_indexes() 
             
+            print('data_indexes:', data_indexes)
+            
             for dim_idx in range(len(data_indexes)):
+                print('dim_idx:', dim_idx)
                 indexes_per_dim_uid = data_indexes[dim_idx]
 #                print(dim_idx, indexes_per_dim_uid)
                 di_uid = indexes_per_dim_uid[0]  # Chosing the first one!
@@ -57,6 +67,7 @@ class DataMask(OMBaseObject):
             print('ERROR _init_data:', e)
             raise
 
+
     def get_data_name(self):
         return self._data_name
     
@@ -64,7 +75,7 @@ class DataMask(OMBaseObject):
         return self._data_unit
 
     def get_data_object_uid(self):
-        return self._data_obj_uid
+        return self.data_obj_uid 
 
     # TODO: rename to set_dimension_data
     def set_dimension(self, dim_idx=-1, **kwargs):
@@ -88,7 +99,7 @@ class DataMask(OMBaseObject):
             raise Exception('Either di_uid, datatype or name must be informed.')
         #   
         OM = ObjectManager()
-        data_obj = OM.get(self._data_obj_uid)        
+        data_obj = OM.get(self.data_obj_uid )        
         data_indexes = data_obj.get_data_indexes()
         dim_dis_uids = data_indexes[dim_idx] 
 #        print('dim_dis_uids:', dim_dis_uids)
@@ -130,7 +141,7 @@ class DataMask(OMBaseObject):
         if dimensions_desired is not None and dimensions_desired not in [1, 2]:
             raise Exception('Dimensions must be 1 or 2.')
         OM = ObjectManager()
-        data_obj = OM.get(self._data_obj_uid)  
+        data_obj = OM.get(self.data_obj_uid )  
         #
         slicer = self._get_slicer()
         data = data_obj.data[slicer]
@@ -170,30 +181,30 @@ class DataMask(OMBaseObject):
 
     def get_index_for_dimension(self, dim_idx=-1):
         """
-        Returns the DataIndex being applied to some dimension. 
+        For some data dimension, returns the DataIndex uid and 
+        its data filtered by mask values.
         """
         OM = ObjectManager()
         dim_data = self._data[dim_idx]     
         dim_di_uid = dim_data[0]
-        return OM.get(dim_di_uid)
+        di = OM.get(dim_di_uid)
+        slicer = self._get_slicer()
+        dim_di_data = di.data[slicer[dim_idx]]
+        return dim_di_uid, dim_di_data 
         
-    
     def get_index_data_for_dimension(self, dim_idx=-1):
         """
         Returns the DataIndex data being applied to some dimension. 
         """
-        dim_di = self.get_index_for_dimension(dim_idx=-1)
-        slicer = self._get_slicer()
-        return dim_di.data[slicer[dim_idx]]
-    
-
+        _, dim_di_data  = self.get_index_for_dimension(dim_idx)
+        return dim_di_data
+       
     def get_last_dimension_index(self):
         return self.get_index_for_dimension()
   
     def get_last_dimension_index_data(self):
         return self.get_index_data_for_dimension()
-     
-  
+      
     def get_equivalent_index(self, datatype, dim_idx=-1):
         """
         Metodo usado para se obter um DataIndex de equivalencia (e.g. obter
@@ -208,7 +219,10 @@ class DataMask(OMBaseObject):
         retornara o proprio objeto, se este tiver o datatype procurado. 
         Se o datatype desejado nao for encontrado, sera retornado (False, None).
         """
-        di = self.get_index_for_dimension(dim_idx)
+        dim_di_uid, _ = self.get_index_for_dimension(dim_idx)
+        OM = ObjectManager()
+        di = OM.get(dim_di_uid)
+        
         if di.datatype == datatype:
             return False, di
         OM = ObjectManager()
@@ -233,6 +247,42 @@ class DataMask(OMBaseObject):
         return equivalent_di.data[slicer[dim_idx]]   
         
    
+
+
+
+class DataMask(UIViewObject):
+    tid = 'data_mask'
+
+    def __init__(self, controller_uid):
+        UIViewObject.__init__(self, controller_uid)
+#        UIM = UIManager()
+#        controller = UIM.get(self._controller_uid)
+
+
+
+
+
+
+        
+'''        
+# DataMaskController
+class DataMask(OMBaseObject):
+    _NO_SAVE_CLASS = True   # TODO: Melhorar isso! @ObjectManager.save
+    tid = 'data_mask'
+
+    def __init__(self, data_obj_uid):
+        """
+        track_object_controller.uid
+        """
+        super().__init__()
+        self._data = []
+        self._data_obj_uid = data_obj_uid
+        self._data_unit = None
+        self._data_name = None
+        self._init_data()
+
+ 
+
     """
     def get_data_info(self, x_idx, y_idx, dimensions_plotted=None):
         #
@@ -462,19 +512,6 @@ class DataMask(OMBaseObject):
                 data = data.reshape(new_dim, data.shape[-1])
                 
                 
-            '''    
-            try:
-                if self.min_density is None:
-                    self.set_value_from_event('min_density', np.nanmin(data))
-                if self.max_density is None:    
-                    self.set_value_from_event('max_density', np.nanmax(data))
-                if self.min_wiggle is None:    
-                    self.set_value_from_event('min_wiggle', np.nanmin(data))
-                if self.max_wiggle is None:     
-                    self.set_value_from_event('max_wiggle', np.nanmax(data))
-            except:
-                pass
-            '''
             
             self._data = data
             
@@ -683,4 +720,9 @@ class DataMask(OMBaseObject):
        
        
 """   
+
+
+
+'''
+
        

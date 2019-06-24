@@ -24,14 +24,14 @@ class FunctionManager(object):
             def decorator(f):
                 def newfunc(*args, **kwargs):
                     if len(args) != len(types):
-                        raise TypeError('Wrong number of arguments.')
+                        raise TypeError('Wrong number of arguments. len(args): {}, len(types): {}'.format(len(args), len(types)))   
                     for i, t in enumerate(map(type, args)):
                         if types[i] != type(args[i]):
-                            raise TypeError('Wrong type given in args[{}]'.format(i))
+                            raise TypeError('Wrong type given in args[{}]'.format(i))       
                     if kwargs:
                         for k, v in kwargs.items():
                             if kwtypes[k] != type(v):
-                                raise TypeError('Wrong type given in key {}'.format(k))
+                                raise TypeError('Wrong type given in key {}'.format(k))          
                     return f(*args, **kwargs)
                 newfunc.__name__ = f.__name__
                 return newfunc

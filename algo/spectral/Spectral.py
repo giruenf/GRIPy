@@ -50,66 +50,76 @@ def ricker(freq, peak=0.0, x_values=None, y_values=None):
 """
 
 # Short Time Fourier Transform 1-D using SlidingWindow
-def STFT(x, window_size, noverlap, time_start, Ts, mode='psd'):
-    print ('Ts:', Ts)
-    f0 = 1.0/Ts
-    print ('F Zero:', f0)
-    print ('Frquencia de Nyquist:', f0/2, 'Hz')
-    print ('Resolução em frquencia:', f0/window_size, 'Hz')    
-    print ('Resolução temporal:', Ts, 'seconds')   
+def STFT(data, window_samples_size, overlap_samples_size, start_value, step_value, mode='psd'):
+    """
+    """
+#    print ('Step(Ts):', step_value)
+#    f0 = 1.0/step_value
+#    print ('F Zero:', f0)
+#    print ('Frquencia de Nyquist:', f0/2, 'Hz')
+#    print ('Resolução em frquencia:', f0/window_samples_size, 'Hz')    
+#    print ('Resolução temporal:', step_value, 'seconds')   
     
-    #
-    window = scipy.hanning(window_size)
-    stft_data = np.array([np.fft.fft(window*data) 
-                for data in SlidingWindow(x, len(window), noverlap)]
-    )
-    #
     
+    try:
+        #
+        window = scipy.hanning(window_samples_size)
 
-    
-    
-    if len(window) % 2:
-        numFreqs = stft_data.shape[1]/2+1
-    else:
-        numFreqs = stft_data.shape[1]/2
-    freqs = np.fft.fftfreq(window_size, Ts)[:numFreqs]
-    stft_data = stft_data[:, :numFreqs]
-    time_values = np.arange(window_size/2, 
-                         len(x)-window_size/2+1, 
-                         window_size-noverlap) * Ts  + time_start
-    #                        
-    if mode == 'psd':
-        # Also include scaling factors for one-sided densities and dividing by
-        # the sampling frequency, if desired. Scale everything, except the DC
-        # component and the NFFT/2 component:
-        stft_data *= 2.
-        # MATLAB divides by the sampling frequency so that density function
-        # has units of dB/Hz and can be integrated by the plotted frequency
-        # values. Perform the same scaling here.
-        #if scale_by_freq:
-        scale_by_freq = True    
-        if scale_by_freq:    
-            Fs = 1/Ts    
-            stft_data /= Fs
-            # Scale the spectrum by the norm of the window to compensate for
-            # windowing loss; see Bendat & Piersol Sec 11.5.2.
-            stft_data /= (np.abs(window)**2).sum()   
+        stft_data = np.array([np.fft.fft(window*data) 
+                    for data in SlidingWindow(data, len(window), overlap_samples_size)]
+        )
+
+        #
+        if len(window) % 2:
+            numFreqs = stft_data.shape[1]//2+1
         else:
-            # In this case, preserve power in the segment, not amplitude
-            stft_data /= np.abs(window).sum()**2
-        stft_data = stft_data * np.conjugate(stft_data) 
-        stft_data = stft_data.real 
-        
-    elif mode == 'magnitude':
-        stft_data = np.absolute(stft_data)   
-        
-    elif mode == 'angle' or mode == 'phase':
-        stft_data = np.angle(stft_data)
-        if mode == 'phase':
-            stft_data = np.unwrap(stft_data, axis=0)
+            numFreqs = stft_data.shape[1]//2
             
-    return stft_data.T, freqs, time_values
-  
+        freqs = np.fft.fftfreq(window_samples_size, step_value)[:numFreqs]
+        
+        stft_data = stft_data[:, :numFreqs]
+        #
+        start = window_samples_size//2
+        stop = len(data)-window_samples_size//2+1
+        step = window_samples_size-overlap_samples_size
+        #
+        index_values = np.arange(start, stop, step) * step_value  + start_value
+        
+        #  
+        if mode == 'psd':
+            # Also include scaling factors for one-sided densities and dividing by
+            # the sampling frequency, if desired. Scale everything, except the DC
+            # component and the NFFT//2 component:
+            stft_data *= 2.
+            # MATLAB divides by the sampling frequency so that density function
+            # has units of dB/Hz and can be integrated by the plotted frequency
+            # values. Perform the same scaling here.
+            #if scale_by_freq:
+            scale_by_freq = True    
+            if scale_by_freq:    
+                scale_freq = 1/step_value    
+                stft_data /= scale_freq
+                # Scale the spectrum by the norm of the window to compensate for
+                # windowing loss; see Bendat & Piersol Sec 11.5.2.
+                stft_data /= (np.abs(window)**2).sum()   
+            else:
+                # In this case, preserve power in the segment, not amplitude
+                stft_data /= np.abs(window).sum()**2
+            stft_data = stft_data * np.conjugate(stft_data) 
+            stft_data = stft_data.real         
+        elif mode == 'magnitude':
+            stft_data = np.absolute(stft_data)          
+        elif mode == 'angle' or mode == 'phase':
+            stft_data = np.angle(stft_data)
+            if mode == 'phase':
+                stft_data = np.unwrap(stft_data, axis=0)       
+                
+        return stft_data, freqs, index_values
+
+    except Exception as e:
+        msg = 'ERROR Spectral.STFT: ' + str(e)
+        print('\n' + msg)
+        raise
 
 
 """

@@ -226,17 +226,6 @@ class Velocity(Density):
         super().__init__(data, **attributes)
 
 
-class Spectogram(Density):
-    tid = 'spectogram'
-    _TID_FRIENDLY_NAME = 'Spectogram'
-    _SHOWN_ATTRIBUTES = [
-                            ('_oid', 'Object Id'),
-                            ('datatype', 'Type')                       
-    ] 
-
-    def __init__(self, data, **attributes):
-        super().__init__(data, **attributes)
-
 
 
 class GatherSpectogram(Spectogram):

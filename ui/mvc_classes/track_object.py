@@ -27,6 +27,16 @@ from basic.parms import ParametersManager
 from app.app_utils import MPL_COLORMAPS
 
 
+# TODO: Verificar se deve-se manter isso. 
+# Colocado para pegar figure.py:98: MatplotlibDeprecationWarning
+# Adding an axes using the same arguments as a previous axes currently reuses 
+# the earlier instance.  In a future version, a new instance will always be 
+# created and returned.  Meanwhile, this warning can be suppressed, and the 
+# future behavior ensured, by passing a unique label to each axes instance.
+import warnings
+#with warnings.catch_warnings():                            # with version
+#    warnings.simplefilter("error", module="matplotlib")
+warnings.filterwarnings("error", module="matplotlib")       # full version
 
 ###############################################################################
 ###############################################################################
@@ -125,15 +135,21 @@ class TrackObjectController(UIControllerObject):
             obj = OM.get(new_value)    
             self.plottype = None
             if obj:
-                dm = OM.new('data_mask', obj.uid)
-                OM.add(dm)
+                UIM = UIManager()
+                dmc = UIM.create('data_mask_controller', 
+                                 self.uid, 
+                                 data_obj_uid=obj.uid
+                )
+                
                 #
                 # TODO: Verificar isso
                 # Setando datatype do eixo Z
                 index_type = self.get_well_plot_index_type()
-                dm.set_dimension(dim_idx=-1, datatype=index_type)
+                dmc.set_dimension(dim_idx=-1, datatype=index_type)
                 #
-                self.data_mask_uid = dm.uid
+                self.data_mask_uid = dmc.uid
+                
+                print('dmc.uid:', dmc.uid)
                 #
                 plottype = _PREFERRED_PLOTTYPES.get(obj.uid[0])
                 self.plottype = plottype    
@@ -157,8 +173,10 @@ class TrackObjectController(UIControllerObject):
 #                print ('b1')
                 state = self._get_log_state()
                 print ('state:', state)
-                UIM.create(repr_tid, self.uid, **state)
-#                print ('b3')
+                repr_ctrl = UIM.create(repr_tid, self.uid, **state)
+
+
+                print ('\n\nb3:', repr_ctrl)
                 self._do_draw()
 #                print ('b4')
             except Exception as e:
@@ -195,17 +213,17 @@ class TrackObjectController(UIControllerObject):
         
         
     def _do_draw(self):
-#        print ('\nTrackObjectController._do_draw')
+        print ('\nTrackObjectController._do_draw')
         repr_ctrl = self.get_representation() 
         repr_ctrl.view.draw()       
-#        print ('CALL end')
+        print ('CALL end')
 
 
     def get_data_mask(self):
         if self.data_mask_uid is None:
             return None
-        OM = ObjectManager()
-        return OM.get(self.data_mask_uid)
+        UIM = UIManager()
+        return UIM.get(self.data_mask_uid)
         
 
     def get_well_plot_index_type(self):
@@ -304,8 +322,8 @@ class RepresentationController(UIControllerObject):
         toc = UIM.get(toc_uid)
         return toc.get_data_mask()
              
-    def get_data_info(self, event):
-        return self.view.get_data_info(event)
+#    def get_data_info(self, event):
+#        return self.view.get_data_info(event)
 
     def redraw(self):
         if isinstance(self, LineRepresentationController):
@@ -336,8 +354,9 @@ class RepresentationView(UIViewObject):
         track_controller =  UIM.get(track_controller_uid)
         #
         if not track_controller.overview:
-            self.label = track_controller._append_track_label()
-            self.label.set_object_uid(self._controller_uid)
+            self.label = track_controller._append_track_label(
+                                                toc_uid=track_controller_uid
+            )
         else:
             self.label = None
             
@@ -398,16 +417,15 @@ class RepresentationView(UIViewObject):
                     value.remove()
         self._mplot_objects = OrderedDict()     
         
-        
+    """    
     def set_title(self, title):
         if self.label:
             self.label.set_title(title)
-                    
-            
+                              
     def set_subtitle(self, unit):    
         if self.label:
-           self.label.set_unit(unit)
-            
+           self.label.set_subtitle(unit)
+    """        
   
     def _set_picking(self, mplot_obj, pickradius=3):
         # When we set picker to True (to enable line picking) function
@@ -427,48 +445,31 @@ class LineRepresentationController(RepresentationController):
     _ATTRIBUTES = OrderedDict()
     _ATTRIBUTES['left_scale'] = {
             'default_value': 0.0,
-            'type': float,
-            #'pg_property': 'FloatProperty',
-            #'label': 'Left value'        
+            'type': float     
     }
     _ATTRIBUTES['right_scale'] = {
             'default_value': 1.0,
-            'type': float,
-            #'pg_property': 'FloatProperty',
-            #'label': 'Right value'
+            'type': float
     }
     _ATTRIBUTES['thickness'] = {
             'default_value': 1, 
-            'type': int,
-            #'pg_property': 'EnumProperty',
-            #'label': 'Width',
-            #'options_labels': ['0', '1', '2', '3', '4', '5'],
-            #'options_values': [0, 1, 2, 3, 4, 5 ]       
+            'type': int
     }
     _ATTRIBUTES['color'] = {
             'default_value': 'Black',
-            'type': str,
-            #'pg_property': 'MPLColorsProperty',
-            #'label': 'Color'            
+            'type': str         
     }
     _ATTRIBUTES['x_scale'] = {
             'default_value': 0, 
-            'type': int#,
-            #'pg_property': 'EnumProperty',
-            #'label': 'X axis scale',
-            #'options_labels': ['Linear', 'Logarithmic'],
-            #'options_values': [0, 1]
+            'type': int
     } 
     _ATTRIBUTES['interpolate'] = {
             'default_value': True,
-            'type': bool#,
-            #'pg_property': 'BoolProperty',
-            #'label': 'Interpolate line'
+            'type': bool
     }       
 
     def __init__(self, **state):
         super().__init__(**state)
-
 
     def _get_pg_properties_dict(self):
         """
@@ -609,6 +610,8 @@ class LineRepresentationView(RepresentationView):
 #            return
         self.draw()
   
+    
+    
     def draw(self):
         print('\nLineRepresentationView.draw')
         if self._mplot_objects:
@@ -616,6 +619,7 @@ class LineRepresentationView(RepresentationView):
         UIM = UIManager()
         controller = UIM.get(self._controller_uid)
         dm = controller.get_data_mask()
+        
         # Deals with WellPlot label
         print('self.label:', self.label)
         if self.label:
@@ -625,13 +629,18 @@ class LineRepresentationView(RepresentationView):
                  controller.right_scale)
             ) 
             self.label.set_color(controller.color)
-            self.label.set_thickness(controller.thickness)    
-        self.set_title(dm.get_data_name())
-        self.set_subtitle(dm.get_data_unit())          
+            self.label.set_thickness(controller.thickness)
+            
+            print('dmc.uid 2:', dm)
+            
+            self.label.set_title(dm.get_data_name())
+            self.label.set_subtitle(dm.get_data_unit())        
         #
+        
         xdata = dm.get_data(dimensions_desired=1)
         if xdata is None:
             return
+        #
         ydata = dm.get_last_dimension_index_data()
         xdata_valid_idxs = ~np.isnan(xdata)
         xdata = xdata[xdata_valid_idxs]
@@ -839,7 +848,7 @@ class IndexRepresentationView(RepresentationView):
     
     
     def draw(self):
-#        print ('\nIndexRepresentationView.draw')
+        print ('\nIndexRepresentationView.draw')
         try:
             if self._mplot_objects:
                 self.clear() 
@@ -849,9 +858,11 @@ class IndexRepresentationView(RepresentationView):
             dm = controller.get_data_mask()
             # Deals with WellPlot label
             if self.label:
-                self.label.set_plot_type('index')               
-            self.set_title(dm.get_data_name())
-            self.set_subtitle(dm.get_data_unit())          
+                self.label.set_plot_type('index')    
+                self.label.set_title(dm.get_data_name())
+                self.label.set_subtitle(dm.get_data_unit())
+                #self.set_title(dm.get_data_name())
+                #self.set_subtitle(dm.get_data_unit())          
             #
             UIM = UIManager()
             controller = UIM.get(self._controller_uid)
@@ -936,7 +947,7 @@ class DensityRepresentationController(RepresentationController):
             'options_values': ['density', 'wiggle', 'both']
     }    
     _ATTRIBUTES['colormap'] = {
-            'default_value': 'spectral_r', #'gray',
+            'default_value': 'Spectral_r', #'gray',
             'type': str,
             'pg_property': 'EnumProperty',
             'label': 'Colormap',
@@ -985,7 +996,6 @@ class DensityRepresentationController(RepresentationController):
             'type': str,
             'pg_property': 'MPLColorsProperty',
             'label': 'Wiggle line color'
-#            'options_labels': list(MPL_COLORS.keys())
     }    
     _ATTRIBUTES['min_wiggle'] = {
             'default_value': None,
@@ -1072,14 +1082,11 @@ class DensityRepresentationView(RepresentationView):
         UIM = UIManager()
         controller =  UIM.get(self._controller_uid)
         #
-        obj = controller.get_object()
-        if obj.tid == 'gather' or obj.tid == 'seismic':
+        # TODO: Ver um melhor lugar para redefinir a colormap
+        tid, _ = controller.get_data_object_uid()
+        if tid == 'gather' or tid == 'seismic':
             controller.colormap = 'gray_r'
-        
-        #if self.label:
-        #    self.label.set_plot_type(controller.type)    
-            
-            
+        #          
         controller.subscribe(self._draw, 'change.type')    
         controller.subscribe(self.set_interpolation, 'change.interpolation')
         controller.subscribe(self._draw, 'change.min_density')   
@@ -1153,6 +1160,40 @@ class DensityRepresentationView(RepresentationView):
 
 
     def get_data_info(self, event):
+        """
+        Retorna a string com informações do dado exibido em tela, 
+        de acordo com a posicao do mouse no momento.
+        """
+        image = self._mplot_objects.get('density')
+        if image:
+            value = image.get_cursor_data(event)
+            #
+            UIM = UIManager()
+            controller = UIM.get(self._controller_uid)
+            dm = controller.get_data_mask()
+            x_di_uid, x_index_data = dm.get_index_for_dimension(-2)
+            y_di_uid, y_index_data = dm.get_index_for_dimension(-1)
+            canvas = self.get_canvas()
+            xvalue = canvas.inverse_transform(event.xdata, 
+                                              x_index_data[0], 
+                                              x_index_data[-1]
+            )  
+            #
+            OM = ObjectManager()
+            x_data_index = OM.get(x_di_uid)
+            y_data_index = OM.get(y_di_uid)
+            #
+            if event.ydata < y_index_data[0] or event.ydata > y_index_data[-1]:
+                return None
+            #
+            msg = x_data_index.name + ': {:0.2f}'.format(xvalue) + ', ' \
+                        +  y_data_index.name + ': {:0.2f}'.format(event.ydata)
+            msg += ', Value: {:0.2f}'.format(value)  
+            return '[' + msg +  ']'
+        else:
+            raise Exception('Tratar get_data_info para Wiggle.')
+    
+        """
         OM = ObjectManager()
         UIM = UIManager()
         controller = UIM.get(self._controller_uid)
@@ -1199,149 +1240,129 @@ class DensityRepresentationView(RepresentationView):
                 msg = obj_str      
         msg += ', Value: ' + str(controller._data[(x_index, z_index)])
         return '[' + msg +  ']'
-
+        """
         
     
     def draw(self):
-        self.clear()     
+        self.clear()    
+        #
         UIM = UIManager()
         controller = UIM.get(self._controller_uid)
-        if controller._data is None:
-            return
+        dm = controller.get_data_mask()
         #
-        toc_uid = UIM._getparentuid(self._controller_uid)
-        toc = UIM.get(toc_uid)
-        track_controller_uid = UIM._getparentuid(toc_uid)
-        track_controller =  UIM.get(track_controller_uid)
+        data = dm.get_data(dimensions_desired=2)
+        x_di_uid, x_index_data = dm.get_index_for_dimension(-2)
+        y_di_uid, y_index_data = dm.get_index_for_dimension(-1)
         #
         OM = ObjectManager()
-        filter_ = toc.get_filter() #OM.get(('data_filter', toc.data_filter_oid))
-        #
-        """
-        for filter_data in filter_.data:
-            di_uid, display, is_range, z_first, z_last = filter_data
-            di = OM.get(di_uid)
-            print di.dimension, di.name, display, is_range, z_first, z_last
-        """    
-        #
-        z_data = filter_.data[0]
-        di_uid, display, is_range, z_first, z_last = z_data
-        z_data_index = OM.get(di_uid)
-        z_data = z_data_index.data[z_first:z_last]
-        #
-        xdata = filter_.data[1]
-        di_uid, display, is_range, x_first, x_last = xdata
-        xdata_index = OM.get(di_uid)
-        xdata = xdata_index.data[z_first:z_last]
-        #
-        #print xdata_index.dimension, xdata_index.name, display, is_range, x_first, x_last, xdata
-        #
+        xdata_index = OM.get(x_di_uid)
+        ydata_index = OM.get(y_di_uid)
+        #   
+        
+        # Deals with WellPlot label
         if self.label:
-            #print '\n\n\n'
+            
             self.label.set_plot_type(controller.type)
-            self.set_title(controller.get_object().name)
-            if controller.type == 'wiggle':
-                self.label.set_zlabel(xdata_index.name)
+            self.label.set_title(dm.get_data_name())
+            self.label.set_subtitle(dm.get_data_unit())
+            
+            #self.label.set_zlabel(xdata_index.name)
+            #self.label.set_colormap_lim((x_index_data[0], x_index_data[-1]))      
+            
+            #
+            #if controller.type == 'wiggle':
                 #self.set_subtitle(xdata_index.name)
-                #self.label.set_offsets(xdata)
-                self.label.set_xlim((xdata[0], xdata[-1]))
-
-                
-            #print '\n\n\n'
-        #print 'controller.type:', controller.type    
+                #self.label.set_offsets(x_index_data)
+            #    self.label.set_xlim((x_index_data[0], x_index_data[-1]))      
         #
-        #
-        self._mplot_objects['density'] = None
-        self._mplot_objects['wiggle'] = []
-        #self.set_title(controller.get_object().name)
-        #
-        #print '\n\n\n'
-        #print 'NOME:', controller.get_object().name
-        #print '\n\n\n'
-        """
-        if self.label:
-            self.label.set_plot_type('line')
-            self.label.set_xlim(
-                (controller.left_scale, controller.right_scale)
-            ) 
-            self.label.set_color(controller.color)
-            self.label.set_thickness(controller.thickness)    
-        self.set_title(obj.name)
-        self.set_subtitle(obj.unit)   
-        """
+        canvas = self.get_canvas()
+        toc_uid = UIM._getparentuid(self._controller_uid)
+        track_controller_uid = UIM._getparentuid(toc_uid)
+        track_controller =  UIM.get(track_controller_uid)        
         #
         if controller.type == 'density' or controller.type == 'both':
-            # 0,0 and 1.0 are our fixed Axes x_lim
-            extent = (0.0, 1.0, np.nanmax(z_data), np.nanmin(z_data))   
-            image = track_controller.append_artist('AxesImage',
-                                            cmap=controller.colormap,
-                                            interpolation=controller.interpolation,
-                                            extent=extent
-            )
-            image.set_data(controller._data.T)
-            image.set_label(self._controller_uid)            
-            if image.get_clip_path() is None:
-                # image does not already have clipping set, clip to axes patch
-                image.set_clip_path(image.axes.patch)     
-            self._mplot_objects['density'] = image
-            if controller.min_density is None:
-                controller.set_value_from_event('min_density', np.nanmin(controller._data))
-            if controller.max_density is None:    
-                controller.set_value_from_event('max_density', np.nanmax(controller._data))
-            image.set_clim(controller.min_density, controller.max_density)
-            self.set_density_alpha(controller.density_alpha)  
-            
-            if self.label:
-                #self.label.set_plot_type('density')  
-                self.label.set_colormap(controller.colormap)
-                self.label.set_zlim((controller.min_density, 
-                                                 controller.max_density)
+            # (left, right, bottom, top)
+            xlim_min, xlim_max = canvas.get_xlim('plot_axes')
+            extent = (xlim_min, xlim_max, 
+                      np.nanmax(y_index_data), np.nanmin(y_index_data)
+            )   
+            try:
+                image = track_controller.append_artist('AxesImage',
+                                        cmap=controller.colormap,
+                                        interpolation=controller.interpolation,
+                                        extent=extent
                 )
-            #    
+                image.set_data(data.T)
+                image.set_label(self._controller_uid)            
+                if image.get_clip_path() is None:
+                    # image does not already have clipping set, 
+                    # clip to axes patch
+                    image.set_clip_path(image.axes.patch)       
+                self._mplot_objects['density'] = image
+                if controller.min_density is None:
+                    controller.set_value_from_event('min_density', 
+                                                    np.nanmin(data)
+                    )
+                if controller.max_density is None:    
+                    controller.set_value_from_event('max_density', 
+                                                    np.nanmax(data)
+                    )                                
+                image.set_clim(controller.min_density, controller.max_density)
+                self.set_density_alpha(controller.density_alpha)  
+                #
+                if self.label:
+                    self.label.set_colormap(controller.colormap)
+                    self.label.set_colormap_lim((controller.min_density, 
+                                         controller.max_density)
+                    )
+                    
+                #    
+            except Exception as e:
+                print('ERRO density.draw:', e)
+                raise
+                
         else:
             self._mplot_objects['density'] = None
         #
         if controller.type == 'wiggle' or controller.type == 'both':    
             self._lines_center = []
-            x_lines_position = transform(np.array(range(0, controller._data.shape[0])),
-                                         0.0, controller._data.shape[0]
+            x_lines_position = canvas.transform(
+                    np.array(range(0, data.shape[0])), 0.0, data.shape[0]
             )
             if len(x_lines_position) > 1:
-                increment = (x_lines_position[0] + x_lines_position[1]) / 2.0 
+                increment = (x_lines_position[0] + x_lines_position[1]) // 2.0 
             elif len(x_lines_position) == 1:
                 increment = 0.5
             else:
                 raise Exception('Error. x_lines_position cannot have lenght 0. Shape: {}'.format(controller._data.shape))
             if controller.min_wiggle == None:
-                controller.set_value_from_event('min_wiggle',
-                                                      (np.amax(np.absolute(controller._data))) * -1)  
+                controller.set_value_from_event('min_wiggle', 
+                                (np.amax(np.absolute(controller._data))) * -1
+                )  
             if controller.max_wiggle == None:
                 controller.set_value_from_event('max_wiggle', 
-                                                      np.amax(np.absolute(controller._data)))     
-            data = np.where(controller._data<0, controller._data/np.absolute(controller.min_wiggle), controller._data)
-            data = np.where(data>0, data/controller.max_wiggle, data)
+                                        np.amax(np.absolute(controller._data))
+                )     
+            data_ = np.where(data<0, data//np.absolute(controller.min_wiggle), data)
+            data_ = np.where(data_>0, data_//controller.max_wiggle, data_)
     
             for idx, pos_x in enumerate(x_lines_position):
                 self._lines_center.append(pos_x + increment) 
-                xdata = data[idx]
+                xdata = data_[idx]
                 xdata = self._transform_xdata_to_wiggledata(xdata, pos_x, pos_x + 2*increment)
-                line = track_controller.append_artist('Line2D', xdata, z_data,
+                line = track_controller.append_artist('Line2D', 
+                                            xdata, y_index_data,
                                             linewidth=controller.linewidth,
-                                            color=controller.linecolor
-                                            )
-                #line.set_label(toc_uid)
+                                            color=controller.linecolor   
+                )
                 self._mplot_objects['wiggle'].append(line)   
                 self._mplot_objects['wiggle'].append(None) # left fill
                 self._mplot_objects['wiggle'].append(None) # right fill
             
-            #if self.label:
-                #self.label.set_plot_type('wiggle')   
-            #    self.label.set_xlim((controller.min_wiggle, 
-            #                                     controller.max_wiggle)
-            #    )
-            
+        print('self.draw_canvas()')    
         self.draw_canvas()
-        self.fill_between(controller.fill, None)
+        if controller.type == 'wiggle' or controller.type == 'both':
+            self.fill_between(controller.fill, None)
 
     
     # Find a better name

@@ -1598,8 +1598,14 @@ class CanvasBaseView(UIViewObject, FigureCanvas):
 
 
 
-    def get_xlim(self):
-        return self.base_axes.get_xlim()    
+    def get_xlim(self, axes=None):
+        if axes is None:
+            return self.base_axes.get_xlim()
+        elif axes == 'plot_axes':
+            return self.plot_axes.get_xlim()
+        else:
+            raise Exception('Wrong axes informed.')
+        
     
     def get_ylim(self):
         return self.base_axes.get_ylim()     

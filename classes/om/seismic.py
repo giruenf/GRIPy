@@ -1,16 +1,4 @@
-
-from collections import OrderedDict
-
-from classes.om import OMBaseObject
-from classes.om import DataObject
-from classes.om import ObjectManager
-
-
-class Density(DataObject):
-    tid = 'density'
-
-    def __init__(self, data, **attributes):
-        super().__init__(data, **attributes)
+from classes.om import Density
 
 
 class Seismic(Density):
