@@ -120,6 +120,7 @@ def load_segy(event, filename, new_obj_name='', comparators_list=None,
     wait = wx.BusyInfo("Loading SEG-Y file...")
     #
     try:
+        print("\nLoading SEG-Y file...")
         segy_file = fileio.segy.SEGYFile(filename)    
         #segy_file.print_dump()
         #"""
@@ -128,31 +129,65 @@ def load_segy(event, filename, new_obj_name='', comparators_list=None,
         #
         print ('segy_file.traces.shape:', segy_file.traces.shape)
         #
-        seis_like_obj = OM.new(tid, segy_file.traces, name=new_obj_name)
+        
+
+        #
+        seis_like_obj = OM.new(tid, segy_file.traces, name=new_obj_name) #  datatype=results.get('spectrogram_type')
         if not OM.add(seis_like_obj, parentuid):
             raise Exception('Object was not added. tid={}'.format(tid))
         #
-        index_set = OM.new('index_set', name='Set')
-        OM.add(index_set, seis_like_obj.uid)
+
         #
-        index = OM.new('data_index', 0, 'Time', 'TWT', 'ms', start=0.0, 
-                step=(segy_file.sample_rate*1000), samples=segy_file.number_of_samples 
+        z_index = OM.new('data_index', 
+                         name='Time', 
+                         datatype='TWT', 
+                         unit='ms',
+                         start=0.0, 
+                         step=(segy_file.sample_rate*1000), 
+                         samples=segy_file.number_of_samples 
         )
-        OM.add(index, index_set.uid)
+        OM.add(z_index, seis_like_obj.uid)
+        #
+        
+             
         try:
-            index = OM.new('data_index', 1, 'Offset', 'OFFSET', 'm', data=segy_file.dimensions[2]) 
-            OM.add(index, index_set.uid)
+            offset_index = OM.new('data_index', 
+                           segy_file.dimensions[2],
+                           name='Offset', 
+                           datatype='OFFSET', 
+                           unit='m'
+            ) 
+            OM.add(offset_index, seis_like_obj.uid)
             next_dim = 2
         except Exception as e:
-            next_dim = 1    
+            next_dim = 1            
+        
         #
-        index = OM.new('data_index', next_dim, 'X Line', 'X_LINE', None, data=segy_file.dimensions[1])
-        if OM.add(index, index_set.uid):
+        xline_index = OM.new('data_index', 
+                       segy_file.dimensions[1],
+                       name='X Line', 
+                       datatype='X_LINE'
+        )
+        if OM.add(xline_index, seis_like_obj.uid):
             next_dim += 1
         #
-        index = OM.new('data_index', next_dim, 'I Line', 'I_LINE', None, data=segy_file.dimensions[0])
-        OM.add(index, index_set.uid)  
-        print ('seis_like_obj.traces.shape:', seis_like_obj.data.shape)
+        
+        iline_index = OM.new('data_index', 
+                       segy_file.dimensions[0],
+                       name='I Line', 
+                       datatype='I_LINE'
+        )
+        OM.add(iline_index, seis_like_obj.uid)
+        #  
+        seis_like_obj._create_data_index_map(
+                                        [iline_index.uid],
+                                        [xline_index.uid],
+                                        [offset_index.uid],
+                                        [z_index.uid]
+        )          
+        
+        print ('seis_like_obj.traces.shape:', seis_like_obj.data.shape)        
+
         #"""
     except Exception as e:
         raise e

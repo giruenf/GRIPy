@@ -257,7 +257,7 @@ class ColormapDataLabel(FigureCanvas):
         self.parent = parent
         fig = Figure(figsize=(1, 0.20))
         super().__init__(self.parent, -1, fig)     
-        self.figure.set_facecolor(self._COLOR)
+#        self.figure.set_facecolor(self._COLOR)
         #
         self._mplot_objects = {}
         self._properties = {}
@@ -266,8 +266,8 @@ class ColormapDataLabel(FigureCanvas):
         self._properties['min'] = {'x': self._properties['xleft'], 'y':0.33, 'ha':'left', 'va':'center', 'fontsize':9}     
         self._properties['max'] = {'x': self._properties['xright'], 'y':0.33, 'ha':'right', 'va':'center', 'fontsize':9}
         # rect : [left, bottom, width, height]
-        self._properties['axes_bottom'] = 0.80
-        self._properties['axes_height'] = 0.10
+        self._properties['axes_bottom'] = 0.68
+        self._properties['axes_height'] = 0.22
         self._properties['axes_extent'] = [self._properties['xleft'],
                          self._properties['axes_bottom'],
                          self._properties['xright']-self._properties['xleft'], 
@@ -292,7 +292,6 @@ class ColormapDataLabel(FigureCanvas):
         cmap_img = self._mplot_objects.get('cmap_img') 
         if not cmap_img:
             extent = self._properties.get('axes_extent')
-            print(extent)
             ax = create_and_prepare_axes(self.figure, extent) #, toc_uid=self._toc_uid)
             gradient = np.linspace(0, 1, 256)
             gradient = np.vstack((gradient, gradient))
@@ -360,8 +359,8 @@ class WiggleDataLabel(FigureCanvas):
         self._properties['min'] = {'x': self._properties['xleft'], 'y':0.33, 'ha':'left', 'va':'center', 'fontsize':9}     
         self._properties['max'] = {'x': self._properties['xright'], 'y':0.33, 'ha':'right', 'va':'center', 'fontsize':9}
         # rect : [left, bottom, width, height]
-        self._properties['axes_bottom'] = 0.80
-        self._properties['axes_height'] = 0.10
+        self._properties['axes_bottom'] = 0.20
+        self._properties['axes_height'] = 0.30
         self._properties['axes_extent'] = [self._properties['xleft'],
                          self._properties['axes_bottom'],
                          self._properties['xright']-self._properties['xleft'], 
@@ -382,45 +381,39 @@ class WiggleDataLabel(FigureCanvas):
         self.xlabel = None  
 
 
-    def _get_cmap_img(self):
-        cmap_img = self._mplot_objects.get('cmap_img') 
-        if not cmap_img:
-            extent = self._properties.get('cmap_axes_extent')
-            ax = create_and_prepare_axes(self.figure, extent) #, toc_uid=self._toc_uid)
-            gradient = np.linspace(0, 1, 256)
-            gradient = np.vstack((gradient, gradient))
-            cmap_img = ax.imshow(gradient, aspect='auto')
-            self._mplot_objects['cmap_img'] = cmap_img
-        return cmap_img
+    def _get_offsets_line(self):
+        offsets_line = self._mplot_objects.get('offsets_line') 
+        if not offsets_line:      
+            extent = self._properties.get('axes_extent', None)
+            ax = create_and_prepare_axes(self.figure, extent) #, toc_uid=self._toc_uid)    
+            #ax.set_xlim((0, len(offsets_list)+1))
+            ax.set_ylim((-1.0, 1.0))
+            offsets_line = Line2D([0.0, 1.0], [0.5, 0.5])
 
-    def _get_min_text(self):
-        min_text = self._mplot_objects.get('min_text')
-        if min_text is None:
-            min_text = create_text(self.figure, '', self._properties['min'])
-        return min_text
+            offsets_line.set_color('black')
+            offsets_line.set_linewidth(1)
+            self._mplot_objects['offsets_line'] = ax.add_line(offsets_line)
+        return offsets_line
 
-    def _get_max_text(self):
-        max_text = self._mplot_objects.get('max_text')
-        if max_text is None:
-            max_text = create_text(self.figure, '', self._properties['max'])
-        return max_text
 
-    def set_lim(self, lim):
-        if self.lim == lim:
-            return
-        min_, max_ = lim
-        min_ = prepare_float_value(min_)
-        max_ = prepare_float_value(max_)
-        #
-        min_text = self._get_min_text()
-        min_text.set_text(min_)
-        #
-        max_text = self._get_max_text()
-        max_text.set_text(max_)
-        #
-        self.draw()             
-        self.lim == lim  
+    def set_offsets(self, offsets_list):
 
+        offsets_line = self._get_offsets_line()        
+        x_data = np.array(range(0, len(offsets_list)+1), dtype=np.float)
+        y_data = np.zeros(len(offsets_list)+1)
+        
+        factor = 0.5
+        x_data[0] = x_data[0] + factor
+        x_data[-1] = x_data[-1] + factor
+            
+        #ax = offsets_line.axes
+        
+        offsets_line.axes.plot(x_data[0], 0.5, '|', color='black')
+        offsets_line.axes.plot(x_data[-1], 0.5, '|', color='black')
+        offsets_line.set_data(x_data, y_data)       
+        for i in range(0, len(offsets_list)):
+            offsets_line.axes.plot(i+1, -0.5, '|', color='black')
+            offsets_line.axes.text(i+1, -2.4, str(offsets_list[i]), fontsize=8)
 
 
 

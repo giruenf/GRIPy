@@ -3095,6 +3095,7 @@ def on_import_segy_well_gather(event):
             """
     except Exception as e:
         print (e)
+        raise
     finally:
         UIM.remove(dlg.uid)  
 

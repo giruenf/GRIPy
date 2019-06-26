@@ -49,11 +49,14 @@ class DataMaskController(UIControllerObject):
             print('data_indexes:', data_indexes)
             
             for dim_idx in range(len(data_indexes)):
-                print('dim_idx:', dim_idx)
+                print('\ndim_idx:', dim_idx)
                 indexes_per_dim_uid = data_indexes[dim_idx]
 #                print(dim_idx, indexes_per_dim_uid)
                 di_uid = indexes_per_dim_uid[0]  # Chosing the first one!
                 di = OM.get(di_uid)
+                
+                print(di_uid, True, 0, di)
+                
                 if (len(data_indexes) - dim_idx) <= 2:    
                     # Sempre exibe as 2 ultimas dimensoes do dado.
                     # Ex: sismica 3-d stacked (iline, xline, tempo) serah exibido

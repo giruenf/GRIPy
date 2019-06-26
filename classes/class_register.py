@@ -10,6 +10,7 @@ from classes.om import Log
 from classes.om import CurveSet
 from classes.om import Seismic
 from classes.om import Spectogram
+from classes.om import Gather
 
 """
 from classes.dt.datatypes import Core
@@ -67,9 +68,9 @@ from ui.mvc_classes.workpage import WorkPageController, WorkPage
 from ui.mvc_classes.track_object import \
     LineRepresentationController, LineRepresentationView, \
     IndexRepresentationController, IndexRepresentationView, \
-    DensityRepresentationController, DensityRepresentationView, \
-    PatchesRepresentationController, PatchesRepresentationView, \
-    ContourfRepresentationController, ContourfRepresentationView                          
+    DensityRepresentationController, DensityRepresentationView #, \
+#    PatchesRepresentationController, PatchesRepresentationView, \
+#    ContourfRepresentationController, ContourfRepresentationView                          
 from ui.mvc_classes.lpf import WellPlotEditorController, WellPlotEditor  
 from ui.mvc_classes.lpf import LPEWellPlotPanelController, LPEWellPlotPanel      
 from ui.mvc_classes.lpf import LPETrackPanelController, LPETrackPanel
@@ -105,10 +106,17 @@ def register_OM_classes():
     #
     ObjectManager.register_class(DataIndexMap, Log)
     #
+    ObjectManager.register_class(Gather, Well)
+    ObjectManager.register_class(DataIndex, Gather)
+    ObjectManager.register_class(DataIndexMap, Gather)
+    #
     ObjectManager.register_class(Spectogram, Log)
+    ObjectManager.register_class(Spectogram, Gather)
+    ObjectManager.register_class(Spectogram, Seismic)
     ObjectManager.register_class(DataIndexMap, Spectogram)
     ObjectManager.register_class(DataIndex, Spectogram)
-    #
+    #    
+    
     """
 #    ObjectManager.register_class(IndexSet, Well)
     ObjectManager.register_class(Core, Well)
@@ -137,7 +145,7 @@ def register_OM_classes():
     ObjectManager.register_class(DataIndex, Scalogram)
 #    ObjectManager.register_class(IndexSet, Scalogram)
     #
-    ObjectManager.register_class(WellGather, Well)
+    
     ObjectManager.register_class(DataIndex, WellGather)  
 #    ObjectManager.register_class(IndexSet, WellGather)
 
@@ -205,9 +213,13 @@ def register_UIManager_classes():
     UIManager.register_class(DensityRepresentationController, 
                              DensityRepresentationView, TrackObjectController
     )
-    UIManager.register_class(PatchesRepresentationController,
-                              PatchesRepresentationView, TrackObjectController
-    )
+#    UIManager.register_class(PatchesRepresentationController,
+#                              PatchesRepresentationView, TrackObjectController
+#    )
+#    UIManager.register_class(ContourfRepresentationController,  
+#                              ContourfRepresentationView, TrackObjectController
+#    )    
+    #
     UIManager.register_class(LPEWellPlotPanelController, LPEWellPlotPanel, 
                              WellPlotEditorController
     )    
@@ -219,9 +231,6 @@ def register_UIManager_classes():
     )
     UIManager.register_class(PropertyGridController,
                              PropertyGridView, LPEObjectsPanelController
-    )
-    UIManager.register_class(ContourfRepresentationController,  
-                              ContourfRepresentationView, TrackObjectController
     )
     #
 

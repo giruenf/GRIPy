@@ -271,21 +271,21 @@ class EnumProperty(pg.EnumProperty, GripyPgProperty):
         ret_str : str
             A string that will be selected on wx.Choice container. 
         """
-        print('\nValueToString [{}]: {} - {}'.format(self._obj_attr, value, type(value)))
+#        print('\nValueToString [{}]: {} - {}'.format(self._obj_attr, value, type(value)))
         val = self._get_value()
         
-        print('val:', val, type(val))
+#        print('val:', val, type(val))
         
         if isinstance(val, int):
             idx_val = self._opt_values.index(val)
-            print('idx_val:', idx_val)
+#            print('idx_val:', idx_val)
             ret_str = str(self._opt_labels[idx_val])
             #ret_str = str(self._opt_labels[val])
         elif isinstance(val, str): 
             ret_str = val
             
             
-        print('Retornando String \"' + ret_str + '\" para Value: ' + str(val))
+#        print('Retornando String \"' + ret_str + '\" para Value: ' + str(val))
         return ret_str
         
     
@@ -305,14 +305,14 @@ class EnumProperty(pg.EnumProperty, GripyPgProperty):
         """        
         
         
-        print('\nGetIndexForValue [{}]: {} - {}'.format(self._obj_attr, value, type(value)))
+#        print('\nGetIndexForValue [{}]: {} - {}'.format(self._obj_attr, value, type(value)))
 
 #        idx = self._opt_values.index(value)
 #        """
 
         val = self._get_value()
         
-        print('val:', val, type(val))
+#        print('val:', val, type(val))
 
        
         idx = self._opt_values.index(val)
@@ -331,7 +331,7 @@ class EnumProperty(pg.EnumProperty, GripyPgProperty):
         
 #        """
         
-        print('Retornando Index', idx, 'para Value:', value, 'para val:', val)
+#        print('Retornando Index', idx, 'para Value:', value, 'para val:', val)
         
         return idx
 
@@ -439,7 +439,7 @@ class PropertyGridController(UIControllerObject):
 
     def __init__(self, **state):
         super().__init__(**state)  
-        print('\n\nPropertyGridController.__init__:', state)
+#        print('\n\nPropertyGridController.__init__:', state)
         self._properties = OrderedDict()
         self.subscribe(self.on_change_obj_uid, 'change.obj_uid') 
        
@@ -570,10 +570,10 @@ class PropertyGridView(UIViewObject, pg.PropertyGrid):
         
             parent_controller_uid = UIM._getparentuid(self._controller_uid)
             parent_controller =  UIM.get(parent_controller_uid)
-            print()
-            print('parent_controller:', parent_controller)
+#            print()
+#            print('parent_controller:', parent_controller)
             wx_parent = parent_controller._get_wx_parent(self.tid)
-            print('wx_parent:', wx_parent)
+#            print('wx_parent:', wx_parent)
             #
             pg.PropertyGrid.__init__(self, wx_parent, 
                             style=pg.PG_SPLITTER_AUTO_CENTER|pg.PG_HIDE_MARGIN

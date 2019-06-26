@@ -28,12 +28,13 @@ def ibm2ieee2(ibm_float):
     
 def int16(buffer, byte): 
     """Retorna o valor inteiro de 2 bytes da posição byte, contido em buffer"""
-    return( int(buffer[(byte-1):(byte-1)+2].encode('hex'),16))	   
-    
+    #return int(buffer[(byte-1):(byte-1)+2].encode('hex'), 16)   
+    return int(buffer[(byte-1):(byte-1)+2].hex(), 16)   
    
 def int32(buffer, byte): 
     """Retorna o valor inteiro de 4 bytes da posição byte, contido em buffer"""
-    return( int(buffer[(byte-1):(byte-1)+4].encode('hex'),16)  )
+    #return int(buffer[(byte-1):(byte-1)+4].encode('hex'), 16)
+    return int(buffer[(byte-1):(byte-1)+4].hex(), 16)
 
 
 def get_value(buffer, start_pos, bytes):

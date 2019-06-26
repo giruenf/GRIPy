@@ -136,7 +136,8 @@ class UIManager(GripyManager):
         if isinstance(uid, str):
             uid = app.app_utils.parse_string_to_uid(uid)
         return self._data.get(uid)
-
+        #return self._data[uid]
+    
 
     # Something like a mix between new and add in ObjectManager
     # Object Factory        
