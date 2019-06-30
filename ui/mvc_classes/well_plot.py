@@ -213,9 +213,9 @@ class WellPlotController(WorkPageController):
                     """
                 else:
                     for toc_ctrl in UIM.list('track_object_controller', track_ctrl.uid):
-                        dm = toc_ctrl.get_data_mask()
-                        dm.set_dimension(datatype=new_value)
-                        toc_ctrl._do_draw() 
+                        #dm = toc_ctrl.get_data_mask()
+                        toc_ctrl.set_dimension(datatype=new_value)
+                        toc_ctrl.redraw() 
                                       
         except Exception as e: 
             print ('ERROR _on_change_index_type:', e)

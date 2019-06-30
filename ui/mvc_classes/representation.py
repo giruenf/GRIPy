@@ -56,13 +56,11 @@ class RepresentationView(UIViewObject):
             )
         else:
             self.label = None
-            
-            
+                       
     def PreDelete(self):
         self.clear()
         if self.label:
             self.label.destroy()
-
 
     def get_parent_controller(self):
         UIM = UIManager()

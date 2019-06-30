@@ -3,11 +3,9 @@ from collections import OrderedDict
 import numpy as np
 from matplotlib.patches import FancyBboxPatch
 
-from classes.om import ObjectManager
 from classes.ui import UIManager
 from ui.mvc_classes.representation import RepresentationController
 from ui.mvc_classes.representation import RepresentationView
-
 
 
 class IndexRepresentationController(RepresentationController):

@@ -47,7 +47,7 @@ from classes.inference.dtrock import Fluid
 #
 
 #
-from classes.ui import DataMaskController, DataMask
+#from classes.ui import DataMaskController, DataMask
 from ui.mvc_classes.wxgripy import FrameController, Frame
 from ui.mvc_classes.wxgripy import DialogController, Dialog
 from ui.mvc_classes.main_window import MainWindowController,MainWindow
@@ -60,7 +60,7 @@ from ui.mvc_classes.tool_bar_tool import ToolBarToolController
 from ui.mvc_classes.status_bar import StatusBarController, StatusBar
 from ui.mvc_classes.well_plot import WellPlotController, WellPlot
 from ui.mvc_classes.track import TrackController, TrackView
-from ui.mvc_classes.track_object import TrackObjectController
+from ui.mvc_classes.track_object import TrackObjectController, TrackObject
 from ui.mvc_classes.frame_nav import NavigatorController, Navigator
 from ui.mvc_classes.cross_plotter import CrossPlotController, CrossPlot
 from ui.mvc_classes.workpage import WorkPageController, WorkPage
@@ -253,4 +253,4 @@ def register_UIManager_classes():
                              PropertyGridView, LPEWellPlotPanelController
     ) 
     #
-    UIManager.register_class(DataMaskController, DataMask, TrackObjectController)      
+    #UIManager.register_class(DataMaskController, DataMask, TrackObjectController)      

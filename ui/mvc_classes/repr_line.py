@@ -3,7 +3,6 @@ from collections import OrderedDict
 import numpy as np
 from scipy.interpolate import interp1d
 
-from classes.om import ObjectManager
 from classes.ui import UIManager
 from ui.mvc_classes.representation import RepresentationController
 from ui.mvc_classes.representation import RepresentationView
