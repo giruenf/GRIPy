@@ -1,5 +1,7 @@
 from collections import OrderedDict
 
+import numpy as np
+
 from classes.om import ObjectManager
 from classes.ui import UIManager
 from ui.mvc_classes.representation import RepresentationController
@@ -242,11 +244,11 @@ class DensityRepresentationView(RepresentationView):
         if image:
             value = image.get_cursor_data(event)
             #
-            UIM = UIManager()
-            controller = UIM.get(self._controller_uid)
-            dm = controller.get_data_mask()
-            x_di_uid, x_index_data = dm.get_index_for_dimension(-2)
-            y_di_uid, y_index_data = dm.get_index_for_dimension(-1)
+#            UIM = UIManager()
+#            controller = UIM.get(self._controller_uid)
+            toc = self.get_parent_controller()
+            x_di_uid, x_index_data = toc.get_index_for_dimension(-2)
+            y_di_uid, y_index_data = toc.get_index_for_dimension(-1)
             canvas = self.get_canvas()
             xvalue = canvas.inverse_transform(event.xdata, 
                                               x_index_data[0], 
@@ -280,13 +282,13 @@ class DensityRepresentationView(RepresentationView):
         #
         UIM = UIManager()
         controller = UIM.get(self._controller_uid)
-        dm = controller.get_data_mask()
+        toc = self.get_parent_controller()
         #
-        print(controller.type)
+#        print(controller.type)
         #
-        data = dm.get_data(dimensions_desired=2)
-        x_di_uid, x_index_data = dm.get_index_for_dimension(-2)
-        y_di_uid, y_index_data = dm.get_index_for_dimension(-1)
+        data = toc.get_data(dimensions_desired=2)
+        x_di_uid, x_index_data = toc.get_index_for_dimension(-2)
+        y_di_uid, y_index_data = toc.get_index_for_dimension(-1)
         #
         OM = ObjectManager()
         xdata_index = OM.get(x_di_uid)
@@ -394,8 +396,8 @@ class DensityRepresentationView(RepresentationView):
         if self.label:
             try:
                 self.label.set_plot_type(controller.type)
-                self.label.set_title(dm.get_data_name())
-                self.label.set_subtitle(dm.get_data_type())
+                self.label.set_title(toc.get_data_name())
+                self.label.set_subtitle(toc.get_data_type())
                 #
                 if controller.type == 'density' or controller.type == 'both':
                     self.label.set_colormap(controller.colormap)

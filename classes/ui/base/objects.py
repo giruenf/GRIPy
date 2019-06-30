@@ -235,4 +235,12 @@ class UIViewObject(UIBaseObject):
         raise NotImplementedError('Must be implemented by subclass.')
         
 
+    def get_controller(self):
+        UIM_class = self.get_manager_class()
+        UIM = UIM_class()
+        return UIM.get(self._controller_uid)
+
+
+
+
         

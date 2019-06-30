@@ -13,16 +13,29 @@ class RepresentationController(UIControllerObject):
     def __init__(self, **state):
         super().__init__(**state)
 
-    def get_data_object_uid(self):
+    def get_parent_controller(self):
         UIM = UIManager()
         toc_uid = UIM._getparentuid(self.uid)
-        toc = UIM.get(toc_uid) 
+        return UIM.get(toc_uid)
+
+    def get_track_controller(self):
+        UIM = UIManager()
+        toc_uid = UIM._getparentuid(self.uid)
+        tc_uid = UIM._getparentuid(toc_uid)
+        return UIM.get(tc_uid)
+        
+    def get_data_object_uid(self):
+        toc = self.get_parent_controller()
         return toc.data_obj_uid
-                       
-    def get_friendly_name(self):
+
+    def get_data_object(self):
         do_uid = self.get_data_object_uid()
         OM = ObjectManager()
-        data_object = OM.get(do_uid)
+        data_object = OM.get(do_uid)        
+        return data_object              
+         
+    def get_friendly_name(self):
+        data_object = self.get_data_object()
         return data_object.get_friendly_name()
     
    
@@ -44,11 +57,23 @@ class RepresentationView(UIViewObject):
         else:
             self.label = None
             
+            
     def PreDelete(self):
         self.clear()
         if self.label:
             self.label.destroy()
-             
+
+
+    def get_parent_controller(self):
+        UIM = UIManager()
+        controller = UIM.get(self._controller_uid)            
+        return controller.get_parent_controller()
+
+    def get_track_controller(self):
+        UIM = UIManager()
+        controller = UIM.get(self._controller_uid)            
+        return controller.get_track_controller()
+        
     def get_data_info(self, event):
         raise NotImplemented('{}.get_data_info must be implemented.'.format(self.__class__))
      
@@ -69,6 +94,12 @@ class RepresentationView(UIViewObject):
                 return tcc.view
             except:
                 raise
+
+    def redraw(self):
+        if self.uid[0] == 'line_representation_controller':
+            self.view.draw()
+        else:
+            return False
                
     def draw_canvas(self):     
         canvas = self.get_canvas()   

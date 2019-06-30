@@ -1,5 +1,8 @@
 from collections import OrderedDict
 
+import numpy as np
+from scipy.interpolate import interp1d
+
 from classes.om import ObjectManager
 from classes.ui import UIManager
 from ui.mvc_classes.representation import RepresentationController
@@ -186,8 +189,8 @@ class LineRepresentationView(RepresentationView):
         UIM = UIManager()
         controller = UIM.get(self._controller_uid)
         
-        dm = controller.get_data_mask()
-        print('\ndm:', dm)
+        toc = self.get_parent_controller()
+#        print('\ndm:', dm)
         
         # Deals with WellPlot label
         print('\nself.label:', self.label)
@@ -200,17 +203,17 @@ class LineRepresentationView(RepresentationView):
             self.label.set_color(controller.color)
             self.label.set_thickness(controller.thickness)
             
-            print('dmc.uid 2:', dm)
+#            print('dmc.uid 2:', dm)
             
-            self.label.set_title(dm.get_data_name())
-            self.label.set_subtitle(dm.get_data_unit())        
+            self.label.set_title(toc.get_data_name())
+            self.label.set_subtitle(toc.get_data_unit())        
         #
         
-        xdata = dm.get_data(dimensions_desired=1)
+        xdata = toc.get_data(dimensions_desired=1)
         if xdata is None:
             return
         #
-        ydata = dm.get_last_dimension_index_data()
+        ydata = toc.get_last_dimension_index_data()
         xdata_valid_idxs = ~np.isnan(xdata)
         xdata = xdata[xdata_valid_idxs]
         ydata = ydata[xdata_valid_idxs]

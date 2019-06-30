@@ -129,7 +129,7 @@ class TrackObjectController(UIControllerObject):
                 #
                 # TODO: Verificar isso
                 # Setando datatype do eixo Z
-                index_type = self._get_well_plot_index_type()
+                index_type = self.get_well_plot_index_type()
                 self.set_dimension(dim_idx=-1, datatype=index_type)
                 self.plottype = _PREFERRED_PLOTTYPES.get(obj.uid[0])
                 self.attach(obj.uid)
@@ -194,7 +194,7 @@ class TrackObjectController(UIControllerObject):
     """
         
 
-    def _get_well_plot_index_type(self):
+    def get_well_plot_index_type(self):
         UIM = UIManager()
         track_ctrl_uid = UIM._getparentuid(self.uid)
         well_plot_ctrl_uid = UIM._getparentuid(track_ctrl_uid)

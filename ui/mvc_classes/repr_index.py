@@ -1,5 +1,8 @@
 from collections import OrderedDict
 
+import numpy as np
+from matplotlib.patches import FancyBboxPatch
+
 from classes.om import ObjectManager
 from classes.ui import UIManager
 from ui.mvc_classes.representation import RepresentationController
@@ -161,25 +164,25 @@ class IndexRepresentationView(RepresentationView):
             self._mplot_objects['text'] = []    
             UIM = UIManager()
             controller = UIM.get(self._controller_uid)
-            dm = controller.get_data_mask()
+            toc = self.get_parent_controller()
             # Deals with WellPlot label
             if self.label:
                 self.label.set_plot_type('index')    
-                self.label.set_title(dm.get_data_name())
-                self.label.set_subtitle(dm.get_data_unit())
+                self.label.set_title(toc.get_data_name())
+                self.label.set_subtitle(toc.get_data_unit())
                 #self.set_title(dm.get_data_name())
                 #self.set_subtitle(dm.get_data_unit())          
             #
-            UIM = UIManager()
-            controller = UIM.get(self._controller_uid)
-            toc_uid = UIM._getparentuid(self._controller_uid)
-            toc = UIM.get(toc_uid)
+#            UIM = UIManager()
+#            controller = UIM.get(self._controller_uid)
+#            toc_uid = UIM._getparentuid(self._controller_uid)
+            #toc = UIM.get(toc_uid)
             index_type = toc.get_well_plot_index_type()
             #
-            ydata = dm.get_last_dimension_index_data()
+            ydata = toc.get_last_dimension_index_data()
             if ydata is None:
                 return
-            equivalent_ydata = dm.get_equivalent_index_data(datatype=index_type)
+            equivalent_ydata = toc.get_equivalent_index_data(datatype=index_type)
             if equivalent_ydata is None:
                 # There is no equivalent data to be plotted. For example, 
                 # we have a TWT index_type and do not have TWT indexed data.
@@ -197,8 +200,8 @@ class IndexRepresentationView(RepresentationView):
                 y_min = (y_min//controller.step + 1) * controller.step  
             y_values = np.arange(y_min, y_max, controller.step)               
             #
-            track_controller_uid = UIM._getparentuid(toc_uid)
-            track_controller =  UIM.get(track_controller_uid)   
+#            track_controller_uid = UIM._getparentuid(toc_uid)
+            track_controller = self.get_track_controller()  
             #
             canvas = self.get_canvas()
             transformated_pos_x = canvas.transform(controller.pos_x, 0.0, 1.0)         

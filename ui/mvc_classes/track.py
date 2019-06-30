@@ -807,7 +807,8 @@ class TrackView(UIViewObject):
         tcc.ylim = (ymax, ymin)
 
         UIM = UIManager()
-        for toc in UIM.list('track_object_controller', self._controller_uid):
+        for toc in UIM.list('track_object_controller', 
+                            self._controller_uid):
             #print 'redrawing', toc.uid
             toc.redraw()
             #print 'end redraw'
