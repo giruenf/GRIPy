@@ -114,7 +114,7 @@ def calc_well_time_from_depth(event, well_uid):
 
 def load_segy(event, filename, new_obj_name='', comparators_list=None, 
               iline_byte=9, xline_byte=21, offset_byte=37, tid='seismic', 
-              parentuid=None):    
+              datatype='amplitude', parentuid=None):    
     OM = ObjectManager()  
     disableAll = wx.WindowDisabler()
     wait = wx.BusyInfo("Loading SEG-Y file...")
@@ -132,7 +132,9 @@ def load_segy(event, filename, new_obj_name='', comparators_list=None,
         
 
         #
-        seis_like_obj = OM.new(tid, segy_file.traces, name=new_obj_name) #  datatype=results.get('spectrogram_type')
+        seis_like_obj = OM.new(tid, segy_file.traces, name=new_obj_name, 
+                               datatype=datatype
+        )                       
         if not OM.add(seis_like_obj, parentuid):
             raise Exception('Object was not added. tid={}'.format(tid))
         #

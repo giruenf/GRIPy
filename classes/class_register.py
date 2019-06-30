@@ -65,10 +65,12 @@ from ui.mvc_classes.frame_nav import NavigatorController, Navigator
 from ui.mvc_classes.cross_plotter import CrossPlotController, CrossPlot
 from ui.mvc_classes.workpage import WorkPageController, WorkPage
 
-from ui.mvc_classes.track_object import \
-    LineRepresentationController, LineRepresentationView, \
-    IndexRepresentationController, IndexRepresentationView, \
-    DensityRepresentationController, DensityRepresentationView #, \
+from ui.mvc_classes.repr_line import \
+    LineRepresentationController, LineRepresentationView
+from ui.mvc_classes.repr_index import \
+    IndexRepresentationController, IndexRepresentationView
+from ui.mvc_classes.repr_density import \
+    DensityRepresentationController, DensityRepresentationView
 #    PatchesRepresentationController, PatchesRepresentationView, \
 #    ContourfRepresentationController, ContourfRepresentationView                          
 from ui.mvc_classes.lpf import WellPlotEditorController, WellPlotEditor  

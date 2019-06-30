@@ -69,7 +69,6 @@ def prepare_float_value(value):
 
 
 
-
 class TrackTitleCanvas(FigureCanvas):
     def __init__(self, parent, title=None, color=None, fontsize=10):
         height = 28.0/DPI
@@ -119,7 +118,7 @@ class TrackTitleCanvas(FigureCanvas):
 
 
 class TitleDataLabel(FigureCanvas):
-    _COLOR = 'lightgreen'
+#    _COLOR = 'lightgray'
     
     def __init__(self, parent, *args, **kwargs):
         self.parent = parent
@@ -129,40 +128,62 @@ class TitleDataLabel(FigureCanvas):
         #
         self._mplot_objects = {}
         self._properties = {}
-        self._properties['title'] = {'x': 0.5, 'y':0.55, 'ha':'center', 'fontsize':9}
-        self._properties['sub_title'] = {'x': 0.5, 'y':0.10, 'ha':'center', 'fontsize':9} 
+        self._properties['title_text'] = {
+                                            'x': 0.5, 
+                                            'y':0.55, 
+                                            'ha':'center', 
+                                            'fontsize':9
+        }
+        self._properties['subtitle_text'] = {
+                                            'x': 0.5, 
+                                            'y':0.10, 
+                                            'ha':'center', 
+                                            'fontsize':9
+        } 
         #
         self.title = None
         self.subtitle = None
+        #       
+    def _get_title_text(self):
+        title_text = self._mplot_objects.get('title_text')
+        if not title_text:
+            title_text = create_text(self.figure, 
+                                     '', 
+                                     self._properties['title_text']
+            )
+            self._mplot_objects['title_text'] = title_text        
+        return title_text
+       
+    def _get_subtitle_text(self):
+        subtitle_text = self._mplot_objects.get('subtitle_text')
+        if not subtitle_text:
+            subtitle_text = create_text(self.figure, 
+                                        '', 
+                                        self._properties['subtitle_text']
+            )
+            self._mplot_objects['subtitle_text'] = subtitle_text        
+        return subtitle_text    
         
     def set_title(self, title):
         if self.title == title:
             return
-        title_text = self._mplot_objects.get('title_text', None)
-        if not title_text:
-            title_text = create_text(self.figure, title, self._properties['title'])
-            self._mplot_objects['title_text'] = title_text
-        else:
-            title_text.set_text(title)
-        self.draw()    
+        title_text = self._get_title_text()
+        title_text.set_text(title)
+        self.draw()
         self.title = title   
 
     def set_subtitle(self, subtitle):
         if self.subtitle == subtitle: 
             return
-        subtitle = self._mplot_objects.get('subtitle', None)
-        if not subtitle:
-            subtitle = create_text(self.figure, '(' + str(subtitle) + ')', self._properties['sub_title'])
-            self._mplot_objects['subtitle'] = subtitle
-        else:
-            subtitle.set_text('(' + subtitle + ')')
+        subtitle_text = self._get_subtitle_text()
+        subtitle_text.set_text('(' + subtitle + ')')
         self.draw()    
         self.subtitle = subtitle 
 
 
 
 class LineDataLabel(FigureCanvas):
-    _COLOR = 'lightblue'
+#    _COLOR = 'red'
     
     def __init__(self, parent, *args, **kwargs):
         self.parent = parent
@@ -172,8 +193,8 @@ class LineDataLabel(FigureCanvas):
         #
         self._mplot_objects = {}
         self._properties = {}
-        self._properties['xleft'] = 0.05
-        self._properties['xright'] = 0.95
+        self._properties['xleft'] = 0.01
+        self._properties['xright'] = 0.99
         self._properties['min'] = {'x': self._properties['xleft'], 'y':0.33, 'ha':'left', 'va':'center', 'fontsize':9}     
         self._properties['max'] = {'x': self._properties['xright'], 'y':0.33, 'ha':'right', 'va':'center', 'fontsize':9}
         # rect : [left, bottom, width, height]
@@ -189,7 +210,6 @@ class LineDataLabel(FigureCanvas):
         self.thickness = None
         self.lim = None
 
-
     def _get_line(self):
         line = self._mplot_objects.get('line')  
         if line is None:
@@ -200,19 +220,19 @@ class LineDataLabel(FigureCanvas):
             self._mplot_objects['line'] = ax.add_line(line)
         return line    
 
-
     def _get_min_text(self):
         min_text = self._mplot_objects.get('min_text')
         if min_text is None:
             min_text = create_text(self.figure, '', self._properties['min'])
+            self._mplot_objects['min_text'] = min_text
         return min_text
 
     def _get_max_text(self):
         max_text = self._mplot_objects.get('max_text')
         if max_text is None:
             max_text = create_text(self.figure, '', self._properties['max'])
+            self._mplot_objects['max_text'] = max_text
         return max_text
-
 
     def set_color(self, color):
         if self.color == color:
@@ -249,25 +269,24 @@ class LineDataLabel(FigureCanvas):
 
 
 
-
 class ColormapDataLabel(FigureCanvas):
-    _COLOR = 'lightblue'
+#    _COLOR = 'lightgreen'
     
     def __init__(self, parent, *args, **kwargs):
         self.parent = parent
-        fig = Figure(figsize=(1, 0.20))
+        fig = Figure(figsize=(1, 0.25))
         super().__init__(self.parent, -1, fig)     
 #        self.figure.set_facecolor(self._COLOR)
         #
         self._mplot_objects = {}
         self._properties = {}
-        self._properties['xleft'] = 0.05
-        self._properties['xright'] = 0.95
-        self._properties['min'] = {'x': self._properties['xleft'], 'y':0.33, 'ha':'left', 'va':'center', 'fontsize':9}     
-        self._properties['max'] = {'x': self._properties['xright'], 'y':0.33, 'ha':'right', 'va':'center', 'fontsize':9}
+        self._properties['xleft'] = 0.01
+        self._properties['xright'] = 0.99
+        self._properties['min'] = {'x': self._properties['xleft'], 'y':0.30, 'ha':'left', 'va':'center', 'fontsize':9}     
+        self._properties['max'] = {'x': self._properties['xright'], 'y':0.30, 'ha':'right', 'va':'center', 'fontsize':9}
         # rect : [left, bottom, width, height]
-        self._properties['axes_bottom'] = 0.68
-        self._properties['axes_height'] = 0.22
+        self._properties['axes_bottom'] = 0.65
+        self._properties['axes_height'] = 0.26
         self._properties['axes_extent'] = [self._properties['xleft'],
                          self._properties['axes_bottom'],
                          self._properties['xright']-self._properties['xleft'], 
@@ -277,7 +296,6 @@ class ColormapDataLabel(FigureCanvas):
         self.cmap = None
         self.lim = None
 
-
     def _start_variables(self):
         self.plottype = None
         self.left_scale = None
@@ -286,7 +304,6 @@ class ColormapDataLabel(FigureCanvas):
         self.zlabel = None        
         self.zlim = None
         self.xlabel = None  
-
 
     def _get_cmap_img(self):
         cmap_img = self._mplot_objects.get('cmap_img') 
@@ -299,7 +316,6 @@ class ColormapDataLabel(FigureCanvas):
             self._mplot_objects['cmap_img'] = cmap_img
         return cmap_img
 
-
     def set_colormap(self, cmap):
         if self.cmap == cmap:
             return
@@ -308,19 +324,19 @@ class ColormapDataLabel(FigureCanvas):
         self.draw()
         self.cmap = cmap 
         
-        
     def _get_min_text(self):
         min_text = self._mplot_objects.get('min_text')
         if min_text is None:
             min_text = create_text(self.figure, '', self._properties['min'])
+            self._mplot_objects['min_text'] = min_text
         return min_text
 
     def _get_max_text(self):
         max_text = self._mplot_objects.get('max_text')
         if max_text is None:
             max_text = create_text(self.figure, '', self._properties['max'])
+            self._mplot_objects['max_text'] = max_text
         return max_text
-
 
     def set_lim(self, lim):
         if self.lim == lim:
@@ -341,83 +357,218 @@ class ColormapDataLabel(FigureCanvas):
 
 
 
-
-
-class WiggleDataLabel(FigureCanvas):
-    _COLOR = 'lightblue'
+class OffsetDataLabel(FigureCanvas):
+#    _COLOR = 'lightblue'
     
     def __init__(self, parent, *args, **kwargs):
         self.parent = parent
-        fig = Figure(figsize=(1, 0.20))
+        fig = Figure(figsize=(1, 0.40))
         super().__init__(self.parent, -1, fig)     
-        self.figure.set_facecolor(self._COLOR)
+#        self.figure.set_facecolor(self._COLOR)
         #
         self._mplot_objects = {}
         self._properties = {}
-        self._properties['xleft'] = 0.05
-        self._properties['xright'] = 0.95
-        self._properties['min'] = {'x': self._properties['xleft'], 'y':0.33, 'ha':'left', 'va':'center', 'fontsize':9}     
-        self._properties['max'] = {'x': self._properties['xright'], 'y':0.33, 'ha':'right', 'va':'center', 'fontsize':9}
+        self._properties['xleft'] = 0.00
+        self._properties['xright'] = 1.00
+        self._properties['min'] = {'x': self._properties['xleft'], 
+                                   'y':0.33, 
+                                   'ha':'left', 
+                                   'va':'center', 
+                                   'fontsize':9
+        }     
+        self._properties['max'] = {'x': self._properties['xright'], 
+                                   'y':0.33, 
+                                   'ha':'right', 
+                                   'va':'center', 
+                                   'fontsize':9
+        }
         # rect : [left, bottom, width, height]
-        self._properties['axes_bottom'] = 0.20
-        self._properties['axes_height'] = 0.30
+        self._properties['axes_bottom'] = 0.02
+        self._properties['axes_height'] = 0.96
         self._properties['axes_extent'] = [self._properties['xleft'],
                          self._properties['axes_bottom'],
                          self._properties['xright']-self._properties['xleft'], 
                          self._properties['axes_height']
         ]
         #
-        self.cmap = None
-        self.lim = None
+        self._properties['title_text'] = {
+                                            'x': 0.5, 
+                                            'y':0.75, 
+                                            'ha':'center', 
+                                            'va':'center',
+                                            'fontsize':9
+        } 
+        #
+        self.title = None
+        self.subtitle = None
+        #
 
-
-    def _start_variables(self):
-        self.plottype = None
-        self.left_scale = None
-        self.right_scale = None  
-
-        self.zlabel = None        
-        self.zlim = None
-        self.xlabel = None  
-
-
-    def _get_offsets_line(self):
+    def _get_ruler_line(self):
         offsets_line = self._mplot_objects.get('offsets_line') 
         if not offsets_line:      
             extent = self._properties.get('axes_extent', None)
             ax = create_and_prepare_axes(self.figure, extent) #, toc_uid=self._toc_uid)    
-            #ax.set_xlim((0, len(offsets_list)+1))
+            #
             ax.set_ylim((-1.0, 1.0))
             offsets_line = Line2D([0.0, 1.0], [0.5, 0.5])
-
             offsets_line.set_color('black')
-            offsets_line.set_linewidth(1)
+            offsets_line.set_linewidth(0.5)
             self._mplot_objects['offsets_line'] = ax.add_line(offsets_line)
         return offsets_line
 
+    def _get_title_text(self):
+        title_text = self._mplot_objects.get('title_text')
+        if not title_text:
+            title_text = create_text(self.figure, 
+                                     '', 
+                                     self._properties['title_text']
+            )
+            self._mplot_objects['title_text'] = title_text        
+        return title_text
 
-    def set_offsets(self, offsets_list):
 
-        offsets_line = self._get_offsets_line()        
-        x_data = np.array(range(0, len(offsets_list)+1), dtype=np.float)
-        y_data = np.zeros(len(offsets_list)+1)
+    def set_offset(self, offsets_list, x_positions, xlim):
+        ruler_line = self._get_ruler_line()
+        ruler_line.axes.set_xlim(xlim)
+        xdata = [x_positions[0], x_positions[-1]]
+        ydata = [-0.4, -0.4]
+        ruler_line.set_data(xdata, ydata)  
+        for idx, xpos in enumerate(x_positions):    
+            ruler_line.axes.plot(xpos, -0.6, '|', color='black')
+            ruler_line.axes.text(xpos, -0.1, 
+                                 '{:0.1f}'.format(offsets_list[idx]), 
+                                 ha='center', va='center', fontsize=9
+            )
+
+    def set_offset_title(self, title):
+        if self.title == title:
+            return
+        title_text = self._get_title_text()
+        title_text.set_text(title)
+        self.draw()
+        self.title = title   
+
+    def set_offset_subtitle(self, subtitle):
+        if self.subtitle == subtitle:
+            return
+        subtitle_text = self._get_title_text()
+        subtitle_text.set_text(subtitle_text.get_text() + ' (' + subtitle + ')')
+        self.draw()
+        self.subtitle = subtitle   
+
+
+
+
+class RulerDataLabel(FigureCanvas):
+#    _COLOR = 'lightblue'
+    
+    def __init__(self, parent, *args, **kwargs):
+        self.parent = parent
+        fig = Figure(figsize=(1, 0.40))
+        super().__init__(self.parent, -1, fig)     
+#        self.figure.set_facecolor(self._COLOR)
+        #
+        self._mplot_objects = {}
+        self._properties = {}
+        self._properties['xleft'] = 0.01
+        self._properties['xright'] = 0.99
+        self._properties['min'] = {'x': self._properties['xleft'], 
+                                   'y':0.33, 
+                                   'ha':'left', 
+                                   'va':'center', 
+                                   'fontsize':9
+        }     
+        self._properties['max'] = {'x': self._properties['xright'], 
+                                   'y':0.33, 
+                                   'ha':'right', 
+                                   'va':'center', 
+                                   'fontsize':9
+        }
+        # rect : [left, bottom, width, height]
+        self._properties['axes_bottom'] = 0.02
+        self._properties['axes_height'] = 0.96
+        self._properties['axes_extent'] = [self._properties['xleft'],
+                         self._properties['axes_bottom'],
+                         self._properties['xright']-self._properties['xleft'], 
+                         self._properties['axes_height']
+        ]
+        #
+        self._properties['title_text'] = {
+                                            'x': 0.5, 
+                                            'y':0.75, 
+                                            'ha':'center', 
+                                            'va':'center',
+                                            'fontsize':9
+        } 
+        #
+        self.title = None
+        self.subtitle = None
+        #
+
+    def _get_ruler_line(self):
+        offsets_line = self._mplot_objects.get('offsets_line') 
+        if not offsets_line:      
+            extent = self._properties.get('axes_extent', None)
+            ax = create_and_prepare_axes(self.figure, extent) #, toc_uid=self._toc_uid)    
+            #
+            ax.set_ylim((-1.0, 1.0))
+            offsets_line = Line2D([0.0, 1.0], [0.5, 0.5])
+            offsets_line.set_color('black')
+            offsets_line.set_linewidth(0.5)
+            self._mplot_objects['offsets_line'] = ax.add_line(offsets_line)
+        return offsets_line
+
+    def _get_title_text(self):
+        title_text = self._mplot_objects.get('title_text')
+        if not title_text:
+            title_text = create_text(self.figure, 
+                                     '', 
+                                     self._properties['title_text']
+            )
+            self._mplot_objects['title_text'] = title_text        
+        return title_text
+
+    def set_ruler(self, x_min, x_max):
+        ruler_line = self._get_ruler_line()
+        ruler_line.axes.set_xlim((x_min, x_max))
+        xdata = [x_min, x_max]
+        ydata = [-0.4, -0.4]
+        ruler_line.set_data(xdata, ydata) 
+         
+        ruler_line.axes.plot(x_min, -0.6, '|', color='black')
+        ruler_line.axes.plot(x_max, -0.6, '|', color='black')
         
-        factor = 0.5
-        x_data[0] = x_data[0] + factor
-        x_data[-1] = x_data[-1] + factor
-            
-        #ax = offsets_line.axes
+        ruler_line.axes.text(x_min, -0.1, 
+                             '{:0.1f}'.format(x_min), 
+                             ha='left', va='center', fontsize=9
+        )
+        ruler_line.axes.text(x_max, -0.1, 
+                             '{:0.1f}'.format(x_max), 
+                             ha='right', va='center', fontsize=9
+        )
         
-        offsets_line.axes.plot(x_data[0], 0.5, '|', color='black')
-        offsets_line.axes.plot(x_data[-1], 0.5, '|', color='black')
-        offsets_line.set_data(x_data, y_data)       
-        for i in range(0, len(offsets_list)):
-            offsets_line.axes.plot(i+1, -0.5, '|', color='black')
-            offsets_line.axes.text(i+1, -2.4, str(offsets_list[i]), fontsize=8)
+        
+    def set_ruler_title(self, title):
+        if self.title == title:
+            return
+        title_text = self._get_title_text()
+        title_text.set_text(title)
+        self.draw()
+        self.title = title   
+
+    def set_ruler_subtitle(self, subtitle):
+        if self.subtitle == subtitle:
+            return
+        subtitle_text = self._get_title_text()
+        subtitle_text.set_text(subtitle_text.get_text() + ' (' + subtitle + ')')
+        self.draw()
+        self.subtitle = subtitle   
 
 
 
-class NewDataLabel(wx.Panel, SelectablePanelMixin):
+
+
+class DataLabel(wx.Panel, SelectablePanelMixin):
     
     def __init__(self, parent, *args, **kwargs):
         wx.Panel.__init__(self, parent)
@@ -429,54 +580,39 @@ class NewDataLabel(wx.Panel, SelectablePanelMixin):
         #
         self.ldl = None
         self.cdl = None
-        self.wdl = None
-        #
-        
-        print('\n\n\nNewDataLabel.__init__:', args, kwargs)        
+        self.odl = None
+        self.rdl = None 
+        #      
         if args:
             self.set_plot_type(args[0])
-        print('self.tdl:', self.tdl)
-        print('self.ldl:', self.ldl)
-        print('self.cdl:', self.cdl)
-        print('self.wdl:', self.wdl)
-        print('END NewDataLabel.__init__\n\n\n')
-
 
     def _remove_all_canvas(self):
-        print('\nNewDataLabel._remove_all_canvas\n')
         if self.ldl:
             self.GetSizer().Detach(self.ldl)
             self.ldl.Destroy()
         if self.cdl:
             self.GetSizer().Detach(self.cdl)
             self.cdl.Destroy()    
-        if self.wdl:
-            self.GetSizer().Detach(self.wdl)
-            self.wdl.Destroy()    
+        if self.odl:
+            self.GetSizer().Detach(self.odl)
+            self.odl.Destroy()    
         #    
         self.ldl = None
         self.cdl = None
-        self.wdl = None  
+        self.odl = None  
+        self.rdl = None 
         #
         self.redraw()
 
-
     def redraw(self):
         self.GetParent().redraw()
-        
-        
+               
     def destroy(self):
         wx.CallAfter(self.GetParent().remove_object, self)
 
     def set_plot_type(self, plot_type):
-        
         if plot_type == self._plot_type:
             return
-        
-        print('\n\n\nNewDataLabel.set_plot_type:', 
-              self._plot_type, 
-              plot_type
-        )
         if self._plot_type is not None:
             self._remove_all_canvas()
         self._plot_type = plot_type
@@ -486,35 +622,30 @@ class NewDataLabel(wx.Panel, SelectablePanelMixin):
             self.create_line()
         if plot_type == 'density' or plot_type == 'both':    
             self.create_colormap()
+            self.create_ruler()
         if plot_type == 'wiggle' or plot_type == 'both':    
-            self.create_wiggle()
+            self.create_offset()
         self.redraw()    
-        print('self.tdl:', self.tdl)
-        print('self.ldl:', self.ldl)
-        print('self.cdl:', self.cdl)
-        print('self.wdl:', self.wdl)
-        print('END NewDataLabel.set_plot_type\n\n\n')
-
 
     def create_title(self):
         self.tdl = TitleDataLabel(self)
         self.GetSizer().Add(self.tdl, 0,  wx.EXPAND)
-        #self.Layout()
         
     def create_line(self):
         self.ldl = LineDataLabel(self)
         self.GetSizer().Add(self.ldl, 0,  wx.EXPAND)
-        #self.Layout()
 
     def create_colormap(self):
         self.cdl = ColormapDataLabel(self)
         self.GetSizer().Add(self.cdl, 0,  wx.EXPAND)
-        #self.Layout()
 
-    def create_wiggle(self):
-        self.wdl = WiggleDataLabel(self)
-        self.GetSizer().Add(self.wdl, 0,  wx.EXPAND)
-        #self.Layout()        
+    def create_ruler(self):
+        self.rdl = RulerDataLabel(self)
+        self.GetSizer().Add(self.rdl, 0,  wx.EXPAND)      
+
+    def create_offset(self):
+        self.odl = OffsetDataLabel(self)
+        self.GetSizer().Add(self.odl, 0,  wx.EXPAND)      
 
     def set_title(self, title):
         self.tdl.set_title(title)    
@@ -537,463 +668,23 @@ class NewDataLabel(wx.Panel, SelectablePanelMixin):
     def set_colormap_lim(self, lim):
         self.cdl.set_lim(lim)
 
-
-
-    def set_zlabel(self, z_axis_label):
-        return
-    
-    def set_zlim(self, zlim):
-        return
-
-    def set_xlabel(self, x_axis_label):
-        return
-
-    def set_offsets(self, offsets_list):
-        return
-
-
-
-
-class DataLabel(FigureCanvas):
-    """
-    Class for PlotLabel's visual object.
-    
-    Parameters
-    ----------
-    parent : wx.Window
-        Window that owns this component.
-
-    Attributes
-    ----------
-    _axes: matplotlib.axes.Axes
-        A axes for drawing.
-    parent : wx.Window
-        Window that owns this component.
-
-    """
-    _COLOR = 'lightblue' #'white'
-    
-    def __init__(self, parent, *args, **kwargs):
-        self.parent = parent
-        #fig = Figure(figsize=(1, 0.35))
-        fig = Figure(figsize=(1, 0.45))
-        super().__init__(self.parent, -1, fig)     
-        self.figure.set_facecolor(self._COLOR)
-        #
-        toc_uid = kwargs.get('toc_uid')
-        if toc_uid is None:
-            toc_uid = args[0]  
-        self._toc_uid = toc_uid 
-        #
-        #self.Bind(wx.EVT_LEFT_DCLICK, self._on_left_double_click)
-        self._mplot_objects = {}
-        self._properties = {}
-        self._start_variables()
-#        self.mpl_connect('button_press_event', self._on_press)
-
-
-    def destroy(self):
-        wx.CallAfter(self.parent.remove_object, self)
-               
+    def set_offset(self, offsets_list, x_positions, xlim):
+        self.odl.set_offset(offsets_list, x_positions, xlim)
         
-    def _on_press(self, event):
-        self.GetParent()._on_press(event)
+    def set_offset_title(self, title):
+        self.odl.set_offset_title(title)
 
+    def set_offset_subtitle(self, subtitle):
+        self.odl.set_offset_subtitle(subtitle)
 
-    def _start_variables(self):
-        self.title = None 
-        self.plottype = None
-        self.left_scale = None
-        self.right_scale = None
-        self.subtitle = None
-        self.thickness = None
-        self.color = None
-        self.cmap = None
-        self.xlim = None
-        self.zlabel = None        
-        self.zlim = None
-        self.xlabel = None        
-
-
-    def set_title(self, title):
-        if self.title == title:
-            return
-        props = self._properties.get('title', None)
-        if props:
-            title_text = self._mplot_objects.get('title_text', None)
-            if not title_text:
-                title_text = create_text(self.figure, title, props)
-                self._mplot_objects['title_text'] = title_text
-            else:
-                title_text.set_text(title)
-            self.draw()    
-            self.title = title   
-
-
-    def set_subtitle(self, subtitle):
-        if self.subtitle == subtitle: 
-            return
-        props = self._properties.get('sub_title', None)
-        if props:
-            subtitle = self._mplot_objects.get('subtitle', None)
-            if not subtitle:
-                subtitle = create_text(self.figure, '(' + str(subtitle) + ')', props)
-                self._mplot_objects['subtitle'] = subtitle
-            else:
-                subtitle.set_text('(' + subtitle + ')')
-            self.draw()    
-            self.subtitle = subtitle   
-                                
-            
-    def set_color(self, color):
-        return
-        if self.plottype == 'line':
-            if self.color == color:
-                return
-            line = self._mplot_objects.get('line', None)  
-            if not line:
-                extent = self._properties.get('line_axes_extent', None)
-                if not extent:
-                    raise Exception()
-                ax = create_and_prepare_axes(self.figure, extent) #, toc_uid=self._toc_uid)                    
-                line = Line2D([0.0, 1.0], [0.5, 0.5])
-                self._mplot_objects['line'] = ax.add_line(line)
-            line.set_color(color) 
-            self.draw()
-            self.color = color
-
-
-    def set_thickness(self, thickness):
-        return
-    
-        if self.plottype == 'line':
-            if self.thickness == thickness:
-                return
-            line = self._mplot_objects.get('line', None)  
-            if not line:
-                extent = self._properties.get('line_axes_extent', None)
-                if not extent:
-                    raise Exception()
-                ax = create_and_prepare_axes(self.figure, extent) #, toc_uid=self._toc_uid)        
-                line = Line2D([0.0, 1.0], [0.5, 0.5])
-                self._mplot_objects['line'] = ax.add_line(line)
-            line.set_linewidth(thickness) 
-            self.draw()
-            self.thickness = thickness
-            
-            
-    def set_colormap(self, cmap):
-        return
-    
-        if self.plottype == 'density':
-            if self.cmap == cmap:
-                return
-            cmap_img = self._mplot_objects.get('cmap_img', None) 
-            if not cmap_img:
-                extent = self._properties.get('cmap_axes_extent', None)
-                ax = create_and_prepare_axes(self.figure, extent) #, toc_uid=self._toc_uid)
-                gradient = np.linspace(0, 1, 256)
-                gradient = np.vstack((gradient, gradient))
-                cmap_img = ax.imshow(gradient, aspect='auto')
-                self._mplot_objects['cmap_img'] = cmap_img
-            cmap_img.set_cmap(cmap)    
-            self.draw()
-            self.cmap = cmap
-
-
-    def set_zlabel(self, z_axis_label):
-        return
-    
-        if self.plottype == 'density' or self.plottype == 'wiggle' or self.plottype == 'both':
-            if self.zlabel == z_axis_label:
-                return
-            props = self._properties.get('zlabel', None)    
-            zlt = self._mplot_objects.get('zlabel_text', None) 
-            if not zlt:
-                zlt = create_text(self.figure, z_axis_label, props)
-                self._mplot_objects['zlabel_text'] = zlt
-            else:    
-                zlt.set_text(z_axis_label)    
-            self.draw()
-            self.zlabel = z_axis_label
-            
-
-    def set_xlim(self, xlim):
-        return
-    
-        print('label.set_xlim:', xlim)
-        if self.xlim == xlim:
-            return
-        xmin, xmax = xlim
-        props = self._properties.get('xmin', None)
-        if props:
-            xmin_text = self._mplot_objects.get('xmin_text', None)
-            xmin = prepare_float_value(xmin)
-            if not xmin_text:    
-                self._mplot_objects['xmin_text'] = create_text(self.figure, 
-                                                                xmin, props
-                )
-            else:
-                xmin_text.set_text(xmin)
-        else:
-            raise Exception()
-        props = self._properties.get('xmax', None)
-        if props:
-            xmax_text = self._mplot_objects.get('xmax_text', None)
-            xmax = prepare_float_value(xmax)
-            if not xmax_text:  
-                self._mplot_objects['xmax_text'] =  create_text(self.figure, 
-                                                                xmax, props
-                )
-            else:
-                xmax_text.set_text(xmax)
-        else:
-            raise Exception()  
-        self.draw()             
-        self.xlim == xlim    
+    def set_ruler(self, x_min, x_max):
+        self.rdl.set_ruler(x_min, x_max)
         
-        
-    def set_zlim(self, zlim):
-        return
-    
-        if self.zlim == zlim:
-            return
-        zmin, zmax = zlim
-        props = self._properties.get('zmin', None)
-        if props:
-            zmin_text = self._mplot_objects.get('zmin_text', None)
-            zmin = prepare_float_value(zmin)
-            if not zmin_text:                
-                self._mplot_objects['zmin_text'] = create_text(self.figure, 
-                                                                zmin, props
-                )
-            else:
-                zmin_text.set_text(zmin)
-        else:
-            raise Exception()
-        props = self._properties.get('zmax', None)
-        if props:
-            zmax_text = self._mplot_objects.get('zmax_text', None)
-            zmax = prepare_float_value(zmax)
-            if not zmax_text:  
-                self._mplot_objects['zmax_text'] =  create_text(self.figure, 
-                                                                zmax, props
-                )
-            else:
-                zmax_text.set_text(zmax)
-        else:
-            raise Exception()  
-        self.draw()             
-        self.zlim == zlim                   
-            
-    
-    def set_xlabel(self, x_axis_label):
-        return
-    
-        if self.plottype == 'density' or self.plottype == 'wiggle':
-            if self.xlabel == x_axis_label:
-                return
-            props = self._properties.get('xlabel', None)    
-            xlt = self._mplot_objects.get('xlabel_text', None) 
-            if not xlt:
-                xlt = create_text(self.figure, x_axis_label, props)
-                self._mplot_objects['xlabel_text'] = xlt
-            else:    
-                xlt.set_text(x_axis_label)    
+    def set_ruler_title(self, title):
+        self.rdl.set_ruler_title(title)
 
-            self.xlabel = x_axis_label
-
-            self.draw()
-
-
-    def set_offsets(self, offsets_list):
-        return
-    
-        if self.plottype == 'wiggle':
-            line = self._mplot_objects.get('line', None)  
-            if not line:
-                extent = self._properties.get('line_axes_extent', None)
-                if not extent:
-                    raise Exception()
-                ax = create_and_prepare_axes(self.figure, extent) #, toc_uid=self._toc_uid)    
-                ax.set_xlim((0, len(offsets_list)+1))
-                ax.set_ylim((-1.0, 1.0))
-                line = Line2D([0.0, 1.0], [0.5, 0.5])
-                line.set_color('black')
-                line.set_linewidth(1)
-                self._mplot_objects['line'] = ax.add_line(line)
-                x_data = np.array(range(0, len(offsets_list)+1), dtype=np.float)
-                y_data = np.zeros(len(offsets_list)+1)
-                
-                factor = 0.5
-                x_data[0] = x_data[0] + factor
-                x_data[-1] = x_data[-1] + factor
-                    
-                ax.plot(x_data[0], 0.5, '|', color='black')
-                ax.plot(x_data[-1], 0.5, '|', color='black')
-                line.set_data(x_data, y_data)       
-                for i in range(0, len(offsets_list)):
-                    ax.plot(i+1, -0.5, '|', color='black')
-                    ax.text(i+1, -2.4, str(offsets_list[i]), fontsize=8)
-
-   
-
-    def _remove_all_artists(self):
-        for value in self._mplot_objects.values():
-            if value:
-                value.remove()
-        self._mplot_objects = {}              
-        
-
-    def set_plot_type(self, plottype):
-        if plottype == self.plottype:
-            return
-        if plottype not in VALID_PLOT_TYPES:
-            return
-
-        self._remove_all_artists()
-
-        self._start_variables()   
-
-        self._properties = {}
-        self._properties['xleft'] = 0.05
-        self._properties['xright'] = 0.95
-        #
-        self._properties['title'] = {'x': 0.5, 'y':0.64, 'ha':'center', 'fontsize':9}
-        self._properties['sub_title'] = {'x': 0.5, 'y':0.19, 'ha':'center', 'fontsize':9}       
-        #
-        self.plottype = plottype 
-        
-        return
-        
-    
-        if plottype == 'line':
-#            self._properties['title'] = {'x': 0.5, 'y':0.64, 
-#                            'ha':'center', 'fontsize':10
-#            }
-            self._properties['sub_title'] = {'x': 0.5, 'y':0.19, 
-                            'ha':'center', 'fontsize':9
-            }        
-            self._properties['xmin'] = {'x': self._properties['xleft'],
-                             'y':0.33, 'ha':'left', 'va':'center', 
-                             'fontsize':9
-            }     
-            self._properties['xmax'] = {'x': self._properties['xright'],
-                             'y':0.33, 'ha':'right', 'va':'center', 
-                             'fontsize':9
-            }
-            self._properties['line_axes_extent'] = [self._properties['xleft'],
-                        0.05, 
-                        self._properties['xright']-self._properties['xleft'],
-                        0.15
-            ]
-            
-            
-        elif plottype == 'density':
-            #
-#            self._properties['title'] = {'x': 0.5, 'y':0.55, 'ha':'center', 
-#                                                                'fontsize':10}            
-            self._properties['cmap_axes_extent'] = [self._properties['xleft'],
-                        0.10, 
-                        self._properties['xright']-self._properties['xleft'],
-                        0.22
-            ]
-            #
-            ypos = 0.5
-            self._properties['zlabel'] = {'x': 0.5, 'y':ypos, 'ha':'center', 
-                                                'va':'center', 'fontsize':9
-            }
-            self._properties['zmin'] = {'x':self._properties['xleft'],
-                         'y':ypos, 'ha':'left', 'va':'center', 'fontsize':9
-            }
-            self._properties['zmax'] = {'x': self._properties['xright'],
-                        'y':ypos, 'ha':'right', 'va':'center', 'fontsize':9
-            }
-            #
-            ypos = 0.18
-            self._properties['xlabel'] = {'x': 0.5, 'y':ypos, 'ha':'center', 
-                                                'va':'center', 'fontsize':10}   
-            self._properties['xmin'] = {'x':self._properties['xleft'],
-                         'y':ypos, 'ha':'left', 'va':'center', 'fontsize':9
-            }
-            self._properties['xmax'] = {'x': self._properties['xright'],
-                        'y':ypos, 'ha':'right', 'va':'center', 'fontsize':9
-            }                
-            #
-            self._properties['line_axes_extent'] = [self._properties['xleft'],
-                        0.0, 
-                        self._properties['xright']-self._properties['xleft'],
-                        0.2
-            ]
-
-                  
-            
-        elif plottype == 'wiggle':  
-#            self._properties['title'] = {'x': 0.5, 'y':0.55, 'ha':'center', 
-#                                                                'fontsize':10}   
-            #
-            #self._properties['zlabel'] = {'x': 0.5, 'y':0.58, 'ha':'center', 
-            #                                    'va':'center', 'fontsize':9
-            #}  
-            self._properties['zlabel'] = {'x': 0.5, 'y':0.16, 'ha':'center', 'fontsize':9}    
-            #                                                  
-            self._properties['xlabel'] = {'x': 0.5, 'y':0.35, 'ha':'center', 
-                                                'va':'center', 'fontsize':9}    
-            
-            self._properties['line_axes_extent'] = [0.0,  0.15, 1.0, 0.2]
-            # Falta x_range
-            self._properties['xmin'] = {'x': self._properties['xleft'],
-                             'y':0.3, 'ha':'left', 'va':'center', 'fontsize':9
-            }     
-            self._properties['xmax'] = {'x': self._properties['xright'],
-                             'y':0.3, 'ha':'right', 'va':'center', 'fontsize':9
-            }
-            ###
-        elif plottype == 'both':
-#            self._properties['title'] = {'x': 0.5, 'y':0.55, 'ha':'center', 
-#                                                                'fontsize':10}            
-            self._properties['cmap_axes_extent'] = [self._properties['xleft'],
-                        0.10, 
-                        self._properties['xright']-self._properties['xleft'],
-                        0.22
-            ]
-            ypos = 0.5
-            self._properties['zlabel'] = {'x': 0.5, 'y':ypos, 'ha':'center', 
-                                                'va':'center', 'fontsize':9
-            }
-            self._properties['zmin'] = {'x':self._properties['xleft'],
-                         'y':ypos, 'ha':'left', 'va':'center', 'fontsize':9
-            }
-            self._properties['zmax'] = {'x': self._properties['xright'],
-                        'y':ypos, 'ha':'right', 'va':'center', 'fontsize':9
-            }
-            self._properties['line_axes_extent'] = [self._properties['xleft'],
-                        0.0, 
-                        self._properties['xright']-self._properties['xleft'],
-                        0.2
-            ]
-            ypos = 0.18
-            self._properties['xlabel'] = {'x': 0.5, 'y':ypos, 'ha':'center', 
-                                                'va':'center', 'fontsize':10}   
-            self._properties['xmin'] = {'x':self._properties['xleft'],
-                         'y':ypos, 'ha':'left', 'va':'center', 'fontsize':9
-            }
-            self._properties['xmax'] = {'x': self._properties['xright'],
-                        'y':ypos, 'ha':'right', 'va':'center', 'fontsize':9
-            }                
-        elif plottype == 'index':
-#            self._properties['title'] = {'x': 0.5, 'y':0.55, 'ha':'center', 
-#                                                                'fontsize':10}
-            self._properties['sub_title'] = {'x': 0.5, 'y':0.2, 'ha':'center', 
-                                                                'fontsize':9}
-                                                                              
-                                                               
-
-
-
-
-
-
+    def set_ruler_subtitle(self, subtitle):
+        self.rdl.set_ruler_subtitle(subtitle)
 
 ###############################################################################
 ###############################################################################
@@ -1085,7 +776,7 @@ class TrackLabel(UIViewObject, wx.Panel, SelectablePanelMixin):
         """
         Insert a new visual object at given pos with properties informed.
         """
-        dl = NewDataLabel(self, *args, **kwargs)
+        dl = DataLabel(self, *args, **kwargs)
         self._visual_objects.insert(pos, dl)
         self.GetSizer().Add(dl, 0,  wx.EXPAND)
         self.Layout()
@@ -1099,7 +790,7 @@ class TrackLabel(UIViewObject, wx.Panel, SelectablePanelMixin):
             return
         if isinstance(args[0], int):    
             vdl = self._visual_objects.pop(args[0])
-        elif isinstance(args[0], NewDataLabel):   
+        elif isinstance(args[0], DataLabel):   
             vdl = args[0]
             self._visual_objects.remove(vdl)
         else:

@@ -518,7 +518,7 @@ class PropertyGridController(UIControllerObject):
         self.clear()
         
         OM = ObjectManager()
-        obj = OM.get(toc.obj_uid)
+        obj = OM.get(toc.data_obj_uid)
         title = obj.get_friendly_name()
         #title = toc.get_object()._get_tid_friendly_name() + ': ' + \
         #                                            toc.get_object().name

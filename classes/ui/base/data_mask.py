@@ -23,40 +23,24 @@ class DataMaskController(UIControllerObject):
    
     def __init__(self, **state):     
         super().__init__(**state)
-
-        self._data = []
-        
-#        OM = ObjectManager()
-#        data_obj = OM.get(self.data_obj_uid)  
-        
+        self._data = []     
         self._init_data()
 
 
     def _init_data(self):
-        print('\n\n_init_data')
         try:
             OM = ObjectManager()
             data_obj = OM.get(self.data_obj_uid)
-            print(data_obj)
-            #
             # No need to get unit from data_obj if it not changed.
             self._data_name = data_obj.name
             self._data_unit = data_obj.unit 
+            self._data_type = data_obj.datatype
             #
-            print('b4 data_obj.get_data_indexes()')
             data_indexes = data_obj.get_data_indexes() 
-            
-            print('data_indexes:', data_indexes)
-            
             for dim_idx in range(len(data_indexes)):
-                print('\ndim_idx:', dim_idx)
                 indexes_per_dim_uid = data_indexes[dim_idx]
-#                print(dim_idx, indexes_per_dim_uid)
                 di_uid = indexes_per_dim_uid[0]  # Chosing the first one!
-                di = OM.get(di_uid)
-                
-                print(di_uid, True, 0, di)
-                
+                di = OM.get(di_uid)  
                 if (len(data_indexes) - dim_idx) <= 2:    
                     # Sempre exibe as 2 ultimas dimensoes do dado.
                     # Ex: sismica 3-d stacked (iline, xline, tempo) serah exibido
@@ -77,6 +61,9 @@ class DataMaskController(UIControllerObject):
     def get_data_unit(self):
         return self._data_unit
 
+    def get_data_type(self):
+        return self._data_type
+
     def get_data_object_uid(self):
         return self.data_obj_uid 
 
@@ -89,11 +76,7 @@ class DataMaskController(UIControllerObject):
         #"""
         #dim_idx here refers to DataMask current dimension, not object
         #data indexes.
-        #"""
-        
-#        print('\nset_dimension:', kwargs)
-#        print('self._data[dim_idx]:', self._data[dim_idx])
-        
+        #"""      
         datatype = kwargs.pop('datatype', None)
         name = kwargs.pop('name', None)
         di_uid = kwargs.pop('di_uid', None)

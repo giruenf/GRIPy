@@ -618,7 +618,7 @@ class ObjectManager(GripyManager):
 
         old_dir = os.getcwd()
         temp_dir = tempfile.mkdtemp(prefix='griPy_')
-#        print('\nLoading griPy project at temp directory: {}'.format(temp_dir))
+        print('\nLoading griPy project at temp directory: {}'.format(temp_dir))
         #
         try:
             os.chdir(temp_dir)
@@ -632,11 +632,14 @@ class ObjectManager(GripyManager):
             pickle_proj_data = pickle.load(picklefile)
             picklefile.close()
             #
-#            print ('\npickle_proj_data:', pickle_proj_data)
+            print ('\npickle_proj_data:', pickle_proj_data)
             
-#            print('\n\n_PROJ_NAME:', pickle_proj_data['_PROJ_NAME'])
+            print('\n\n_PROJ_NAME:', pickle_proj_data['_PROJ_NAME'])
             
-            self._load_objects(pickle_proj_data['_OM_OBJECTS_UIDS'])
+            print('\n\nBEFORE:', pickle_proj_data['_OM_OBJECTS_UIDS'])
+            while pickle_proj_data['_OM_OBJECTS_UIDS']:
+                self._load_objects(pickle_proj_data['_OM_OBJECTS_UIDS'])
+            print('AFTER:', pickle_proj_data['_OM_OBJECTS_UIDS'], '\n\n')
             
             
         except Exception as e:
@@ -670,9 +673,9 @@ class ObjectManager(GripyManager):
         # Load the object state from a pickle file
         picklefilename =  str_idx + ".pkl"
         
-        if starts_with_uid == ('data_index_map', 1):
-            print()
-            print(7)
+        #if starts_with_uid == ('data_index_map', 1):
+        #    print()
+        #    print(7)
         
         with open(picklefilename, 'rb') as picklefile:
             pickle_obj_state = pickle.load(picklefile)
@@ -730,7 +733,7 @@ class ObjectManager(GripyManager):
                 print()
                 print(self._data)
                 raise
-
+                    
 
 
 

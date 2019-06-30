@@ -2984,6 +2984,8 @@ def on_import_lis(event):
  
 
 def on_import_segy_seis(event):
+    
+    raise Exception('Reescrever igual on_import_segy_well_gather')
     style = wx.FD_OPEN | wx.FD_FILE_MUST_EXIST
     wildcard="Arquivos SEG-Y (*.sgy)|*.sgy"
     
@@ -3077,11 +3079,14 @@ def on_import_segy_well_gather(event):
             if xline_number: 
                 comparators.append((xline_byte, 4, '==', xline_number))                
             #
+            #TODO: Falta datatype abaixo.
+            #
             app_utils.load_segy(event, filename, 
                 new_obj_name=wellgather_name, 
                 comparators_list=comparators, 
                 iline_byte=iline_byte, xline_byte=xline_byte, 
-                offset_byte=offset_byte, tid='gather', parentuid=welluid
+                offset_byte=offset_byte, tid='gather', 
+                datatype='amplitude', parentuid=welluid
             )
             
             """

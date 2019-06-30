@@ -889,8 +889,8 @@ class DepthCanvas():
             self.tc.SetToolTip(wx.ToolTip('{0:.2f}'.format(new_depth)))
             
             
-            print(self._in_canvas.GetName(), min_y_px, max_y_px, new_pos, new_depth)
-            print()
+#            print(self._in_canvas.GetName(), min_y_px, max_y_px, new_pos, new_depth)
+#            print()
 
              
             
@@ -912,7 +912,7 @@ class DepthCanvas():
     def end_dragging(self):
         """
         """
-        print('\nend_dragging')
+#        print('\nend_dragging')
         #
         if self._in_canvas == None:
             return
@@ -936,7 +936,7 @@ class DepthCanvas():
 #        if top_canvas_px == bottom_canvas_px:  
 #            if bottom_canvas_px 
         
-        print (top_canvas_px, bottom_canvas_px)
+#        print (top_canvas_px, bottom_canvas_px)
         
         # Top canvas position must be smaller than bottom canvas
         if top_canvas_px > bottom_canvas_px:
@@ -944,7 +944,7 @@ class DepthCanvas():
             top_canvas_px = bottom_canvas_px
             bottom_canvas_px = temp
             
-        print (top_canvas_px, bottom_canvas_px)
+#        print (top_canvas_px, bottom_canvas_px)
         
 
 
@@ -979,7 +979,7 @@ class DepthCanvas():
         #    
         """
         
-        print (min_depth, max_depth)
+#        print (min_depth, max_depth)
         
 
         #
