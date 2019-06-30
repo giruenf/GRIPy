@@ -26,7 +26,10 @@ Versão 0.8.beta:
 - Fim das classes Partition e Part. Essas passam a ser integradas a classe Log.
   De forma conjunta, a classe WellData1D também deixa de existir.
 - Fim do carregamento do LASheader para o objeto Well.  
-- DataFilter passa a se chamar DataMask.
+- DataFilter foi remodelado e integrado ao TrackObjectController. 
+  Assim, TrackObjectController faz a "seleção/mask/filter" do dado 
+  a ser plottado e TrackObject será o responsável por exibir a antiga
+  Dialog de DataFilter.
 - Melhorado o sistema de "Virtual Axes". Os métodos transform e inverse_transform foram movidos do arquivo track_object.py para o canvas_base.py.
   Assim, poderao ser utilizados também para os CrossPlots (ou em qualquer objeto onde plot_axes se comportar de forma virtual).
   Ver arquivo canvas_base.py.
