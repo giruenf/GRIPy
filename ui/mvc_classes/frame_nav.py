@@ -343,6 +343,7 @@ class Navigator(Frame):
         controller = UIM.get(self._controller_uid)    
         controller.Set(results)
         print ('_doApply')
+        
     def _doCancel(self):
         self.Close()  
 
