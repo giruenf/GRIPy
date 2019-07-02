@@ -726,7 +726,7 @@ class TrackLabel(UIViewObject, wx.Panel, SelectablePanelMixin):
         UIViewObject.__init__(self, controller_uid)
         UIM = UIManager()
         parent_uid = UIM._getparentuid(self._controller_uid)
-        parent_controller = UIM.get(parent_uid)        
+        parent_controller = UIM.get(parent_uid)
         wx_parent = parent_controller._get_wx_parent(self.tid)
         wx.Panel.__init__(self, wx_parent)
         #
@@ -772,6 +772,7 @@ class TrackLabel(UIViewObject, wx.Panel, SelectablePanelMixin):
     def append_object(self, *args, **kwargs):
         return self.insert_object(len(self._visual_objects), *args, **kwargs)
         
+    
     def insert_object(self, pos, *args, **kwargs):
         """
         Insert a new visual object at given pos with properties informed.
@@ -781,6 +782,7 @@ class TrackLabel(UIViewObject, wx.Panel, SelectablePanelMixin):
         self.GetSizer().Add(dl, 0,  wx.EXPAND)
         self.Layout()
         return dl
+    
     
     def remove_object(self, *args):
         """
@@ -794,14 +796,16 @@ class TrackLabel(UIViewObject, wx.Panel, SelectablePanelMixin):
             vdl = args[0]
             self._visual_objects.remove(vdl)
         else:
-            raise Exception()            
+            raise Exception()              
         self.GetSizer().Detach(vdl)
+#        vdl._remove_all_canvas()
         vdl.Destroy()
         self.Layout()  
 
 
     def redraw(self):
         self.Layout()
+
 
     def set_plot_type(self, plot_type):
         self._dl.set_plot_type(plot_type)

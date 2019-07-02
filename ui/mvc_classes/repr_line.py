@@ -151,12 +151,15 @@ class LineRepresentationView(RepresentationView):
             self._mplot_objects['line'].set_color(controller.color)
         self.draw_canvas()     
                 
+        
     def set_thickness(self, new_value, old_value):
         if len(self._mplot_objects.values()) == 1:
             self._mplot_objects['line'].set_linewidth(new_value)
             self.draw_canvas()
-            if self.label:
-                self.label.set_thickness(new_value) 
+            toc = self.get_parent_controller()
+            label = toc.get_label()
+            if label:
+                label.set_thickness(new_value)
         else:
             self.draw()
                        
@@ -164,8 +167,10 @@ class LineRepresentationView(RepresentationView):
         if len(self._mplot_objects.values()) == 1:
             self._mplot_objects['line'].set_color(new_value)
             self.draw_canvas()   
-            if self.label:
-                self.label.set_color(new_value)
+            toc = self.get_parent_controller()
+            label = toc.get_label()
+            if label:
+                label.set_color(new_value)
         else:
             self.draw()
                                
@@ -189,24 +194,6 @@ class LineRepresentationView(RepresentationView):
         controller = UIM.get(self._controller_uid)
         
         toc = self.get_parent_controller()
-#        print('\ndm:', dm)
-        
-        # Deals with WellPlot label
-        print('\nself.label:', self.label)
-        if self.label:
-            self.label.set_plot_type('line')
-            self.label.set_xlim(
-                (controller.left_scale, 
-                 controller.right_scale)
-            ) 
-            self.label.set_color(controller.color)
-            self.label.set_thickness(controller.thickness)
-            
-#            print('dmc.uid 2:', dm)
-            
-            self.label.set_title(toc.get_data_name())
-            self.label.set_subtitle(toc.get_data_unit())        
-        #
         
         xdata = toc.get_data(dimensions_desired=1)
         if xdata is None:
@@ -214,6 +201,7 @@ class LineRepresentationView(RepresentationView):
         #
         ydata = toc.get_last_dimension_index_data()
         xdata_valid_idxs = ~np.isnan(xdata)
+        
         xdata = xdata[xdata_valid_idxs]
         ydata = ydata[xdata_valid_idxs]
         #
@@ -256,7 +244,17 @@ class LineRepresentationView(RepresentationView):
             else:
                 line = self._mplot_objects.get('line')   
                 line.set_data(transformated_xdata, ydata)
+        #
+        label = toc.get_label()
+        if label:
+            label.set_xlim(
+                (controller.left_scale, 
+                 controller.right_scale)
+            ) 
+            label.set_color(controller.color)
+            label.set_thickness(controller.thickness)  
         #        
+        # Identifica a linha com o devido toc_uid
         line.set_label(toc_uid)
         # When we set picker to True (to enable line picking) function
         # Line2D.set_picker sets pickradius to True, 

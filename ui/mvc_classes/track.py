@@ -1075,7 +1075,7 @@ class TrackView(UIViewObject):
                                          self._object_menu_selection, id=id_
                         ) 
                         self._ids_functions[id_] = (func['function'], (obj), 
-                                    {'data_mask': toc.get_data_mask()}
+                                    {'toc': toc}
                         )
                     #
                     obj_submenu.AppendSeparator() 

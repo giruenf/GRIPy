@@ -3600,7 +3600,7 @@ def on_create_synthetic(event):
             synth_name = results['synth_name']
             index = OM.get(indexuid)
             #
-            index_data = index.data/1000
+            index_data = index.data#/1000
             
             #
             if synth_type in [0, 1]:
@@ -3614,19 +3614,39 @@ def on_create_synthetic(event):
             elif synth_type in [2, 3, 4, 5]:     
                 chirp_f0 = float(results['chirp_f0'])
                 chirp_f1 = float(results['chirp_f1'])
+                # TODO: make chirp_start not to be necessarily index_data[0]
                 chirp_start = float(results['chirp_start'])
+                chirp_start_index = (np.abs(index_data-chirp_start)).argmin()
+                #
                 chirp_end = float(results['chirp_end'])
-                
+                chirp_end_index = (np.abs(index_data-chirp_end)).argmin()
+                #
                 if synth_type == 2:
-                    #x = chirp(time, f0=0, f1=100, t1=time[-1], method='linear')
-                    data = chirp(index_data, chirp_f0, chirp_end, chirp_f1, method='linear')#, phi=0, vertex_zero=True)
+                    method = 'linear'     
                 elif synth_type == 3:
-                    data = chirp(index_data, chirp_f0, chirp_end, chirp_f1, method='quadratic')#, phi=0, vertex_zero=True)    
+                    method = 'quadratic'
                 elif synth_type == 4:
-                    data = chirp(index_data, chirp_f0, chirp_end, chirp_f1, method='logarithmic')#, phi=0, vertex_zero=True)
+                    method = 'logarithmic'
                 elif synth_type == 5:
-                    data = chirp(index_data, chirp_f0, chirp_end, chirp_f1, method='hyperbolic')#, phi=0, vertex_zero=True)
-        
+                    method = 'hyperbolic'
+                #    
+                data = chirp(index_data[chirp_start_index:], 
+                             f0=chirp_f0, 
+                             f1=chirp_f1, 
+                             t1=index_data[chirp_end_index], 
+                             method=method
+                ) #, phi=0, vertex_zero=True)
+                #
+                print('\nCreated Chirp:')
+                print('method = {}'.format(method))
+                print('f0 = {}'.format(chirp_f0))
+                print('f1 = {}'.format(chirp_f1))
+                print('t0 = {}'.format(index_data[chirp_start_index]))
+                print('t1 = {}'.format(index_data[chirp_end_index]))
+                print('data len: {}'.format(len(data)))
+                print('original index_data len: {}'.format(len(index_data)))
+                print()
+                #
             elif synth_type == 6:
                 ricker_freq = float(results['ricker_freq'])
                 ricker_peak = float(results['ricker_peak'])
@@ -3642,8 +3662,11 @@ def on_create_synthetic(event):
             print(indexuid)
             curve_set_uid = OM._getparentuid(indexuid)       
             print(curve_set_uid)
-            log = OM.new('log', data, 
-                         name=synth_name, unit='amplitude', datatype=''
+            log = OM.new('log',
+                         data, 
+                         name=synth_name, 
+                         unit='amplitude', 
+                         datatype='SYNTHETIC'
             )
             
             

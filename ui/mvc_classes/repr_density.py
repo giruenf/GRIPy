@@ -186,7 +186,10 @@ class DensityRepresentationView(RepresentationView):
     def set_colormap(self, colormap):
         if self._mplot_objects['density']:
             self._mplot_objects['density'].set_cmap(colormap)
-            self.label.set_colormap(colormap)
+            toc = self.get_parent_controller()
+            label = toc.get_label()
+            if label:
+                label.set_colormap(colormap)
         self.draw_canvas()       
 
     def set_interpolation(self, new_value, old_value):
@@ -391,39 +394,29 @@ class DensityRepresentationView(RepresentationView):
                 print('ERRO wiggle.draw:', e)
                 raise
                          
-        
-        # Deals with WellPlot label
-        if self.label:
-            try:
-                self.label.set_plot_type(controller.type)
-                self.label.set_title(toc.get_data_name())
-                self.label.set_subtitle(toc.get_data_type())
-                #
-                if controller.type == 'density' or controller.type == 'both':
-                    self.label.set_colormap(controller.colormap)
-                    self.label.set_colormap_lim((controller.min_density, 
-                                                 controller.max_density)
-                    )
-                    #
-                    self.label.set_ruler(x_index_data[0], x_index_data[-1])
-                    self.label.set_ruler_title(xdata_index.name)
-                    self.label.set_ruler_subtitle(xdata_index.unit)                        
-                    #    
-                if controller.type == 'wiggle' or controller.type == 'both': 
-                    self.label.set_offset(x_index_data, 
-                                         x_lines_position, 
-                                         xlim=(xlim_min, xlim_max)
-                                         
-                    )
-                    self.label.set_offset_title(xdata_index.name)
-                    self.label.set_offset_subtitle(xdata_index.unit)
-                #    
-            except Exception as e:
-                msg = 'Deu RUIM: ' + str(e)
-                print(msg)
-                raise
+
         #
-        
+        label = toc.get_label()
+        if label:
+            if controller.type == 'density' or controller.type == 'both':
+                label.set_colormap(controller.colormap)
+                label.set_colormap_lim((controller.min_density, 
+                                        controller.max_density)
+                )
+                #
+                label.set_ruler(x_index_data[0], x_index_data[-1])
+                label.set_ruler_title(xdata_index.name)
+                label.set_ruler_subtitle(xdata_index.unit)                        
+                #    
+            if controller.type == 'wiggle' or controller.type == 'both': 
+                label.set_offset(x_index_data, 
+                                     x_lines_position, 
+                                     xlim=(xlim_min, xlim_max)
+                                     
+                )
+                label.set_offset_title(xdata_index.name)
+                label.set_offset_subtitle(xdata_index.unit)
+        #            
         
         print('self.draw_canvas()')    
         self.draw_canvas()

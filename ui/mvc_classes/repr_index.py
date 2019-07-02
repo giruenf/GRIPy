@@ -101,9 +101,7 @@ class IndexRepresentationView(RepresentationView):
     tid = 'index_representation_view'
 
     def __init__(self, controller_uid):
-        super().__init__(controller_uid)    
-        if self.label:
-            self.label.set_plot_type('index')              
+        super().__init__(controller_uid)        
 
 
     def PostInit(self):
@@ -163,18 +161,7 @@ class IndexRepresentationView(RepresentationView):
             UIM = UIManager()
             controller = UIM.get(self._controller_uid)
             toc = self.get_parent_controller()
-            # Deals with WellPlot label
-            if self.label:
-                self.label.set_plot_type('index')    
-                self.label.set_title(toc.get_data_name())
-                self.label.set_subtitle(toc.get_data_unit())
-                #self.set_title(dm.get_data_name())
-                #self.set_subtitle(dm.get_data_unit())          
-            #
-#            UIM = UIManager()
-#            controller = UIM.get(self._controller_uid)
-#            toc_uid = UIM._getparentuid(self._controller_uid)
-            #toc = UIM.get(toc_uid)
+
             index_type = toc.get_well_plot_index_type()
             #
             ydata = toc.get_last_dimension_index_data()

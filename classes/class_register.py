@@ -60,7 +60,7 @@ from ui.mvc_classes.tool_bar_tool import ToolBarToolController
 from ui.mvc_classes.status_bar import StatusBarController, StatusBar
 from ui.mvc_classes.well_plot import WellPlotController, WellPlot
 from ui.mvc_classes.track import TrackController, TrackView
-from ui.mvc_classes.track_object import TrackObjectController, TrackObject
+from ui.mvc_classes.track_object import TrackObjectController
 from ui.mvc_classes.frame_nav import NavigatorController, Navigator
 from ui.mvc_classes.cross_plotter import CrossPlotController, CrossPlot
 from ui.mvc_classes.workpage import WorkPageController, WorkPage

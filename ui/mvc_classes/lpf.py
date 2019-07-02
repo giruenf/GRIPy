@@ -915,8 +915,8 @@ class LPEObjectsPanelModel(dv.PyDataViewModel):
                 return wx.EmptyString 
             elif col == 1:
                 try:
-                    if obj.obj_uid:
-                        ret = ObjectManager.get_tid_friendly_name(obj.obj_uid[0])
+                    if obj.data_obj_uid:
+                        ret = ObjectManager.get_tid_friendly_name(obj.data_obj_uid[0])
                         if ret:
                             return ret
                         return wx.EmptyString
@@ -925,11 +925,10 @@ class LPEObjectsPanelModel(dv.PyDataViewModel):
                 except AttributeError:
                     print ('\nERRO! O objeto nao possui model: ' + str(obj.uid) + '\n')
                     return ''
+            
             elif col == 2:    
-                dm = obj.get_data_mask()
-                if dm:
-                    return dm.get_data_name()
-                return 'Select...' 
+                return obj.get_data_name()
+
         else:
             raise RuntimeError("unknown node type")
             
@@ -1295,8 +1294,8 @@ class ObjectNameRenderer(TextChoiceRenderer):
         obj = self.ItemToObject(self.item)
         self._options = OrderedDict()
         #print 'ObjectNameRenderer:', obj.obj_uid[0]
-        if obj.obj_uid[0] in LogPlotController.get_acceptable_tids():
-            for om_obj in OM.list(obj.obj_uid[0]):
+        if obj.data_obj_uid[0] in LogPlotController.get_acceptable_tids():
+            for om_obj in OM.list(obj.data_obj_uid[0]):
                 #print '   Adding:', om_obj.uid, om_obj.name  
                 self._options[om_obj.uid] = om_obj.name    
         _editor = wx.Choice(parent, 

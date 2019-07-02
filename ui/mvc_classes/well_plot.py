@@ -872,7 +872,7 @@ class WellPlot(WorkPage):
             self._tool_bar.z_start.SetValue(z_end_str)
             ok = False
         if ok:  
-            controller.shown_ylim((float(z_start_str), float(z_end_str)))
+            controller.shown_ylim = (float(z_start_str), float(z_end_str))
 
     def _on_fit(self, event): 
         UIM = UIManager()

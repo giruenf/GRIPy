@@ -10,13 +10,14 @@ import wx
 from classes.om import ObjectManager
 from classes.ui import UIManager
 from algo.spectral.Spectral import STFT, WaveletTransform, MorletWavelet, PaulWavelet, DOGWavelet, RickerWavelet
+from basic.uom.uom import uom
 
 
 SPECGRAM_TYPES = OrderedDict()
-SPECGRAM_TYPES['Power Spectral Density'] = 'psd'
-SPECGRAM_TYPES['Magnitude'] = 'magnitude'
-SPECGRAM_TYPES['Phase (no unwrapping)'] = 'angle'
-SPECGRAM_TYPES['Phase (unwrapping)'] = 'phase' 
+SPECGRAM_TYPES['Power Spectral Density'] = 'PSD'
+SPECGRAM_TYPES['Magnitude'] = 'MAGNITUDE'
+SPECGRAM_TYPES['Phase (no unwrapping)'] = 'ANGLE'
+SPECGRAM_TYPES['Phase (unwrapping)'] = 'PHASE' 
 
 WAVELET_TYPES = OrderedDict()
 WAVELET_TYPES['Morlet complex'] = 'morlet'
@@ -35,9 +36,10 @@ WAVELET_TYPES['Paul (order=6)'] = 'paul6'
 
 
 def do_STFT(*args, **kwargs):
-    dm = kwargs.get('data_mask')
-    if not dm:
-        raise Exception('Trabalhando somente com o data_mask.')
+    toc = kwargs.get('toc')
+    if not toc:
+        raise Exception('Trabalhando somente com o TrackObjectController.')
+    #    
     OM = ObjectManager()
     UIM = UIManager()
     dlg = UIM.create('dialog_controller', title='Short Time Fourier Transform') 
@@ -90,33 +92,47 @@ def do_STFT(*args, **kwargs):
         #
         dlg.view.SetSize((230, 260))
         result = dlg.view.ShowModal()
+        #
         if result == wx.ID_OK:
-            results = dlg.get_results()  
-            
+            results = dlg.get_results()   
             if results.get('spectrogram_type'):
+                #
+                print('dm.get_data_object_uid():', toc.get_data_object_uid())
+                #
+                di_uid, di_data = toc.get_last_dimension_index()
+                data_index = OM.get(di_uid)
                 
-                print('dm.get_data_object_uid():', dm.get_data_object_uid())
                 
-                di_uid, di_data = dm.get_last_dimension_index()
-                last_dim_data_index = OM.get(di_uid)
-#                di_data = dm.get_last_dimension_index_data()
+                unit = uom.get_unit(data_index.unit)
+                dim = uom.get_unit_dimension(unit.dimension)
+    
+                print(unit.dimension, dim, dim.name)
+                if dim.name == 'time':
+                    di_data = uom.convert(di_data, data_index.unit, 's')
+                elif dim.name == 'length':
+                    di_data = uom.convert(di_data, data_index.unit, 'm')
+                # new_data = uom.convert(obj.data, obj.unit, new_unit_name)
                 
+                
+                #
                 start_value = di_data[0]
-                #start_value = start_value/1000
                 step_value = di_data[1] - di_data[0]
-                #step_value  = step_value/1000
-                
-                dm_data = dm.get_data()
-                #STFT(x, window_size, noverlap, time_start, Ts, mode='psd'):
-                
+                #         
+                dm_data = toc.get_data()
+                #
+                #STFT(x, window_size, noverlap, time_start, Ts, mode='psd'):    
 #                print('start_value, step_value:', start_value, step_value)
+ 
+                spec_type = results.get('spectrogram_type')
                 
                 stft_data, freq_values, index_values = STFT(dm_data, 
-                        results.get('window_size'), results.get('noverlap'),
+                        results.get('window_size'), 
+                        results.get('noverlap'),
                         start_value, step_value, 
-                        mode=results.get('spectrogram_type')
+                        mode=spec_type
                 )
-                freq_values *= 1000
+#                freq_values *= 1000
+                
                 #
 #                print ('\n\nRetornou')    
                 data_out = np.zeros((len(di_data), len(freq_values)))
@@ -147,12 +163,18 @@ def do_STFT(*args, **kwargs):
 #                print()
                 
                 #
+                if spec_type == 'PHASE':
+                    spec_type = 'PHASE_UNWRAPPED'
+                elif spec_type == 'ANGLE':
+                    spec_type = 'PHASE'
+                #    
+
                 spectogram = OM.new('spectogram', 
                                     data_out, 
-                                    name=dm.get_data_name()+'_STFT',
+                                    name=toc.get_data_name()+'_STFT',
                                     datatype=results.get('spectrogram_type')
                 )
-                if not OM.add(spectogram, dm.get_data_object_uid()):
+                if not OM.add(spectogram, toc.get_data_object_uid()):
                     msg = 'Object was not added. tid={\'spectogram\'}'
                     raise Exception(msg)   
                 #
@@ -167,7 +189,7 @@ def do_STFT(*args, **kwargs):
                 #
                 spectogram._create_data_index_map(
                                         [freq_index.uid],
-                                        [last_dim_data_index.uid]
+                                        [di_uid]
                 )                          
     except Exception as e:
         print ('ERROR:', e)
@@ -178,16 +200,46 @@ def do_STFT(*args, **kwargs):
 
 
 def do_CWT(*args, **kwargs):
-    obj = args[0]
+    
+    toc = kwargs.get('toc')
+    if not toc:
+        raise Exception('Trabalhando somente com o TrackObjectController.')
+    #    
+    
+#    obj = args[0]
     UIM = UIManager()
     dlg = UIM.create('dialog_controller', title='Continuous Wavelet Transform') 
     #
     try:
-        ctn_wavelet = dlg.view.AddCreateContainer('StaticBox', label='Wavelet', orient=wx.VERTICAL, proportion=0, flag=wx.EXPAND|wx.TOP, border=5)
-        dlg.view.AddChoice(ctn_wavelet, proportion=0, flag=wx.EXPAND|wx.TOP, border=5,  widget_name='wavelet', options=WAVELET_TYPES)     
+        ctn_wavelet = dlg.view.AddCreateContainer('StaticBox', 
+                                                  label='Wavelet', 
+                                                  orient=wx.VERTICAL, 
+                                                  proportion=0, 
+                                                  flag=wx.EXPAND|wx.TOP, 
+                                                  border=5
+        )
+        dlg.view.AddChoice(ctn_wavelet, 
+                           proportion=0, 
+                           flag=wx.EXPAND|wx.TOP, 
+                           border=5,  
+                           widget_name='wavelet', 
+                           options=WAVELET_TYPES
+        )     
         #
-        ctn_scale_res = dlg.view.AddCreateContainer('StaticBox', label='Scale resolution', orient=wx.VERTICAL, proportion=0, flag=wx.EXPAND|wx.TOP, border=5)
-        dlg.view.AddTextCtrl(ctn_scale_res, proportion=0, flag=wx.EXPAND|wx.TOP, border=5, widget_name='dj', initial='0.125') 
+        ctn_scale_res = dlg.view.AddCreateContainer('StaticBox', 
+                                                    label='Scale resolution', 
+                                                    orient=wx.VERTICAL, 
+                                                    proportion=0, 
+                                                    flag=wx.EXPAND|wx.TOP, 
+                                                    border=5
+        )
+        dlg.view.AddTextCtrl(ctn_scale_res, 
+                             proportion=0, 
+                             flag=wx.EXPAND|wx.TOP, 
+                             border=5, 
+                             widget_name='dj', 
+                             initial='0.125'
+        ) 
         #
         dlg.view.SetSize((230, 260))
         result = dlg.view.ShowModal()
@@ -227,24 +279,35 @@ def do_CWT(*args, **kwargs):
             else:
                 raise Exception()   
                 
+             
+            # TODO: Rever tudo isso abaixo    
             valid_data = obj.data[np.isfinite(obj.data)]
             valid_index_data = obj.get_indexes().data[np.isfinite(obj.data)]
             
-            wt = WaveletTransform(valid_data, dj=dj, wavelet=func, dt=obj.step,
+            #
+            wt = WaveletTransform(valid_data, 
+                                  dj=dj, 
+                                  wavelet=func, 
+                                  dt=obj.step,
                                   time=valid_index_data
             )
+            #
             OM = ObjectManager() 
-            seismic = OM.new('scalogram', wt.wavelet_power, name=obj.name+'_CWT', 
-                                   unit='m', domain='depth', 
-                                   sample_rate=wt.time[1] - wt.time[0],
-                                   datum=wt.time[0],
-                                   samples= len(wt.time),
-                                   frequencies=wt.fourier_frequencies,
-                                   periods=wt.fourier_periods,
-                                   scales=wt.scales
+            seismic = OM.new('scalogram', 
+                             wt.wavelet_power, 
+                             name=obj.name+'_CWT', 
+                             unit='m', 
+                             domain='depth', 
+                             sample_rate=wt.time[1] - wt.time[0],
+                             datum=wt.time[0],
+                             samples= len(wt.time),
+                             frequencies=wt.fourier_frequencies,
+                             periods=wt.fourier_periods,
+                             scales=wt.scales
             )                       
             OM.add(seismic)  
-            print (wt.wavelet_transform.shape)        
+            print (wt.wavelet_transform.shape)    
+            #
     except Exception:
         pass
     finally:

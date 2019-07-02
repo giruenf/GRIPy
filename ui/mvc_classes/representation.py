@@ -39,28 +39,32 @@ class RepresentationController(UIControllerObject):
         return data_object.get_friendly_name()
     
    
+    
+    
 class RepresentationView(UIViewObject):
     tid = 'representation_view'
 
     def __init__(self, controller_uid):
         UIViewObject.__init__(self, controller_uid) 
         self._mplot_objects = OrderedDict()
+        """
         UIM = UIManager()
         toc_uid = UIM._getparentuid(self._controller_uid)
         track_controller_uid = UIM._getparentuid(toc_uid)
         track_controller =  UIM.get(track_controller_uid)
         #
+        
         if not track_controller.overview:
             self.label = track_controller._append_track_label(
                                                 toc_uid=track_controller_uid
             )
         else:
             self.label = None
-                       
+        """          
+            
     def PreDelete(self):
         self.clear()
-        if self.label:
-            self.label.destroy()
+
 
     def get_parent_controller(self):
         UIM = UIManager()

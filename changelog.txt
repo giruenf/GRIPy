@@ -44,6 +44,9 @@ Versão 0.8.beta:
 - O DebugConsole foi integrado ao sistema (M)VC e passou a se chamar ConsoleController.
   Seu objeto View (Console) passou a integrar o sistema de janelas de trabalho flutuantes.
   Seu acesso passou a ser através do Menu Tools.
+- As classes usadas para representar um um dado em um Track (Representation classes:
+  RepresentationLine, RepresentationIndex, RepresentationDensity) foram separadas 
+  cada uma em um arquivo. Isso facilita o entendimento do código, o deixando mais "clean".
  
   
 Versão 0.7:

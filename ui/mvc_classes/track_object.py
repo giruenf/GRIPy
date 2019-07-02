@@ -88,15 +88,18 @@ class TrackObjectController(FrameController):
             'type': bool    
     }     
     
+    
     def __init__(self, **state):
         super().__init__(**state)
+        #
         self._data = [] 
-        
+        #
+        self._label = None
+        #
         self.subscribe(self.on_change_data_obj_uid, 'change.data_obj_uid')        
         self.subscribe(self.on_change_plottype, 'change.plottype')
         self.subscribe(self.on_change_picked, 'change.selected')
         #self.subscribe(self.on_change_pos, 'change.pos')
-
 
 
     def PostInit(self):
@@ -105,9 +108,13 @@ class TrackObjectController(FrameController):
             track_ctrl_uid = UIM._getparentuid(self.uid)
             self.pos = len(UIM.list(self.tid, track_ctrl_uid))     
 
-              
+  
+ 
     def PreDelete(self):
         self.plottype = None
+        label = self.get_label()
+        if label:
+            label.destroy()
 
 
     def on_change_data_obj_uid(self, new_value, old_value):
@@ -135,27 +142,90 @@ class TrackObjectController(FrameController):
 
     def on_change_plottype(self, new_value, old_value):
         print('\n\non_change_plottype', new_value, old_value)
+        #
         UIM = UIManager()
         repr_ctrl = self.get_representation()
+        label = self.get_label()
+        #
         if repr_ctrl:
             UIM.remove(repr_ctrl.uid) 
+        if label:
+            #UIM.remove(label_ctrl.uid)   
+            #label._remove_all_canvas()
+            label.destroy()
+        #    
         if new_value is not None:
             repr_tid = _PLOTTYPES_REPRESENTATIONS.get(new_value)
             try:
-                state = self._get_log_state()
+                #
+                track_ctrl_uid = UIM._getparentuid(self.uid)
+                track_ctrl =  UIM.get(track_ctrl_uid)
+                #
+                if not track_ctrl.overview:
+                    label = track_ctrl._append_track_label(
+                                                        toc_uid=track_ctrl_uid
+                    )
+                    #
+                    label.set_title(self.get_data_name())
+                    label.set_subtitle(self.get_data_type())
+                    label.set_plot_type(new_value)
+                    #
+                    self._label = label
+                    #
+                else:
+                    self._label = None  
+                #
+                # TODO: rever linha abaixo
+                state = self._get_log_state()                
                 repr_ctrl = UIM.create(repr_tid, self.uid, **state)
                 repr_ctrl.draw()
+                #
+             
+
             except Exception as e:
                 print ('ERROR on_change_plottype', e)
                 self.plottype = None    
                 raise
 
 
+
+    def get_representation(self):
+        # Returns the real OM.object representation
+        UIM = UIManager()
+        children = UIM.list(None, self.uid)
+        if len(children) == 0:
+            return None
+        for child in children:
+            if isinstance(child, RepresentationController):
+                return child
+
+
+    def get_label(self):
+        # Returns the real OM.object representation
+        return self._label
+    
+ 
+    
+        """
+        UIM = UIManager()
+        children = UIM.list(None, self.uid)
+        if len(children) == 0:
+            # It's a overview 
+            return None
+        for child in children:
+            if isinstance(child, DataLabel):
+                return child
+        """
+
+
+
     def on_change_picked(self, new_value, old_value):
         self.get_representation().set_picked(new_value, old_value) 
-              
+            
+        
     def is_picked(self):
         return self.picked
+
 
     # Picking with event that generates pick... 
     # Event(PickEvent) maybe useful in future
@@ -216,6 +286,8 @@ class TrackObjectController(FrameController):
         return state
     
     
+
+
     #'''
     #TODO: passar pelo navigator
     def get_data_info(self, event):
@@ -225,17 +297,10 @@ class TrackObjectController(FrameController):
         return repr_ctrl.get_data_info(event)
     #'''
 
-    def get_representation(self):
-        # Returns the real OM.object representation
-        UIM = UIManager()
-        children = UIM.list(None, self.uid)
-        if len(children) == 0:
-            return None
-        return children[0]
-
 
     def is_valid(self):
         return self.get_representation() is not None
+
 
     def _init_data(self):
         print('\n_init_data:', self.data_obj_uid)

@@ -50,15 +50,15 @@ def ricker(freq, peak=0.0, x_values=None, y_values=None):
 """
 
 # Short Time Fourier Transform 1-D using SlidingWindow
-def STFT(data, window_samples_size, overlap_samples_size, start_value, step_value, mode='psd'):
+def STFT(data, window_samples_size, overlap_samples_size, start_value, step_value, mode='PSD'):
     """
     """
-#    print ('Step(Ts):', step_value)
-#    f0 = 1.0/step_value
-#    print ('F Zero:', f0)
-#    print ('Frquencia de Nyquist:', f0/2, 'Hz')
-#    print ('Resolução em frquencia:', f0/window_samples_size, 'Hz')    
-#    print ('Resolução temporal:', step_value, 'seconds')   
+    print ('Step(Ts):', step_value)
+    f0 = 1.0/step_value
+    print ('F Zero:', f0)
+    print ('Frquencia de Nyquist:', f0/2, 'Hz')
+    print ('Resolução em frquencia:', f0/window_samples_size, 'Hz')    
+    print ('Resolução temporal:', step_value, 'seconds')   
     
     
     try:
@@ -86,7 +86,7 @@ def STFT(data, window_samples_size, overlap_samples_size, start_value, step_valu
         index_values = np.arange(start, stop, step) * step_value  + start_value
         
         #  
-        if mode == 'psd':
+        if mode == 'PSD':
             # Also include scaling factors for one-sided densities and dividing by
             # the sampling frequency, if desired. Scale everything, except the DC
             # component and the NFFT//2 component:
@@ -107,11 +107,11 @@ def STFT(data, window_samples_size, overlap_samples_size, start_value, step_valu
                 stft_data /= np.abs(window).sum()**2
             stft_data = stft_data * np.conjugate(stft_data) 
             stft_data = stft_data.real         
-        elif mode == 'magnitude':
+        elif mode == 'MAGNITUDE':
             stft_data = np.absolute(stft_data)          
-        elif mode == 'angle' or mode == 'phase':
+        elif mode == 'ANGLE' or mode == 'PHASE':
             stft_data = np.angle(stft_data)
-            if mode == 'phase':
+            if mode == 'PHASE':
                 stft_data = np.unwrap(stft_data, axis=0)       
                 
         return stft_data, freqs, index_values
