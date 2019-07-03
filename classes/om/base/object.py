@@ -19,7 +19,6 @@ class OMBaseObject(GripyObject):
         """
         ret_od = OrderedDict()
         ret_od['name'] = self.name
-        
         try:
             for attr, attr_label in self._SHOWN_ATTRIBUTES:
                 try:

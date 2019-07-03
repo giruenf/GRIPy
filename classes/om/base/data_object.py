@@ -108,10 +108,7 @@ class DataObject(OMBaseObject):
         # POR EXEMPLO DATA.
         if kwargs.get('_data') is None:    
             if args:
-                kwargs['_data'] = args[0]
-               
-#        print('\nDO:', kwargs)        
-                
+                kwargs['_data'] = args[0]     
         super().__init__(**kwargs)      
 #        if isinstance(self._data, np.ndarray):
 #            self._data.flags.writeable = False

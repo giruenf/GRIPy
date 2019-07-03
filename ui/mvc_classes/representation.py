@@ -46,25 +46,10 @@ class RepresentationView(UIViewObject):
 
     def __init__(self, controller_uid):
         UIViewObject.__init__(self, controller_uid) 
-        self._mplot_objects = OrderedDict()
-        """
-        UIM = UIManager()
-        toc_uid = UIM._getparentuid(self._controller_uid)
-        track_controller_uid = UIM._getparentuid(toc_uid)
-        track_controller =  UIM.get(track_controller_uid)
-        #
-        
-        if not track_controller.overview:
-            self.label = track_controller._append_track_label(
-                                                toc_uid=track_controller_uid
-            )
-        else:
-            self.label = None
-        """          
+        self._mplot_objects = OrderedDict()     
             
     def PreDelete(self):
         self.clear()
-
 
     def get_parent_controller(self):
         UIM = UIManager()
@@ -96,13 +81,7 @@ class RepresentationView(UIViewObject):
                 return tcc.view
             except:
                 raise
-
-    def redraw(self):
-        if self.uid[0] == 'line_representation_controller':
-            self.view.draw()
-        else:
-            return False
-               
+             
     def draw_canvas(self):     
         canvas = self.get_canvas()   
         if canvas:

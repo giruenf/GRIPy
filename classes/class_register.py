@@ -204,8 +204,14 @@ def register_UIManager_classes():
     UIManager.register_class(TrackObjectController, None,
                               TrackController
     )
-    UIManager.register_class(WellPlotEditorController, WellPlotEditor, WellPlotController)
-    UIManager.register_class(NavigatorController, Navigator)
+    UIManager.register_class(WellPlotEditorController, WellPlotEditor, 
+                             WellPlotController
+    )
+    #
+    UIManager.register_class(NavigatorController, Navigator, 
+                             TrackObjectController
+    )
+    #
     UIManager.register_class(LineRepresentationController, 
                              LineRepresentationView, TrackObjectController
     )

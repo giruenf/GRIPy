@@ -15,7 +15,7 @@ class DensityRepresentationController(RepresentationController):
     _ATTRIBUTES = OrderedDict()
     
     _ATTRIBUTES['type'] = {
-            'default_value': 'density', #'wiggle', #'density', 
+            'default_value': 'wiggle', #'density', 
             'type': str,
             'pg_property': 'EnumProperty',
             'label': 'Plot type',
@@ -289,7 +289,7 @@ class DensityRepresentationView(RepresentationView):
         #
 #        print(controller.type)
         #
-        data = toc.get_data(dimensions_desired=2)
+        data = toc.get_filtered_data(dimensions_desired=2)
         x_di_uid, x_index_data = toc.get_index_for_dimension(-2)
         y_di_uid, y_index_data = toc.get_index_for_dimension(-1)
         #
@@ -398,7 +398,8 @@ class DensityRepresentationView(RepresentationView):
         #
         label = toc.get_label()
         if label:
-            if controller.type == 'density' or controller.type == 'both':
+            label.set_plot_type(controller.type)
+            if controller.type == 'density' or controller.type == 'both': 
                 label.set_colormap(controller.colormap)
                 label.set_colormap_lim((controller.min_density, 
                                         controller.max_density)
@@ -406,13 +407,12 @@ class DensityRepresentationView(RepresentationView):
                 #
                 label.set_ruler(x_index_data[0], x_index_data[-1])
                 label.set_ruler_title(xdata_index.name)
-                label.set_ruler_subtitle(xdata_index.unit)                        
+                label.set_ruler_subtitle(xdata_index.unit)                 
                 #    
             if controller.type == 'wiggle' or controller.type == 'both': 
                 label.set_offset(x_index_data, 
                                      x_lines_position, 
-                                     xlim=(xlim_min, xlim_max)
-                                     
+                                     xlim=(xlim_min, xlim_max)                     
                 )
                 label.set_offset_title(xdata_index.name)
                 label.set_offset_subtitle(xdata_index.unit)
@@ -420,8 +420,8 @@ class DensityRepresentationView(RepresentationView):
         
         print('self.draw_canvas()')    
         self.draw_canvas()
-        if controller.type == 'wiggle' or controller.type == 'both':
-            self.fill_between(controller.fill, None)
+        #if controller.type == 'wiggle' or controller.type == 'both':
+        #    self.fill_between(controller.fill, None)
         print('FIM draw()\n\n')
         
         

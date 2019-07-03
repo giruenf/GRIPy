@@ -27,12 +27,15 @@ class GripyManager(pubsub.PublisherMixin, metaclass=GripyManagerMeta):
 
     def _get_pubsub_uid(self):
         return self.__class__.__name__
-
-    
+   
     def is_loading_state(self):
         return self.__class__._LOADING_STATE 
 
-
+    def set_loading_state(self):
+        self.__class__._LOADING_STATE = True
+        
+    def unset_loading_state(self):
+        self.__class__._LOADING_STATE = False    
        
     # Criado por Adriano em 08-11-2018
     def get_children_uids(self, parent_uid=None, recursively=False):
@@ -142,15 +145,11 @@ class GripyManager(pubsub.PublisherMixin, metaclass=GripyManagerMeta):
                 ok = True
                 for (key, operator, value) in comparators:
                     ok = False
-
-
                     attr = obj.find_attribute(key)
                     if attr is None:
                         raise Exception('Attribute {} was not found.'.format(\
                                                                         key)
                         )
-                        
-                        
                     type_ = attr.get('type')
                     value = type_(value)
                     attr_value = obj[key]

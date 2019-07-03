@@ -33,7 +33,7 @@ class LineRepresentationController(RepresentationController):
             'type': int
     } 
     _ATTRIBUTES['interpolate'] = {
-            'default_value': True,
+            'default_value': False,
             'type': bool
     }       
 
@@ -92,10 +92,6 @@ class LineRepresentationView(RepresentationView):
         controller.subscribe(self.set_zorder, 'change.zorder')
         controller.subscribe(self.on_change_xscale, 'change.x_scale')
         controller.subscribe(self.on_change_interpolate, 'change.interpolate')
-        #
-#        parent_uid = UIM._getparentuid(self._controller_uid)
-#        parent = UIM.get(parent_uid)
-#        parent.subscribe(self.set_picked, 'change.selected') 
 
     def get_data_info(self, event):
         """
@@ -178,13 +174,8 @@ class LineRepresentationView(RepresentationView):
         self.draw()
         
     def set_xlim(self, new_value, old_value):
-#        UIM = UIManager()
-#        controller = UIM.get(self._controller_uid)        
-#        if not controller.get_object():
-#            return
         self.draw()
   
-    
     
     def draw(self):
         print('\nLineRepresentationView.draw')
@@ -195,7 +186,7 @@ class LineRepresentationView(RepresentationView):
         
         toc = self.get_parent_controller()
         
-        xdata = toc.get_data(dimensions_desired=1)
+        xdata = toc.get_filtered_data(dimensions_desired=1)
         if xdata is None:
             return
         #
@@ -247,6 +238,7 @@ class LineRepresentationView(RepresentationView):
         #
         label = toc.get_label()
         if label:
+            label.set_plot_type('line')
             label.set_xlim(
                 (controller.left_scale, 
                  controller.right_scale)

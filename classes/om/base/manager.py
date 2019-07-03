@@ -58,7 +58,6 @@ class ObjectManager(GripyManager):
     _data = OrderedDict()
     _parentuidmap = {}
     _childrenuidmap = {}
-    
     # Other
     _NPZIDENTIFIER = "__NPZ;;"
     _changed = False
@@ -141,6 +140,7 @@ class ObjectManager(GripyManager):
         """
         ObjectManager._changed = True   
 
+
     def _getnewobjectid(self, typeid):
         """
         Return a new object identifier for the desired type.
@@ -160,6 +160,26 @@ class ObjectManager(GripyManager):
         self._currentobjectids[typeid] += 1
         return objectid
 
+
+    def _test_new_object_id(self, typeid, possible_last_id):
+        """
+        When loading a Manager state, tests an id for a tid in order to adjust
+        _currentobjectids array.
+        
+        Parameters
+        ----------
+        typeid : str
+            The identifier for the type that a new object identifier is
+            needed.
+        possible_last_id : int
+            The possible identifier for the type.
+        """
+        if self.is_loading_state():
+            object_id = self._currentobjectids[typeid]
+            if possible_last_id > object_id:
+                self._currentobjectids[typeid] = possible_last_id
+            
+            
 
     def new(self, typeid, *args, **kwargs):
         """
@@ -614,7 +634,9 @@ class ObjectManager(GripyManager):
             Whether the operation was successful.
         """
         
-        self._LOADING_STATE = True
+        self.set_loading_state()
+        #self._LOADING_STATE = True
+
 
         old_dir = os.getcwd()
         temp_dir = tempfile.mkdtemp(prefix='griPy_')
@@ -632,14 +654,14 @@ class ObjectManager(GripyManager):
             pickle_proj_data = pickle.load(picklefile)
             picklefile.close()
             #
-            print ('\npickle_proj_data:', pickle_proj_data)
+#            print ('\npickle_proj_data:', pickle_proj_data)
             
-            print('\n\n_PROJ_NAME:', pickle_proj_data['_PROJ_NAME'])
+#            print('\n\n_PROJ_NAME:', pickle_proj_data['_PROJ_NAME'])
             
-            print('\n\nBEFORE:', pickle_proj_data['_OM_OBJECTS_UIDS'])
+#            print('\n\nBEFORE:', pickle_proj_data['_OM_OBJECTS_UIDS'])
             while pickle_proj_data['_OM_OBJECTS_UIDS']:
                 self._load_objects(pickle_proj_data['_OM_OBJECTS_UIDS'])
-            print('AFTER:', pickle_proj_data['_OM_OBJECTS_UIDS'], '\n\n')
+#            print('AFTER:', pickle_proj_data['_OM_OBJECTS_UIDS'], '\n\n')
             
             
         except Exception as e:
@@ -648,7 +670,9 @@ class ObjectManager(GripyManager):
             os.chdir(old_dir)
             shutil.rmtree(temp_dir)
         
-        self._LOADING_STATE = False
+        
+        #self._LOADING_STATE = False
+        self.unset_loading_state()
         
         return True        
         
@@ -682,15 +706,13 @@ class ObjectManager(GripyManager):
         #
         npz_dict = {}
         #
-        if starts_with_uid == ('data_index_map', 1):
-            print(77)
+
         for key, value in pickle_obj_state.items():
             # Check for attributes keys stored in a NPZs file.
             if isinstance(value, str) and value.startswith(self._NPZIDENTIFIER):
                 npz_dict[key] = value.lstrip(self._NPZIDENTIFIER)
 #                print('NPZ NAME FOUND:', value)
-        if starts_with_uid == ('data_index_map', 1):
-            print(777)                
+            
         #
         if npz_dict:
             # Then, retrive attributes keys stored in a NPZs file.      
@@ -702,9 +724,8 @@ class ObjectManager(GripyManager):
                 for key, value in npz_dict.items():
                     pickle_obj_state[key] = npzdata[value]
                     
-        if starts_with_uid == ('data_index_map', 1):
-            print(7777) 
-            
+                    
+#        print('\n_loading object starts_with_uid: ', starts_with_uid, pickle_obj_state)    
         # Object does not exist yet, than let`s create it!
         if starts_with_uid not in self._data:
             try:
@@ -716,7 +737,7 @@ class ObjectManager(GripyManager):
         else:
             obj = self.get(starts_with_uid)
             
-        print('\nobject:' + str(obj))    
+#        print('object(after created or got): ' + str(obj))    
         #    
         if not self.add(obj, parent_uid):
             msg = 'Error adding object: {} to parent_uid: {}'.format(starts_with_uid, parent_uid)
@@ -724,7 +745,7 @@ class ObjectManager(GripyManager):
             raise Exception(msg) 
         #
         for child_uid in pickle_obj_state['__children']:
-            print('child_uid:', child_uid, 'parent_uid:', obj.uid)
+#            print('child_uid:', child_uid, 'parent_uid:', obj.uid)
             try: 
                 self._load_objects(uids_dict, starts_with_uid=child_uid, parent_uid=obj.uid)
             except Exception as e:

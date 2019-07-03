@@ -1052,12 +1052,24 @@ class TrackView(UIViewObject):
         self._ids_functions = {}
         selected_obj_menus = OrderedDict()
         UIM = UIManager()
-        OM = ObjectManager()
         tcc = self._get_canvas_controller()
         tocs = UIM.list('track_object_controller', self._controller_uid)
         for toc in tocs:
-            if toc.selected:
-                obj = OM.get(toc.data_obj_uid)
+            print(toc.uid)
+            repr_ctrl = toc.get_representation()
+            print(repr_ctrl)
+            if repr_ctrl and \
+                        repr_ctrl.tid == 'density_representation_controller':
+                obj_submenu = wx.Menu()
+                id_ = wx.NewId() 
+                obj_submenu.Append(id_, 'Show navigator')
+                tcc.Bind(wx.EVT_MENU, self._object_menu_selection, id=id_)    
+                self._ids_functions[id_] = (self._data_navigator_helper, 
+                                               (toc.uid), {}
+                )   
+                selected_obj_menus[toc.get_data_object()] = obj_submenu
+            elif toc.selected:
+                obj = toc.get_data_object()
                 if obj:
                     obj_submenu = wx.Menu()
                     #
@@ -1083,7 +1095,7 @@ class TrackView(UIViewObject):
                     obj_submenu.Append(id_, 'Remove from track')
                     tcc.Bind(wx.EVT_MENU, self._object_menu_selection, id=id_)    
                     self._ids_functions[id_] = (self._remove_object_helper, 
-                                                   (toc.uid)
+                                                   (toc.uid), {}
                     )
                     #
                     obj_submenu.AppendSeparator() 
@@ -1091,7 +1103,7 @@ class TrackView(UIViewObject):
                     obj_submenu.Append(id_, 'Properties')
                     tcc.Bind(wx.EVT_MENU, self._object_menu_selection, id=id_)    
                     self._ids_functions[id_] = (self._properties_object_helper, 
-                                                   (toc.uid)
+                                                   (toc.uid), {}
                     )
                     #
                     obj_submenu.AppendSeparator() 
@@ -1099,10 +1111,11 @@ class TrackView(UIViewObject):
                     obj_submenu.Append(id_, 'Delete object')
                     tcc.Bind(wx.EVT_MENU, self._object_menu_selection, id=id_)    
                     self._ids_functions[id_] = (self._delete_object_helper, 
-                                                   (obj.uid)
+                                                   (obj.uid), {}
                     )
                     #
                     selected_obj_menus[obj] = obj_submenu 
+                    
         if selected_obj_menus:
             for obj, obj_submenu in selected_obj_menus.items():
                 menu.AppendSubMenu(obj_submenu, obj.get_friendly_name())
@@ -1132,24 +1145,29 @@ class TrackView(UIViewObject):
         #    print 
             
             
-    def _remove_object_helper(self, *args):
+    def _remove_object_helper(self, *args, **kwargs):
         UIM = UIManager()
         UIM.remove(args[0])
  
     
-    def _properties_object_helper(self, *args):
+    def _properties_object_helper(self, *args, **kwargs):
         UIM = UIManager()
         toc = UIM.get(args[0])    
         repr_ctrl = toc.get_representation()
         Interface.create_properties_dialog(repr_ctrl.uid)
         
         
-    def _delete_object_helper(self, *args):
+    def _delete_object_helper(self, *args, **kwargs):
         print ('_delete_object_helper:', args[0])
         OM = ObjectManager()
         OM.remove(args[0])    
 
-                   
+
+    def _data_navigator_helper(self, *args, **kwargs):
+        UIM = UIManager()
+        nav_ctrl = UIM.create('navigator_controller', parent_uid=args[0])
+        nav_ctrl.view.Show()        
+        
               
     def _menu_selection(self, event):
         UIM = UIManager()

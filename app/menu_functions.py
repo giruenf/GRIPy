@@ -73,7 +73,137 @@ WAVELET_MODES['Phase (unwrap)'] = 3
 
 
 
-def no_well_found_dialog(*args):
+
+def on_create_well(*args):
+    OM = ObjectManager() 
+    UIM = UIManager()
+    dlg = UIM.create('dialog_controller', title='Create Well')
+    ctn_name = dlg.view.AddCreateContainer('StaticBox', label='Name', 
+            orient=wx.VERTICAL, proportion=0, flag=wx.EXPAND|wx.TOP, border=5
+    )
+    #
+    def on_change_well_name(name, old_value, new_value, **kwargs):
+        if new_value == '':
+            dlg.view.enable_button(wx.ID_OK, False)
+        else:
+            dlg.view.enable_button(wx.ID_OK, True)
+    #
+    dlg.view.AddTextCtrl(ctn_name, proportion=0, flag=wx.EXPAND|wx.TOP, 
+                         border=5, widget_name='well_name', initial=''
+    )
+    textctrl_well_name = dlg.view.get_object('well_name')
+    textctrl_well_name.set_trigger(on_change_well_name)
+    #
+    ctn_index = dlg.view.AddCreateContainer('StaticBox', label='Index', orient=wx.VERTICAL, proportion=0, flag=wx.EXPAND|wx.TOP, border=5)
+    ctn_index_base = dlg.view.AddCreateContainer('BoxSizer', ctn_index, orient=wx.VERTICAL, proportion=0, flag=wx.EXPAND|wx.TOP, border=5)
+    #
+    datatypes_ = OrderedDict()
+    datatypes_['MD'] = 'MD'
+    datatypes_['Time'] = 'TIME'
+    
+    #
+    def on_change_datatype(name, old_value, new_value, **kwargs):
+        textctrl_name = dlg.view.get_object('index_name')
+        statictext_start = dlg.view.get_object('static_start')
+        statictext_end = dlg.view.get_object('static_end')
+        statictext_sampling = dlg.view.get_object('static_sampling')
+        if new_value == "TIME":
+            textctrl_name.set_value('Time')
+            statictext_start.set_value('Start (ms):')
+            statictext_end.set_value('End (ms):')
+            statictext_sampling.set_value('Sampling (ms):')
+        elif new_value == "MD":
+            textctrl_name.set_value('Depth')  
+            statictext_start.set_value('Start (m):')
+            statictext_end.set_value('End (m):')
+            statictext_sampling.set_value('Sampling (m):')
+        #
+    #    
+    c1 = dlg.view.AddCreateContainer('BoxSizer', ctn_index_base, orient=wx.HORIZONTAL, proportion=1, flag=wx.EXPAND|wx.ALL, border=5)
+    dlg.view.AddStaticText(c1, label='Type:', proportion=1, flag=wx.ALIGN_RIGHT)
+    dlg.view.AddChoice(c1, proportion=1, flag=wx.ALIGN_LEFT, widget_name='datatype', options=datatypes_)
+    choice_datatype = dlg.view.get_object('datatype')
+    choice_datatype.set_trigger(on_change_datatype)
+    #
+    c2 = dlg.view.AddCreateContainer('BoxSizer', ctn_index_base, orient=wx.HORIZONTAL, proportion=1, flag=wx.EXPAND|wx.ALL, border=5)
+    dlg.view.AddStaticText(c2, label='Name:', proportion=1, flag=wx.ALIGN_RIGHT)
+    dlg.view.AddTextCtrl(c2, proportion=1, flag=wx.ALIGN_LEFT, widget_name='index_name', initial='') 
+    #
+    c3 = dlg.view.AddCreateContainer('BoxSizer', ctn_index_base, orient=wx.HORIZONTAL, proportion=1, flag=wx.EXPAND|wx.ALL, border=5)
+    dlg.view.AddStaticText(c3, label='', widget_name='static_start', proportion=1, flag=wx.ALIGN_RIGHT)
+    dlg.view.AddTextCtrl(c3, proportion=1, flag=wx.ALIGN_LEFT, widget_name='start', initial='0.0')     
+    #
+    c4 = dlg.view.AddCreateContainer('BoxSizer', ctn_index_base, orient=wx.HORIZONTAL, proportion=1, flag=wx.EXPAND|wx.ALL, border=5)
+    dlg.view.AddStaticText(c4, label='', widget_name='static_end', proportion=1, flag=wx.ALIGN_RIGHT) 
+    dlg.view.AddTextCtrl(c4, proportion=1, flag=wx.ALIGN_LEFT, widget_name='end', initial='5000.0')  
+    #
+    c5 = dlg.view.AddCreateContainer('BoxSizer', ctn_index_base, orient=wx.HORIZONTAL, proportion=1, flag=wx.EXPAND|wx.ALL, border=5)
+    dlg.view.AddStaticText(c5, label='', widget_name='static_sampling', proportion=1, flag=wx.ALIGN_RIGHT)    
+    dlg.view.AddTextCtrl(c5, proportion=1, flag=wx.ALIGN_LEFT, widget_name='ts', initial='4.0')  
+    #
+    choice_datatype.set_value(0, True)
+    dlg.view.enable_button(wx.ID_OK, False)
+    #
+    dlg.view.SetSize((280, 360))
+    result = dlg.view.ShowModal()
+    #
+    disableAll = wx.WindowDisabler()
+    wait = wx.BusyInfo("Creating new well. Wait...")
+    #
+    try:
+        if result == wx.ID_OK:
+            results = dlg.get_results() 
+            well_name = results['well_name']
+            datatype = results['datatype']
+            if datatype == 'TIME':
+                unit = 'ms'
+            elif datatype == 'MD':    
+                unit = 'm'
+            index_name = results['index_name']
+            start = float(results['start'])
+            end = float(results['end'])
+            ts = float(results['ts'])
+            samples = ((end-start)/ts)+1
+            #
+            try:
+                well = OM.new('well', name=well_name) 
+                if not OM.add(well):
+                    raise Exception('Well was not created.')
+            except:
+                try:
+                    OM.remove(well.uid)
+                except:
+                    pass
+                well = None
+                raise
+            #
+            curve_set = well.create_new_curve_set()
+            #
+            try:
+                index = OM.new('data_index', name=index_name, datatype=datatype, 
+                               unit=unit, start=start, samples=samples, step=ts
+                )            
+                if not OM.add(index, curve_set.uid):
+                    raise Exception('DataIndex was not created.')  
+            except:
+                try:
+                    OM.remove(well.uid)
+                except:
+                    pass
+                well = None
+                raise
+            #
+    except:
+        pass
+    finally:                
+        del wait
+        del disableAll
+    UIM.remove(dlg.uid)   
+    return well
+
+
+
+def no_well_found_dialog(*args, **kwargs):
     msg = 'This project has not a well. Create one?'
     ret_val = wx.MessageBox(msg, 'Warning', wx.ICON_EXCLAMATION | wx.YES_NO)    
     if ret_val == wx.YES:
@@ -85,14 +215,34 @@ def no_well_found_dialog(*args):
     return None
 
 
+def get_wells_dict(*args, **kwargs):
+    """Used to select a well to be displayed in ComboBox widget like.
+    If no well is found, user will be asked to create one.
+    
+    Returns a OrderedDict ``wells_od[well.name] = well.uid```or None if the 
+    user did not create a well.
+    """
+    wells_od = OrderedDict()
+    OM = ObjectManager() 
+    wells = OM.list('well')
+    if not wells: 
+        well = no_well_found_dialog()
+        if well:
+            wells = [well]
+        else:
+            msg = 'There is no Well in this project.'
+            wx.MessageBox(msg, 'ERROR', wx.ICON_ERROR|wx.OK_DEFAULT)  
+            return None
+    for well in wells:
+        wells_od[well.name] = well.uid
+    return wells_od    
+
 
 
 def calc_well_time_from_depth(event):
-    
-    OM = ObjectManager() 
-    wells = OrderedDict()
-    for well in OM.list('well'):
-        wells[well.name] = well.uid
+    wells = get_wells_dict()
+    if wells is None:
+        return
     #    
     UIM = UIManager()    
     try:
@@ -121,21 +271,10 @@ def calc_well_time_from_depth(event):
 
 
 def on_new_wellplot(*args):
-    try:
-        OM = ObjectManager() 
-        wells = OrderedDict()
-        for well in OM.list('well'):
-            wells[well.name] = well.uid
-        #    
-        if not wells: 
-            well = no_well_found_dialog()
-            if well:
-                wells[well.name] = well.uid
-            else:
-                return
-    except:
-        raise        
-            
+    wells = get_wells_dict()
+    if wells is None:
+        return
+    #         
     UIM = UIManager()
     try:
         dlg = UIM.create('dialog_controller', title='New well plot')
@@ -696,6 +835,13 @@ def on_akirichards_pp(event):
     print ('\non_akirichards_pp')    
     #
     
+    
+    wells = get_wells_dict()
+    if wells is None:
+        return
+    #   
+        
+        
     def calc_poisson(vp, vs):
         aux = vp/vs
         aux = np.power(aux, 2)
@@ -749,9 +895,6 @@ def on_akirichards_pp(event):
     dlg = UIM.create('dialog_controller', title='P-Wave Modeling')
     #
     try:
-        wells = OrderedDict()
-        for well in OM.list('well'):
-            wells[well.name] = well.uid
         #
         ctn_well = dlg.view.AddCreateContainer('StaticBox', label='Well', orient=wx.VERTICAL, proportion=0, flag=wx.EXPAND|wx.TOP, border=5)
         dlg.view.AddChoice(ctn_well, proportion=0, flag=wx.EXPAND|wx.TOP, border=5, widget_name='welluid', options=wells)
@@ -3009,6 +3152,10 @@ def on_import_segy_seis(event):
 
 
 def on_import_segy_well_gather(event):
+    wells = get_wells_dict()
+    if wells is None:
+        return
+    #   
     UIM = UIManager()
     dlg = UIM.create('dialog_controller', title='Import SEG-Y Well Gather') 
     #
@@ -3040,10 +3187,6 @@ def on_import_segy_well_gather(event):
         dlg.view.AddTextCtrl(ctn_where_xline, proportion=0, flag=wx.EXPAND|wx.TOP, border=5, widget_name='xline_number')
         #
         ctn_wells = dlg.view.AddCreateContainer('StaticBox', label='Well', orient=wx.VERTICAL, proportion=0, flag=wx.EXPAND|wx.TOP, border=5)
-        wells = OrderedDict()
-        OM = ObjectManager()
-        for well in OM.list('well'):
-            wells[well.name] = well.uid
         dlg.view.AddChoice(ctn_wells, proportion=0, flag=wx.EXPAND|wx.TOP, border=5,  widget_name='welluid', options=wells)     
         #
         ctn_gather = dlg.view.AddCreateContainer('StaticBox', label='Well gather name', orient=wx.VERTICAL, proportion=0, flag=wx.EXPAND|wx.TOP, border=5)
@@ -3288,14 +3431,14 @@ def on_edit_partition(event):
     tree_ctrl.refresh() 
  
     
-def on_createrock(event):
+def on_createrock(event): 
+    wells = get_wells_dict()
+    if wells is None:
+        return
+    #       
     OM = ObjectManager() 
     UIM = UIManager()
     dlg = UIM.create('dialog_controller', title='Create Rock')
-    wells = OrderedDict()
-    for well in OM.list('well'):
-        wells[well.name] = well.uid
-
     #    
     c1 = dlg.view.AddCreateContainer('StaticBox', label='Well', orient=wx.VERTICAL, proportion=0, flag=wx.EXPAND|wx.TOP, border=5)
     dlg.view.AddChoice(c1, proportion=0, flag=wx.EXPAND|wx.TOP, border=5,  widget_name='welluid', options=wells)
@@ -3322,143 +3465,18 @@ def on_createrock(event):
         UIM.remove(dlg.uid)        
         
     
-def on_create_well(*args):
-    OM = ObjectManager() 
-    UIM = UIManager()
-    dlg = UIM.create('dialog_controller', title='Create Well')
-    ctn_name = dlg.view.AddCreateContainer('StaticBox', label='Name', 
-            orient=wx.VERTICAL, proportion=0, flag=wx.EXPAND|wx.TOP, border=5
-    )
-    #
-    def on_change_well_name(name, old_value, new_value, **kwargs):
-        if new_value == '':
-            dlg.view.enable_button(wx.ID_OK, False)
-        else:
-            dlg.view.enable_button(wx.ID_OK, True)
-    #
-    dlg.view.AddTextCtrl(ctn_name, proportion=0, flag=wx.EXPAND|wx.TOP, 
-                         border=5, widget_name='well_name', initial=''
-    )
-    textctrl_well_name = dlg.view.get_object('well_name')
-    textctrl_well_name.set_trigger(on_change_well_name)
-    #
-    #container = dlg.view.AddStaticBoxContainer(label='Synthetic type', orient=wx.VERTICAL, proportion=0, flag=wx.EXPAND|wx.TOP, border=5)
-    #dlg.view.AddChoice(container, proportion=0, flag=wx.EXPAND|wx.TOP, border=5, widget_name='synth_type', initial=synth_type)  
-    ctn_index = dlg.view.AddCreateContainer('StaticBox', label='Index', orient=wx.VERTICAL, proportion=0, flag=wx.EXPAND|wx.TOP, border=5)
-    ctn_index_base = dlg.view.AddCreateContainer('BoxSizer', ctn_index, orient=wx.VERTICAL, proportion=0, flag=wx.EXPAND|wx.TOP, border=5)
-    #
-    datatypes_ = OrderedDict()
-    datatypes_['MD'] = 'MD'
-    datatypes_['Time'] = 'TIME'
-    
-    #
-    def on_change_datatype(name, old_value, new_value, **kwargs):
-        textctrl_name = dlg.view.get_object('index_name')
-        statictext_start = dlg.view.get_object('static_start')
-        statictext_end = dlg.view.get_object('static_end')
-        statictext_sampling = dlg.view.get_object('static_sampling')
-        if new_value == "TIME":
-            textctrl_name.set_value('Time')
-            statictext_start.set_value('Start (ms):')
-            statictext_end.set_value('End (ms):')
-            statictext_sampling.set_value('Sampling (ms):')
-        elif new_value == "MD":
-            textctrl_name.set_value('Depth')  
-            statictext_start.set_value('Start (m):')
-            statictext_end.set_value('End (m):')
-            statictext_sampling.set_value('Sampling (m):')
-        #
-    #    
-    c1 = dlg.view.AddCreateContainer('BoxSizer', ctn_index_base, orient=wx.HORIZONTAL, proportion=1, flag=wx.EXPAND|wx.ALL, border=5)
-    dlg.view.AddStaticText(c1, label='Type:', proportion=1, flag=wx.ALIGN_RIGHT)
-    dlg.view.AddChoice(c1, proportion=1, flag=wx.ALIGN_LEFT, widget_name='datatype', options=datatypes_)
-    choice_datatype = dlg.view.get_object('datatype')
-    choice_datatype.set_trigger(on_change_datatype)
-    #
-    c2 = dlg.view.AddCreateContainer('BoxSizer', ctn_index_base, orient=wx.HORIZONTAL, proportion=1, flag=wx.EXPAND|wx.ALL, border=5)
-    dlg.view.AddStaticText(c2, label='Name:', proportion=1, flag=wx.ALIGN_RIGHT)
-    dlg.view.AddTextCtrl(c2, proportion=1, flag=wx.ALIGN_LEFT, widget_name='index_name', initial='') 
-    #
-    c3 = dlg.view.AddCreateContainer('BoxSizer', ctn_index_base, orient=wx.HORIZONTAL, proportion=1, flag=wx.EXPAND|wx.ALL, border=5)
-    dlg.view.AddStaticText(c3, label='', widget_name='static_start', proportion=1, flag=wx.ALIGN_RIGHT)
-    dlg.view.AddTextCtrl(c3, proportion=1, flag=wx.ALIGN_LEFT, widget_name='start', initial='0.0')     
-    #
-    c4 = dlg.view.AddCreateContainer('BoxSizer', ctn_index_base, orient=wx.HORIZONTAL, proportion=1, flag=wx.EXPAND|wx.ALL, border=5)
-    dlg.view.AddStaticText(c4, label='', widget_name='static_end', proportion=1, flag=wx.ALIGN_RIGHT) 
-    dlg.view.AddTextCtrl(c4, proportion=1, flag=wx.ALIGN_LEFT, widget_name='end', initial='5000.0')  
-    #
-    c5 = dlg.view.AddCreateContainer('BoxSizer', ctn_index_base, orient=wx.HORIZONTAL, proportion=1, flag=wx.EXPAND|wx.ALL, border=5)
-    dlg.view.AddStaticText(c5, label='', widget_name='static_sampling', proportion=1, flag=wx.ALIGN_RIGHT)    
-    dlg.view.AddTextCtrl(c5, proportion=1, flag=wx.ALIGN_LEFT, widget_name='ts', initial='4.0')  
-    #
-    #print ctn_index_base
-    #dlg.view.DetachContainer(ctn_index)
-    #dlg.view.AddContainer(ctn_index, proportion=0, flag=wx.EXPAND|wx.TOP, border=5)
-    #
-    choice_datatype.set_value(0, True)
-    dlg.view.enable_button(wx.ID_OK, False)
-    #
-    dlg.view.SetSize((280, 360))
-    result = dlg.view.ShowModal()
-    #
-    try:
-        disableAll = wx.WindowDisabler()
-        wait = wx.BusyInfo("Creating new well. Wait...")
-        
-        if result == wx.ID_OK:
-            results = dlg.get_results() 
-            well_name = results['well_name']
-            datatype = results['datatype']
-            if datatype == 'TIME':
-                unit = 'ms'
-            elif datatype == 'MD':    
-                unit = 'm'
-            index_name = results['index_name']
-            start = float(results['start'])
-            end = float(results['end'])
-            ts = float(results['ts'])
-            samples = ((end-start)/ts)+1
-            #
-            #
-            well = OM.new('well', name=well_name) 
-            if not OM.add(well):
-                raise Exception('Well was not created.')    
-            #   
-            curve_set = well.create_new_curve_set()
-            #
-            index = OM.new('data_index', name=index_name, datatype=datatype, 
-                           unit=unit, start=start, samples=samples, step=ts
-            )            
-            if not OM.add(index, curve_set.uid):
-                raise Exception('DataIndex was not created.')  
-    except Exception as e:
-        print ('ERROR [on_create_well]:', str(e))
-        raise
-    finally:
-        del wait
-        del disableAll
-        UIM.remove(dlg.uid)   
-    return well
+
     
 
 def on_create_synthetic(event):
-    OM = ObjectManager() 
-    wells = OM.list('well')
-    #
-    if not wells: 
-        well = no_well_found_dialog()
-        if well:
-            wells[well.name] = well.uid
-        else:
-            return
-    #
+    wells = get_wells_dict()
+    if wells is None:
+        return
+    #   
+    OM = ObjectManager()
     UIM = UIManager()
     dlg = UIM.create('dialog_controller', title='Create Synthetic Log')
-    wells_od = OrderedDict()
-    for well in wells:
-        wells_od[well.name] = well.uid
     #
-
     def on_change_well(name, old_value, new_value, **kwargs):
         choice = dlg.view.get_object('indexuid')
         opt = OrderedDict()
@@ -3470,7 +3488,7 @@ def on_create_synthetic(event):
         choice.set_value(0, True)
     #
     c1 = dlg.view.AddCreateContainer('StaticBox', label='Well', orient=wx.VERTICAL, proportion=0, flag=wx.EXPAND|wx.TOP, border=5)
-    dlg.view.AddChoice(c1, proportion=0, flag=wx.EXPAND|wx.TOP, border=5, widget_name='welluid', options=wells_od)
+    dlg.view.AddChoice(c1, proportion=0, flag=wx.EXPAND|wx.TOP, border=5, widget_name='welluid', options=wells)
     choice_well = dlg.view.get_object('welluid')
     choice_well.set_trigger(on_change_well) 
     #
@@ -3687,19 +3705,13 @@ def on_create_synthetic(event):
 
 
 def on_create_model(event):
+    wells = get_wells_dict()
+    if wells is None:
+        return
+    #        
     OM = ObjectManager() 
     UIM = UIManager()
     dlg = UIM.create('dialog_controller', title='Create 2/3 layers model')
-    wells = OrderedDict()
-    for well in OM.list('well'):
-        wells[well.name] = well.uid
-    #
-    if not wells: 
-        well = no_well_found_dialog()
-        if well:
-            wells[well.name] = well.uid
-        else:
-            return
     #
     def on_change_well(name, old_value, new_value, **kwargs):
         choice = dlg.view.get_object('indexuid')
@@ -3772,60 +3784,6 @@ def on_create_model(event):
     ctn_q3 = dlg.view.AddCreateContainer('StaticBox', ctn_layer_3, label='Q', orient=wx.VERTICAL, proportion=0, flag=wx.EXPAND|wx.TOP, border=5)
     dlg.view.AddTextCtrl(ctn_q3, proportion=0, flag=wx.EXPAND|wx.TOP, border=5, widget_name='q3', initial=2000.0)   
     #    
-    """
-    ctn_layer_1 = dlg.view.AddCreateContainer('StaticBox', label='Layer 1', orient=wx.HORIZONTAL)
-    #
-    ctn_start1 = dlg.view.AddCreateContainer('StaticBox', ctn_layer_1, label='Start', orient=wx.VERTICAL, proportion=0, flag=wx.EXPAND|wx.TOP, border=5)
-    dlg.view.AddTextCtrl(ctn_start1, proportion=0, flag=wx.EXPAND|wx.TOP, border=5, widget_name='start1')
-    #
-    ctn_vp1 = dlg.view.AddCreateContainer('StaticBox', ctn_layer_1, label='Vp(m/s)', orient=wx.VERTICAL, proportion=0, flag=wx.EXPAND|wx.TOP, border=5)
-    dlg.view.AddTextCtrl(ctn_vp1, proportion=0, flag=wx.EXPAND|wx.TOP, border=5, widget_name='vp1', initial=3750.0)
-    #
-    ctn_vs1 = dlg.view.AddCreateContainer('StaticBox', ctn_layer_1, label='Vs(m/s)', orient=wx.VERTICAL, proportion=0, flag=wx.EXPAND|wx.TOP, border=5)
-    dlg.view.AddTextCtrl(ctn_vs1, proportion=0, flag=wx.EXPAND|wx.TOP, border=5, widget_name='vs1', initial=2500.0)      
-    #
-    ctn_rho1 = dlg.view.AddCreateContainer('StaticBox', ctn_layer_1, label='Rho(g/cm3)', orient=wx.VERTICAL, proportion=0, flag=wx.EXPAND|wx.TOP, border=5)
-    dlg.view.AddTextCtrl(ctn_rho1, proportion=0, flag=wx.EXPAND|wx.TOP, border=5, widget_name='rho1', initial=2.6)
-    #    
-    ctn_q1 = dlg.view.AddCreateContainer('StaticBox', ctn_layer_1, label='Q', orient=wx.VERTICAL, proportion=0, flag=wx.EXPAND|wx.TOP, border=5)
-    dlg.view.AddTextCtrl(ctn_q1, proportion=0, flag=wx.EXPAND|wx.TOP, border=5, widget_name='q1', initial=2000.0)            
-    #   
-    #
-    ctn_layer_2 = dlg.view.AddCreateContainer('StaticBox', label='Layer 2', orient=wx.HORIZONTAL)
-    #
-    ctn_start2 = dlg.view.AddCreateContainer('StaticBox', ctn_layer_2, label='Start', orient=wx.VERTICAL, proportion=0, flag=wx.EXPAND|wx.TOP, border=5)
-    dlg.view.AddTextCtrl(ctn_start2, proportion=0, flag=wx.EXPAND|wx.TOP, border=5, widget_name='start2', initial=100.0)  
-    #
-    ctn_vp2 = dlg.view.AddCreateContainer('StaticBox', ctn_layer_2, label='Vp(m/s)', orient=wx.VERTICAL, proportion=0, flag=wx.EXPAND|wx.TOP, border=5)
-    dlg.view.AddTextCtrl(ctn_vp2, proportion=0, flag=wx.EXPAND|wx.TOP, border=5, widget_name='vp2', initial=3000.0)
-    #
-    ctn_vs2 = dlg.view.AddCreateContainer('StaticBox', ctn_layer_2, label='Vs(m/s)', orient=wx.VERTICAL, proportion=0, flag=wx.EXPAND|wx.TOP, border=5)
-    dlg.view.AddTextCtrl(ctn_vs2, proportion=0, flag=wx.EXPAND|wx.TOP, border=5, widget_name='vs2', initial=1200.0)      
-    #
-    ctn_rho2 = dlg.view.AddCreateContainer('StaticBox', ctn_layer_2, label='Rho(g/cm3)', orient=wx.VERTICAL, proportion=0, flag=wx.EXPAND|wx.TOP, border=5)
-    dlg.view.AddTextCtrl(ctn_rho2, proportion=0, flag=wx.EXPAND|wx.TOP, border=5, widget_name='rho2', initial=1.90)           
-    #    
-    ctn_q2 = dlg.view.AddCreateContainer('StaticBox', ctn_layer_2, label='Q', orient=wx.VERTICAL, proportion=0, flag=wx.EXPAND|wx.TOP, border=5)
-    dlg.view.AddTextCtrl(ctn_q2, proportion=0, flag=wx.EXPAND|wx.TOP, border=5, widget_name='q2', initial=100.0)  
-    #
-    ctn_layer_3 = dlg.view.AddCreateContainer('StaticBox', label='Layer 3', orient=wx.HORIZONTAL)
-    #
-    ctn_start3 = dlg.view.AddCreateContainer('StaticBox', ctn_layer_3, label='Start', orient=wx.VERTICAL, proportion=0, flag=wx.EXPAND|wx.TOP, border=5)
-    dlg.view.AddTextCtrl(ctn_start3, proportion=0, flag=wx.EXPAND|wx.TOP, border=5, widget_name='start3', initial=200.0)       
-    #
-    ctn_vp3 = dlg.view.AddCreateContainer('StaticBox', ctn_layer_3, label='Vp(m/s)', orient=wx.VERTICAL, proportion=0, flag=wx.EXPAND|wx.TOP, border=5)
-    dlg.view.AddTextCtrl(ctn_vp3, proportion=0, flag=wx.EXPAND|wx.TOP, border=5, widget_name='vp3', initial=3750.0)
-    #
-    ctn_vs3 = dlg.view.AddCreateContainer('StaticBox', ctn_layer_3, label='Vs(m/s)', orient=wx.VERTICAL, proportion=0, flag=wx.EXPAND|wx.TOP, border=5)
-    dlg.view.AddTextCtrl(ctn_vs3, proportion=0, flag=wx.EXPAND|wx.TOP, border=5, widget_name='vs3', initial=2500.0)        
-    #
-    ctn_rho3 = dlg.view.AddCreateContainer('StaticBox', ctn_layer_3, label='Rho(g/cm3)', orient=wx.VERTICAL, proportion=0, flag=wx.EXPAND|wx.TOP, border=5)
-    dlg.view.AddTextCtrl(ctn_rho3, proportion=0, flag=wx.EXPAND|wx.TOP, border=5, widget_name='rho3', initial=2.6)          
-    #    
-    ctn_q3 = dlg.view.AddCreateContainer('StaticBox', ctn_layer_3, label='Q', orient=wx.VERTICAL, proportion=0, flag=wx.EXPAND|wx.TOP, border=5)
-    dlg.view.AddTextCtrl(ctn_q3, proportion=0, flag=wx.EXPAND|wx.TOP, border=5, widget_name='q3', initial=2000.0)   
-    #
-    """
     dlg.view.SetSize((650, 500))
     result = dlg.view.ShowModal()
     try:
@@ -4043,10 +4001,7 @@ def on_create_model(event):
             for log in logs:
                 log._create_data_index_map([index.uid, owt_index.uid, twt_index.uid])
             
-            #
-
-
-              
+            #      
     except Exception as e:
         print ('ERROR [on_create_model]:', str(e))
         raise
@@ -4058,13 +4013,13 @@ def on_create_model(event):
 
 
 def on_time_depth(event):
-
+    wells = get_wells_dict()
+    if wells is None:
+        return
+    #   
     OM = ObjectManager() 
     UIM = UIManager()
     dlg = UIM.create('dialog_controller', title='Time Depth')
-    wells = OrderedDict()
-    for well in OM.list('well'):
-        wells[well.name] = well.uid
     #
     def on_change_well(name, old_value, new_value, **kwargs):
         choice = dlg.view.get_object('vpuid')

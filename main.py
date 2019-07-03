@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """
 GRIPy - Geofisica de Reservatorio Interativa em Python
 ======================================================

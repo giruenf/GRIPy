@@ -97,7 +97,7 @@ def do_STFT(*args, **kwargs):
             results = dlg.get_results()   
             if results.get('spectrogram_type'):
                 #
-                print('dm.get_data_object_uid():', toc.get_data_object_uid())
+                print('\ndo_STFT:', toc.get_data_object_uid())
                 #
                 di_uid, di_data = toc.get_last_dimension_index()
                 data_index = OM.get(di_uid)
@@ -108,17 +108,24 @@ def do_STFT(*args, **kwargs):
     
                 print(unit.dimension, dim, dim.name)
                 if dim.name == 'time':
+                    print('\nConvertendo {} de {} para {}.'.format(dim.name, data_index.unit, 's'))
                     di_data = uom.convert(di_data, data_index.unit, 's')
+                    
                 elif dim.name == 'length':
+                    print('\nConvertendo {} de {} para {}.'.format(dim.name, data_index.unit, 'm'))
                     di_data = uom.convert(di_data, data_index.unit, 'm')
+                
+                else:
+                    print('\nNao converteu')
                 # new_data = uom.convert(obj.data, obj.unit, new_unit_name)
-                
-                
+                   
                 #
                 start_value = di_data[0]
                 step_value = di_data[1] - di_data[0]
+                #
+                print('start_value: {} - step_value: {}'.format(start_value, step_value))
                 #         
-                dm_data = toc.get_data()
+                dm_data = toc.get_filtered_data()
                 #
                 #STFT(x, window_size, noverlap, time_start, Ts, mode='psd'):    
 #                print('start_value, step_value:', start_value, step_value)

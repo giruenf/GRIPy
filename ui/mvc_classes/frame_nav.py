@@ -234,45 +234,59 @@ class DimensionPanel(wx.Panel):
         return ret
     
 
+
+
+
 ###############################################################################
 ###############################################################################
+
+
 
 
 class NavigatorController(FrameController):
     tid = 'navigator_controller'
     
     _ATTRIBUTES = OrderedDict()
-    _ATTRIBUTES['data_filter_oid'] = {
+    """
+    _ATTRIBUTES['toc_uid'] = {
             'default_value': None,
-            'type': int
-    }  
+            'type': 'uid'
+    }
+    """
     
     def __init__(self, **state):
+        state['title'] = 'Data navigator'
+        state['size'] = (350, 600)
         super().__init__(**state)
  
+    
     def PostInit(self):
+        toc = self._get_track_object_controller()
         OM = ObjectManager()
-        df = OM.get(('data_filter', self.data_filter_oid))
-        data_indexes = df.data[::-1]
-        for (di_uid, display, is_range, first, last) in data_indexes:
-            #obj = OM.get(di_uid)
-            #print '\n', obj.name, display, is_range, first, last
-            self.view.add_panel(di_uid, display, is_range, first, last)  
+        for (di_uid, display, first, last) in toc._data:
+            di = OM.get(di_uid)
+            print('\n', di.name, display, first, last)
+            self.view.add_panel(di_uid, display, first, last)
         self.view.add_bottom_panel()    
 
 
+    def _get_track_object_controller(self):
+        UIM = UIManager()
+        toc_uid = UIM._getparentuid(self.uid)
+        return UIM.get(toc_uid)
+        
+
     def Set(self, results):
         print ('NavigatorController.Set:', results)
-        OM = ObjectManager()
-        df = OM.get(('data_filter', self.data_filter_oid))
+        toc = self._get_track_object_controller()
         new_data = []
-        for result in results[::-1]:
+        for result in results:
             new_data.append((result['uid'], result['display'], 
-                            result['is_range'], result['start'], result['end'])
+                            result['start'], result['end'])
             ) 
             #print result
-        df.data = new_data
-        df.reload_data()
+        toc._data = new_data
+        toc.redraw()
         print ('NavigatorController.Set ENDED')
         
 
@@ -287,8 +301,8 @@ class Navigator(Frame):
         self.basepanel.SetSizer(self.sizer)
         self.panels = []
 
-    def add_panel(self, data_index_uid, display, is_range, start, end):
-        panel = DimensionPanel(data_index_uid, display, is_range, start, end, self.basepanel)
+    def add_panel(self, data_index_uid, display, start, end):
+        panel = DimensionPanel(data_index_uid, display, True, start, end, self.basepanel)
         self.panels.append(panel)
         self.sizer.Add(panel, 0, wx.EXPAND|wx.TOP|wx.LEFT|wx.RIGHT, 5) #wx.ALIGN_CENTER
         self.sizer.Layout()

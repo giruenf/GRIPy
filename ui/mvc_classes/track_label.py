@@ -403,7 +403,7 @@ class OffsetDataLabel(FigureCanvas):
         self.subtitle = None
         #
 
-    def _get_ruler_line(self):
+    def _get_offsets_line(self):
         offsets_line = self._mplot_objects.get('offsets_line') 
         if not offsets_line:      
             extent = self._properties.get('axes_extent', None)
@@ -428,17 +428,21 @@ class OffsetDataLabel(FigureCanvas):
 
 
     def set_offset(self, offsets_list, x_positions, xlim):
-        ruler_line = self._get_ruler_line()
-        ruler_line.axes.set_xlim(xlim)
+        offsets_line = self._get_offsets_line()
+        #offsets_line.axes.clear()
+        offsets_line.axes.set_xlim(xlim)
         xdata = [x_positions[0], x_positions[-1]]
         ydata = [-0.4, -0.4]
-        ruler_line.set_data(xdata, ydata)  
+        offsets_line.set_data(xdata, ydata)  
         for idx, xpos in enumerate(x_positions):    
-            ruler_line.axes.plot(xpos, -0.6, '|', color='black')
-            ruler_line.axes.text(xpos, -0.1, 
+            l = offsets_line.axes.plot(xpos, -0.6, '|', color='black')
+            t = offsets_line.axes.text(xpos, -0.1, 
                                  '{:0.1f}'.format(offsets_list[idx]), 
                                  ha='center', va='center', fontsize=9
             )
+            print()
+            print(l)
+            print(t)
 
     def set_offset_title(self, title):
         if self.title == title:
@@ -626,6 +630,12 @@ class DataLabel(wx.Panel, SelectablePanelMixin):
         if plot_type == 'wiggle' or plot_type == 'both':    
             self.create_offset()
         self.redraw()    
+
+        print('self.ldl:', self.ldl)
+        print('self.cdl:', self.cdl)
+        print('self.odl:', self.odl)
+        print('self.rdl:', self.rdl)
+        
 
     def create_title(self):
         self.tdl = TitleDataLabel(self)

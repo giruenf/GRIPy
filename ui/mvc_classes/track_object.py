@@ -1,16 +1,11 @@
 from collections import OrderedDict   
 
 import numpy as np
-import wx
 
 from classes.om import ObjectManager
 from classes.ui import UIManager
 
 from ui.mvc_classes.wxgripy import FrameController
-from ui.mvc_classes.wxgripy import Frame
-
-from classes.ui import UIControllerObject
-from classes.ui import UIViewObject 
 
 from ui.mvc_classes.representation import RepresentationController
 
@@ -54,7 +49,6 @@ _PREFERRED_PLOTTYPES = {
     'log': 'line',
     'data_index': 'index',
     'seismic': 'density',
-    'partition': 'patches',
     'scalogram': 'density',
     'gather_scalogram': 'density',
     'spectogram': 'density',
@@ -108,27 +102,23 @@ class TrackObjectController(FrameController):
             track_ctrl_uid = UIM._getparentuid(self.uid)
             self.pos = len(UIM.list(self.tid, track_ctrl_uid))     
 
-  
- 
     def PreDelete(self):
         self.plottype = None
         label = self.get_label()
         if label:
             label.destroy()
 
-
     def on_change_data_obj_uid(self, new_value, old_value):
-        print('\n\non_change_data_obj_uid', new_value, old_value)
-        OM = ObjectManager()
+        print('\non_change_data_obj_uid', new_value, old_value)
         try:
             if old_value is not None:
                 self.detach()   
-            obj = OM.get(new_value)  
+            obj = self.get_data_object() 
             # Exclude any representation, if exists
             self.plottype = None
             if obj:
-                self._init_data()
-                
+                self._init_data_mask()
+
                 # TODO: Verificar isso
                 # Setando datatype do eixo Z
                 index_type = self.get_well_plot_index_type()
@@ -136,12 +126,12 @@ class TrackObjectController(FrameController):
                 self.plottype = _PREFERRED_PLOTTYPES.get(obj.uid[0])
                 self.attach(obj.uid)
         except Exception as e:
-            print ('\n\n\nERROR on_change_obj_oid:', e)
+            print ('\nERROR on_change_obj_oid:', e)
             raise
 
 
     def on_change_plottype(self, new_value, old_value):
-        print('\n\non_change_plottype', new_value, old_value)
+        print('\non_change_plottype', new_value, old_value)
         #
         UIM = UIManager()
         repr_ctrl = self.get_representation()
@@ -150,8 +140,6 @@ class TrackObjectController(FrameController):
         if repr_ctrl:
             UIM.remove(repr_ctrl.uid) 
         if label:
-            #UIM.remove(label_ctrl.uid)   
-            #label._remove_all_canvas()
             label.destroy()
         #    
         if new_value is not None:
@@ -166,9 +154,9 @@ class TrackObjectController(FrameController):
                                                         toc_uid=track_ctrl_uid
                     )
                     #
-                    label.set_title(self.get_data_name())
-                    label.set_subtitle(self.get_data_type())
-                    label.set_plot_type(new_value)
+                    data_obj = self.get_data_object()
+                    label.set_title(data_obj.name)
+                    label.set_subtitle(data_obj.datatype)
                     #
                     self._label = label
                     #
@@ -187,8 +175,6 @@ class TrackObjectController(FrameController):
                 self.plottype = None    
                 raise
 
-
-
     def get_representation(self):
         # Returns the real OM.object representation
         UIM = UIManager()
@@ -203,20 +189,6 @@ class TrackObjectController(FrameController):
     def get_label(self):
         # Returns the real OM.object representation
         return self._label
-    
- 
-    
-        """
-        UIM = UIManager()
-        children = UIM.list(None, self.uid)
-        if len(children) == 0:
-            # It's a overview 
-            return None
-        for child in children:
-            if isinstance(child, DataLabel):
-                return child
-        """
-
 
 
     def on_change_picked(self, new_value, old_value):
@@ -239,9 +211,10 @@ class TrackObjectController(FrameController):
                       
             
     def redraw(self):
-        if not self.get_representation():
+        repr_ctrl = self.get_representation()
+        if not repr_ctrl:
             return False
-        return self.get_representation().redraw()
+        return repr_ctrl.draw()
 
 
     def get_well_plot_index_type(self):
@@ -286,32 +259,24 @@ class TrackObjectController(FrameController):
         return state
     
     
-
-
-    #'''
-    #TODO: passar pelo navigator
     def get_data_info(self, event):
         repr_ctrl = self.get_representation()
         if not repr_ctrl:
             return None        
         return repr_ctrl.get_data_info(event)
-    #'''
 
 
     def is_valid(self):
         return self.get_representation() is not None
 
 
-    def _init_data(self):
-        print('\n_init_data:', self.data_obj_uid)
+    # Os metodos abaixo se referem aos processos de data mask (data filter)
+    # que foram integrados a esta classe. 
+    def _init_data_mask(self):
+        print('\n_init_data_mask:', self.data_obj_uid)
         try:
             OM = ObjectManager()
             data_obj = OM.get(self.data_obj_uid)
-            # No need to get unit from data_obj if it not changed.
-            self._data_name = data_obj.name
-            self._data_unit = data_obj.unit 
-            self._data_type = data_obj.datatype
-            #
             data_indexes = data_obj.get_data_indexes() 
             for dim_idx in range(len(data_indexes)):
                 indexes_per_dim_uid = data_indexes[dim_idx]
@@ -319,29 +284,40 @@ class TrackObjectController(FrameController):
                 di = OM.get(di_uid)  
                 if (len(data_indexes) - dim_idx) <= 2:    
                     # Sempre exibe as 2 ultimas dimensoes do dado.
-                    # Ex: sismica 3-d stacked (iline, xline, tempo) serah exibido
-                    # xline e tempo, em principio.
+                    # Ex: sismica 3-d stacked (iline, xline, tempo) 
+                    # serah exibido xline e tempo, em principio.
                     # (di_uid, is_ranged, start, stop)
                     self._data.append([di_uid, True, 0, len(di.data)])
                 else:
-                    self._data.append([di_uid, False, 0, len(di.data)])            
-                # 
+                    self._data.append([di_uid, False, 0, len(di.data)])
         except Exception as e:
-            print('ERROR _init_data:', e)
+            print('ERROR _init_data_mask:', e)
             raise
 
 
-    def get_data_name(self):
-        return self._data_name
-    
-    def get_data_unit(self):
-        return self._data_unit
-
-    def get_data_type(self):
-        return self._data_type
-
     def get_data_object_uid(self):
         return self.data_obj_uid 
+
+    def get_data_object(self):
+        if not self.data_obj_uid:
+            return None
+        OM = ObjectManager()
+        return OM.get(self.data_obj_uid)
+    
+    def get_data_name(self):
+        """Convenience function."""
+        data_obj = self.get_data_object()
+        return data_obj.name
+    
+    def get_data_unit(self):
+        """Convenience function."""
+        data_obj = self.get_data_object()
+        return data_obj.unit
+
+    def get_data_type(self):
+        """Convenience function."""
+        data_obj = self.get_data_object()
+        return data_obj.datatype
 
     # TODO: rename to set_dimension_data
     def set_dimension(self, dim_idx=-1, **kwargs):
@@ -386,8 +362,7 @@ class TrackObjectController(FrameController):
             return True
 #        print('set_dimension DEU FALSE')
         return False
-    
-    
+      
     def _get_slicer(self):        
         slicer = []     
         for [di_uid, is_range, start, stop] in self._data:       
@@ -397,9 +372,8 @@ class TrackObjectController(FrameController):
                 slicer.append(slice(start, stop))            
         slicer = tuple(slicer)
         return slicer
-    
-    
-    def get_data(self, dimensions_desired=None):
+     
+    def get_filtered_data(self, dimensions_desired=None):
         if dimensions_desired is not None and dimensions_desired not in [1, 2]:
             raise Exception('Dimensions must be 1 or 2.')
         OM = ObjectManager()
@@ -437,9 +411,8 @@ class TrackObjectController(FrameController):
         #    
         else:
             # Possivel uso alem 2-D ou algum erro nao mapeado.
-            raise Exception('get_data - Tratar isso.')
+            raise Exception('get_filtered_data - Tratar isso.')
         return data    
-
 
     def get_index_for_dimension(self, dim_idx=-1):
         """
@@ -453,8 +426,7 @@ class TrackObjectController(FrameController):
         slicer = self._get_slicer()
         dim_di_data = di.data[slicer[dim_idx]]
         return dim_di_uid, dim_di_data 
-        
-    
+            
     def get_index_data_for_dimension(self, dim_idx=-1):
         """
         Returns the DataIndex data being applied to some dimension. 
@@ -500,7 +472,6 @@ class TrackObjectController(FrameController):
                 # Found it!
                 return True, possible_di
         return False, None
-
 
     def get_equivalent_index_data(self, datatype, dim_idx=-1):
         found, equivalent_di = self.get_equivalent_index(datatype, dim_idx)
