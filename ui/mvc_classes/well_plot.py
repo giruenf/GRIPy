@@ -93,24 +93,62 @@ class WellPlotController(WorkPageController):
         return len(UIM.list('track_controller', self.uid))   
 
 
+    def getter_func(self, *args, **kwargs):
+        print('\ngetter_func:', args, kwargs)
+        if args[0] == 'wellplot_ymin':
+            return self.wellplot_ylim[0]
+        elif args[0] == 'wellplot_ymax':
+            return self.wellplot_ylim[1]
+        
+        
+    def setter_func(self, *args, **kwargs):
+        print('\nsetter_func:', args, kwargs)    
+        
+        try:
+            if args[0] == 'wellplot_ymin':
+                _, ymax = self.wellplot_ylim
+                self.wellplot_ylim = args[1], ymax
+            elif args[0] == 'wellplot_ymax':
+                ymin, _ = self.wellplot_ylim
+                self.wellplot_ylim = ymin, args[1]
+            return True
+        except:
+            return False
+        
+    
     def _get_pg_properties_dict(self):
         """
         """
-        props = OrderedDict()
-        props['obj_uid'] = {
-            'label': 'Well uid',
-            'pg_property': 'StringProperty',
-            'enabled': False
-        }    
+        props = OrderedDict()  
+        """
         props['wellplot_ylim'] = {
             'label': 'Wellplot ylim',
             'pg_property': 'StringProperty',
-            'enabled': False
+            'validator': 
+            'enabled': True
         }
+        """
+        props['wellplot_ymin'] = {
+            'label': 'Wellplot Y min',
+            'pg_property': 'FloatProperty',
+            'getter_func': self.getter_func,
+            'setter_func': self.setter_func,
+            'subs_key': 'wellplot_ylim',
+            'enabled': True
+        }        
+        props['wellplot_ymax'] = {
+            'label': 'Wellplot Y max',
+            'pg_property': 'FloatProperty',
+            'getter_func': self.getter_func,
+            'setter_func': self.setter_func,
+            'subs_key': 'wellplot_ylim',
+            'enabled': True
+        }           
+        
         props['shown_ylim'] = {
             'label': 'Shown ylim',
             'pg_property': 'StringProperty',
-            'enabled': False
+            'enabled': True
         }    
         props['y_major_grid_lines'] = {
             'label': 'Major grid lines',
@@ -126,7 +164,9 @@ class WellPlotController(WorkPageController):
         }
         props['multicursor'] = { 
             'label': 'Multicursor',   
-            'pg_property': 'StringProperty',
+            'pg_property': 'EnumProperty',
+            'options_labels': ['None', 'Horizon', 'Vertical', 'Both'],  
+            'options_values': ['None', 'Horizon', 'Vertical', 'Both'],
             'enabled': False
         }
         props['index_type'] = {
@@ -137,11 +177,6 @@ class WellPlotController(WorkPageController):
         #'cursor_state': {
         #        'default_value': WellPlotState.NORMAL_TOOL, 
         #        'type': WellPlotState
-        #},
-
-        #'multicursor': {
-        #        'default_value': 'None', 
-        #        'type': str
         #},
 
         return props

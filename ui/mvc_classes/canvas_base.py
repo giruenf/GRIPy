@@ -1086,9 +1086,6 @@ class CanvasBaseView(UIViewObject, FigureCanvas):
         self._load_labels_properties()
         #
         
-        
-                                       
-
         #self._postpone_draw = True
         
 

@@ -1,4 +1,4 @@
-from collections import OrderedDict
+from collections import OrderedDict   
 
 import numpy as np
 import wx
@@ -68,7 +68,10 @@ def prepare_float_value(value):
 
 
 
-
+"""
+Classe para titulo do Track, nao se refere ao DataObject 
+a ser plotado no Track.
+"""
 class TrackTitleCanvas(FigureCanvas):
     def __init__(self, parent, title=None, color=None, fontsize=10):
         height = 28.0/DPI
@@ -105,26 +108,25 @@ class TrackTitleCanvas(FigureCanvas):
         bcolor : mpl color spec
             Tiles's background color. 
         """
-
         if title is not None:
             self._text.set_text(title)
         if color is not None:    
             self.figure.set_facecolor(color)
         if fontsize is not None:
             self._text.set_fontsize(fontsize)
-          
+        self.draw()   
 
 
 
-
+"""
+Classe para titulo do DataObject a ser plotado no Track.
+"""
 class TitleDataLabel(FigureCanvas):
-#    _COLOR = 'lightgray'
-    
+
     def __init__(self, parent, *args, **kwargs):
         self.parent = parent
         fig = Figure(figsize=(1, 0.30))
         super().__init__(self.parent, -1, fig)     
-#        self.figure.set_facecolor(self._COLOR)
         #
         self._mplot_objects = {}
         self._properties = {}
@@ -181,22 +183,30 @@ class TitleDataLabel(FigureCanvas):
         self.subtitle = subtitle 
 
 
-
+"""
+Classe label para plots do tipo linha.
+"""
 class LineDataLabel(FigureCanvas):
-#    _COLOR = 'red'
-    
+
     def __init__(self, parent, *args, **kwargs):
-        self.parent = parent
         fig = Figure(figsize=(1, 0.20))
-        super().__init__(self.parent, -1, fig)     
-#        self.figure.set_facecolor(self._COLOR)
-        #
+        super().__init__(parent, -1, fig)     
         self._mplot_objects = {}
         self._properties = {}
         self._properties['xleft'] = 0.01
         self._properties['xright'] = 0.99
-        self._properties['min'] = {'x': self._properties['xleft'], 'y':0.33, 'ha':'left', 'va':'center', 'fontsize':9}     
-        self._properties['max'] = {'x': self._properties['xright'], 'y':0.33, 'ha':'right', 'va':'center', 'fontsize':9}
+        self._properties['min'] = {'x': self._properties['xleft'], 
+                                   'y':0.33, 
+                                   'ha':'left', 
+                                   'va':'center', 
+                                   'fontsize':9
+        }     
+        self._properties['max'] = {'x': self._properties['xright'], 
+                                   'y':0.33, 
+                                   'ha':'right', 
+                                   'va':'center', 
+                                   'fontsize':9
+        }
         # rect : [left, bottom, width, height]
         self._properties['axes_bottom'] = 0.80
         self._properties['axes_height'] = 0.10
@@ -267,23 +277,32 @@ class LineDataLabel(FigureCanvas):
         self.lim == lim  
 
 
-
-
+"""
+Classe label para plots do tipo density.
+"""
 class ColormapDataLabel(FigureCanvas):
-#    _COLOR = 'lightgreen'
     
     def __init__(self, parent, *args, **kwargs):
         self.parent = parent
         fig = Figure(figsize=(1, 0.25))
         super().__init__(self.parent, -1, fig)     
-#        self.figure.set_facecolor(self._COLOR)
         #
         self._mplot_objects = {}
         self._properties = {}
         self._properties['xleft'] = 0.01
         self._properties['xright'] = 0.99
-        self._properties['min'] = {'x': self._properties['xleft'], 'y':0.30, 'ha':'left', 'va':'center', 'fontsize':9}     
-        self._properties['max'] = {'x': self._properties['xright'], 'y':0.30, 'ha':'right', 'va':'center', 'fontsize':9}
+        self._properties['min'] = {'x': self._properties['xleft'], 
+                                   'y':0.30, 
+                                   'ha':'left', 
+                                   'va':'center', 
+                                   'fontsize':9
+        }     
+        self._properties['max'] = {'x': self._properties['xright'], 
+                                   'y':0.30, 
+                                   'ha':'right', 
+                                   'va':'center', 
+                                   'fontsize':9
+        }
         # rect : [left, bottom, width, height]
         self._properties['axes_bottom'] = 0.65
         self._properties['axes_height'] = 0.26
@@ -295,15 +314,6 @@ class ColormapDataLabel(FigureCanvas):
         #
         self.cmap = None
         self.lim = None
-
-    def _start_variables(self):
-        self.plottype = None
-        self.left_scale = None
-        self.right_scale = None  
-
-        self.zlabel = None        
-        self.zlim = None
-        self.xlabel = None  
 
     def _get_cmap_img(self):
         cmap_img = self._mplot_objects.get('cmap_img') 
@@ -356,20 +366,15 @@ class ColormapDataLabel(FigureCanvas):
 
 
 
-
-class OffsetDataLabel(FigureCanvas):
-#    _COLOR = 'lightblue'
+"""
+Classe base para os labels dos tipos offset e régua.
+"""    
+class BaseRulerOffsetDataLabel(FigureCanvas):
     
     def __init__(self, parent, *args, **kwargs):
-        self.parent = parent
         fig = Figure(figsize=(1, 0.40))
-        super().__init__(self.parent, -1, fig)     
-#        self.figure.set_facecolor(self._COLOR)
-        #
+        super().__init__(parent, -1, fig)     
         self._mplot_objects = {}
-        self._properties = {}
-        self._properties['xleft'] = 0.00
-        self._properties['xright'] = 1.00
         self._properties['min'] = {'x': self._properties['xleft'], 
                                    'y':0.33, 
                                    'ha':'left', 
@@ -401,20 +406,18 @@ class OffsetDataLabel(FigureCanvas):
         #
         self.title = None
         self.subtitle = None
-        #
 
-    def _get_offsets_line(self):
-        offsets_line = self._mplot_objects.get('offsets_line') 
-        if not offsets_line:      
+    def _get_line(self):
+        line = self._mplot_objects.get('line') 
+        if not line:      
             extent = self._properties.get('axes_extent', None)
-            ax = create_and_prepare_axes(self.figure, extent) #, toc_uid=self._toc_uid)    
-            #
+            ax = create_and_prepare_axes(self.figure, extent) 
             ax.set_ylim((-1.0, 1.0))
-            offsets_line = Line2D([0.0, 1.0], [0.5, 0.5])
-            offsets_line.set_color('black')
-            offsets_line.set_linewidth(0.5)
-            self._mplot_objects['offsets_line'] = ax.add_line(offsets_line)
-        return offsets_line
+            line = Line2D([0.0, 1.0], [0.5, 0.5])
+            line.set_color('black')
+            line.set_linewidth(0.5)
+            self._mplot_objects['line'] = ax.add_line(line)
+        return line
 
     def _get_title_text(self):
         title_text = self._mplot_objects.get('title_text')
@@ -426,25 +429,19 @@ class OffsetDataLabel(FigureCanvas):
             self._mplot_objects['title_text'] = title_text        
         return title_text
 
+    def _remove_markers(self):
+        markers = self._mplot_objects.get('markers')
+        if markers:
+            for line, text in markers:
+                try:
+                    line.remove()
+                    text.remove()
+                except Exception as e:
+                    print('\nCannot remove markers:', line, text, e)
+                    raise
+        self._mplot_objects['markers'] = []    
 
-    def set_offset(self, offsets_list, x_positions, xlim):
-        offsets_line = self._get_offsets_line()
-        #offsets_line.axes.clear()
-        offsets_line.axes.set_xlim(xlim)
-        xdata = [x_positions[0], x_positions[-1]]
-        ydata = [-0.4, -0.4]
-        offsets_line.set_data(xdata, ydata)  
-        for idx, xpos in enumerate(x_positions):    
-            l = offsets_line.axes.plot(xpos, -0.6, '|', color='black')
-            t = offsets_line.axes.text(xpos, -0.1, 
-                                 '{:0.1f}'.format(offsets_list[idx]), 
-                                 ha='center', va='center', fontsize=9
-            )
-            print()
-            print(l)
-            print(t)
-
-    def set_offset_title(self, title):
+    def set_title(self, title):
         if self.title == title:
             return
         title_text = self._get_title_text()
@@ -452,126 +449,91 @@ class OffsetDataLabel(FigureCanvas):
         self.draw()
         self.title = title   
 
-    def set_offset_subtitle(self, subtitle):
+    def set_subtitle(self, subtitle):
         if self.subtitle == subtitle:
             return
-        subtitle_text = self._get_title_text()
-        subtitle_text.set_text(subtitle_text.get_text() + ' (' + subtitle + ')')
+        title_text = self._get_title_text()
+        title_text.set_text(title_text.get_text() + ' (' + subtitle + ')')
         self.draw()
-        self.subtitle = subtitle   
+        self.subtitle = subtitle  
 
 
-
-
-class RulerDataLabel(FigureCanvas):
-#    _COLOR = 'lightblue'
-    
+"""
+Classe label para plots do tipo offset.
+"""     
+class OffsetDataLabel(BaseRulerOffsetDataLabel):
+           
     def __init__(self, parent, *args, **kwargs):
-        self.parent = parent
-        fig = Figure(figsize=(1, 0.40))
-        super().__init__(self.parent, -1, fig)     
-#        self.figure.set_facecolor(self._COLOR)
-        #
-        self._mplot_objects = {}
+        self._properties = {}
+        self._properties['xleft'] = 0.00
+        self._properties['xright'] = 1.00
+        super().__init__(parent)     
+        self.offsets_list = None        
+   
+    def set_offset(self, offsets_list, x_positions, xlim):
+        if np.array_equal(self.offsets_list, offsets_list):
+            return
+        offsets_line = self._get_line()
+        offsets_line.axes.set_xlim(xlim)
+        xdata = [x_positions[0], x_positions[-1]]
+        ydata = [-0.4, -0.4]
+        offsets_line.set_data(xdata, ydata)
+        self._remove_markers()
+        for idx, xpos in enumerate(x_positions):    
+            line = offsets_line.axes.plot(xpos, -0.6, '|', color='black')[0]
+            text = offsets_line.axes.text(xpos, -0.1, 
+                                 #'{:0.1f}'.format(offsets_list[idx]), 
+                                 str(int(offsets_list[idx])), 
+                                 ha='center', va='center', fontsize=9
+            )
+            self._mplot_objects['markers'].append((line, text))
+        self.draw()    
+        self.offsets_list = offsets_list
+        
+
+"""
+Classe label para plots do tipo régua.
+"""     
+class RulerDataLabel(BaseRulerOffsetDataLabel):
+
+    def __init__(self, parent, *args, **kwargs):
         self._properties = {}
         self._properties['xleft'] = 0.01
         self._properties['xright'] = 0.99
-        self._properties['min'] = {'x': self._properties['xleft'], 
-                                   'y':0.33, 
-                                   'ha':'left', 
-                                   'va':'center', 
-                                   'fontsize':9
-        }     
-        self._properties['max'] = {'x': self._properties['xright'], 
-                                   'y':0.33, 
-                                   'ha':'right', 
-                                   'va':'center', 
-                                   'fontsize':9
-        }
-        # rect : [left, bottom, width, height]
-        self._properties['axes_bottom'] = 0.02
-        self._properties['axes_height'] = 0.96
-        self._properties['axes_extent'] = [self._properties['xleft'],
-                         self._properties['axes_bottom'],
-                         self._properties['xright']-self._properties['xleft'], 
-                         self._properties['axes_height']
-        ]
-        #
-        self._properties['title_text'] = {
-                                            'x': 0.5, 
-                                            'y':0.75, 
-                                            'ha':'center', 
-                                            'va':'center',
-                                            'fontsize':9
-        } 
-        #
-        self.title = None
-        self.subtitle = None
-        #
-
-    def _get_ruler_line(self):
-        offsets_line = self._mplot_objects.get('offsets_line') 
-        if not offsets_line:      
-            extent = self._properties.get('axes_extent', None)
-            ax = create_and_prepare_axes(self.figure, extent) #, toc_uid=self._toc_uid)    
-            #
-            ax.set_ylim((-1.0, 1.0))
-            offsets_line = Line2D([0.0, 1.0], [0.5, 0.5])
-            offsets_line.set_color('black')
-            offsets_line.set_linewidth(0.5)
-            self._mplot_objects['offsets_line'] = ax.add_line(offsets_line)
-        return offsets_line
-
-    def _get_title_text(self):
-        title_text = self._mplot_objects.get('title_text')
-        if not title_text:
-            title_text = create_text(self.figure, 
-                                     '', 
-                                     self._properties['title_text']
-            )
-            self._mplot_objects['title_text'] = title_text        
-        return title_text
-
+        super().__init__(parent)   
+        self.xlim = None
+        
     def set_ruler(self, x_min, x_max):
-        ruler_line = self._get_ruler_line()
+        if self.xlim == (x_min, x_max):
+            return
+        ruler_line = self._get_line()
         ruler_line.axes.set_xlim((x_min, x_max))
         xdata = [x_min, x_max]
         ydata = [-0.4, -0.4]
         ruler_line.set_data(xdata, ydata) 
-         
-        ruler_line.axes.plot(x_min, -0.6, '|', color='black')
-        ruler_line.axes.plot(x_max, -0.6, '|', color='black')
-        
-        ruler_line.axes.text(x_min, -0.1, 
-                             '{:0.1f}'.format(x_min), 
+        self._remove_markers()
+        #
+        line_left = ruler_line.axes.plot(x_min, -0.6, '|', color='black')[0]
+        text_left = ruler_line.axes.text(x_min, -0.1, 
+                             #'{:0.1f}'.format(x_min), 
+                             str(int(x_min)),
                              ha='left', va='center', fontsize=9
-        )
-        ruler_line.axes.text(x_max, -0.1, 
-                             '{:0.1f}'.format(x_max), 
+        )        
+        self._mplot_objects['markers'].append((line_left, text_left))
+        #
+        line_right = ruler_line.axes.plot(x_max, -0.6, '|', color='black')[0]
+        text_right = ruler_line.axes.text(x_max, -0.1, 
+                             #'{:0.1f}'.format(x_max),
+                             str(int(x_max)),
                              ha='right', va='center', fontsize=9
         )
-        
-        
-    def set_ruler_title(self, title):
-        if self.title == title:
-            return
-        title_text = self._get_title_text()
-        title_text.set_text(title)
+        self._mplot_objects['markers'].append((line_right, text_right))
         self.draw()
-        self.title = title   
+        self.xlim == (x_min, x_max)
 
-    def set_ruler_subtitle(self, subtitle):
-        if self.subtitle == subtitle:
-            return
-        subtitle_text = self._get_title_text()
-        subtitle_text.set_text(subtitle_text.get_text() + ' (' + subtitle + ')')
-        self.draw()
-        self.subtitle = subtitle   
-
-
-
-
-
+"""
+Classe que contém todos os label possíveis para um DataObject.
+"""
 class DataLabel(wx.Panel, SelectablePanelMixin):
     
     def __init__(self, parent, *args, **kwargs):
@@ -600,6 +562,9 @@ class DataLabel(wx.Panel, SelectablePanelMixin):
         if self.odl:
             self.GetSizer().Detach(self.odl)
             self.odl.Destroy()    
+        if self.rdl:
+            self.GetSizer().Detach(self.rdl)
+            self.rdl.Destroy()             
         #    
         self.ldl = None
         self.cdl = None
@@ -624,17 +589,15 @@ class DataLabel(wx.Panel, SelectablePanelMixin):
         #    pass
         if plot_type == 'line':
             self.create_line()
-        if plot_type == 'density' or plot_type == 'both':    
+        elif plot_type == 'density':
             self.create_colormap()
             self.create_ruler()
-        if plot_type == 'wiggle' or plot_type == 'both':    
+        elif plot_type == 'wiggle':
+            self.create_offset()
+        elif plot_type == 'both':
+            self.create_colormap()
             self.create_offset()
         self.redraw()    
-
-        print('self.ldl:', self.ldl)
-        print('self.cdl:', self.cdl)
-        print('self.odl:', self.odl)
-        print('self.rdl:', self.rdl)
         
 
     def create_title(self):
@@ -682,19 +645,21 @@ class DataLabel(wx.Panel, SelectablePanelMixin):
         self.odl.set_offset(offsets_list, x_positions, xlim)
         
     def set_offset_title(self, title):
-        self.odl.set_offset_title(title)
+        self.odl.set_title(title)
 
     def set_offset_subtitle(self, subtitle):
-        self.odl.set_offset_subtitle(subtitle)
+        self.odl.set_subtitle(subtitle)
 
     def set_ruler(self, x_min, x_max):
         self.rdl.set_ruler(x_min, x_max)
         
     def set_ruler_title(self, title):
-        self.rdl.set_ruler_title(title)
+        self.rdl.set_title(title)
 
     def set_ruler_subtitle(self, subtitle):
-        self.rdl.set_ruler_subtitle(subtitle)
+        self.rdl.set_subtitle(subtitle)
+
+
 
 ###############################################################################
 ###############################################################################
@@ -768,7 +733,6 @@ class TrackLabel(UIViewObject, wx.Panel, SelectablePanelMixin):
         ) 
         self.Layout()         
 
-
     def create_title(self):
         self._title = TrackTitleCanvas(self)
         self.GetSizer().Add(self._title, 0,  wx.EXPAND)
@@ -815,7 +779,6 @@ class TrackLabel(UIViewObject, wx.Panel, SelectablePanelMixin):
 
     def redraw(self):
         self.Layout()
-
 
     def set_plot_type(self, plot_type):
         self._dl.set_plot_type(plot_type)

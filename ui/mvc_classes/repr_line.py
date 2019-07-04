@@ -176,7 +176,6 @@ class LineRepresentationView(RepresentationView):
     def set_xlim(self, new_value, old_value):
         self.draw()
   
-    
     def draw(self):
         print('\nLineRepresentationView.draw')
         if self._mplot_objects:

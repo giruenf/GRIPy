@@ -14,41 +14,77 @@ class IndexRepresentationController(RepresentationController):
     _ATTRIBUTES = OrderedDict()
     _ATTRIBUTES['step'] = {
             'default_value': 100.0,
-            'type': float,
-            'pg_property': 'FloatProperty',
-            'label': 'Step'        
+            'type': float   
     }
     _ATTRIBUTES['pos_x'] = {
             'default_value': 0.5, 
-            'type': float,
-            'pg_property': 'EnumProperty',
-            'label': 'Horizontal Alignment',
-            'options_labels': ['Left', 'Center', 'Right'],
-            'options_values': [0.1, 0.5, 0.9]
+            'type': float
     }
     _ATTRIBUTES['fontsize'] = {
             'default_value': 11, 
-            'type': int,
-            'pg_property': 'EnumProperty',
-            'label': 'Font Size',
-            'options_labels': ['7', '8', '9', '10', '11', '12', '13'],
-            'options_values': [7, 8, 9, 10, 11, 12, 13]
+            'type': int
     }
     _ATTRIBUTES['color'] = {
             'default_value': 'Black',
-            'type': str,
-            'pg_property': 'MPLColorsProperty',
-            'label': 'Color'
+            'type': str
     }    
     _ATTRIBUTES['bbox'] = {
             'default_value': True ,
-            'type': bool,
-            'pg_property': 'BoolProperty',
-            'label': 'Bbox',
+            'type': bool
     }   
     _ATTRIBUTES['bbox_style'] = {
             'default_value': 'round', 
-            'type': str,
+            'type': str
+    }
+    _ATTRIBUTES['bbox_color'] = {
+            'default_value': 'White',
+            'type': str
+    }         
+    _ATTRIBUTES['bbox_alpha'] = {
+            'default_value': 0.5,
+            'type': float    
+    }    
+    _ATTRIBUTES['ha'] = {
+            'default_value': 'center',
+            'type': str
+    } 
+    _ATTRIBUTES['va'] = {
+            'default_value': 'center',
+            'type': str
+    }  
+    
+    def __init__(self, **state):
+        super().__init__(**state)
+ 
+    def _get_pg_properties_dict(self):
+        """
+        """
+        props = OrderedDict()
+        props['step'] = {
+            'pg_property': 'FloatProperty',
+            'label': 'Step'
+        } 
+        props['pos_x'] = {
+            'pg_property': 'EnumProperty',
+            'label': 'Text Horizontal Alignment',
+            'options_labels': ['Left', 'Center', 'Right'],
+            'options_values': [0.1, 0.5, 0.9]
+        }
+        props['fontsize'] = {
+            'pg_property': 'EnumProperty',
+            'label': 'Text Font Size',
+            'options_labels': ['7', '8', '9', '10', '11', '12', '13'],
+            'options_values': [7, 8, 9, 10, 11, 12, 13]
+        }
+        props['color'] = {
+            'pg_property': 'MPLColorsProperty',
+            'label': 'Text Color'
+        }    
+        props['bbox'] = {
+            'pg_property': 'BoolProperty',
+            'label': 'Bbox'
+        }   
+        props['bbox_style'] = {
             'pg_property': 'EnumProperty',
             'label': 'Bbox Style',
             'options_labels': ['Circle', 'DArrow', 'LArrow', 'RArrow', 
@@ -59,50 +95,35 @@ class IndexRepresentationController(RepresentationController):
                        'round', 'round4', 'roundtooth', 'sawtooth',
                        'square'
             ]
-    }
-    _ATTRIBUTES['bbox_color'] = {
-            'default_value': 'White',
-            'type': str,
+        }
+        props['bbox_color'] = {
             'pg_property': 'MPLColorsProperty',
             'label': 'Bbox Color'
-#            'options_labels': list(MPL_COLORS.keys())
-    }         
-    _ATTRIBUTES['bbox_alpha'] = {
-            'default_value': 0.5,
-            'type': float,
+        }         
+        props['bbox_alpha'] = {
             'pg_property': 'FloatProperty',
             'label': 'Bbox Alpha'      
-    }    
-    _ATTRIBUTES['ha'] = {
-            'default_value': 'center',
-            'type': str,
+        }    
+        props['ha'] = {
             'pg_property': 'EnumProperty',
             'label': 'Horizontal Alignment in the TextBox',
             'options_labels': ['Left', 'Center', 'Right'],
             'options_values': ['left', 'center', 'right']
-    } 
-    _ATTRIBUTES['va'] = {
-            'default_value': 'center',
-            'type': str,
+        } 
+        props['va'] = {
             'pg_property': 'EnumProperty',
             'label': 'Vertical Alignment in the TextBox',
             'options_labels': ['Top', 'Center', 'Bottom', 'Baseline'],
             'options_values': ['top', 'center', 'bottom', 'baseline']
-    }  
+        }  
+        return props
     
-    def __init__(self, **state):
-        super().__init__(**state)
- 
-    def PreDelete(self):
-        print ('\nIndexRepresentationController.PreDelete')
-        
 
 class IndexRepresentationView(RepresentationView):
     tid = 'index_representation_view'
 
     def __init__(self, controller_uid):
         super().__init__(controller_uid)        
-
 
     def PostInit(self):
         UIM = UIManager()
@@ -118,20 +139,17 @@ class IndexRepresentationView(RepresentationView):
         controller.subscribe(self._draw, 'change.bbox_color')
         controller.subscribe(self._draw, 'change.bbox_alpha')
         controller.subscribe(self._draw, 'change.zorder')
-            
-        
+                  
     def _draw(self, new_value, old_value):
         # Bypass function
        # print '\nIndexRepresentationView._draw (bypass)'
         self.draw()
        # print '\nIndexRepresentationView._draw (bypass) end'
-        
-        
+                
     def get_data_info(self, event):
         #ydata = dm.get_last_dimension_index_data()
         #print('get_data_info:', event.ydata)
-        return None
-        
+        return None       
         """
         OM = ObjectManager()
         UIM = UIManager()
@@ -150,10 +168,7 @@ class IndexRepresentationView(RepresentationView):
         return str(controller._data[y_pos_index])
         """
            
-    
-    
     def draw(self):
-        print ('\nIndexRepresentationView.draw')
         try:
             if self._mplot_objects:
                 self.clear() 

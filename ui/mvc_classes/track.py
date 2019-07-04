@@ -62,17 +62,10 @@ class TrackController(UIControllerObject):
     def append_object(self, obj_uid):
         UIM = UIManager()
         try:
-            print('\n\n\n')
-            print (111, obj_uid, type(obj_uid))
-            print (222, self.uid, type(self.uid))
             toc = UIM.create('track_object_controller', self.uid)  
-            print (333)
             if isinstance(obj_uid, str):
                 obj_uid = parse_string_to_uid(obj_uid)
-            print (444, obj_uid)
             toc.data_obj_uid = obj_uid
-            print (555)
-
             return toc
         except Exception as e:
             print ('ERRO TrackController.append_object', e)
@@ -870,20 +863,16 @@ class TrackView(UIViewObject):
         if gui_evt.GetEventObject() and gui_evt.GetEventObject().HasCapture():            
             gui_evt.GetEventObject().ReleaseMouse()  
         #          
-     
-        print ('\nTrackView._on_button_press:', event, gui_evt, canvas) 
-        
+
         if gui_evt.GetButton() == 1:
             controller = UIM.get(self._controller_uid)
             if controller.get_cursor_state() == WellPlotState.SELECTION_TOOL:
                 controller.selected = not controller.selected
 
         elif gui_evt.GetButton() == 2: 
-            print('BOTAO 2')
             return
         
         elif gui_evt.GetButton() == 3:
-            print('BOTAO 3')
             #controller = UIM.get(self._controller_uid) 
             
             menu = wx.Menu()
@@ -1227,13 +1216,9 @@ class TrackView(UIViewObject):
             tcc.minorgrid = True    
         elif event.GetId() == HideMinorgridId:
             tcc.minorgrid = False        
-            
-            
-            
-    def teste_teste(self):
-        print('\n\nteste_teste')
-        print('teste_teste')
-        print('teste_teste')
+
+
+
         
         
             

@@ -234,32 +234,20 @@ class DimensionPanel(wx.Panel):
         return ret
     
 
-
-
-
 ###############################################################################
 ###############################################################################
-
-
 
 
 class NavigatorController(FrameController):
     tid = 'navigator_controller'
     
     _ATTRIBUTES = OrderedDict()
-    """
-    _ATTRIBUTES['toc_uid'] = {
-            'default_value': None,
-            'type': 'uid'
-    }
-    """
-    
+
     def __init__(self, **state):
         state['title'] = 'Data navigator'
         state['size'] = (350, 600)
         super().__init__(**state)
- 
-    
+  
     def PostInit(self):
         toc = self._get_track_object_controller()
         OM = ObjectManager()
@@ -269,13 +257,11 @@ class NavigatorController(FrameController):
             self.view.add_panel(di_uid, display, first, last)
         self.view.add_bottom_panel()    
 
-
     def _get_track_object_controller(self):
         UIM = UIManager()
         toc_uid = UIM._getparentuid(self.uid)
         return UIM.get(toc_uid)
         
-
     def Set(self, results):
         print ('NavigatorController.Set:', results)
         toc = self._get_track_object_controller()
@@ -309,15 +295,14 @@ class Navigator(Frame):
            
     def add_bottom_panel(self):
         buttons_panel = wx.Panel(self.basepanel)
-        #buttons_panel.SetBackgroundColour('yellow')
         buttons_panel_sizer = wx.BoxSizer(wx.HORIZONTAL)
         #
         self.ok_button = wx.Button(buttons_panel, label='Ok')
-        self.ok_button.Bind(wx.EVT_BUTTON, self.onOk)
+        self.ok_button.Bind(wx.EVT_BUTTON, self.on_ok)
         self.apply_button = wx.Button(buttons_panel, label='Apply')
-        self.apply_button.Bind(wx.EVT_BUTTON, self.onApply)
+        self.apply_button.Bind(wx.EVT_BUTTON, self.on_apply)
         self.cancel_button = wx.Button(buttons_panel, label='Cancel')
-        self.cancel_button.Bind(wx.EVT_BUTTON, self.onCancel)
+        self.cancel_button.Bind(wx.EVT_BUTTON, self.on_cancel)
         #
         buttons_panel_sizer.Add(self.ok_button, 0,
                                 wx.ALIGN_CENTER|wx.LEFT|wx.TOP|wx.BOTTOM, 10
@@ -328,35 +313,27 @@ class Navigator(Frame):
         buttons_panel_sizer.Add(self.cancel_button, 0, 
                                 wx.ALIGN_CENTER|wx.LEFT|wx.TOP|wx.BOTTOM, 10
         )
-        #
         buttons_panel.SetSizer(buttons_panel_sizer)
-        #buttons_panel.Layout()
-        self.sizer.Add(buttons_panel, 0, wx.EXPAND|wx.TOP|wx.LEFT|wx.RIGHT, 5) #wx.ALIGN_CENTER
+        self.sizer.Add(buttons_panel, 0, wx.EXPAND|wx.TOP|wx.LEFT|wx.RIGHT, 5) 
         self.sizer.Layout()
-        #
 
-    def onOk(self, event):
-        self._doOK()
-
-    def onApply(self, event):
-        self._doApply()
-        
-    def onCancel(self, event):
-        self._doCancel()  
-
-    def _doOk(self):
+    def on_ok(self, event):
         self._doApply()
         self._doCancel()
 
+    def on_apply(self, event):
+        self._doApply()
+        
+    def on_cancel(self, event):
+        self._doCancel()  
+
     def _doApply(self):
-        print ('\n_doApply')
         results = []
         for panel in self.panels:
             results.append(panel.get_result())
         UIM = UIManager()
         controller = UIM.get(self._controller_uid)    
         controller.Set(results)
-        print ('_doApply')
         
     def _doCancel(self):
         self.Close()  

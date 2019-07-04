@@ -82,9 +82,7 @@ class WorkPage(UIViewObject, wx.Panel):
         """
         UIM = UIManager()   
         controller = UIM.get(self._controller_uid)
-        print('\n\n_set_own_name')
         title = self.get_friendly_name()
-        print('title:', title)
         controller.title = title  
 
 

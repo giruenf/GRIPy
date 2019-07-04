@@ -109,7 +109,6 @@ class TrackObjectController(FrameController):
             label.destroy()
 
     def on_change_data_obj_uid(self, new_value, old_value):
-        print('\non_change_data_obj_uid', new_value, old_value)
         try:
             if old_value is not None:
                 self.detach()   
@@ -131,8 +130,6 @@ class TrackObjectController(FrameController):
 
 
     def on_change_plottype(self, new_value, old_value):
-        print('\non_change_plottype', new_value, old_value)
-        #
         UIM = UIManager()
         repr_ctrl = self.get_representation()
         label = self.get_label()
@@ -168,8 +165,6 @@ class TrackObjectController(FrameController):
                 repr_ctrl = UIM.create(repr_tid, self.uid, **state)
                 repr_ctrl.draw()
                 #
-             
-
             except Exception as e:
                 print ('ERROR on_change_plottype', e)
                 self.plottype = None    
@@ -185,19 +180,15 @@ class TrackObjectController(FrameController):
             if isinstance(child, RepresentationController):
                 return child
 
-
     def get_label(self):
         # Returns the real OM.object representation
         return self._label
 
-
     def on_change_picked(self, new_value, old_value):
         self.get_representation().set_picked(new_value, old_value) 
-            
-        
+                  
     def is_picked(self):
         return self.picked
-
 
     # Picking with event that generates pick... 
     # Event(PickEvent) maybe useful in future
@@ -208,14 +199,12 @@ class TrackObjectController(FrameController):
         """
         if event.mouseevent.button == 1:
             self.selected = not self.selected                             
-                      
-            
+                             
     def redraw(self):
         repr_ctrl = self.get_representation()
         if not repr_ctrl:
             return False
         return repr_ctrl.draw()
-
 
     def get_well_plot_index_type(self):
         UIM = UIManager()
@@ -273,7 +262,6 @@ class TrackObjectController(FrameController):
     # Os metodos abaixo se referem aos processos de data mask (data filter)
     # que foram integrados a esta classe. 
     def _init_data_mask(self):
-        print('\n_init_data_mask:', self.data_obj_uid)
         try:
             OM = ObjectManager()
             data_obj = OM.get(self.data_obj_uid)

@@ -37,10 +37,8 @@ class RepresentationController(UIControllerObject):
     def get_friendly_name(self):
         data_object = self.get_data_object()
         return data_object.get_friendly_name()
-    
-   
-    
-    
+
+ 
 class RepresentationView(UIViewObject):
     tid = 'representation_view'
 

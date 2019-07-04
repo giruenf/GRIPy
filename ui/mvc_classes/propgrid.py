@@ -26,9 +26,11 @@ from pubsub.core.topicexc import MessageDataSpecError
 
 class GripyPgProperty(object):
     
-    def __init__(self, obj_uid, obj_attr):
+    def __init__(self, obj_uid, obj_attr, getter_func=None, setter_func=None):
         self._obj_uid = obj_uid
         self._obj_attr = obj_attr
+        self._getter_func = getter_func
+        self._setter_func = setter_func
         
     def _get_object(self):
         app = wx.App.Get()
@@ -38,11 +40,17 @@ class GripyPgProperty(object):
         return obj
 
     def _get_value(self):
+        if self._getter_func:
+            kwargs = {'obj_uid': self._obj_uid}
+            return self._getter_func(self._obj_attr, **kwargs)
         obj = self._get_object()
         return obj[self._obj_attr]
 
     def _set_value(self, value):
         try:
+            if self._setter_func:
+                kwargs = {'obj_uid': self._obj_uid}
+                return self._setter_func(self._obj_attr, value, **kwargs)
             obj = self._get_object()     
             obj[self._obj_attr] = value   
             return True
@@ -89,8 +97,11 @@ class IntProperty(pg.IntProperty, GripyPgProperty):
     
 class FloatProperty(pg.FloatProperty, GripyPgProperty):     
 
-    def __init__(self, obj_uid, obj_attr, label=pg.PG_LABEL, name=pg.PG_LABEL):
-        GripyPgProperty.__init__(self, obj_uid, obj_attr)
+    def __init__(self, obj_uid, obj_attr, 
+                 label=pg.PG_LABEL, name=pg.PG_LABEL, 
+                                         getter_func=None, setter_func=None):
+        GripyPgProperty.__init__(self, obj_uid, obj_attr, 
+                                                     getter_func, setter_func)
         pg.FloatProperty.__init__(self, label, name)
 
 
@@ -104,21 +115,7 @@ class FloatProperty(pg.FloatProperty, GripyPgProperty):
         return self._set_value(text)  
 
 
-    """
-    def ValueToString(self, *args):
-        UIM = UIManager()
-        controller = UIM.get(self._controller_uid)
-        value = controller[self._obj_attr]
-        return str(value)
 
-
-    def StringToValue(self, variant, text, flag):
-        UIM = UIManager()
-        controller = UIM.get(self._controller_uid)
-        controller[self._obj_attr] = text
-        return True    
-
-    """
 
 
 
@@ -144,10 +141,11 @@ class BoolProperty(pg.BoolProperty, GripyPgProperty):
 
 
             
+  
+    
     
 class EnumProperty(pg.EnumProperty, GripyPgProperty):    
- 
-    
+   
     def __init__(self, obj_uid, obj_attr, label=pg.PG_LABEL, name=pg.PG_LABEL,
                  opt_labels=[], opt_values=None, values=None, value=0):
         
@@ -155,26 +153,23 @@ class EnumProperty(pg.EnumProperty, GripyPgProperty):
             raise Exception('No options labels values found in: {} - model key: {}'.\
                             format(obj_uid, obj_attr)
             )   
-            
-            
-#        print('\n\nCriando EnumProperty para:' + obj_attr)    
-#        print('Prop label:', label, type(label))
-#        print('Prop name:', name, type(name))
-#        print('Opt labels:', opt_labels, type(opt_labels))
-#        print('Opt values:', opt_values, type(opt_values))
-#        print('Values:', values, type(values))
-#        print('Value', value, type(value))
+                     
+        print('\n\nCriando EnumProperty para:' + obj_attr)    
+        print('Prop label:', label, type(label))
+        print('Prop name:', name, type(name))
+        print('Opt labels:', opt_labels, type(opt_labels))
+        print('Opt values:', opt_values, type(opt_values))
+        print('Values:', values, type(values))
+        print('Value', value, type(value))
         
-        
-        
+
         if values is None:
             values = list(range(len(opt_labels)))
-#            print('VALUES WAS NONE.')
-#            print('NEW VALUES IS:' + str(values), type(values))
-#        else:
-#            print('VALUES OK.')
-        
-        
+            print('VALUES WAS NONE.')
+            print('NEW VALUES IS:' + str(values), type(values))
+        else:
+            print('VALUES OK.')
+          
         try:
             
             GripyPgProperty.__init__(self, obj_uid, obj_attr)
@@ -203,7 +198,7 @@ class EnumProperty(pg.EnumProperty, GripyPgProperty):
             #
             val = self._get_value()
             #
-#            print('val:', val)
+            print('val:', val)
             
             try:
                 idx = self._opt_values.index(val)
@@ -214,13 +209,14 @@ class EnumProperty(pg.EnumProperty, GripyPgProperty):
                 print(val)
                 raise
             #    
-#            print('idx:', idx)
+            print('idx:', idx)
             
-#            self.SetValue(idx)
-            self.SetValue(val)
+            #self.SetValue(idx)
+            #self.SetIndex(idx)
+            
             
         except Exception as e:
-            print('\n\n\nDEU RUIM!!!! - {}\n\n\n'.format(e))
+            print('\nDEU RUIM!!!! - {}\n\n\n'.format(e))
             raise
         
         
@@ -242,7 +238,7 @@ class EnumProperty(pg.EnumProperty, GripyPgProperty):
         ret_val : bool
             A value indicating operation was successful. 
         """        
-#        print('\nIntToValue [{}]: {} - {}'.format(self._obj_attr, int_value, type(int_value)))
+        print('\nIntToValue [{}]: {} - {}'.format(self._obj_attr, int_value, type(int_value)))
 
         #val = self._values[int_value]
         #print('val:', val, type(val))
@@ -254,6 +250,7 @@ class EnumProperty(pg.EnumProperty, GripyPgProperty):
         ret_val = self._set_value(opt_value)
         return ret_val
         
+
 
     def ValueToString(self, value, flag):
         """Get object property value and returns a string associated with it.
@@ -271,21 +268,30 @@ class EnumProperty(pg.EnumProperty, GripyPgProperty):
         ret_str : str
             A string that will be selected on wx.Choice container. 
         """
-#        print('\nValueToString [{}]: {} - {}'.format(self._obj_attr, value, type(value)))
+        
+        print('\nValueToString [{}]: {} - {}'.format(self._obj_attr, value, type(value)))
         val = self._get_value()
         
-#        print('val:', val, type(val))
+        print('val:', val, type(val))
         
-        if isinstance(val, int):
-            idx_val = self._opt_values.index(val)
-#            print('idx_val:', idx_val)
-            ret_str = str(self._opt_labels[idx_val])
-            #ret_str = str(self._opt_labels[val])
+        
+        #if isinstance(val, int):
+        
+        idx_val = self._opt_values.index(val)
+        print('idx_val:', idx_val)
+        ret_str = str(self._opt_labels[idx_val])
+        print('ret_str:', ret_str)
+        #ret_str = str(self._opt_labels[val])
+            
+            
+        """
         elif isinstance(val, str): 
             ret_str = val
             
-            
-#        print('Retornando String \"' + ret_str + '\" para Value: ' + str(val))
+        else:    
+            print('ENTROU ELSE')
+        """    
+        print('Retornando String \"' + ret_str + '\" para Value: ' + str(val))
         return ret_str
         
     
@@ -305,7 +311,7 @@ class EnumProperty(pg.EnumProperty, GripyPgProperty):
         """        
         
         
-#        print('\nGetIndexForValue [{}]: {} - {}'.format(self._obj_attr, value, type(value)))
+        print('\nGetIndexForValue [{}]: {} - {}'.format(self._obj_attr, value, type(value)))
 
 #        idx = self._opt_values.index(value)
 #        """
@@ -331,7 +337,7 @@ class EnumProperty(pg.EnumProperty, GripyPgProperty):
         
 #        """
         
-#        print('Retornando Index', idx, 'para Value:', value, 'para val:', val)
+        print('Retornando Index', idx, 'para Value:', value, 'para val:', val)
         
         return idx
 
@@ -375,7 +381,13 @@ class MPLColorsProperty(EnumProperty):
         super().__init__(obj_uid, obj_attr, label=label, name=name,
                                             opt_labels=list(MPL_COLORS.keys()))
 
-
+class MPLColormapsProperty(EnumProperty):    
+    
+    def __init__(self, obj_uid, obj_attr, label=pg.PG_LABEL, name=pg.PG_LABEL,
+                 opt_labels=[], opt_values=None, values=None, value=0):
+        
+        super().__init__(obj_uid, obj_attr, label=label, name=name,
+                                            opt_labels=list(MPL_COLORMAPS))
 
 
 
@@ -388,26 +400,41 @@ def _get_pg_property(obj_uid, obj_attr, obj_attr_props):
     #if obj_attr_props.get('pg_property') is None:
     #    return None
 
+    getter_func = obj_attr_props.get('getter_func')
+    setter_func = obj_attr_props.get('setter_func')
+    #
     enable = obj_attr_props.get('enabled', True)
     prop = None
+    
     if obj_attr_props.get('pg_property') == 'IntProperty':
         prop = IntProperty(obj_uid, obj_attr, 
                                            label=obj_attr_props.get('label')
         )
+        
     elif obj_attr_props.get('pg_property') == 'FloatProperty':
         prop = FloatProperty(obj_uid, obj_attr, 
-                                             label=obj_attr_props.get('label')
+                                             label=obj_attr_props.get('label'),
+                                             getter_func=getter_func,
+                                             setter_func=setter_func
         )
+        
     elif obj_attr_props.get('pg_property') == 'EnumProperty':
         prop = EnumProperty(obj_uid, obj_attr, 
                             label=obj_attr_props.get('label'),
                             opt_labels=obj_attr_props.get('options_labels'),
                             opt_values=obj_attr_props.get('options_values')
         )    
+        
     elif obj_attr_props.get('pg_property') == 'MPLColorsProperty':
         prop = MPLColorsProperty(obj_uid, obj_attr, 
                                  label=obj_attr_props.get('label')
         )
+        
+    elif obj_attr_props.get('pg_property') == 'MPLColormapsProperty':
+        prop = MPLColormapsProperty(obj_uid, obj_attr, 
+                                 label=obj_attr_props.get('label')
+        )          
+        
     elif obj_attr_props.get('pg_property') == 'BoolProperty':
         prop = BoolProperty(obj_uid, obj_attr, 
                             label=obj_attr_props.get('label')
@@ -478,11 +505,14 @@ class PropertyGridController(UIControllerObject):
                 property_ = _get_pg_property(obj.uid, key, key_props)
                 self._properties[key] = property_
                 self.view.Append(property_)
-                obj.subscribe(self.refresh_property, 'change.' + key)     
+                if key_props.get('getter_func') and \
+                                                key_props.get('subs_key'):
+                    obj.subscribe(self.refresh_property, 
+                                  'change.' + key_props.get('subs_key'))
+                else:    
+                    obj.subscribe(self.refresh_property, 'change.' + key)
             except Exception as e:
-                print ('\nERRO loading properties:', obj.name, 
-                       key, key_props, e
-                )
+                print ('\nERRO loading properties:', obj, key, key_props, e)
                 pass        
 
 
@@ -490,18 +520,29 @@ class PropertyGridController(UIControllerObject):
         UIM = UIManager()
         parent_controller_uid = UIM._getparentuid(self.uid)
         parent_controller =  UIM.get(parent_controller_uid)
+        # TODO: Retirar isso daqui...
         if parent_controller.view.splitter.IsSplit():  
             parent_controller.view.splitter.Unsplit(self.view)  
         #             
         if self._properties: 
             obj = self._get_object(obj_uid)
-            for key in self._properties.keys():
+            for key, value in self._properties:
                 obj.unsubscribe(self.refresh_property, \
                                           'change.' + key
                 )                     
         self._properties.clear()
         self.view.Clear()
-       
+
+
+    #def refresh_property(self, topicObj=pub.AUTO_TOPIC, new_value=None, old_value=None):
+    def refresh_property(self, new_value, old_value, topicObj=pub.AUTO_TOPIC):
+        """
+        Refresh a property, when it is changed.
+        """
+        key = topicObj.getName().split('.')[-1]
+        prop = self._properties[key]
+        self.view.RefreshProperty(prop)       
+        
         
     """    
     def set_object_uid(self, toc_obj_uid): 
@@ -549,14 +590,7 @@ class PropertyGridController(UIControllerObject):
     """
         
         
-    #def refresh_property(self, topicObj=pub.AUTO_TOPIC, new_value=None, old_value=None):
-    def refresh_property(self, new_value, old_value, topicObj=pub.AUTO_TOPIC):
-        """
-        Refresh a property, when it is changed.
-        """
-        key = topicObj.getName().split('.')[-1]
-        prop = self._properties[key]
-        self.view.RefreshProperty(prop)
+
 
 
 

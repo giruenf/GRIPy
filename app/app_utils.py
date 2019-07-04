@@ -1,5 +1,3 @@
-# -*- coding: utf-8 -*-
-
 import re
 import os
 import json
@@ -10,6 +8,7 @@ import collections
 from enum import Enum  
 
 import numpy as np
+from matplotlib.cm import cmap_d
 import wx
 
 import app
@@ -17,26 +16,6 @@ import fileio
 from classes.om.base.manager import ObjectManager
 from app import log
 
-
-"""
-
-def create_data_object(event, obj_tid, obj_name, parent_uid=None):
-    OM = ObjectManager()
-    obj = OM.new(obj_tid, name=obj_name) 
-    OM.add(obj)
-    axis = OM.new('data_axis', 'Z Axis')
-    OM.add(axis, obj.uid)
-    return obj
-
-
-def create_well(event, well_name, parent_uid=None):
-    return create_data_object(event, 'well', well_name, parent_uid)
-
-
-def create_seismic(event, seismic_name, parent_uid=None):
-    return create_data_object(event, 'seismic', seismic_name, parent_uid)
-
-"""
 
 
 
@@ -665,6 +644,9 @@ MPL_CATS_CMAPS = [
 #MPL_COLORMAPS = [value for (key, values) in MPL_CATS_CMAPS for value in values]
 
 
+MPL_COLORMAPS = sorted(cmap_d)
+
+"""
 MPL_COLORMAPS = ['Accent', 'Accent_r', 'Blues', 'Blues_r', 'BrBG', 'BrBG_r', 
                  'BuGn', 'BuGn_r', 'BuPu', 'BuPu_r', 'CMRmap', 'CMRmap_r',
                  'Dark2', 'Dark2_r', 'GnBu', 'GnBu_r', 'Greens', 'Greens_r', 
@@ -696,7 +678,7 @@ MPL_COLORMAPS = ['Accent', 'Accent_r', 'Blues', 'Blues_r', 'BrBG', 'BrBG_r',
                   'summer', 'summer_r', 'terrain', 'terrain_r', 
                   'viridis', 'viridis_r', 'winter', 'winter_r']
   
-
+"""
 
 MPL_COLORS = collections.OrderedDict()
 MPL_COLORS['Black'] = None
