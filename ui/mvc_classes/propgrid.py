@@ -13,10 +13,8 @@ from classes.ui import UIViewObject
 import app.pubsub as pub
 from app.app_utils import MPL_COLORS, MPL_COLORMAPS
 
-
-from ui.mvc_classes.wxgripy import FrameController
-from ui.mvc_classes.wxgripy import Frame
-
+from classes.ui import FrameController
+from classes.ui import Frame
 
 from pubsub.core.topicexc import MessageDataSpecError
 
@@ -466,16 +464,14 @@ class PropertyGridController(UIControllerObject):
 
     def __init__(self, **state):
         super().__init__(**state)  
-#        print('\n\nPropertyGridController.__init__:', state)
         self._properties = OrderedDict()
+#        self._fake_properties = OrderedDict()
         self.subscribe(self.on_change_obj_uid, 'change.obj_uid') 
-       
-        
-    def PostInit(self):
-        if self.obj_uid is not None:
-            self.on_change_obj_uid(self.obj_uid, None)
-              
-            
+             
+    #def PostInit(self):
+    #    if self.obj_uid is not None:
+    #        self.on_change_obj_uid(self.obj_uid, None)
+                         
     def _get_object(self, obj_uid=None):
         if obj_uid is None:
             obj_uid = self.obj_uid
@@ -496,21 +492,27 @@ class PropertyGridController(UIControllerObject):
         try:
             od = obj._get_pg_properties_dict()
         except:
-            od = obj._ATTRIBUTES
-        #    
-        #print('on_change_obj_uid:', od)
+            od = obj._ATTRIBUTES        
         #
         for key, key_props in od.items():
             try:
                 property_ = _get_pg_property(obj.uid, key, key_props)
-                self._properties[key] = property_
                 self.view.Append(property_)
+                #
+                """
                 if key_props.get('getter_func') and \
-                                                key_props.get('subs_key'):
-                    obj.subscribe(self.refresh_property, 
-                                  'change.' + key_props.get('subs_key'))
-                else:    
-                    obj.subscribe(self.refresh_property, 'change.' + key)
+                                                key_props.get('listening'):
+                    for obj_uid, obj_key in key_props.get('listening'):
+                        print('\nobj_uid:', obj_uid)
+                        print('obj_key:', obj_key)
+                        obj = self._get_object(obj_uid)     
+                        obj.subscribe(self.refresh_property, 
+                                  'change.' + obj_key)
+                        self._fake_properties[key] = property_
+                else:
+                """    
+                self._properties[key] = property_
+                obj.subscribe(self.refresh_property, 'change.' + key)
             except Exception as e:
                 print ('\nERRO loading properties:', obj, key, key_props, e)
                 pass        
@@ -524,7 +526,7 @@ class PropertyGridController(UIControllerObject):
         if parent_controller.view.splitter.IsSplit():  
             parent_controller.view.splitter.Unsplit(self.view)  
         #             
-        if self._properties: 
+        if self._properties:
             obj = self._get_object(obj_uid)
             for key, value in self._properties:
                 obj.unsubscribe(self.refresh_property, \
@@ -534,7 +536,6 @@ class PropertyGridController(UIControllerObject):
         self.view.Clear()
 
 
-    #def refresh_property(self, topicObj=pub.AUTO_TOPIC, new_value=None, old_value=None):
     def refresh_property(self, new_value, old_value, topicObj=pub.AUTO_TOPIC):
         """
         Refresh a property, when it is changed.
@@ -543,55 +544,6 @@ class PropertyGridController(UIControllerObject):
         prop = self._properties[key]
         self.view.RefreshProperty(prop)       
         
-        
-    """    
-    def set_object_uid(self, toc_obj_uid): 
-        if toc_obj_uid == self.obj_uid:
-            self.view.Refresh()
-            return
-        UIM = UIManager()    
-        if toc_obj_uid[0] != 'track_object_controller':
-            raise Exception('Cannot set an object with tid != "track_object_controller"')
-        toc = UIM.get(toc_obj_uid)
-        if not toc.is_valid():
-            return  
-    
-        self.clear()
-        
-        OM = ObjectManager()
-        obj = OM.get(toc.data_obj_uid)
-        title = obj.get_friendly_name()
-        #title = toc.get_object()._get_tid_friendly_name() + ': ' + \
-        #                                            toc.get_object().name
-        self.view.Append(
-            pg.PropertyCategory(title, name='title')
-        )
-        
-        repr_ctrl = toc.get_representation()
-
-        print()
-        print(repr_ctrl._ATTRIBUTES.items(), type(repr_ctrl._ATTRIBUTES.items()))
-        print()
-        
-        for key, key_props in repr_ctrl._ATTRIBUTES.items():
-            print('\n', repr_ctrl.uid, key, key_props)
-            
-            try:
-                property_ = _get_pg_property(repr_ctrl.uid, key, key_props)
-
-                self._properties[key] = property_
-                self.view.Append(property_)
-                repr_ctrl.subscribe(self.refresh_property, 'change.' + key)
-                
-            except:
-                pass
-
-        self.obj_uid = toc_obj_uid
-    """
-        
-        
-
-
 
 
 class PropertyGridView(UIViewObject, pg.PropertyGrid):
@@ -600,19 +552,13 @@ class PropertyGridView(UIViewObject, pg.PropertyGrid):
     def __init__(self, controller_uid):
         try:
             UIViewObject.__init__(self, controller_uid)      
-            UIM = UIManager()
-        
+            UIM = UIManager()        
             parent_controller_uid = UIM._getparentuid(self._controller_uid)
             parent_controller =  UIM.get(parent_controller_uid)
-#            print()
-#            print('parent_controller:', parent_controller)
             wx_parent = parent_controller._get_wx_parent(self.tid)
-#            print('wx_parent:', wx_parent)
-            #
             pg.PropertyGrid.__init__(self, wx_parent, 
                             style=pg.PG_SPLITTER_AUTO_CENTER|pg.PG_HIDE_MARGIN
             )
-            #
             self.SetCaptionBackgroundColour(wx.Colour(0, 128, 192))
             self.SetCaptionTextColour('white')       
         except Exception as e:

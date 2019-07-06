@@ -120,11 +120,10 @@ class WellPlotController(WorkPageController):
         """
         """
         props = OrderedDict()  
-        """
+        
         props['wellplot_ylim'] = {
             'label': 'Wellplot ylim',
             'pg_property': 'StringProperty',
-            'validator': 
             'enabled': True
         }
         """
@@ -133,7 +132,7 @@ class WellPlotController(WorkPageController):
             'pg_property': 'FloatProperty',
             'getter_func': self.getter_func,
             'setter_func': self.setter_func,
-            'subs_key': 'wellplot_ylim',
+            'listening': [(self.uid, 'wellplot_ylim')],
             'enabled': True
         }        
         props['wellplot_ymax'] = {
@@ -141,10 +140,10 @@ class WellPlotController(WorkPageController):
             'pg_property': 'FloatProperty',
             'getter_func': self.getter_func,
             'setter_func': self.setter_func,
-            'subs_key': 'wellplot_ylim',
+            'listening': [(self.uid, 'wellplot_ylim')],
             'enabled': True
         }           
-        
+        """
         props['shown_ylim'] = {
             'label': 'Shown ylim',
             'pg_property': 'StringProperty',

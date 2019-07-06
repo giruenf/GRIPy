@@ -84,7 +84,7 @@ class TIFFile(object):
                 return_data.append(tif_file)
                 tif_file = str('')
             else:
-                tif_file += register[3]
+                tif_file += str(register[3])
         # Returning True for success        
         return True, return_data
 

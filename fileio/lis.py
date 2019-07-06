@@ -1,17 +1,12 @@
-# -*- coding: utf-8 -*-
-"""
-Created on Mon Jun 13 11:02:27 2016
-
-@author: Adriano
-"""
-
-import wx
 import os
 import struct
-import App
 from collections import OrderedDict
+from pathlib import PurePath
+
 import numpy as np
-from FileIO.TIF import TIFFile
+
+import app
+from fileio.tif import TIFFile
 
 
 PRA = {
@@ -213,10 +208,12 @@ class LISFile(object):
         self.physical_records = None
         self.logical_records = None
         json_file = 'LIS_MAPPING.json'
-        fullpath_json = wx.App.Get().get_app_dir() + os.sep + \
-                            self.__module__.split('.')[0] + os.sep + json_file
-        #print 'fullpath_json:', fullpath_json
-        self._json = App.app_utils.read_json_file(fullpath_json)
+                
+        fullpath_json = PurePath(app.BASE_PATH, self.__module__.split('.')[0] + os.sep + json_file)
+        
+        print('fullpath_json:', fullpath_json)
+        
+        self._json = app.app_utils.read_json_file(fullpath_json)
         
         
     def read_file(self, file_name):

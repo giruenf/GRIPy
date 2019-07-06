@@ -1,12 +1,12 @@
-# -*- coding: utf-8 -*-
-
-import sys
+from collections import OrderedDict
 
 import wx
 from wx.lib.mixins.listctrl import CheckListCtrlMixin, TextEditMixin, \
     ListCtrlAutoWidthMixin, ListRowHighlighter
+    
+from classes.ui import DialogController
+from classes.ui import Dialog
 
-from collections import OrderedDict
 
 MEDIUM_GREY = wx.Colour(224, 224, 224)
 
@@ -113,9 +113,9 @@ class _LASSectionPanel(wx.Panel):
         self.section_ctrl.RefreshRows()
 
 
-class Panel(wx.Panel):
+class HeaderPanel(wx.Panel):
     def __init__(self, *args, **kwargs):
-        super(Panel, self).__init__(*args, **kwargs)
+        super().__init__(*args, **kwargs)
 
         nb = wx.Notebook(self)
 
@@ -162,43 +162,30 @@ class Panel(wx.Panel):
         return header
 
 
-class Dialog(wx.Dialog):
-    def __init__(self, *args, **kwargs):
-        if 'on_ok_callback' in kwargs:
-            self.on_ok_callback = kwargs.pop('on_ok_callback')
-        else:
-            self.on_ok_callback = None
 
-        if 'on_cancel_callback' in kwargs:
-            self.on_cancel_callback = kwargs.pop('on_cancel_callback')
-        else:
-            self.on_cancel_callback = None
+class LASHeaderController(DialogController):
+    tid = 'las_header_controller'
+    
+    def __init__(self, **state):
+        super().__init__(**state)
+        self.title='LAS Header file'
+        self.size = (800, 600)
+           
+        
+class LASHeader(Dialog):   
+    tid = 'las_header'
+    
+    def __init__(self, controller_uid):
+        super().__init__(controller_uid)
+        self.header_panel = HeaderPanel(self.mainpanel)
+        sizer = self.GetSizer()
+        sizer.Add(self.header_panel, 1, wx.EXPAND)
 
-        super(Dialog, self).__init__(*args, **kwargs)
-
-        self.header_panel = Panel(self)
-
-        button_sizer = self.CreateButtonSizer(wx.OK | wx.CANCEL)
-        self.Bind(wx.EVT_BUTTON, self.on_button)
-
-        vbox = wx.BoxSizer(wx.VERTICAL)
-        vbox.Add(self.header_panel, proportion=1, flag=wx.ALL | wx.EXPAND)
-        vbox.Add(button_sizer, flag=wx.ALIGN_RIGHT)
-        self.SetSizer(vbox)
-
-        self.SetSize((800, 600))
-        self.SetTitle(u"Editor de Cabeçalho LAS")
-
-    def set_header(self, header):
-        self.header_panel.set_header(header)
-
-    def get_header(self):
+    def set_header(self, las_file_header):
+        self.header_panel.set_header(las_file_header)
+        
+    def get_results(self):    
         return self.header_panel.get_header()
 
-    def on_button(self, event):
-        evt_id = event.GetId()
-        if evt_id == wx.ID_OK and self.on_ok_callback is not None:
-            self.on_ok_callback(event)
-        elif evt_id == wx.ID_CANCEL and self.on_cancel_callback is not None:
-            self.on_cancel_callback(event)
-        event.Skip(True)
+       
+        

@@ -4,8 +4,8 @@ from collections import OrderedDict
 import wx
 
 from classes.ui import UIManager
-from ui.mvc_classes.wxgripy import DialogController
-from ui.mvc_classes.wxgripy import Dialog
+from classes.ui import DialogController
+from classes.ui import Dialog
 
 
 class ObjectPropertiesDialogController(DialogController):

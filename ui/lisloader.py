@@ -1,15 +1,15 @@
-# -*- coding: utf-8 -*-
-import wx
 import os
+from collections import OrderedDict
+
+import wx
 import wx.dataview as dv
-#
+
+from classes.om import ObjectManager
 from fileio.lis import LISFile
 from fileio.liswell import LISWells, LISWell, LISWellLog
-#
-from OM.Manager import ObjectManager
-from collections import OrderedDict
-from Parms import ParametersManager
-import DT
+from basic.parms import ParametersManager
+
+
 
 W_MNEMS = OrderedDict()
 W_MNEMS['CN'] = {'LAS_MNEM': 'COMP', 'LAS_DESC': 'CCOMPANY'}
@@ -71,8 +71,7 @@ class LISImportFrame(wx.Frame):
                 self, message="Choose a file",
                 defaultDir=os.getcwd(), 
                 defaultFile="",
-                #wildcard=wildcard,
-                style=wx.OPEN | wx.CHANGE_DIR
+                style=wx.FD_OPEN|wx.FD_FILE_MUST_EXIST|wx.FD_CHANGE_DIR
         )
         if dlg.ShowModal() == wx.ID_OK:
             paths = dlg.GetPaths()
@@ -184,20 +183,13 @@ class LISImportFrame(wx.Frame):
             PM = ParametersManager.get()
             # Implementar selecao de datatypes e curvetypes a moda Vizeu
             for lis_well_log in lis_well.get_logs():
-                logtype = PM.getcurvetypefrommnem(lis_well_log.mnem)
-                datatype = PM.getdatatypefrommnem(lis_well_log.mnem)
+                logtype = PM.get_curvetype_from_mnemonic(lis_well_log.mnem)
+                datatype = PM.get_datatype_from_mnemonic(lis_well_log.mnem)
                 if not datatype:
                     datatype = 'Log'
                 if datatype == 'Log':    
                     log = self._OM.new('log', lis_well_log.data, name=lis_well_log.mnem, unit=lis_well_log.unit, curvetype=logtype)
                     self._OM.add(log, well.uid)
-                elif datatype == 'Partition':  
-                    booldata, codes = DT.DataTypes.Partition.getfromlog(lis_well_log.data)
-                    partition = self._OM.new('partition', name=lis_well_log.name, curvetype=logtype)
-                    self._OM.add(partition, well.uid)
-                    for idx in range(len(codes)):
-                        part = self._OM.new('part', booldata[idx], code=int(codes[idx]), curvetype=logtype)
-                        self._OM.add(part, partition.uid)
                 
             self.SetProgress(idx, 100)
             

@@ -679,23 +679,6 @@
         "LeftScale": 0.0, 
         "CurveDescription": null
     }, 
-    "Partition": {
-        "RightScale": 1.0, 
-        "HistogramLeft": 0.0, 
-        "Color": "", 
-        "LineStyle": "Partition", 
-        "Backup": 0, 
-        "XplotLogLin": "Lin", 
-        "HistogramRight": 1.0, 
-        "LogLin": "Lin", 
-        "XplotMin": 0.0, 
-        "HistogramLogLin": "Lin", 
-        "Units": "inch", 
-        "LineWidth": 9, 
-        "XplotMax": 1.0, 
-        "LeftScale": 0.0, 
-        "CurveDescription": "Lito Partition Curve, inserted by Adriano - 09/08/2016"
-    }, 
     "PEF": {
         "RightScale": 20.0, 
         "HistogramLeft": 0.0, 

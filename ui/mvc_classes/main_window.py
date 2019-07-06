@@ -3,9 +3,8 @@ import wx
 import wx.aui as aui
 from classes.ui import UIManager
 
-from ui.mvc_classes.wxgripy import FrameController
-from ui.mvc_classes.wxgripy import Frame
-
+from classes.ui import FrameController
+from classes.ui import Frame
 from app.app_utils import GripyBitmap
 from app import log
 

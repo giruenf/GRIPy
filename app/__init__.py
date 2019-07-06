@@ -23,7 +23,6 @@ def _read_app_definitions():
         init_dict = json.load(init_file)
         init_file.close()
         return init_dict
-    
     except Exception as e:
         msg = 'Fatal error while loading GRIPy init file: ' \
                             + str(PurePath(BASE_PATH, INIT_FILE)) \

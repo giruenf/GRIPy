@@ -30,12 +30,14 @@ from algo import avo
 from algo.modeling.reflectivity import Reflectivity
 from classes.om import ObjectManager
 from basic.parms import ParametersManager
-from  ui import HeaderEditor
+
+
+#from  ui import HeaderEditor
 from  ui import ImportSelector
 from  ui import ExportSelector
 from  ui import ODTEditor
 
-#from  ui import lisloader
+from  ui import lisloader
 from  ui import PartitionEditor
 from  ui import PartEditor
 from  ui import RockTableEditor
@@ -2887,108 +2889,142 @@ def on_coding_console(event):
     UIM.create('console_controller', mwc.uid)
 
 
-def on_import_las(event):
-    style = wx.FD_OPEN | wx.FD_FILE_MUST_EXIST
-    wildcard="Arquivos LAS (*.las)|*.las"
-    fdlg = wx.FileDialog(wx.App.Get().GetTopWindow(), 'Escolha o arquivo LAS', 
-                         wildcard=wildcard, style=style)
-    if fdlg.ShowModal() == wx.ID_OK:
-        file_name = fdlg.GetFilename()
-        dir_name  = fdlg.GetDirectory()
-        fdlg.Destroy()
-    else:
-        fdlg.Destroy()
+
+
+def on_import_las(*args):
+    file_dialog = wx.FileDialog(wx.App.Get().GetTopWindow(), 
+                                'Escolha o arquivo LAS', 
+                                wildcard="Arquivos LAS (*.las)|*.las", 
+                                style=wx.FD_OPEN|wx.FD_FILE_MUST_EXIST
+    )
+    if file_dialog.ShowModal() != wx.ID_OK:
+        file_dialog.Destroy()
         return
+    file_name = file_dialog.GetFilename()
+    dir_name  = file_dialog.GetDirectory()
+    file_dialog.Destroy()
+    #
     las_file = las.open(os.path.join(dir_name, file_name), 'r')
     las_file.read()
-    hedlg = HeaderEditor.Dialog(wx.App.Get().GetTopWindow())
-    hedlg.set_header(las_file.header)
+    #
+    UIM = UIManager()
+    las_header_dlg = UIM.create('las_header_controller')  
+    las_header_dlg.set_header(las_file.header)
+    #
+    results = None
+    if las_header_dlg.ShowModal() == wx.ID_OK:
+        results = las_header_dlg.get_results() 
+    UIM.remove(las_header_dlg.uid)        
+    #    
+    if not results:
+        return
+        
+    """    
+    #print(results)   
+    #las_file.header = hedlg.get_header()    
+#    units = las_file.curvesunits
+#    ncurves = len(las_file.curvesnames)
 
-    if hedlg.ShowModal() == wx.ID_OK:
-        
-        las_file.header = hedlg.get_header()
-        names = las_file.curvesnames
-        units = las_file.curvesunits
-        ncurves = len(names)
+    # Tentativa de solução não lusitana
+    PM = ParametersManager.get() 
+    curvetypes = PM.get_curvetypes()
+    datatypes_ = PM.get_datatypes()    
+    sel_curvetypes = [PM.get_curvetype_from_mnemonic(name) for name in las_file.curvesnames]
+    """
 
-        # Tentativa de solução não lusitana
-        
-        PM = ParametersManager.get()
-        
-        curvetypes = PM.getcurvetypes()
-        datatypes_ = PM.getdatatypes()
-        
-        sel_curvetypes = [PM.getcurvetypefrommnem(name) for name in names]
-        
-        sel_datatypes = []
-        for name in names:
-            datatype = PM.getdatatypefrommnem(name)
-            if not datatype:
-                sel_datatypes.append('Log')
-            else:
-                sel_datatypes.append(datatype)
+      
 
-        isdlg = ImportSelector.Dialog(wx.App.Get().GetTopWindow(),
-                                      names, units, curvetypes, datatypes_)
-        
-        isdlg.set_curvetypes(sel_curvetypes)
-        isdlg.set_datatypes(sel_datatypes)
-        
-        
-        if isdlg.ShowModal() == wx.ID_OK:
-            sel_curvetypes = isdlg.get_curvetypes()
-            sel_datatypes = isdlg.get_datatypes()
-            data = las_file.data
-            
-            
-            OM = ObjectManager()
-            well = OM.new('well', name=las_file.wellname)
-            OM.add(well)	
-            curve_set = well.create_new_curve_set()
-            
-            
-            indexes_idx = [i for i in range(ncurves) if sel_datatypes[i] == 'Index']
-            if len(indexes_idx) == 0:
-                raise Exception('ERROR: len(indexes) == 0')
-                    
-            logs_idx = [i for i in range(ncurves) if sel_datatypes[i] == 'Log']
+#        las_file.header = hedlg.get_header()
+#        names = las_file.curvesnames
+#        units = las_file.curvesunits
+#    ncurves = len(las_file.curvesnames)
 
-            indexes_uid = []
 
-            
-            for i in range(ncurves):
-                if sel_curvetypes[i]:
-                    PM.voteforcurvetype(names[i], sel_curvetypes[i])
 
-                if sel_datatypes[i]:
-                    PM.votefordatatype(names[i], sel_datatypes[i])
-                    
-                    
-            for index_idx in indexes_idx:
-                index = OM.new('data_index', 
-                               data[index_idx], 
-                               name=names[index_idx], 
-                               unit=units[index_idx].lower(), 
-                               datatype=sel_curvetypes[index_idx]
-                )
-                OM.add(index, curve_set.uid)
-                indexes_uid.append(index.uid)
+    # Tentativa de solução não lusitana
+    PM = ParametersManager.get() 
+    curvetypes = PM.get_all_curvetypes()
+    datatypes_ = PM.get_datatypes()    
+    sel_curvetypes = [PM.get_curvetype_from_mnemonic(name) for name in las_file.curvesnames]
+    
+    sel_datatypes = []
+    for name in las_file.curvesnames:
+        
+        datatype = PM.get_datatype_from_mnemonic(name)
+        print('PM.get_datatype_from_mnemonic:', name, datatype)
+        if not datatype:
+            sel_datatypes.append('Log')
+        else:
+            sel_datatypes.append(datatype)
+
+
+
+    ####
+
+
+    isdlg = ImportSelector.Dialog(wx.App.Get().GetTopWindow(),
+                                  las_file.curvesnames, 
+                                  las_file.curvesunits, 
+                                  curvetypes, 
+                                  datatypes_
+    )
+    isdlg.set_curvetypes(sel_curvetypes)
+    isdlg.set_datatypes(sel_datatypes)
+    #     
+    if isdlg.ShowModal() == wx.ID_OK:
+        sel_curvetypes = isdlg.get_curvetypes()
+        sel_datatypes = isdlg.get_datatypes()
+        data = las_file.data
+        
+        
+        OM = ObjectManager()
+        well = OM.new('well', name=las_file.wellname)
+        OM.add(well)	
+        curve_set = well.create_new_curve_set()
+        
+        
+        indexes_idx = [i for i in range(len(las_file.curvesnames)) if sel_datatypes[i] == 'Index']
+        if len(indexes_idx) == 0:
+            raise Exception('ERROR: len(indexes) == 0')
                 
-            
-            for log_idx in logs_idx:
-                log = OM.new('log', 
-                             data[log_idx], 
-                             name=names[log_idx], 
-                             unit=units[log_idx].lower(), 
-                             datatype=sel_curvetypes[log_idx]
-                )
-                OM.add(log, curve_set.uid)
-                log._create_data_index_map(indexes_uid)
-            
-        PM.register_votes()
-        isdlg.Destroy()
+        logs_idx = [i for i in range(len(las_file.curvesnames)) if sel_datatypes[i] == 'Log']
+
+        indexes_uid = []
+
         
-    hedlg.Destroy()
+        for i in range(len(las_file.curvesnames)):
+            if sel_curvetypes[i]:
+                PM.vote_for_curvetype(las_file.curvesnames[i], sel_curvetypes[i])
+
+            #if sel_datatypes[i]:
+            #    PM.votefordatatype(las_file.curvesnames[i], sel_datatypes[i])
+                
+                
+        for index_idx in indexes_idx:
+            index = OM.new('data_index', 
+                           data[index_idx], 
+                           name=las_file.curvesnames[index_idx], 
+                           unit=las_file.curvesunits[index_idx].lower(), 
+                           datatype=sel_curvetypes[index_idx]
+            )
+            OM.add(index, curve_set.uid)
+            indexes_uid.append(index.uid)
+            
+        
+        for log_idx in logs_idx:
+            log = OM.new('log', 
+                         data[log_idx], 
+                         name=las_file.curvesnames[log_idx], 
+                         unit=las_file.curvesunits[log_idx].lower(), 
+                         datatype=sel_curvetypes[log_idx]
+            )
+            OM.add(log, curve_set.uid)
+            log._create_data_index_map(indexes_uid)
+        
+    PM.register_votes()
+    isdlg.Destroy()
+        
+
 
 
 
@@ -3050,14 +3086,14 @@ def on_import_odt(event):
         
         PM = ParametersManager.get()
         
-        curvetypes = PM.getcurvetypes()
-        datatypes_ = PM.getdatatypes()
+        curvetypes = PM.get_all_curvetypes()
+        datatypes_ = PM.get_datatypes()
         
-        sel_curvetypes = [PM.getcurvetypefrommnem(name) for name in names]
+        sel_curvetypes = [PM.get_curvetype_from_mnemonic(name) for name in names]
         
         sel_datatypes = []
         for name in names:
-            datatype = PM.getdatatypefrommnem(name)
+            datatype = PM.get_datatype_from_mnemonic(name)
             if not datatype:
                 sel_datatypes.append('Log')
             else:
@@ -3081,10 +3117,10 @@ def on_import_odt(event):
             OM.add(well)
             for i in range(ncurves):
                 if sel_curvetypes[i]:
-                    PM.voteforcurvetype(names[i], sel_curvetypes[i])
+                    PM.vote_for_curvetype(names[i], sel_curvetypes[i])
             
-                if sel_datatypes[i]:
-                    PM.votefordatatype(names[i], sel_datatypes[i])
+                #if sel_datatypes[i]:
+                #    PM.votefordatatype(names[i], sel_datatypes[i])
             
                 if sel_datatypes[i] == 'Depth':
                     # print "Importing {} as '{}' with curvetype '{}'".format(names[i], sel_datatypes[i], sel_curvetypes[i])
@@ -3096,24 +3132,13 @@ def on_import_odt(event):
                     log = OM.new('log', data[i], name=names[i], unit=units[i], curvetype=sel_curvetypes[i])
                     OM.add(log, well.uid)
 
-                elif sel_datatypes[i] == 'Partition':
-                    # print "Importing {} as '{}' with curvetype '{}'".format(names[i], sel_datatypes[i], sel_curvetypes[i])
-                    booldata, codes = datatypes.DataTypes.Partition.getfromlog(data[i])
-                    
-                    partition = OM.new('partition', name=names[i], curvetype=sel_curvetypes[i])
-                    OM.add(partition, well.uid)
-                    
-            
-                    for j in range(len(codes)):
-                        part = OM.new('part', booldata[j], code=int(codes[j]), curvetype=sel_curvetypes[i])
-                        OM.add(part, partition.uid)
                 
                 else:
                     print ("Not importing {} as no datatype matches '{}'".format(names[i], sel_datatypes[i]))
                 
         
         PM.register_votes()
-                
+               
         isdlg.Destroy()
 
     hedlg.Destroy()
@@ -3121,13 +3146,14 @@ def on_import_odt(event):
 
 
 
-def on_import_lis(event):
+def on_import_lis(*args):
     lis_import_frame = lisloader.LISImportFrame(wx.App.Get().GetTopWindow())
     lis_import_frame.Show()
  
 
+
 def on_import_segy_seis(event):
-    
+
     raise Exception('Reescrever igual on_import_segy_well_gather')
     style = wx.FD_OPEN | wx.FD_FILE_MUST_EXIST
     wildcard="Arquivos SEG-Y (*.sgy)|*.sgy"

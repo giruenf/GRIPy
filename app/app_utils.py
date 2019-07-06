@@ -528,16 +528,19 @@ def GripyJSONParser(s_and_end, scan_once, _class, _w=WHITESPACE.match, _ws=WHITE
 
 
 
-def read_json_file(fullfilename):
+def read_json_file(full_filename):
     #print ('\nread_json_file:', fullfilename, type(fullfilename))
-    fullfilename = fullfilename.replace('\\' ,'/')  
+    #fullfilename = fullfilename.replace('\\' ,'/')  
     #fullfilename = fullfilename.encode('ascii', 'ignore') # in order to save unicode characters
     #fullfilename = fullfilename.encode('string-escape')
-    f = open(fullfilename)
-    state = json.load(f, cls=GripyJSONDecoder)
-    f.close()
+    json_file = open(full_filename, 'r')
+    state = json.load(json_file, cls=GripyJSONDecoder)
+    json_file.close()
     return state
         
+
+
+
 
 
 

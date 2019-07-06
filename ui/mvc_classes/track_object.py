@@ -4,8 +4,8 @@ import numpy as np
 
 from classes.om import ObjectManager
 from classes.ui import UIManager
+from classes.ui import FrameController
 
-from ui.mvc_classes.wxgripy import FrameController
 
 from ui.mvc_classes.representation import RepresentationController
 

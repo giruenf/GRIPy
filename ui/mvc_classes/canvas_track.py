@@ -6,26 +6,12 @@ from app import pubsub
 from app import log
 from classes.ui import UIManager
 from ui.mvc_classes.canvas_base import CanvasBaseController
-
 from ui.mvc_classes.canvas_base import CanvasBaseView
-
 from ui.mvc_classes.extras import SelectablePanelMixin
-
-from matplotlib.lines import Line2D
-
-
-
-
-
-
 
 # On linear X axis scale, base_axis limits will be fixed as below
 XMAX_PLUS = 0.0
 LINEAR_XLIM = (0.0, 100.0 + XMAX_PLUS)
-
-
-
-
 
 
 class TrackCanvasController(CanvasBaseController):
@@ -38,7 +24,6 @@ class TrackCanvasController(CanvasBaseController):
                 'default_value': 'linear', #'log', #["linear", "log", "symlog", "logit"]
                 'type': str
         },            
-            
         'depth_lines': {        
             'default_value': 0,
             'type': int
@@ -46,8 +31,7 @@ class TrackCanvasController(CanvasBaseController):
         'plotgrid': {
             'default_value': True, 
             'type': bool
-        },  
-                
+        },     
         'leftscale': {
             'default_value': 0.2, 
             'type': float
@@ -60,17 +44,14 @@ class TrackCanvasController(CanvasBaseController):
             'default_value': True, 
             'type': bool
         }, 
-
         'scale_lines': {        
             'default_value': 5,
             'type': int
-        }, 
-                
+        },                 
         'ygrid_major_lines': {
             'default_value': 500.0, 
             'type': float
-        },       
-                
+        },                       
         'ygrid_minor_lines': {
             'default_value': 100.0, 
             'type': float
@@ -293,8 +274,6 @@ class TrackCanvasController(CanvasBaseController):
             self.set_locator('log', 'x', 'major', numdecs=self.decades)            
             self.view.set_minorgrid(self.minorgrid)
         self.view.set_plotgrid(self.plotgrid)
-
-
 
 
     # TODO: Check if it is the best way        

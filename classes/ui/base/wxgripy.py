@@ -508,6 +508,7 @@ class EncapsulatedListBox(EncapsulatedControl):
             return None
         return [self._map.get(self.control.GetString(sel)) for sel in self.control.GetSelections()]   
 
+
 ###############################################################################
 ###############################################################################
 
@@ -515,16 +516,16 @@ class EncapsulatedListBox(EncapsulatedControl):
 class DialogController(TopLevelController):
     tid = 'dialog_controller'
     
-    _ATTRIBUTES = {
-        'flags': {
-                'default_value': wx.OK|wx.CANCEL, 
-                'type': int
-        }
+    _ATTRIBUTES = OrderedDict()
+    _ATTRIBUTES['flags'] = {
+        'default_value': wx.OK|wx.CANCEL, 
+        'type': int
+
     }    
     _ATTRIBUTES['style'] = {
         'default_value': wx.DEFAULT_DIALOG_STYLE, 
         'type': int        
-    }         
+    }
     
     def __init__(self, **state):
         super().__init__(**state)
@@ -539,7 +540,6 @@ class DialogController(TopLevelController):
     
     def _topic_filter(self, topic_name):
         return topic_name == '_widget_changed@' + self.view.get_topic()   
-        #'_widget_changed@' + dialog.get_topic()
     
           
 class Dialog(TopLevel, wx.Dialog):   
@@ -561,67 +561,50 @@ class Dialog(TopLevel, wx.Dialog):
             self.Maximize()   
         self.Bind(wx.EVT_MAXIMIZE, self.on_maximize)       
         self.Bind(wx.EVT_SIZE, self.on_size)    
-        self.Bind(wx.EVT_MOVE, self.on_move)  
-        dialog_box = wx.BoxSizer(wx.VERTICAL) 
-        self.SetSizer(dialog_box) 
-        self.mainpanel = self.AddCreateContainer('BoxSizer', self, proportion=1, 
-                            flag=wx.TOP|wx.LEFT|wx.RIGHT|wx.EXPAND, border=10
+        self.Bind(wx.EVT_MOVE, self.on_move)
+        #
+        self._dialog_main_sizer = wx.BoxSizer(wx.VERTICAL) 
+        self.SetSizer(self._dialog_main_sizer)
+        # This is will use dialog_main_sizer as Sizer. 
+        # See self.AddContainer function to get more details.
+        self.mainpanel = self.AddCreateContainer('BoxSizer', 
+                                        self, 
+                                        proportion=1, 
+                                        flag=wx.TOP|wx.LEFT|wx.RIGHT|wx.EXPAND, 
+                                        border=10
         )
         if controller.flags is not None:
             button_sizer = self.CreateButtonSizer(controller.flags)
-            dialog_box.Add(button_sizer, flag=wx.ALIGN_CENTER|wx.TOP|wx.BOTTOM, border=10)    
-        dialog_box.Layout()  
-
-
+            self._dialog_main_sizer.Add(button_sizer, 
+                           flag=wx.ALIGN_CENTER|wx.TOP|wx.BOTTOM, 
+                           border=10
+            )    
+        self._dialog_main_sizer.Layout()
+  
+    
+    def GetSizer(self):
+        """
+        Users must get only mainpanel's Sizer. 
+        During mainpanel creation, the Sizer given will be _dialog_main_sizer.
+        """
+        try:
+            return self.mainpanel.GetSizer()
+        except:
+            return self._dialog_main_sizer
+            
+            
     def get_topic(self):
         return 'dialog_' + str(self._controller_uid[1])
 
-
-    def _get_button(self, button_id):
-        UIM = UIManager()
-        controller = UIM.get(self._controller_uid)
-        if button_id & controller.flags:
-            return self.FindWindow(button_id)
-        return None
-
-    def enable_button(self, button_id, enable=True):
-        btn = self._get_button(button_id)
-        btn.Enable(enable)
-
-    def register(self, enc_control):
-        if enc_control.name:
-            self._objects[enc_control.name] = enc_control
-
-
-    def AddContainer(self, container, *args, **kwargs):
-        #print 'AddContainer:', args, kwargs
-        for key in kwargs.keys():
-            if key not in item_sizer_keys:
-                raise Exception('Invalid container key. [key=\"{}\"]'.format(key))
-        if not args:
-            parent = self.mainpanel
-            #print 'self.mainpanel:', self.mainpanel
-        else:
-            parent = args[0]
-        container.Show()            
-        if container.__class__ == StaticBoxContainer:
-            parent.GetSizer().Add(container.GetSizer(), **kwargs)
-        else:    
-            parent.GetSizer().Add(container, **kwargs)
-        parent.GetSizer().Layout()
-
-
-    def DetachContainer(self, container):
-        ctn_sizer = container.GetSizer()
-        parent = container.GetParent()
-        if container.__class__ == StaticBoxContainer:
-            result = parent.GetSizer().Detach(ctn_sizer)
-        else:
-            result =  parent.GetSizer().Detach(container)  
-        container.Show(False)    
-        return result
-
-        
+# Containers 
+    def AddCreateContainer(self, container_type_name, *args, **kwargs):
+        try:
+            item_sizer_kw, kwargs = pop_registers(item_sizer_keys, kwargs)
+            container = self.CreateContainer(container_type_name, *args, **kwargs)
+            self.AddContainer(container, *args, **item_sizer_kw)
+            return container
+        except:
+            raise
 
     def CreateContainer(self, container_type_name, *args, **kwargs):
         try:
@@ -639,51 +622,59 @@ class Dialog(TopLevel, wx.Dialog):
                 container_class = WarpSizerContainer  
             else:
                 raise Exception('Unregistered container.')          
-            #print 'CreateContainer:', container_class, args, kwargs
             if not args:
-                #print 'self.mainpanel:', self.mainpanel
                 parent = self.mainpanel
             else:
                 parent = args[0]
             container = container_class(parent, **kwargs)
-            #print 'CreateContainer fim'
             return container
         except:
             raise
-            
+                      
+    def AddContainer(self, container, *args, **kwargs):
+        for key in kwargs.keys():
+            if key not in item_sizer_keys:
+                msg = 'Invalid container key. [key=\"{}\"]'.format(key)
+                raise Exception(msg)
+        if not args:
+            parent = self.mainpanel
+        else:
+            parent = args[0]
+#        container.Show()            
+        if container.__class__ == StaticBoxContainer:
+            parent.GetSizer().Add(container.GetSizer(), **kwargs)
+        else:    
+            parent.GetSizer().Add(container, **kwargs)
+        parent.GetSizer().Layout()
 
-    def AddCreateContainer(self, container_type_name, *args, **kwargs):
-        #print '\n\nAddCreateContainer:', container_type_name, args, kwargs
-        try:
-            item_sizer_kw, kwargs = pop_registers(item_sizer_keys, kwargs)
-            container = self.CreateContainer(container_type_name, *args, **kwargs)
-            self.AddContainer(container, *args, **item_sizer_kw)    
-            return container
-        except:
-            raise
-            
-    
-    '''
-    def AddBoxSizerContainer(self, *args, **kwargs):
-        #print 'AddBoxSizerContainer'
-        return self._AddCreateContainer(BoxSizerContainer, *args, **kwargs)
-        
-    def AddGridSizerContainer(self, *args, **kwargs):
-        return self._AddCreateContainer(GridSizerContainer, *args, **kwargs)     
+    def DetachContainer(self, container):
+        ctn_sizer = container.GetSizer()
+        parent = container.GetParent()
+        if container.__class__ == StaticBoxContainer:
+            result = parent.GetSizer().Detach(ctn_sizer)
+        else:
+            result =  parent.GetSizer().Detach(container)  
+        container.Show(False)    
+        return result
 
-    def AddFlexGridSizerContainer(self, *args, **kwargs):
-        return self._AddCreateContainer(FlexGridSizerContainer, *args, **kwargs)
-        
-    def AddGridBagSizerContainer(self, *args, **kwargs):
-        return self._AddCreateContainer(GridBagSizerContainer, *args, **kwargs)    
+# Controllers        
 
-    def AddStaticBoxContainer(self, *args, **kwargs):
-        return self._AddCreateContainer(StaticBoxContainer, *args, **kwargs)
-                 
-    def AddWarpSizerContainer(self, *args, **kwargs):
-        return self._AddCreateContainer(WarpSizerContainer, *args, **kwargs)                 
-    '''
-                 
+    def _get_button(self, button_id):
+        UIM = UIManager()
+        controller = UIM.get(self._controller_uid)
+        if button_id & controller.flags:
+            return self.FindWindow(button_id)
+        return None
+
+    def enable_button(self, button_id, enable=True):
+        btn = self._get_button(button_id)
+        btn.Enable(enable)
+
+    def register(self, enc_control):
+        if enc_control.name:
+            self._objects[enc_control.name] = enc_control
+
+       
     def CreateControl(self, enc_class, container, **kwargs):
         # Create and Add a new control.
         try:
@@ -696,6 +687,7 @@ class Dialog(TopLevel, wx.Dialog):
             container.GetSizer().Layout()
         except:
             raise
+
             
     def AddChoice(self, *args, **kwargs):
         self.CreateControl(EncapsulatedChoice, args[0], **kwargs)
@@ -721,6 +713,7 @@ class Dialog(TopLevel, wx.Dialog):
     def AddListBox(self, *args, **kwargs):
         self.CreateControl(EncapsulatedListBox, args[0], **kwargs)        
 
+
     def get_results(self):
         ret = {}
         for name, widget in self._objects.items():
@@ -741,7 +734,6 @@ class PanelContainer(wx.Panel):
             raise Exception()    
         sizer_class = kwargs.pop('sizer_class')
         panel_kw, sizer_kw = pop_registers(panel_keys, kwargs)
-        #print 'wx.Panel.__init__:', args[0], panel_kw
         wx.Panel.__init__(self, args[0], **panel_kw)
         try:
             sizer = sizer_class(**sizer_kw)
@@ -764,7 +756,7 @@ class BoxSizerContainer(PanelContainer):
                 kwargs['orient'] = wx.VERTICAL
             elif kwargs.get('orient') not in [wx.HORIZONTAL, wx.VERTICAL]:
                 raise Exception() 
-        super(BoxSizerContainer, self).__init__(*args, **kwargs)
+        super().__init__(*args, **kwargs)
 
 
 class GridSizerContainer(PanelContainer):
@@ -774,7 +766,7 @@ class GridSizerContainer(PanelContainer):
             kwargs = {'sizer_class': wx.GridSizer}
         else:
             kwargs['sizer_class'] = wx.GridSizer
-        super(GridSizerContainer, self).__init__(*args, **kwargs)   
+        super().__init__(*args, **kwargs)   
 
 
 class GridBagSizerContainer(PanelContainer):
@@ -783,7 +775,7 @@ class GridBagSizerContainer(PanelContainer):
             kwargs = {'sizer_class': wx.GridBagSizer}
         else:
             kwargs['sizer_class'] = wx.GridBagSizer
-        super(GridBagSizerContainer, self).__init__(*args, **kwargs)          
+        super().__init__(*args, **kwargs)          
       
       
 class FlexGridSizerContainer(PanelContainer):
@@ -793,7 +785,7 @@ class FlexGridSizerContainer(PanelContainer):
             kwargs = {'sizer_class': wx.FlexGridSizer}
         else:
             kwargs['sizer_class'] = wx.FlexGridSizer
-        super(FlexGridSizerContainer, self).__init__(*args, **kwargs)    
+        super().__init__(*args, **kwargs)    
 
 
 class WarpSizerContainer(PanelContainer):
@@ -810,7 +802,8 @@ class WarpSizerContainer(PanelContainer):
                 kwargs['orient'] = wx.VERTICAL
             elif kwargs.get('orient') not in [wx.HORIZONTAL, wx.VERTICAL]:
                 raise Exception() 
-        super(WarpSizerContainer, self).__init__(*args, **kwargs)
+        super().__init__(*args, **kwargs)
+
 
 
 class StaticBoxContainer(wx.StaticBox):

@@ -170,14 +170,16 @@ def load():
                 help=u'Import a ODT file to current GriPy Project',
                 callback='app.menu_functions.on_import_odt'
         )
+        
         # TODO: Falta LIS !!!!
-        '''
+#        '''
         UIM.create('menu_item_controller', mc_import.uid, 
                 label=u"LIS File", 
                 help=u'Import a LIS file to current GriPy Project',
                 callback='app.menu_functions.on_import_lis'
         )    
-        '''        
+#        '''       
+        
         # TODO: Falta DLIS !!!!
         '''
         mic_import_dlis = UIM.create('menu_item_controller', mc_import.uid, 
@@ -186,6 +188,7 @@ def load():
                 callback='app.menu_functions.on_import_dlis'
         )  
         '''
+        
         UIM.create('menu_item_controller', mc_import.uid, 
                 label=u"SEG-Y Well Gather", 
                 help=u'Import a SEG-Y Seismic file as Well Gather',

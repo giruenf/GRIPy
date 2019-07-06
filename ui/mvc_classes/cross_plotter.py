@@ -33,8 +33,6 @@ class CrossPlotController(WorkPageController):
     def __init__(self, **state):
         super().__init__(**state)
 
- 
-    
     
 class CrossPlot(WorkPage):
     tid = 'crossplot'
@@ -44,7 +42,6 @@ class CrossPlot(WorkPage):
         super().__init__(controller_uid) 
  
     def PostInit(self):
-
         try:
             self.sizer = wx.BoxSizer(wx.VERTICAL)
             self._tool_bar =  wx.aui.AuiToolBar(self)
@@ -67,14 +64,10 @@ class CrossPlot(WorkPage):
             self.SetSizer(self.sizer)   
             #
             self._build_tool_bar()
-            self.Layout()
-            #
-            print ('FIM CrossPlot.PostInit')
-            
+            self.Layout()            
         except Exception as e:
             print ('ERROR IN CrossPlot.PostInit:', e)
             raise
-
 
     def PreDelete(self):
         try:
@@ -86,11 +79,8 @@ class CrossPlot(WorkPage):
             print (msg)                                
             pass       
 
-
-
     def get_friendly_name(self):   
         return self._get_tid_friendly_name()
-
 
     def _set_own_name(self):
         """
@@ -99,14 +89,11 @@ class CrossPlot(WorkPage):
         controller = UIM.get(self._controller_uid)   
         controller.title = self.get_friendly_name()
 
-
-
     def _get_wx_parent(self, *args):
         flag = args[0]
         print ('\nCrossPlot._get_wx_parent', flag)
         return self
     
-
     def on_canvas_mouse_move(self, event):
         axes = event.inaxes
         if axes is None:
@@ -117,14 +104,11 @@ class CrossPlot(WorkPage):
                                                    y_axis_label, event.ydata
         )
         self._status_bar.SetStatusText(msg)
-    
-
-    
+        
     def get_canvas_plotter_controller(self):
         UIM = UIManager()
         return UIM.list('canvas_plotter_controller', 
                                         self._controller_uid)[0]
-
 
     def _on_change_tool(self, event):
         print 
@@ -133,8 +117,6 @@ class CrossPlot(WorkPage):
         elif event.GetId() == CP_SELECTION_TOOL:  
             print ('CP_SELECTION_TOOL')
 
-
-
     def _on_change_float_panel(self, event):
         # TODO: Integrar binds de toggle buttons...
         if event.GetId() == CP_FLOAT_PANEL:
@@ -142,12 +124,9 @@ class CrossPlot(WorkPage):
             controller = UIM.get(self._controller_uid)
             controller.float_mode = event.IsChecked()            
 
-
-
     def _OnEditFormat(self, event): 
         cpc = self.get_canvas_plotter_controller()
         Interface.create_properties_dialog(cpc.uid, size=(600, 600))
-
 
     def _build_tool_bar(self):
         self.fp_item = self._tool_bar.AddTool(CP_FLOAT_PANEL, 
@@ -164,7 +143,6 @@ class CrossPlot(WorkPage):
                   CP_FLOAT_PANEL
         )        
         self._tool_bar.AddSeparator()
-        
         #
         self._tool_bar.AddTool(CP_NORMAL_TOOL, 
                       wx.EmptyString,
@@ -241,10 +219,8 @@ class CrossPlot(WorkPage):
         button_edit_format.Bind(wx.EVT_BUTTON , self._OnEditFormat)
         self._tool_bar.AddControl(button_edit_format, '')
         self._tool_bar.AddSeparator()    
-        #  
-        
+        #   
         self._tool_bar.Realize()  
-
 
     
     def set_own_name(self):
@@ -256,7 +232,6 @@ class CrossPlot(WorkPage):
             idx += 1
         controller.title = self._get_tid_friendly_name() + ' [' + str(idx) + ']'    
         
-
     def _on_choice_style(self, event):
         lib_name = event.GetString()
         print ('\n\nLoading Style:', lib_name)
