@@ -18,7 +18,7 @@ class LISWells(object):
             for lr in self.lis.logical_records:
                 if lr.code == 128:
                     i += 1
-                    #print 'I: ', i
+                    print ('I: ', i)
                     if well is None:
                         well = LISWell()
                     elif not well.is_closed():
@@ -31,7 +31,8 @@ class LISWells(object):
                     well = None
                 if lr.code not in [128, 129, 130, 131, 132, 133, 234]:
                     well.add_logical_register(lr)
-
+        else:
+            print('else')
                     
 
 class LISWell(object):

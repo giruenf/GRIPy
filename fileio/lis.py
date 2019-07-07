@@ -139,14 +139,21 @@ def _get_value(data, mode, signed=True, big_endian=True):
     if signed is False:    
         mode = mode.upper()
     format_ = big + mode 
+    #print('data: {}  -  format_: {} - Tdata: {} - Tformat: {}'.format(data, 
+    #      format_, type(data), type(format_)))
     n = struct.unpack(format_, data)
     return n[0]       
 
 
 def _get_string(data):
-    string = ''
+    string = data.decode("utf-8")
+    """
+    print(data, type(data))
     for i in range(len(data)):
-        string += struct.unpack('s', data[i])[0]
+        print(data[i], type(data[i]))
+        #string += struct.unpack('s', data[i])[0]
+        string += data.decode("utf-8")
+    """    
     return string.strip()
 
 
@@ -227,8 +234,9 @@ class LISFile(object):
         prs_data = []
         # Reading file
         result, new_data = TIFFile.desencapsulate(self.input_data)
+        #print('\nresult, new_data:', result, new_data)
         if result:
-            self.input_data = str('')
+            self.input_data = bytes('', 'utf-8')
             for d in new_data:
                 self.input_data += d
         offset = 0
@@ -282,6 +290,7 @@ class LISFile(object):
     def read_logical_records(self):
         self.logical_records = []        
         
+        print(len(self.physical_records))
         for pr in self.physical_records:
             try:
                 lr = LogicalRegister()
@@ -331,7 +340,8 @@ class LISFile(object):
                                 item_size = entry_dict.get('Size')
                                 item_code = entry_dict.get('Representation Code')
                                 item_samples = entry_dict.get('Number Samples')    
-                                item_inc = item_size/item_samples                              
+                                item_inc = int(item_size/item_samples)  
+                                
                                 for i in range(item_samples):                                
                                     value = get(pr.lr_data[pos:pos+item_inc], item_code)
                                     value = float("{0:.6f}".format(value))
@@ -446,8 +456,10 @@ class LISFile(object):
                     if item is not None:
                         list_.append(item)
                 self.logical_records.append(lr)
-            except Exception:
-                continue
+            except Exception as e:
+                print('ERROR:', e)
+                raise
+                #continue
            
 
       

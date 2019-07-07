@@ -77,14 +77,19 @@ class TIFFile(object):
         # Not a TIF data, returning False and input data        
         if registers is None:
             return False, data
+        #
         return_data = []    
-        tif_file = ''
+        tif_file = bytes('', 'utf-8')
+        
+        #print('\nregisters:', registers)
+        #print()
+        
         for register in registers:
             if register[0] == 1:
                 return_data.append(tif_file)
-                tif_file = str('')
+                tif_file = bytes('', 'utf-8')
             else:
-                tif_file += str(register[3])
+                tif_file += register[3]
         # Returning True for success        
         return True, return_data
 

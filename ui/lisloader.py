@@ -209,11 +209,12 @@ class LISModel(dv.PyDataViewModel):
     
     def __init__(self, wells):
         dv.PyDataViewModel.__init__(self)
-        self.objmapper.UseWeakRefs(True)
+#        self.objmapper.UseWeakRefs(True)
         self.wells = wells
         self.las_filenames = []
         self.responses = []
         self.progresses = []
+        print('kkkk', len(self.wells))
         for i in range(len(self.wells)):
             self.las_filenames.append('file_'+str(i)+'.las')
             self.responses.append(True)
@@ -311,9 +312,9 @@ class LISModel(dv.PyDataViewModel):
  
  
     def GetValue(self, item, col):
-        #print 'GetValue: ', col
+        print('\nGetValue: ', col)
         obj = self.ItemToObject(item)
-        #print type(obj)
+        print (type(obj))
         if isinstance(obj, LISWell):
             #print 'col: ', col
             if col == 0: 
