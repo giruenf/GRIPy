@@ -1,5 +1,3 @@
-# -*- coding: utf-8 -*-
-
 from collections import OrderedDict
 
 import wx
@@ -11,145 +9,14 @@ from classes.ui import UIViewObject
 from app.pubsub import AUTO_TOPIC
 from app.app_utils import GripyIcon
 
-###############################################################################
-###############################################################################
 
 
-class TopLevelController(UIControllerObject):
-    tid = 'toplevel_controller'
-
-    _ATTRIBUTES = {
-        'title': {'default_value': wx.EmptyString, 
-                  'type': str
-        },
-        # TODO: Use icon from App parameters          
-        'icon': {'default_value': './basic/icons/logo-transp.ico',
-                 'type': str
-        },
-        'style': {'default_value': wx.DEFAULT_FRAME_STYLE, 
-                  'type': int        
-        },
-        'maximized': {'default_value': False,  
-                      'type': bool
-        },
-        'size': {'default_value': wx.Size(800, 600), 
-                 'type': wx.Size
-        },
-        'pos': {'default_value': wx.Point(50, 50), 
-                'type': wx.Point
-        }
-    }    
-   
-    def __init__(self, **state):     
-        super().__init__(**state)
 
 
-class TopLevel(UIViewObject):
-    tid = 'toplevel'
-
-    def __init__(self, controller_uid):
-        UIViewObject.__init__(self, controller_uid)
-        UIM = UIManager()
-        controller = UIM.get(self._controller_uid)
-        
-        # MainWindow subscribing MainWindowController PubSub messages
-        controller.subscribe(self._set_maximized, 'change.maximized')
-        controller.subscribe(self._set_size, 'change.size')
-        controller.subscribe(self._set_position, 'change.pos')
-        #
-        # TODO: try to remove _flag using new GripyObject style
-        # little hack - on_size
-#        self._flag = False
-        
-    def on_maximize(self, event):
-        UIM = UIManager()
-        controller = UIM.get(self._controller_uid)
-        controller.set_value_from_event('maximized', self.IsMaximized())
-
-    def on_move(self, event):
-        UIM = UIManager()
-        controller = UIM.get(self._controller_uid)
-        controller.set_value_from_event('pos', self.GetPosition())
-
-    def on_size(self, event):
-        UIM = UIManager()
-        controller = UIM.get(self._controller_uid)
-        controller.set_value_from_event('size', event.GetSize())
-        controller.set_value_from_event('maximized', self.IsMaximized())
-        event.Skip()
-  
-    def _set_maximized(self, new_value, old_value):  
-        self.Unbind(wx.EVT_MAXIMIZE, handler=self.on_maximize)  
-        self.Maximize(new_value)
-        self.Bind(wx.EVT_MAXIMIZE, self.on_maximize)  
-    
-    def _set_size(self, new_value, old_value):
-#        if not self._flag:
-        self.Unbind(wx.EVT_SIZE, handler=self.on_size)
-        self.SetSize(new_value)
-        self.Bind(wx.EVT_SIZE, self.on_size)    
-    
-    def _set_position(self, new_value, old_value):  
-        self.Unbind(wx.EVT_MOVE, handler=self.on_move) 
-        self.SetPosition(new_value)
-        self.Bind(wx.EVT_MOVE, self.on_move)  
 
 
-###############################################################################
-###############################################################################
 
 
-class FrameController(TopLevelController):
-    tid = 'frame_controller'
-         
-    def __init__(self, **state):  
-        super().__init__(**state)
-
-
-class Frame(TopLevel, wx.Frame):
-    tid = 'frame'
-
-    def __init__(self, controller_uid):
-        TopLevel.__init__(self, controller_uid)
-        UIM = UIManager()
-        controller = UIM.get(self._controller_uid)
-        #
-        parent_uid = UIM._getparentuid(self._controller_uid)
-        parent_obj = UIM.get(parent_uid)
-        if not parent_obj:
-            wx_parent = None
-        else:
-            wx_parent = parent_obj.view
-        #
-        wx.Frame.__init__(self, wx_parent, wx.ID_ANY, controller.title,
-            pos=controller.pos, size=controller.size, 
-            style=controller.style              
-        ) 
-        if controller.icon:   
-            self.icon = GripyIcon(controller.icon, wx.BITMAP_TYPE_ICO)        
-            self.SetIcon(self.icon)     
-        if controller.maximized:
-            self.Maximize()   
-            
-        # TODO: Bind para a super class???    
-        self.Bind(wx.EVT_MAXIMIZE, self.on_maximize)       
-        self.Bind(wx.EVT_SIZE, self.on_size)    
-        self.Bind(wx.EVT_MOVE, self.on_move)    
-        self.Bind(wx.EVT_CLOSE, self.on_close)  
-        
-
-    def on_close(self, event):
-        print ('\n\n\nFrame on_close')
-#        event.Skip()
-#        self._call_self_remove()
-        self._auto_removal()
-        wx.CallAfter(self.Destroy)
-        
-
-###############################################################################
-###############################################################################
-
-GRIPY_ICON_PATH = 'icons/logo-transp.ico'
 
 
 """
@@ -211,12 +78,13 @@ registered_widgets = {
 
 widget_special_keys = ['initial', 'widget_name', 'options', 'controller_uid']
 
-#
+
 def get_control_keys(control_class):
     if control_class in registered_widgets:
         return registered_widgets.get(control_class)
     raise Exception('Unregistered class')   
-#
+
+
 def pop_registers(keys, kwargs):
     ret = {}
     for key in keys:
@@ -434,14 +302,12 @@ class EncapsulatedFilePickerCtrl(EncapsulatedControl):
             super(EncapsulatedFilePickerCtrl, self).__init__(*args, **kwargs)    
         except Exception as e:
             print (e)
-        
-        
+               
     def set_value(self, value):
         self.control.SetPath(value)
 
     def get_value(self):
         return self.control.GetPath()
-
 
 
 class EncapsulatedSpinCtrl(EncapsulatedControl):
@@ -508,220 +374,6 @@ class EncapsulatedListBox(EncapsulatedControl):
             return None
         return [self._map.get(self.control.GetString(sel)) for sel in self.control.GetSelections()]   
 
-
-###############################################################################
-###############################################################################
-
-
-class DialogController(TopLevelController):
-    tid = 'dialog_controller'
-    
-    _ATTRIBUTES = OrderedDict()
-    _ATTRIBUTES['flags'] = {
-        'default_value': wx.OK|wx.CANCEL, 
-        'type': int
-
-    }    
-    _ATTRIBUTES['style'] = {
-        'default_value': wx.DEFAULT_DIALOG_STYLE, 
-        'type': int        
-    }
-    
-    def __init__(self, **state):
-        super().__init__(**state)
-
-    def PreDelete(self):
-        pub.unsubAll(topicFilter=self._topic_filter)
-        self.view._objects = {}
-        try:
-            self.view.Destroy()
-        except:
-            pass
-    
-    def _topic_filter(self, topic_name):
-        return topic_name == '_widget_changed@' + self.view.get_topic()   
-    
-          
-class Dialog(TopLevel, wx.Dialog):   
-    tid = 'dialog'
-    
-    def __init__(self, controller_uid):
-        TopLevel.__init__(self, controller_uid)
-        UIM = UIManager()
-        controller = UIM.get(self._controller_uid)
-        wx.Dialog.__init__(self, None, wx.ID_ANY, controller.title,
-            pos=controller.pos, size=controller.size, 
-            style=controller.style              
-        ) 
-        self._objects = {}
-        if controller.icon:   
-            self.icon = GripyIcon(controller.icon, wx.BITMAP_TYPE_ICO)        
-            self.SetIcon(self.icon)     
-        if controller.maximized:
-            self.Maximize()   
-        self.Bind(wx.EVT_MAXIMIZE, self.on_maximize)       
-        self.Bind(wx.EVT_SIZE, self.on_size)    
-        self.Bind(wx.EVT_MOVE, self.on_move)
-        #
-        self._dialog_main_sizer = wx.BoxSizer(wx.VERTICAL) 
-        self.SetSizer(self._dialog_main_sizer)
-        # This is will use dialog_main_sizer as Sizer. 
-        # See self.AddContainer function to get more details.
-        self.mainpanel = self.AddCreateContainer('BoxSizer', 
-                                        self, 
-                                        proportion=1, 
-                                        flag=wx.TOP|wx.LEFT|wx.RIGHT|wx.EXPAND, 
-                                        border=10
-        )
-        if controller.flags is not None:
-            button_sizer = self.CreateButtonSizer(controller.flags)
-            self._dialog_main_sizer.Add(button_sizer, 
-                           flag=wx.ALIGN_CENTER|wx.TOP|wx.BOTTOM, 
-                           border=10
-            )    
-        self._dialog_main_sizer.Layout()
-  
-    
-    def GetSizer(self):
-        """
-        Users must get only mainpanel's Sizer. 
-        During mainpanel creation, the Sizer given will be _dialog_main_sizer.
-        """
-        try:
-            return self.mainpanel.GetSizer()
-        except:
-            return self._dialog_main_sizer
-            
-            
-    def get_topic(self):
-        return 'dialog_' + str(self._controller_uid[1])
-
-# Containers 
-    def AddCreateContainer(self, container_type_name, *args, **kwargs):
-        try:
-            item_sizer_kw, kwargs = pop_registers(item_sizer_keys, kwargs)
-            container = self.CreateContainer(container_type_name, *args, **kwargs)
-            self.AddContainer(container, *args, **item_sizer_kw)
-            return container
-        except:
-            raise
-
-    def CreateContainer(self, container_type_name, *args, **kwargs):
-        try:
-            if container_type_name == 'BoxSizer':
-                container_class = BoxSizerContainer
-            elif container_type_name == 'GridSizer':
-                container_class = GridSizerContainer
-            elif container_type_name == 'FlexGridSizer':
-                container_class = FlexGridSizerContainer            
-            elif container_type_name == 'GridBagSizer':
-                container_class = GridBagSizerContainer             
-            elif container_type_name == 'StaticBox':
-                container_class = StaticBoxContainer   
-            elif container_type_name == 'WarpSizer':
-                container_class = WarpSizerContainer  
-            else:
-                raise Exception('Unregistered container.')          
-            if not args:
-                parent = self.mainpanel
-            else:
-                parent = args[0]
-            container = container_class(parent, **kwargs)
-            return container
-        except:
-            raise
-                      
-    def AddContainer(self, container, *args, **kwargs):
-        for key in kwargs.keys():
-            if key not in item_sizer_keys:
-                msg = 'Invalid container key. [key=\"{}\"]'.format(key)
-                raise Exception(msg)
-        if not args:
-            parent = self.mainpanel
-        else:
-            parent = args[0]
-#        container.Show()            
-        if container.__class__ == StaticBoxContainer:
-            parent.GetSizer().Add(container.GetSizer(), **kwargs)
-        else:    
-            parent.GetSizer().Add(container, **kwargs)
-        parent.GetSizer().Layout()
-
-    def DetachContainer(self, container):
-        ctn_sizer = container.GetSizer()
-        parent = container.GetParent()
-        if container.__class__ == StaticBoxContainer:
-            result = parent.GetSizer().Detach(ctn_sizer)
-        else:
-            result =  parent.GetSizer().Detach(container)  
-        container.Show(False)    
-        return result
-
-# Controllers        
-
-    def _get_button(self, button_id):
-        UIM = UIManager()
-        controller = UIM.get(self._controller_uid)
-        if button_id & controller.flags:
-            return self.FindWindow(button_id)
-        return None
-
-    def enable_button(self, button_id, enable=True):
-        btn = self._get_button(button_id)
-        btn.Enable(enable)
-
-    def register(self, enc_control):
-        if enc_control.name:
-            self._objects[enc_control.name] = enc_control
-
-       
-    def CreateControl(self, enc_class, container, **kwargs):
-        # Create and Add a new control.
-        try:
-            keys = get_control_keys(enc_class._control_class)
-            controlkw, specialkw, kwargs = pop_widget_registers(keys, kwargs)
-            specialkw['controller_uid'] = self._controller_uid
-            enc_control = enc_class(container, specialkw, **controlkw)
-            self.register(enc_control)
-            container.GetSizer().Add(enc_control.control, **kwargs)
-            container.GetSizer().Layout()
-        except:
-            raise
-
-            
-    def AddChoice(self, *args, **kwargs):
-        self.CreateControl(EncapsulatedChoice, args[0], **kwargs)
-
-    def AddRadioButton(self, *args, **kwargs):
-        self.CreateControl(EncapsulatedRadioButton, args[0], **kwargs)
-
-    def AddCheckBox(self, *args, **kwargs):
-        self.CreateControl(EncapsulatedCheckBox, args[0], **kwargs)
-
-    def AddTextCtrl(self, *args, **kwargs):
-        self.CreateControl(EncapsulatedTextCtrl, args[0], **kwargs)
-
-    def AddFilePickerCtrl(self, *args, **kwargs):
-        self.CreateControl(EncapsulatedFilePickerCtrl, args[0], **kwargs)
-
-    def AddSpinCtrl(self, *args, **kwargs):
-        self.CreateControl(EncapsulatedSpinCtrl, args[0], **kwargs)
-        
-    def AddStaticText(self, *args, **kwargs):
-        self.CreateControl(EncapsulatedStaticText, args[0], **kwargs)        
-
-    def AddListBox(self, *args, **kwargs):
-        self.CreateControl(EncapsulatedListBox, args[0], **kwargs)        
-
-
-    def get_results(self):
-        ret = {}
-        for name, widget in self._objects.items():
-            ret[name] = widget.get_value()
-        return ret    
-    
-    def get_object(self, name):
-        return self._objects.get(name)
 
 
 
@@ -820,8 +472,223 @@ class StaticBoxContainer(wx.StaticBox):
     def GetSizer(self):        
         return self._sizer
       
+        
+    
+
+###############################################################################
+###############################################################################
+
+
+class TopLevelController(UIControllerObject):
+    tid = 'toplevel_controller'
+
+    _ATTRIBUTES = OrderedDict()
+
+    _ATTRIBUTES['title'] = {
+            'default_value': wx.EmptyString, 
+            'type': str
+    }
+    # TODO: Use icon from App parameters          
+    _ATTRIBUTES['icon'] = {
+            'default_value': 'basic/icons/logo-transp.ico',
+            'type': str
+    }
+    _ATTRIBUTES['style'] = {
+            'default_value': wx.DEFAULT_FRAME_STYLE, 
+            'type': int        
+    }
+    _ATTRIBUTES['maximized'] = {
+            'default_value': False,  
+            'type': bool
+    }
+    _ATTRIBUTES['size'] = {
+            'default_value': wx.Size(800, 600), 
+            'type': wx.Size
+    }
+    _ATTRIBUTES['pos'] = {
+            'default_value': wx.Point(50, 50), 
+            'type': wx.Point
+    }    
+   
+    def __init__(self, **state):     
+        super().__init__(**state)
+
+
+class TopLevel(UIViewObject):
+    tid = 'toplevel'
+
+    def __init__(self, controller_uid):
+        UIViewObject.__init__(self, controller_uid)
+        UIM = UIManager()
+        controller = UIM.get(self._controller_uid)      
+        # MainWindow subscribing MainWindowController PubSub messages
+        controller.subscribe(self._set_maximized, 'change.maximized')
+        controller.subscribe(self._set_size, 'change.size')
+        controller.subscribe(self._set_position, 'change.pos')
+        #
+        # TODO: try to remove _flag using new GripyObject style
+        # little hack - on_size
+#        self._flag = False
+        
+        
+ 
+    def on_maximize(self, event):
+        UIM = UIManager()
+        controller = UIM.get(self._controller_uid)
+        controller.set_value_from_event('maximized', self.IsMaximized())
+
+    def on_move(self, event):
+        UIM = UIManager()
+        controller = UIM.get(self._controller_uid)
+        controller.set_value_from_event('pos', self.GetPosition())
+
+    def on_size(self, event):
+        UIM = UIManager()
+        controller = UIM.get(self._controller_uid)
+        controller.set_value_from_event('size', event.GetSize())
+        controller.set_value_from_event('maximized', self.IsMaximized())
+        event.Skip()
   
+    def _set_maximized(self, new_value, old_value):  
+        self.Unbind(wx.EVT_MAXIMIZE, handler=self.on_maximize)  
+        self.Maximize(new_value)
+        self.Bind(wx.EVT_MAXIMIZE, self.on_maximize)  
+    
+    def _set_size(self, new_value, old_value):
+        self.Unbind(wx.EVT_SIZE, handler=self.on_size)
+        self.SetSize(new_value)
+        self.Bind(wx.EVT_SIZE, self.on_size)    
+    
+    def _set_position(self, new_value, old_value):  
+        self.Unbind(wx.EVT_MOVE, handler=self.on_move) 
+        self.SetPosition(new_value)
+        self.Bind(wx.EVT_MOVE, self.on_move)  
+
+
+# Containers 
+    def AddCreateContainer(self, container_type_name, *args, **kwargs):
+        try:
+            item_sizer_kw, kwargs = pop_registers(item_sizer_keys, kwargs)
+            container = self.CreateContainer(container_type_name, *args, **kwargs)
+            self.AddContainer(container, *args, **item_sizer_kw)
+            return container
+        except:
+            raise
+
+    def CreateContainer(self, container_type_name, *args, **kwargs):
+        try:
+            if container_type_name == 'BoxSizer':
+                container_class = BoxSizerContainer
+            elif container_type_name == 'GridSizer':
+                container_class = GridSizerContainer
+            elif container_type_name == 'FlexGridSizer':
+                container_class = FlexGridSizerContainer            
+            elif container_type_name == 'GridBagSizer':
+                container_class = GridBagSizerContainer             
+            elif container_type_name == 'StaticBox':
+                container_class = StaticBoxContainer   
+            elif container_type_name == 'WarpSizer':
+                container_class = WarpSizerContainer  
+            else:
+                raise Exception('Unregistered container.')          
+            if not args:
+                parent = self.mainpanel
+            else:
+                parent = args[0]
+            container = container_class(parent, **kwargs)
+            return container
+        except:
+            raise
+                      
+    def AddContainer(self, container, *args, **kwargs):
+        for key in kwargs.keys():
+            if key not in item_sizer_keys:
+                msg = 'Invalid container key. [key=\"{}\"]'.format(key)
+                raise Exception(msg)
+        if not args:
+            parent = self.mainpanel
+        else:
+            parent = args[0]
+#        container.Show()            
+        if container.__class__ == StaticBoxContainer:
+            parent.GetSizer().Add(container.GetSizer(), **kwargs)
+        else:    
+            parent.GetSizer().Add(container, **kwargs)
+        parent.GetSizer().Layout()
+
+    def DetachContainer(self, container):
+        ctn_sizer = container.GetSizer()
+        parent = container.GetParent()
+        if container.__class__ == StaticBoxContainer:
+            result = parent.GetSizer().Detach(ctn_sizer)
+        else:
+            result =  parent.GetSizer().Detach(container)  
+        container.Show(False)    
+        return result
+
+# Controllers        
+
+    def _get_button(self, button_id):
+        UIM = UIManager()
+        controller = UIM.get(self._controller_uid)
+        if button_id & controller.flags:
+            return self.FindWindow(button_id)
+        return None
+
+    def enable_button(self, button_id, enable=True):
+        btn = self._get_button(button_id)
+        btn.Enable(enable)
+
+    def register(self, enc_control):
+        if enc_control.name:
+            self._objects[enc_control.name] = enc_control
+     
+    def CreateControl(self, enc_class, container, **kwargs):
+        # Create and Add a new control.
+        try:
+            keys = get_control_keys(enc_class._control_class)
+            controlkw, specialkw, kwargs = pop_widget_registers(keys, kwargs)
+            specialkw['controller_uid'] = self._controller_uid
+            enc_control = enc_class(container, specialkw, **controlkw)
+            self.register(enc_control)
+            container.GetSizer().Add(enc_control.control, **kwargs)
+            container.GetSizer().Layout()
+        except:
+            raise
+
             
-###############################################################################
-###############################################################################
+    def AddChoice(self, *args, **kwargs):
+        self.CreateControl(EncapsulatedChoice, args[0], **kwargs)
+
+    def AddRadioButton(self, *args, **kwargs):
+        self.CreateControl(EncapsulatedRadioButton, args[0], **kwargs)
+
+    def AddCheckBox(self, *args, **kwargs):
+        self.CreateControl(EncapsulatedCheckBox, args[0], **kwargs)
+
+    def AddTextCtrl(self, *args, **kwargs):
+        self.CreateControl(EncapsulatedTextCtrl, args[0], **kwargs)
+
+    def AddFilePickerCtrl(self, *args, **kwargs):
+        self.CreateControl(EncapsulatedFilePickerCtrl, args[0], **kwargs)
+
+    def AddSpinCtrl(self, *args, **kwargs):
+        self.CreateControl(EncapsulatedSpinCtrl, args[0], **kwargs)
+        
+    def AddStaticText(self, *args, **kwargs):
+        self.CreateControl(EncapsulatedStaticText, args[0], **kwargs)        
+
+    def AddListBox(self, *args, **kwargs):
+        self.CreateControl(EncapsulatedListBox, args[0], **kwargs)        
+
+
+    def get_results(self):
+        ret = {}
+        for name, widget in self._objects.items():
+            ret[name] = widget.get_value()
+        return ret    
+    
+    def get_object(self, name):
+        return self._objects.get(name)
+
 

@@ -15,6 +15,8 @@ from ui.mvc_classes.well_plot import WellPlotController
 from classes.ui import UIManager
 from classes.ui import UIControllerObject  
 from classes.ui import UIViewObject 
+from classes.ui import TextChoiceRenderer 
+#
 from ui.mvc_classes.track import TrackController    
 from ui.mvc_classes.track_object import TrackObjectController  
 import app.pubsub as pub   
@@ -1221,40 +1223,6 @@ class LPEObjectsPanel(UIViewObject, wx.Panel):
 ###############################################################################
 
 
-    
-class TextChoiceRenderer(dv.DataViewCustomRenderer):
- 
-    def __init__(self, model=None):
-        dv.DataViewCustomRenderer.__init__(self, mode=dv.DATAVIEW_CELL_EDITABLE)
-        #self.model = model
-        self._value = None    
-  
-    def GetValue(self):
-        return self._value 
-        
-    def SetValue(self, value):
-        self._value = value
-        return True
-        
-    def GetSize(self):
-        return wx.Size(100, 20)
-        
-    def Render(self, rect, dc, state):
-        self.RenderText(str(self._value), 0, rect, dc, state)
-        return True
-
-    def StartEditing(self, item, rect):
-        self.item = item 
-        super(TextChoiceRenderer, self).StartEditing(item, rect)
-        return True
-         
-    def CreateEditorCtrl(self, parent, rect, value):  
-        raise NotImplemented('CreateEditorCtrl need to be implemented by child Class.')
-        
-    def GetValueFromEditorCtrl(self, editor):       
-        raise NotImplemented('GetValueFromEditorCtrl need to be implemented by child Class.')
-
-
 
 class ObjectTidRenderer(TextChoiceRenderer):
 
@@ -1280,10 +1248,10 @@ class ObjectTidRenderer(TextChoiceRenderer):
         selected_index = editor.GetSelection()
         #print 'GetValueFromEditorCtrl:', selected_index
         if selected_index == -1:
-            return True, wx.EmptyString
+            return wx.EmptyString
         self._value = editor.GetString(selected_index)
         self._value = ObjectManager.get_tid(self._value)
-        return True, self._value
+        return self._value
 
 
 
@@ -1309,9 +1277,9 @@ class ObjectNameRenderer(TextChoiceRenderer):
 
     def GetValueFromEditorCtrl(self, editor):
         if editor.GetSelection() == -1:
-            return True, -1
+            return wx.EmptyString
         self._value = self._options.keys()[editor.GetSelection()]
-        return True, self._value
+        return self._value
     
     
     

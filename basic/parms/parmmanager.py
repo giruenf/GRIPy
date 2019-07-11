@@ -48,15 +48,19 @@ class ParametersManager(object):
         self.PLTs['No Tracks Plot'] = None
         self.PLTs = FileIO.PLT.getPLTFiles(self.PLTs, os.path.dirname(os.path.abspath(__file__)))
         """
+        
+        # base_path == this floder
+        base_path = os.path.dirname(os.path.abspath(__file__))
+        #
         self._curvetypes = app.app_utils.read_json_file(
-             os.path.join(os.path.dirname(os.path.abspath(__file__)),
-                          CURVETYPES_FILE)
+             os.path.join(base_path, CURVETYPES_FILE)
         )
+        #     
         self._parametersdict = app.app_utils.read_json_file(
-             os.path.join(os.path.dirname(os.path.abspath(__file__)),
-                          PARAMETERS_FILE)
+             os.path.join(base_path, PARAMETERS_FILE)
         )  
-                 
+           
+            
     #def getPLTs(self):
     #    self.check_and_reload_PLTs()
     #    return self.PLTs
@@ -72,86 +76,97 @@ class ParametersManager(object):
     #    self.PLTs = FileIO.PLT.getPLTFiles(self.PLTs, os.path.dirname(os.path.abspath(__file__)))
 
            
-    def get_datatypes(self):
-        """Return valid Datatypes.
+    def get_tids(self):
+        """Return valid tids.
         """
-        return self._parametersdict["DATATYPES"]
+        return self._parametersdict["TIDS"]
      
-    def get_curvetypes(self, datatype):
-        """Given a Datatype name (e.g. Log) return its curvetypes associated.
+    def get_datatypes(self, tid):
+        """Given a tid name (e.g. log) return its datatypes associated.
         """
-        return self._parametersdict["CURVETYPES"].get(datatype)
+        return self._parametersdict["DATATYPES"].get(tid)
  
-    def get_all_curvetypes(self):
+    def get_all_datatypes(self):
         ret_list = []
-        for dt, cts in self._parametersdict["CURVETYPES"].items():
-            ret_list += cts
+        for tid, dts in self._parametersdict["DATATYPES"].items():
+            ret_list += list(dts)
         return ret_list    
   
-    def get_curvetype_visual_props(self, curvetype_name):
-        """Given a Curvetype name (e.g. GammaRay) return its visual properties.
+    def get_datatypes_visual_props(self, datatype_name):
+        """Given a datatype name (e.g. GammaRay) return its visual properties.
         """
-        return self._curvetypes.get(curvetype_name)
+        return self._curvetypes.get(datatype_name)
     
-    def get_curvetype_from_mnemonic(self, mnem):
-        """Given a mnemonic (e.g. GR), return its Curvetype (e.g. GammaRay)
+    def get_datatype_from_mnemonic(self, mnem):
+        """Given a mnemonic (e.g. GR), return its datatype (e.g. GammaRay)
         """
         key = _removetrailingdigits(mnem).lower()
-        curvetype = self._parametersdict["MNEMONIC_TO_CURVETYPE"].get(key)
-        if not curvetype:
+        datatype = self._parametersdict["MNEMONIC_TO_DATATYPE"].get(key)
+        if not datatype:
             return None
         # Let's get most voted...
-        curvetype = _getbestmatch(curvetype)
-        return curvetype
+        datatype = _getbestmatch(datatype)
+        return datatype
           
-    def get_datatype_from_mnemonic(self, mnem):
-        """Given a mnemonic (e.g. GR), return its Datatype (e.g. Log)
+    def get_tid_from_mnemonic(self, mnem):
+        """Given a mnemonic (e.g. GR), return its tid (e.g. log)
         """
-        curvetype = self.get_curvetype_from_mnemonic(mnem)
-        if curvetype is None:
-            msg = 'Unknown curvetype for mnemonic: {}'.format(mnem)
+        datatype = self.get_datatype_from_mnemonic(mnem)
+        if datatype is None:
+            msg = 'Unknown datatype for mnemonic: {}'.format(mnem)
             raise Exception(msg)
         #
-        for datatype, curvetypes in self._parametersdict["CURVETYPES"].items():
-            if curvetype in curvetypes:
-                return datatype
-        msg = 'Unknown datatype for mnemonic: {}'.format(mnem)
+        for tid, datatypes in self._parametersdict["DATATYPES"].items():
+            if datatype in datatypes:
+                return tid
+        msg = 'Unknown tid for mnemonic: {}'.format(mnem)
         raise Exception(msg)  
    
-    def vote_for_curvetype(self, mnem, curvetype):
+    def vote_for_datatype(self, mnem, datatype):
+        """Register user selections.
+        """
         key = _removetrailingdigits(mnem).lower()
-        if self._parametersdict["MNEMONIC_TO_CURVETYPE"].get(key) is None:
-            print ('vote_for_curvetype criou key:', key)
-            self._parametersdict["MNEMONIC_TO_CURVETYPE"][key] = {}
-        if curvetype not in self._parametersdict["MNEMONIC_TO_CURVETYPE"][key]:
-            self._parametersdict["MNEMONIC_TO_CURVETYPE"][key][curvetype] = 0
-            print ('vote_for_curvetype criou curvetype:', key)
-        self._parametersdict["MNEMONIC_TO_CURVETYPE"][key][curvetype] += 1
+        if self._parametersdict["MNEMONIC_TO_DATATYPE"].get(key) is None:
+            msg = 'PM.vote_for_curvetype criou mnemonic key:' + key
+            print (msg)
+            self._parametersdict["MNEMONIC_TO_DATATYPE"][key] = {}
+        #    
+        if datatype not in self._parametersdict["MNEMONIC_TO_DATATYPE"][key]:
+            self._parametersdict["MNEMONIC_TO_DATATYPE"][key][datatype] = 0
+            msg = 'PM.vote_for_curvetype criou datatype:' + datatype \
+                    + ' for key:' + key
+            print (msg)
+        self._parametersdict["MNEMONIC_TO_DATATYPE"][key][datatype] += 1
 
 
     """
     def votefordatatype(self, mnem, datatype):
         key = _removetrailingdigits(mnem).lower()
-        if self._parametersdict['MNEMONIC_TO_CURVETYPE'].get(key) is None:
+        if self._parametersdict['MNEMONIC_TO_DATATYPE'].get(key) is None:
             print ('votefordatatype criou key:', key)
-            self._parametersdict['MNEMONIC_TO_CURVETYPE'][key] = {}
+            self._parametersdict['MNEMONIC_TO_DATATYPE'][key] = {}
         
-        if self._parametersdict['MNEMONIC_TO_CURVETYPE'][key].get(datatype) is None:
-            self._parametersdict['MNEMONIC_TO_CURVETYPE'][key][datatype] = 0 
+        if self._parametersdict['MNEMONIC_TO_DATATYPE'][key].get(datatype) is None:
+            self._parametersdict['MNEMONIC_TO_DATATYPE'][key][datatype] = 0 
             print ('votefordatatype criou datatype:', datatype)
         try:    
-            self._parametersdict['MNEMONIC_TO_CURVETYPE'][key][datatype] += 1
+            self._parametersdict['MNEMONIC_TO_DATATYPE'][key][datatype] += 1
         except KeyError:
             print (mnem, datatype, key)
             raise
     """        
            
-    def register_votes(self):   
+    def register_votes(self):
+        """Save to the JSON file.
+        """
         with open(os.path.join(os.path.dirname(os.path.abspath(__file__)), 
                                            PARAMETERS_FILE), 'w') as jsonfile:
-             json.dump(self._parametersdict, jsonfile, sort_keys=True, indent=4, separators=(',', ': '))
-      
-        
+             json.dump(self._parametersdict, 
+                       jsonfile, 
+                       sort_keys=True, 
+                       indent=4, 
+                       separators=(',', ': ')
+            )
       
         
 # Based on yapsy.PluginManagerSingleton

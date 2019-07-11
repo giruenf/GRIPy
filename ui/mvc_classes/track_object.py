@@ -222,7 +222,8 @@ class TrackObjectController(FrameController):
         
         if obj.tid == 'log':
             # TODO: Rever isso
-            parms = ParametersManager.get().get_curvetype_visual_props(obj.datatype)     
+            PM = ParametersManager.get()
+            parms = PM.get_datatypes_visual_props(obj.datatype)
             if parms is not None:
                 state['left_scale'] = parms.get('LeftScale')
                 state['right_scale'] = parms.get('RightScale')

@@ -188,7 +188,7 @@ class DataObject(OMBaseObject):
             raise Exception(msg)
             
         msg = 'Criado {} com sucesso.'.format(di_map)
-        print('\n' + msg)
+        #print('\n' + msg)
 
 
 

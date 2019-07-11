@@ -218,7 +218,7 @@ class LISFile(object):
                 
         fullpath_json = PurePath(app.BASE_PATH, self.__module__.split('.')[0] + os.sep + json_file)
         
-        print('fullpath_json:', fullpath_json)
+#        print('fullpath_json:', fullpath_json)
         
         self._json = app.app_utils.read_json_file(fullpath_json)
         
@@ -290,7 +290,7 @@ class LISFile(object):
     def read_logical_records(self):
         self.logical_records = []        
         
-        print(len(self.physical_records))
+#        print(len(self.physical_records))
         for pr in self.physical_records:
             try:
                 lr = LogicalRegister()

@@ -1,13 +1,13 @@
 {
-    "CURVETYPES": {
-        "Index": [
+    "DATATYPES": {
+        "data_index": [
             "MD",
             "TVD",
             "TVDSS",
             "TWT",
             "OWT"
         ],
-        "Log": [
+        "log": [
             "Azimuth",
             "BVW",
             "BitSize",
@@ -90,11 +90,7 @@
             "Zmagnetometer"
         ]
     },
-    "DATATYPES": [
-        "Index",
-        "Log"
-    ],
-    "MNEMONIC_TO_CURVETYPE": {
+    "MNEMONIC_TO_DATATYPE": {
         "ac": {
             "Sonic": 0
         },
@@ -198,7 +194,7 @@
             "Zmagnetometer": 0
         },
         "c": {
-            "Caliper": 0
+            "Caliper": 2
         },
         "cal": {
             "Caliper": 0
@@ -276,7 +272,7 @@
             "Density": 0
         },
         "dept": {
-            "MD": 1
+            "MD": 3
         },
         "depth": {
             "MD": 0
@@ -285,7 +281,7 @@
             "Deviation": 0
         },
         "devi": {
-            "Deviation": 0
+            "Deviation": 1
         },
         "devic": {
             "Deviation": 0
@@ -327,7 +323,7 @@
             "Sonic": 0
         },
         "dtco": {
-            "Sonic": 1
+            "Sonic": 2
         },
         "dtf": {
             "Sonic": 0
@@ -420,7 +416,7 @@
             "GammaRay": 0
         },
         "gr": {
-            "GammaRay": 1
+            "GammaRay": 2
         },
         "gram": {
             "GammaRay": 0
@@ -471,7 +467,7 @@
             "Zaccelerometer": 0
         },
         "hazi": {
-            "Azimuth": 0
+            "Azimuth": 1
         },
         "hazic": {
             "Azimuth": 0
@@ -480,7 +476,7 @@
             "Azimuth": 0
         },
         "hcal": {
-            "Caliper": 1
+            "Caliper": 2
         },
         "hden": {
             "Density": 0
@@ -591,7 +587,7 @@
             "LoadFactor": 0
         },
         "lito": {
-            "Lithology": 1
+            "Lithology": 2
         },
         "lld": {
             "DeepRes": 0
@@ -723,7 +719,7 @@
             "RB_Offset": 0
         },
         "p1az": {
-            "Tool_Azimuth": 0
+            "Tool_Azimuth": 1
         },
         "p1az_obmt": {
             "Tool_Azimuth": 0
@@ -781,6 +777,9 @@
         },
         "pota": {
             "Spectral": 0
+        },
+        "pr": {
+            "PoissonRatio": 0
         },
         "rach": {
             "DeepRes": 0
@@ -849,7 +848,7 @@
             "Density": 0
         },
         "rhob": {
-            "Density": 1
+            "Density": 2
         },
         "rhoc": {
             "Density": 0
@@ -1101,7 +1100,7 @@
             "NMRphiT": 0
         },
         "temp": {
-            "Temp": 0
+            "Temp": 1
         },
         "tens": {
             "Tension": 0
@@ -1263,5 +1262,9 @@
             "Density": 0
         }
     },
-    "MNEMONIC_TO_DATATYPE": {}
+    "MNEMONIC_TO_TID": {},
+    "TIDS": [
+        "data_index",
+        "log"
+    ]
 }

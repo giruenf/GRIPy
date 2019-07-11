@@ -136,7 +136,7 @@ class LineRepresentationView(RepresentationView):
             self.draw_canvas()
                 
     def set_picked(self, new_value, old_value):
-        print('set_picked:', new_value)
+        #print('set_picked:', new_value)
         if len(self._mplot_objects.values()) == 0:
             self.draw()
         if new_value:
@@ -177,7 +177,7 @@ class LineRepresentationView(RepresentationView):
         self.draw()
   
     def draw(self):
-        print('\nLineRepresentationView.draw')
+        #print('\nLineRepresentationView.draw')
         if self._mplot_objects:
             self.clear() 
         UIM = UIManager()
@@ -204,8 +204,8 @@ class LineRepresentationView(RepresentationView):
         track_controller =  UIM.get(track_controller_uid)        
         #
         if controller.interpolate:
-            print('minmax xdata:', np.nanmin(xdata), np.nanmax(xdata))
-            print('minmax trans_xdata:', np.nanmin(transformated_xdata), np.nanmax(transformated_xdata))
+            #print('minmax xdata:', np.nanmin(xdata), np.nanmax(xdata))
+            #print('minmax trans_xdata:', np.nanmin(transformated_xdata), np.nanmax(transformated_xdata))
             interpolator = interp1d(ydata, transformated_xdata)   
             #
             tcc = track_controller._get_canvas_controller()
@@ -219,7 +219,7 @@ class LineRepresentationView(RepresentationView):
                             color=controller.color
                 )
             else:
-                print('else')
+                #print('else')
                 line = self._mplot_objects['line']  
                 line.set_data(interpolator(depth_list), depth_list)
         #        

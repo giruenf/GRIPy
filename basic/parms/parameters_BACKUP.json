@@ -1,100 +1,105 @@
 {
-	"DATATYPES": [
-		"Index",
-        "Log"
-	],
-    "CURVETYPES": {
-		"Index": [
-			"MD",
-			"TVD",
-			"TVDSS",
-			"TWT",
-			"OWT"
-		],
-		"Log": [
-			"Azimuth",
-			"BVW",
-			"BitSize",
-			"CBHP",
-			"CDP",
-			"Caliper",
-			"Coord.",
-			"CoreGD",
-			"CorePerm",
-			"CorePhi",
-			"DVcl",
-			"DeepRes",
-			"Density",
-			"Deviation",
-			"Drho",
-			"ECD",
-			"EPT",
-			"FlowRate",
-			"GAS",
-			"GammaRay",
-			"Hookload",
-			"Impedance",
-			"Lithology",
-			"LoadFactor",
-			"Matrix",
-			"MaxHorzStress",
-			"MedRes",
-			"MicroRes",
-			"MinHorzStress",
-			"Mineral",
-			"NMRbfi",
-			"NMRcbfi",
-			"NMRffi",
-			"NMRperm",
-			"NMRphi",
-			"NMRphiT",
-			"NMRswi",
-			"Neutron",
-			"OnBottom",
-			"OrigResPress",
-			"PEF",
-			"Perforations",
-			"Phi",
-			"PhiT",
-			"PoissonRatio",
-			"Pump",
-			"QFactor",
-			"RB_Offset",
-			"ROP",
-			"RotarySpeed",
-			"SP",
-			"ShalRes",
-			"ShearSonic",
-			"ShearVel",
-			"Sigma",
-			"Sonic",
-			"Spectral",
-			"StickSlip",
-			"StressAzimuth",
-			"Sw",
-			"Temp",
-			"Tension",
-			"Tool_Azimuth",
-			"Tool_RelBearng",
-			"Torque",
-			"TwcPredicted",
-			"Vcl",
-			"Vcoal",
-			"Velocity",
-			"VertStress",
-			"Vibration",
-			"Vsalt",
-			"Vsilt",
-			"WeightonBit",
-			"Xaccelerometer",
-			"Xmagnetometer",
-			"Yaccelerometer",
-			"Ymagnetometer",
-			"Zaccelerometer",
-			"Zmagnetometer"
-		]
+    "TIDS": [
+        "data_index",
+        "log"
+    ],
+    "DATATYPES": {
+        "data_index": [
+            "MD",
+            "TVD",
+            "TVDSS",
+            "TWT",
+            "OWT"
+        ],
+        "log": [
+            "Azimuth",
+            "BVW",
+            "BitSize",
+            "CBHP",
+            "CDP",
+            "Caliper",
+            "Coord.",
+            "CoreGD",
+            "CorePerm",
+            "CorePhi",
+            "DVcl",
+            "DeepRes",
+            "Density",
+            "Deviation",
+            "Drho",
+            "ECD",
+            "EPT",
+            "FlowRate",
+            "GAS",
+            "GammaRay",
+            "Hookload",
+            "Impedance",
+            "Lithology",
+            "LoadFactor",
+            "Matrix",
+            "MaxHorzStress",
+            "MedRes",
+            "MicroRes",
+            "MinHorzStress",
+            "Mineral",
+            "NMRbfi",
+            "NMRcbfi",
+            "NMRffi",
+            "NMRperm",
+            "NMRphi",
+            "NMRphiT",
+            "NMRswi",
+            "Neutron",
+            "OnBottom",
+            "OrigResPress",
+            "PEF",
+            "Perforations",
+            "Phi",
+            "PhiT",
+            "PoissonRatio",
+            "Pump",
+            "QFactor",
+            "RB_Offset",
+            "ROP",
+            "RotarySpeed",
+            "SP",
+            "ShalRes",
+            "ShearSonic",
+            "ShearVel",
+            "Sigma",
+            "Sonic",
+            "Spectral",
+            "StickSlip",
+            "StressAzimuth",
+            "Sw",
+            "Temp",
+            "Tension",
+            "Tool_Azimuth",
+            "Tool_RelBearng",
+            "Torque",
+            "TwcPredicted",
+            "Vcl",
+            "Vcoal",
+            "Velocity",
+            "VertStress",
+            "Vibration",
+            "Vsalt",
+            "Vsilt",
+            "WeightonBit",
+            "Xaccelerometer",
+            "Xmagnetometer",
+            "Yaccelerometer",
+            "Ymagnetometer",
+            "Zaccelerometer",
+            "Zmagnetometer"
+        ]
+    },
+
+	"MNEMONIC_TO_TID": {
+	
 	},
-    "MNEMONIC_TO_CURVETYPE": {
+	
+    "MNEMONIC_TO_DATATYPE": {
         "ac": {
             "Sonic": 0
         },
@@ -275,18 +280,18 @@
         "den": {
             "Density": 0
         },
+        "dept": {
+            "MD": 1
+        },
+        "depth": {
+            "MD": 0
+        },
         "dev": {
             "Deviation": 0
         },
         "devi": {
             "Deviation": 0
         },
-        "dept": {
-            "MD": 0
-        },	
-        "depth": {
-            "MD": 0
-        },		
         "devic": {
             "Deviation": 0
         },
@@ -327,7 +332,7 @@
             "Sonic": 0
         },
         "dtco": {
-            "Sonic": 0
+            "Sonic": 1
         },
         "dtf": {
             "Sonic": 0
@@ -420,7 +425,7 @@
             "GammaRay": 0
         },
         "gr": {
-            "GammaRay": 0
+            "GammaRay": 1
         },
         "gram": {
             "GammaRay": 0
@@ -480,7 +485,7 @@
             "Azimuth": 0
         },
         "hcal": {
-            "Caliper": 0
+            "Caliper": 1
         },
         "hden": {
             "Density": 0
@@ -587,11 +592,11 @@
         "ktim": {
             "NMRperm": 0
         },
-        "lito": {
-            "Lithology": 0
-        },		
         "lf": {
             "LoadFactor": 0
+        },
+        "lito": {
+            "Lithology": 1
         },
         "lld": {
             "DeepRes": 0
@@ -782,6 +787,9 @@
         "pota": {
             "Spectral": 0
         },
+		"pr": {
+            "PoissonRatio": 0
+        },
         "rach": {
             "DeepRes": 0
         },
@@ -849,7 +857,7 @@
             "Density": 0
         },
         "rhob": {
-            "Density": 0
+            "Density": 1
         },
         "rhoc": {
             "Density": 0
@@ -1262,8 +1270,5 @@
         "zrho": {
             "Density": 0
         }
-    },
-    "MNEMONIC_TO_DATATYPE": {
-	}
-	
+    }
 }

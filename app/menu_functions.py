@@ -32,12 +32,17 @@ from classes.om import ObjectManager
 from basic.parms import ParametersManager
 
 
+from fileio.lis import LISFile
+from fileio.dlis import DLISFile
+from fileio.liswell import LISWells, LISWell, LISWellLog
+
+
 #from  ui import HeaderEditor
 from  ui import ImportSelector
 from  ui import ExportSelector
 from  ui import ODTEditor
 
-from  ui import lisloader
+#from  ui import lisloader
 from  ui import PartitionEditor
 from  ui import PartEditor
 from  ui import RockTableEditor
@@ -2892,147 +2897,47 @@ def on_coding_console(event):
 
 
 def on_import_las(*args):
+    wildcard="LAS Files (*.las)|*.las"
     file_dialog = wx.FileDialog(wx.App.Get().GetTopWindow(), 
-                                'Escolha o arquivo LAS', 
-                                wildcard="Arquivos LAS (*.las)|*.las", 
+                                'Choose LAS file to import:', 
+                                wildcard=wildcard, 
                                 style=wx.FD_OPEN|wx.FD_FILE_MUST_EXIST
     )
     if file_dialog.ShowModal() != wx.ID_OK:
         file_dialog.Destroy()
         return
-    file_name = file_dialog.GetFilename()
-    dir_name  = file_dialog.GetDirectory()
-    file_dialog.Destroy()
     #
-    las_file = las.open(os.path.join(dir_name, file_name), 'r')
+    paths = file_dialog.GetPaths()
+    try:
+        full_filename = paths[0]
+    except:
+        raise
+    finally:
+        file_dialog.Destroy()
+    #
+    las_file = las.open(full_filename, 'r')
     las_file.read()
     #
     UIM = UIManager()
-    las_header_dlg = UIM.create('las_header_controller')  
-    las_header_dlg.set_header(las_file.header)
+    mwc = Interface.get_main_window_controller()
+    well_import_ctrl = UIM.create('well_import_frame_controller', mwc.uid)
+    well_import_ctrl.Show()
     #
-    results = None
-    if las_header_dlg.ShowModal() == wx.ID_OK:
-        results = las_header_dlg.get_results() 
-    UIM.remove(las_header_dlg.uid)        
-    #    
-    if not results:
-        return
-        
-    """    
-    #print(results)   
-    #las_file.header = hedlg.get_header()    
-#    units = las_file.curvesunits
-#    ncurves = len(las_file.curvesnames)
-
-    # Tentativa de solução não lusitana
-    PM = ParametersManager.get() 
-    curvetypes = PM.get_curvetypes()
-    datatypes_ = PM.get_datatypes()    
-    sel_curvetypes = [PM.get_curvetype_from_mnemonic(name) for name in las_file.curvesnames]
-    """
-
-      
-
-#        las_file.header = hedlg.get_header()
-#        names = las_file.curvesnames
-#        units = las_file.curvesunits
-#    ncurves = len(las_file.curvesnames)
-
-
-
-    # Tentativa de solução não lusitana
-    PM = ParametersManager.get() 
-    curvetypes = PM.get_all_curvetypes()
-    datatypes_ = PM.get_datatypes()    
-    sel_curvetypes = [PM.get_curvetype_from_mnemonic(name) for name in las_file.curvesnames]
+    well_import_ctrl.set_status_bar_text(full_filename)
+    well_import_ctrl.set_las_file(las_file)
+    #
     
-    sel_datatypes = []
-    for name in las_file.curvesnames:
-        
-        datatype = PM.get_datatype_from_mnemonic(name)
-        print('PM.get_datatype_from_mnemonic:', name, datatype)
-        if not datatype:
-            sel_datatypes.append('Log')
-        else:
-            sel_datatypes.append(datatype)
-
-
-
-    ####
-
-
-    isdlg = ImportSelector.Dialog(wx.App.Get().GetTopWindow(),
-                                  las_file.curvesnames, 
-                                  las_file.curvesunits, 
-                                  curvetypes, 
-                                  datatypes_
-    )
-    isdlg.set_curvetypes(sel_curvetypes)
-    isdlg.set_datatypes(sel_datatypes)
-    #     
-    if isdlg.ShowModal() == wx.ID_OK:
-        sel_curvetypes = isdlg.get_curvetypes()
-        sel_datatypes = isdlg.get_datatypes()
-        data = las_file.data
-        
-        
-        OM = ObjectManager()
-        well = OM.new('well', name=las_file.wellname)
-        OM.add(well)	
-        curve_set = well.create_new_curve_set()
-        
-        
-        indexes_idx = [i for i in range(len(las_file.curvesnames)) if sel_datatypes[i] == 'Index']
-        if len(indexes_idx) == 0:
-            raise Exception('ERROR: len(indexes) == 0')
-                
-        logs_idx = [i for i in range(len(las_file.curvesnames)) if sel_datatypes[i] == 'Log']
-
-        indexes_uid = []
-
-        
-        for i in range(len(las_file.curvesnames)):
-            if sel_curvetypes[i]:
-                PM.vote_for_curvetype(las_file.curvesnames[i], sel_curvetypes[i])
-
-            #if sel_datatypes[i]:
-            #    PM.votefordatatype(las_file.curvesnames[i], sel_datatypes[i])
-                
-                
-        for index_idx in indexes_idx:
-            index = OM.new('data_index', 
-                           data[index_idx], 
-                           name=las_file.curvesnames[index_idx], 
-                           unit=las_file.curvesunits[index_idx].lower(), 
-                           datatype=sel_curvetypes[index_idx]
-            )
-            OM.add(index, curve_set.uid)
-            indexes_uid.append(index.uid)
-            
-        
-        for log_idx in logs_idx:
-            log = OM.new('log', 
-                         data[log_idx], 
-                         name=las_file.curvesnames[log_idx], 
-                         unit=las_file.curvesunits[log_idx].lower(), 
-                         datatype=sel_curvetypes[log_idx]
-            )
-            OM.add(log, curve_set.uid)
-            log._create_data_index_map(indexes_uid)
-        
-    PM.register_votes()
-    isdlg.Destroy()
-        
-
-
 
 
 def on_import_odt(event):
     style = wx.FD_OPEN | wx.FD_FILE_MUST_EXIST
     wildcard="Arquivos ODT (*.wll)|*.wll"
 #        self.odt_dir_name = ''
-    fdlg = wx.FileDialog(wx.App.Get().GetTopWindow(), 'Escolha o projeto a carregar', wildcard=wildcard, style=style)
+    fdlg = wx.FileDialog(wx.App.Get().GetTopWindow(), 
+                         'Escolha o projeto a carregar', 
+                         wildcard=wildcard, 
+                         style=style
+    )
     if fdlg.ShowModal() == wx.ID_OK:
         file_proj = fdlg.GetFilename()
         odt_dir_name = fdlg.GetDirectory()
@@ -3053,35 +2958,7 @@ def on_import_odt(event):
         names = [line['MNEM'] for line in iter(odt_file.header["C"].values())]
         units = [line['UNIT'] for line in iter(odt_file.header["C"].values())]
         ncurves = len(names)
-        
-        """
-        # TODO: acabar com essa verdadeira gambiarra e colocar em um arquivo json, além de implementar uma persistência
-        
-        curvetypes = ['Azimuth', 'BVW', 'BitSize', 'CBHP', 'CDP',
-                      'Caliper', 'Coord.', 'CoreGD', 'CorePerm', 'CorePhi',
-                      'DVcl', 'DeepRes', 'Density', 'Depth', 'Deviation',
-                      'Drho', 'ECD', 'EPT', 'FlowRate', 'GAS', 'GammaRay',
-                      'Hookload', 'LoadFactor', 'Matrix', 'MaxHorzStress',
-                      'MedRes', 'MicroRes', 'MinHorzStress', 'Mineral',
-                      'NMRbfi', 'NMRcbfi', 'NMRffi', 'NMRperm', 'NMRphi',
-                      'NMRphiT', 'NMRswi', 'Neutron', 'OnBottom',
-                      'OrigResPress', 'PEF', 'Perforations', 'Phi', 'PhiT',
-                      'Pump', 'RB_Offset', 'ROP', 'RotarySpeed', 'SP',
-                      'ShalRes', 'ShearSonic', 'ShearVel', 'Sigma',
-                      'Sonic', 'Spectral', 'StickSlip', 'StressAzimuth',
-                      'Sw', 'Temp', 'Tension', 'Tool_Azimuth',
-                      'Tool_RelBearng', 'Torque', 'TwcPredicted', 'Vcl',
-                      'Vcoal', 'Velocity', 'VertStress', 'Vibration',
-                      'Vsalt', 'Vsilt', 'WeightonBit', 'Xaccelerometer',
-                      'Xmagnetometer', 'Yaccelerometer', 'Ymagnetometer',
-                      'Zaccelerometer', 'Zmagnetometer']
-        
-        datatypes = ['Depth', 'Log', 'Partition']
-        
-        sel_curvetypes = ['']*ncurves
-        sel_datatypes = ['Depth'] + ['Log']*(ncurves - 1)
-        
-        """ 
+
         # Tentativa de solução não lusitana
         
         PM = ParametersManager.get()
@@ -3135,8 +3012,7 @@ def on_import_odt(event):
                 
                 else:
                     print ("Not importing {} as no datatype matches '{}'".format(names[i], sel_datatypes[i]))
-                
-        
+                 
         PM.register_votes()
                
         isdlg.Destroy()
@@ -3147,10 +3023,88 @@ def on_import_odt(event):
 
 
 def on_import_lis(*args):
-    lis_import_frame = lisloader.LISImportFrame(wx.App.Get().GetTopWindow())
-    lis_import_frame.Show()
- 
+    wildcard="LIS Files (*.lis,*.tif)|*.lis;*.tif"
+    file_dialog = wx.FileDialog(wx.App.Get().GetTopWindow(), 
+                                'Choose LIS file to import:', 
+                                wildcard=wildcard, 
+                                style=wx.FD_OPEN|wx.FD_FILE_MUST_EXIST
+    )
+    if file_dialog.ShowModal() != wx.ID_OK:
+        file_dialog.Destroy()
+        return
+    #
+    paths = file_dialog.GetPaths()
+    try:
+        full_filename = paths[0]
+    except:
+        raise
+    finally:
+        file_dialog.Destroy()
+    #
+    lis_file = LISFile()
+    lis_file.read_file(full_filename)
+    print ('FIM READ FILE')
+    lis_file.read_physical_records()
+    print ('FIM READ PHYSICAL')
+    lis_file.read_logical_records()
+    print ('FIM READ LOGICAL')   
+    #
+    UIM = UIManager()
+    mwc = Interface.get_main_window_controller()
+    well_import_ctrl = UIM.create('well_import_frame_controller', mwc.uid)
+    well_import_ctrl.Show()
+    #
+    well_import_ctrl.set_status_bar_text(full_filename)
+    well_import_ctrl.set_lis_file(lis_file)
+    #
 
+
+def on_import_dlis(*args):
+    wildcard="DLIS Files (*.dlis)|*.dlis"
+    file_dialog = wx.FileDialog(wx.App.Get().GetTopWindow(), 
+                                'Choose DLIS file to import:', 
+                                wildcard=wildcard, 
+                                style=wx.FD_OPEN|wx.FD_FILE_MUST_EXIST
+    )
+    if file_dialog.ShowModal() != wx.ID_OK:
+        file_dialog.Destroy()
+        return
+    #
+    paths = file_dialog.GetPaths()
+    try:
+        full_filename = paths[0]
+    except:
+        raise
+    finally:
+        file_dialog.Destroy()
+    #
+    dlis_file = DLISFile()
+    dlis_file.read(full_filename)
+    # dlis.read 
+    # From AAA_Dlis main.py
+    # t_stop = threading.Event()
+    # dlg = MyProgressDialog(filename)
+    # t = threading.Thread(target=dlis.read, args=(filename, dlg.update, t_stop))
+    
+    """
+    print ('FIM READ FILE')
+    dlis_file.read_physical_records()
+    print ('FIM READ PHYSICAL')
+    dlis_file.read_logical_records()
+    print ('FIM READ LOGICAL')
+    """
+    
+    #
+    UIM = UIManager()
+    mwc = Interface.get_main_window_controller()
+    well_import_ctrl = UIM.create('well_import_frame_controller', mwc.uid)
+    well_import_ctrl.Show()
+    #
+    well_import_ctrl.set_status_bar_text(full_filename)
+    well_import_ctrl.set_dlis_file(dlis_file)
+    #
+    
+    
 
 def on_import_segy_seis(event):
 

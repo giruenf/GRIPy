@@ -6,6 +6,7 @@ import timeit
 import inspect
 import collections
 from enum import Enum  
+from pathlib import Path
 
 import numpy as np
 from matplotlib.cm import cmap_d
@@ -40,12 +41,14 @@ class GripyBitmap(wx.Bitmap):
 class GripyIcon(wx.Icon):
     
     def __init__(self, path_to_bitmap=None, type_=wx.BITMAP_TYPE_ANY):
+        
+        #print(PurePath(app.ICONS_PATH, path_to_bitmap), 'r')
+        
         if path_to_bitmap is not None:
-            if os.path.exists(path_to_bitmap):
-                path_to_bitmap = path_to_bitmap
-            elif os.path.exists(os.path.join(app.ICONS_PATH, \
-                                                     path_to_bitmap)):
-                path_to_bitmap = os.path.join(app.ICONS_PATH, path_to_bitmap)
+            if Path(path_to_bitmap).exists():
+                pass
+            elif Path(app.ICONS_PATH, path_to_bitmap).exists():
+                path_to_bitmap = Path(app.ICONS_PATH, path_to_bitmap)
             else:
                 raise Exception('ERROR: Wrong bitmap path.')
         super().__init__(path_to_bitmap, type_)    

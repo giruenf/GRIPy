@@ -120,8 +120,6 @@ class LISImportFrame(wx.Frame):
         self.panel.Layout()
     
 
-        
-        
     def get_model_from_LIS(self, filename):
         lis = LISFile()
         lis.read_file(filename)

@@ -118,7 +118,7 @@ class GripyApp(wx.App):
             
         Interface.load()
         mwc = Interface.get_main_window_controller()
-        mwc.view.Show()
+        mwc.Show()
         self.SetTopWindow(mwc.view)       
 #        print ('GripyApp.load_app_interface ended')
 

@@ -50,6 +50,7 @@ from classes.inference.dtrock import Fluid
 from classes.ui import FrameController, Frame
 from classes.ui import DialogController, Dialog
 from classes.ui import LASHeaderController, LASHeader
+from classes.ui import WellImportFrameController, WellImportFrame
 #
 from ui.mvc_classes.main_window import MainWindowController,MainWindow
 from ui.mvc_classes.menu_bar import MenuBarController, MenuBarView
@@ -262,6 +263,11 @@ def register_UIManager_classes():
     #
     #UIManager.register_class(DataMaskController, DataMask, TrackObjectController)      
     UIManager.register_class(LASHeaderController, LASHeader)
+    #
+    UIManager.register_class(WellImportFrameController, WellImportFrame, MainWindowController)    
+    
+    
+    
     
     
     

@@ -1,0 +1,32 @@
+{
+	"SUL": {
+		"name": "Storage Unit Label",
+		"data": [
+			{"name": "Storage unit sequence number", "size": 4, "code": "string"},
+			{"name": "RP66 version and format edition", "size": 5, "code": "string"},
+			{"name": "Storage unit structure", "size": 6, "code": "string"},
+			{"name": "Maximum visible record length", "size": 5, "code": "string"},
+			{"name": "Storage set identifier", "size": 60, "code": "string"}
+		]
+	},
+	"VED": {
+		"name": "Visible Envelope Data",
+		"size": 4,
+		"data": [
+			{"name": "Visible Record Length", "size": 2, "code": 16},
+			{"name": "The value FF16", "size": 1, "code": 15},
+			{"name": "Format version", "size": 1, "code": 15}
+		]
+	},
+	
+	"LRSH": {
+		"name": "Logical Record Segment Header",
+		"size": 4,
+		"data": [
+			{"name": "Logical Record Segment Length", "size": 2, "code": 16},
+			{"name": "Logical Record Segment Attributes", "size": 1, "code": 28},
+			{"name": "Logical Record Type", "size": 1, "code": 15}
+		]	
+	}
+
+}	

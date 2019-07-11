@@ -51,7 +51,7 @@ class DataIndex(DataObject):
     def __init__(self, *args, **kwargs):   
         """
         """
-#        print('\nDataIndex:', kwargs)  
+        #print('\nDataIndex:', args, kwargs)  
         #
         if kwargs.get('_data') is None:    
             if args:
@@ -78,9 +78,12 @@ class DataIndex(DataObject):
             end = data[-1]
         samples = len(data)
         #
-        super().__init__(data, start=start, end=end, step=step, 
-                                 samples=samples, **kwargs
-        )
+        try:
+            super().__init__(data, start=start, end=end, step=step, 
+                                     samples=samples, **kwargs
+            )
+        except Exception as e:
+            print('ERROR DataIndex.__init__:', e)
         #
             
         

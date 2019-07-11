@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """
 Created on Sun Jun 12 10:53:59 2016
 
@@ -80,10 +79,6 @@ class TIFFile(object):
         #
         return_data = []    
         tif_file = bytes('', 'utf-8')
-        
-        #print('\nregisters:', registers)
-        #print()
-        
         for register in registers:
             if register[0] == 1:
                 return_data.append(tif_file)

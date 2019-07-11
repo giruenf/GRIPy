@@ -62,7 +62,7 @@ class ODTManager():
             data.append(odt_file.data)
 #            self.data = np.asarray(data)
         
-#        print '\ndepth', depth
+
         maxdepts = []
         mindepts = []
         for d in depth:
@@ -75,26 +75,20 @@ class ODTManager():
         for i in range(len(depth)):
             fixmin= np.arange(mindepth,depth[i].min(), step)
             fixmax= np.arange(depth[i].max()+step, maxdepth+step, step)
-            
-#            print '\ninicio\n',len(fixmin), len(fixmax), len(values[i]), len(total), len(depth[i]), total[12297]#, (mindepth-depth[i].min())/step,(maxdepth-depth[i].max())/step,total
             if len(fixmin) != 0:
-#                print len(fixmin)
                 for j in range(len(fixmin)-1):
-#                    print j
                     depth[i] = np.insert(depth[i], 0, np.nan)
                     data[i] = np.insert(data[i], 0, np.nan)
             if len(fixmax) != 0:
-#                print len(fixmax)
                 for j in range (len(fixmax)-1):
-#                    print j
                     data[i] = np.insert(data[i], len(data[i]), np.nan)
                     depth[i] = np.insert(depth[i], len(depth[i]), np.nan)
-#            print '\n\n', depth
         
         data.insert(0,self.ndepth)
         self.data = np.asarray(data)
         self.curvesnames.insert(0, ' DEPT')
         self.curvesunits.insert(0,'')
+
 
 class ODTFile(object):
    
@@ -171,7 +165,6 @@ class ODTReader(ODTFile):
 
         return dept, value
 
-    
     def read(self):
         fileobject = builtins.open(self.filename, 'r')
         self.fileheader, headerlines = ODTReader._getheaderlines(fileobject)
@@ -179,21 +172,13 @@ class ODTReader(ODTFile):
         
         self.logheader = ODTReader._getheader(headerlines)
 
-def open(dirct, filename, mode='r'):
 
+def open(dirct, filename, mode='r'):
     if mode == 'r':
         odtfile = ODTManager(dirct, filename)
 #    elif mode == 'w':
 #        odtfile = ODTWriter(name)
     else:
         odtfile = None
-    
     return odtfile
   
-if __name__ == '__main__':
-    dirct = "C:\\Users\\Tabelini\\Dropbox\\Python\\"
-    filename = "1RJS-0074--RJ-^2.wll"
-#    odt_file = ODTReader("C:\\Users\\Tabelini\\Dropbox\\Python\\1RJS-0074--RJ-^2.wll")
-#    odt_file.read()
-    odt_file = open(dirct, filename)
-    print (odt_file.fileheader, '\n\n',odt_file.logheader, '\n\n', odt_file.ndepth)

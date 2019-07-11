@@ -159,7 +159,7 @@ def load():
         )
         
         
-        
+        """
         UIM.create('menu_item_controller', mc_import.uid, 
                 label=u"LAS File", 
                 help=u'Import a LAS file to current GriPy Project',
@@ -170,16 +170,11 @@ def load():
                 help=u'Import a ODT file to current GriPy Project',
                 callback='app.menu_functions.on_import_odt'
         )
-        
-        # TODO: Falta LIS !!!!
-#        '''
         UIM.create('menu_item_controller', mc_import.uid, 
                 label=u"LIS File", 
                 help=u'Import a LIS file to current GriPy Project',
                 callback='app.menu_functions.on_import_lis'
-        )    
-#        '''       
-        
+        )       
         # TODO: Falta DLIS !!!!
         '''
         mic_import_dlis = UIM.create('menu_item_controller', mc_import.uid, 
@@ -188,6 +183,7 @@ def load():
                 callback='app.menu_functions.on_import_dlis'
         )  
         '''
+        """
         
         UIM.create('menu_item_controller', mc_import.uid, 
                 label=u"SEG-Y Well Gather", 
@@ -281,11 +277,48 @@ def load():
         
         
         # Well Menu
-        UIM.create('menu_item_controller', mc_well.uid, 
+        UIM.create('menu_item_controller', 
+                   mc_well.uid, 
                    label=u"New well",
-                   help=u"Create new well",
+                   help=u"Create well",
                    callback='app.menu_functions.on_create_well'
         ) 
+        # Import Well
+        mc_import_well = UIM.create('menu_controller', 
+                                    mc_well.uid, 
+                                    label=u"&Import Well"
+        )
+        UIM.create('menu_item_controller', 
+                   mc_import_well.uid, 
+                   label=u"LAS File", 
+                   help=u'Import a LAS file to current GriPy Project',
+                   callback='app.menu_functions.on_import_las'
+        )
+        UIM.create('menu_item_controller', 
+                   mc_import_well.uid, 
+                   label=u"ODT File", 
+                   help=u'Import a ODT file to current GriPy Project',
+                   callback='app.menu_functions.on_import_odt'
+        )
+        UIM.create('menu_item_controller', 
+                   mc_import_well.uid, 
+                   label=u"LIS File", 
+                   help=u'Import a LIS file to current GriPy Project',
+                   callback='app.menu_functions.on_import_lis'
+        )       
+
+        UIM.create('menu_item_controller', 
+                   mc_import_well.uid, 
+                   label=u"DLIS File", 
+                   help=u'Import a DLIS file to current GriPy Project',
+                   callback='app.menu_functions.on_import_dlis'
+        )  
+        
+     
+        #
+        UIM.create('menu_item_controller', mc_well.uid, 
+                       kind=wx.ITEM_SEPARATOR
+        )
 
         UIM.create('menu_item_controller', mc_well.uid, 
                 label=u"Create Synthetic Log",
