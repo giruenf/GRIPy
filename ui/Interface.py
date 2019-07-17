@@ -296,12 +296,6 @@ def load():
         )
         UIM.create('menu_item_controller', 
                    mc_import_well.uid, 
-                   label=u"ODT File", 
-                   help=u'Import a ODT file to current GriPy Project',
-                   callback='app.menu_functions.on_import_odt'
-        )
-        UIM.create('menu_item_controller', 
-                   mc_import_well.uid, 
                    label=u"LIS File", 
                    help=u'Import a LIS file to current GriPy Project',
                    callback='app.menu_functions.on_import_lis'
@@ -313,7 +307,12 @@ def load():
                    help=u'Import a DLIS file to current GriPy Project',
                    callback='app.menu_functions.on_import_dlis'
         )  
-        
+        UIM.create('menu_item_controller', 
+                   mc_import_well.uid, 
+                   label=u"ODT File", 
+                   help=u'Import a ODT file to current GriPy Project',
+                   callback='app.menu_functions.on_import_odt'
+        )        
      
         #
         UIM.create('menu_item_controller', mc_well.uid, 

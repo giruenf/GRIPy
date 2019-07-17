@@ -214,23 +214,28 @@ class WellImportFrame(Frame):
         self.expand_dvc_all_items()
 
 
+
     def set_dlis_file(self, dlis_file):
-        return
-        """
-        wells = LISWells(lis_file)     
         if self.model is not None:
             old_model = self.model
             old_model.Clear()
         else:
-            old_model = None
-        for well in wells.data:
-            well.name = self._get_lis_well_name(well)
-        self.model = WellImportModel(wells.data)
-        self.dvc.AssociateModel(self.model)
+            old_model = None   
         if old_model:
             del old_model
+        # 
+        well = IOWell()    
+        well.name = self._get_dlis_well_name(dlis_file)
+        run_name = well._get_run_name()
+        run = IOWellRun(run_name)
+        well.append(run)
+        #
+        
+        #
+        self.model = WellImportModel([well])
+        self.dvc.AssociateModel(self.model)
         self.expand_dvc_all_items()
-        """
+
         
 
     def set_las_file(self, las_file):
@@ -261,6 +266,13 @@ class WellImportFrame(Frame):
             del old_model
         self.expand_dvc_all_items()
 
+
+    def _get_dlis_well_name(self, dlis_file):
+        well_name = dlis_file.origin.get('WELL-NAME')
+        if not well_name:
+            well_name = dlis_file.origin.get('WN')
+        return well_name
+    
 
     def _get_lis_well_name(self, liswell):
         for info in liswell.infos:
@@ -491,7 +503,7 @@ class WellImportModel(dv.PyDataViewModel):
                         if not log._import:
                             return False
                 return True       
-            
+ 
             elif col == 8:
                 soma = 0.0
                 i = 0
@@ -499,6 +511,8 @@ class WellImportModel(dv.PyDataViewModel):
                     for log in run.data:
                         soma += log._progress
                         i += 1
+                if i == 0:
+                    return 0.0
                 return (soma/i)*100.0  
             else:
                 return ""
@@ -515,6 +529,8 @@ class WellImportModel(dv.PyDataViewModel):
                 return True
             
             elif col == 8:
+                if len(obj.data) == 0:
+                    return 0.0
                 soma = 0.0
                 for log in obj.data:
                     soma += log._progress

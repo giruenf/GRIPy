@@ -1,7 +1,4 @@
-# -*- coding: utf-8 -*-
-
 """
-
     Pyhton DLIS file reader
     Adriano Paulo - adrianopaulo@gmail.com
     July 2016
@@ -12,11 +9,11 @@
         American Petroleum Institute (API) Standard RP66 Version 1 (RP66 V1), 
         published in May 1991, specified a format for digital well log data, 
         called Digital Log Interchange Standard (DLIS). 
-        RP66 V1 publication was under jurisdiction of API until June 1998, when 
-        Petrotechnical Open Software Corporation (POSC) accepted its stewardship.
+        RP66 V1 publication was under jurisdiction of API until June 1998, 
+        when Petrotechnical Open Software Corporation (POSC) accepted its 
+        stewardship.
         In November 2006, POSC re-brands itself as Energistics.
-        
-        
+          
     PURPOSE:
     
         This software was created to read DLIS files.
@@ -98,15 +95,17 @@
                         Well properties is an OrderedDict containing object 
                         name as key and another OrderedDict as values 
                 
-            - dlis.parameters: a list of well parameters (header parameters).
-   
-   
-   self.data_props[idx].get(object_name).keys()[i], \
-                             ': ', v, self.data_props[idx].get(object_name).values()[i].get('UNITS')
-    
-   
+   **** (????)         - dlis.SUL: a list of well parameters (header parameters).
+
+
+            - dlis.file_header = None
+            - dlis.origin = None
+            - dlis.parameter = None
+            - dlis.frame = None
+            - dlis.channel = None    
    
 """
+
 import os        
 import struct
 from collections import OrderedDict
@@ -475,10 +474,19 @@ def get_EFLR_for_code(EFLR_code):
 
 
 
-def get_objname(obj_name_tuple):
+def get_objname_from_tuple(obj_name_tuple):
+    """Given a O, C, I tuple, return its string full name 
+    (e.g 0&0&DEFINING_ORIGIN).
+    """
     O, C, I = obj_name_tuple
     return str(O) + '&' + str(C) + '&' + I
 
+
+def get_actual_objname(full_object_name):
+    """Given a object string full name (e.g 0&0&DEFINING_ORIGIN), returns
+    its name (e.g DEFINING_ORIGIN).
+    """
+    return full_object_name.split('&')[2]
 
 
 class RepresentationCodes(object):
@@ -515,7 +523,9 @@ class DLISObjectPool(object):
     object_to_lr = None
 
     @classmethod
-    def init_pool(cls):    
+    def init_pool(cls):
+        """Init DLISObjectPool attributes.
+        """
         cls.current_file_number = -1
         cls.current_lr = -1
         cls.lrs = OrderedDict()
@@ -525,8 +535,9 @@ class DLISObjectPool(object):
     
     @classmethod
     def register_logical_record(cls, lr_structure_type, lr_type, lr_code):
-        print('\nregister_logical_record:',lr_structure_type, lr_type, lr_code)
-        
+        """Register a new Logical Record, with its structure type, LR type,
+        LR code.
+        """
         if lr_structure_type != 0 and lr_structure_type != 1:
             raise Exception('Logical Record Structure type invalid. ' + 
                 'Valid types are 0 for IFLRs or 1 for EFLR.')        
@@ -552,6 +563,8 @@ class DLISObjectPool(object):
 
     @classmethod
     def register_object(cls, object_name):
+        """Register a new DLIS Object, with its name.
+        """
         if not cls.get_logical_records()[-1].get('closed'):
             cls.get_logical_records()[-1]['closed'] = True
         if cls.objects.get(cls.current_file_number) is None:
@@ -580,6 +593,8 @@ class DLISObjectPool(object):
             file_number = cls.current_file_number
         obj_names = cls.lr_to_object.get(file_number).get(lr_type)  
         ret_map = OrderedDict()
+        if not obj_names:
+            return ret_map
         for obj_name in obj_names:
             ret_map[obj_name] = cls.objects.get(cls.current_file_number).get(obj_name)
         return ret_map 
@@ -588,9 +603,11 @@ class DLISObjectPool(object):
     def get_objects_dict_of_type(cls, lr_type, file_number=None):      
         if file_number is None:
             file_number = cls.current_file_number  
+        ret_map = OrderedDict()    
         objects = cls.get_objects_of_type(lr_type, file_number)
-        template_list = cls.get_logical_record(lr_type, file_number).get('template')
-        ret_map = OrderedDict()
+        if not objects:
+            return ret_map
+        template_list = cls.get_logical_record(lr_type, file_number).get('template')       
         for obj_name, obj_values in objects.items():
             obj_map = OrderedDict()
             for idx, value in enumerate(obj_values):
@@ -600,7 +617,10 @@ class DLISObjectPool(object):
         return ret_map
   
     @classmethod 
-    def get_object_values_list(cls, object_name, file_number=None):    
+    def get_object_values_list(cls, object_name, file_number=None):
+        """Given a object name (e.g 0&0&WN or 1&0&RHOB) return its values list.
+        If file_number is not given, the latest one will be used. 
+        """
         if file_number is None:
             file_number = cls.current_file_number
         obj_values_list = cls.objects.get(file_number).get(object_name)
@@ -625,6 +645,8 @@ class DLISObjectPool(object):
         return ret_map    
      
      
+        
+    
 def _get_SUL(data):    
     # Getting Storage Unit Label (SUL)
     if len(data) != 80 and len(data) != 128:
@@ -665,6 +687,13 @@ class DLISFile(object):
         self.file_size = -1
         self.data = None
         self.data_props = None
+        #
+        self.file_header = None
+        self.origin = None
+        self.parameter = None
+        self.frame = None
+        self.channel = None
+        #
 #        self.queue = Queue()
 
     def get_file_read_percent(self):
@@ -685,6 +714,7 @@ class DLISFile(object):
             return True    
         except Exception:
             return False
+        
         
     def print_logical_file(self, file_index=None, limit=None):
         if file_index is None:
@@ -727,6 +757,9 @@ class DLISFile(object):
     '''    
         
     def read(self, filename, callback=None, threading_stop_event=None):
+        # Clear DLISObjectPool
+        DLISObjectPool.init_pool()
+        #
         self.filename = filename
         #self.callback = callback
         self.file = open(self.filename, mode='rb')
@@ -743,7 +776,7 @@ class DLISFile(object):
         elif self.SUL.get('RP66 version and format edition').split('.')[0] != 'V2': 
             raise Exception('This is not a DLIS File.')
         #     
-        self._read_Logical_Records(callback, threading_stop_event)    
+        self._read_Logical_Records(callback, threading_stop_event)
         #self._reading_process = Process(target=self._read_Logical_Records, 
         #                                args=(stop_event, 'task'))                 
         #print 'a', self.file.tell() 
@@ -751,21 +784,132 @@ class DLISFile(object):
         #print 'b', self.file.tell(), self._reading_process.is_alive() 
         #self._reading_process.join()   
         #print 'c', self.file.tell(), self._reading_process.is_alive()  
+        #
         self.file.close()
+        #
+        self._load_file_header_props()
+        self._load_origin_props()
+        self._load_parameter_props()
+        self._load_frame_props()
+        self._load_channel_props()
         #
         if threading_stop_event:
             if threading_stop_event.is_set():
                 print('File reading canceled by user.')
             else:    
-                self.print_logical_file(-1, 10)
+                self.print_logical_file(-1, 1)
         else:    
-            self.print_logical_file(-1, 10)                
+            self.print_logical_file(-1, 1)           
         #
-   
+        print()
+        print(self.data_props)
+        print()
+        print()
+        print()
+        print(self.data)
+
+
+    def _load_file_header_props(self):
+        self.file_header = self._get_logical_record_props('FILE-HEADER')
+
+
+
+    def _load_origin_props(self): 
+        self.origin = OrderedDict()
+        origin_od = self._get_logical_record_props('ORIGIN')
+        # id = 0 have all info we really need. Other are used when there are
+        # copies as stated by RP66 V1.
+        if not origin_od:
+            return        
+        
+        print('\n\n\norigin_od:', origin_od)
+        print('\n\n\n')
+        try:
+            obj_name, obj_map = list(origin_od.items())[0]
+            print(obj_name)
+            print(obj_map)
+            for key, value in obj_map.items():
+                print('kv:', key, value)
+                self.origin[key] = value
+        except:
+            raise
+        print('FIM _load_origin_props')    
+        
+    def _load_parameter_props(self):
+        self.parameter = OrderedDict()
+        params_od = self._get_logical_record_props('PARAMETER')
+        if not params_od:
+            return
+        for obj_name, obj_dict in params_od.items():
+            self.parameter[get_actual_objname(obj_name)] = obj_dict['VALUES']
+
+
+    def _load_frame_props(self): 
+        self.frame = OrderedDict()
+        frame_od = self._get_logical_record_props('FRAME')    
+        if not frame_od:
+            return
+        for obj_name, obj_dict in frame_od.items():
+            frame_obj_od = OrderedDict()
+            self.frame[get_actual_objname(obj_name)] = frame_obj_od
+            frame_obj_od['CHANNELS'] = []
+            for chan_obj_name in obj_dict.pop('CHANNELS'):
+                frame_obj_od['CHANNELS'].append(get_actual_objname(chan_obj_name))
+            for key, value in obj_dict.items():
+                frame_obj_od[key] = value
+
+
+    def _load_channel_props(self): 
+        self.channel = OrderedDict()
+        channel_od = self._get_logical_record_props('CHANNEL')
+        if not channel_od:
+            return
+        for obj_name, obj_dict in channel_od.items():        
+            self.channel[get_actual_objname(obj_name)] = obj_dict['UNITS']
+            
+            
+            
+    def _get_logical_record_props(self, lr_type): 
+        try:
+            lr_props = OrderedDict()
+            lr_od = DLISObjectPool.get_objects_dict_of_type(lr_type)
+            if not lr_od:
+                return lr_props
+            for obj_name, obj_map in lr_od.items():
+                obj_lr_od = OrderedDict()
+                lr_props[obj_name] = obj_lr_od
+                for key, value in obj_map.items():
+                    if isinstance(value, list) and len(value) == 1:
+                        obj_lr_od[key] = value[0]
+                    else:
+                        obj_lr_od[key] = value    
+        except Exception as e:
+            print('ERROR:', e)
+            lr_props = OrderedDict()
+        #
+        print()
+        print(lr_type)
+        for obj_name, obj_map in lr_props.items():
+            print('    ', obj_name)
+            for key, value in obj_map.items():
+                print('        ', key, value)
+
+        print()
+        #   
+        #
+        return lr_props
+        
+        
+
+
     def _clear(self):
         self.data = None
         self.data_props = None
-        # TODO: self.properties = None
+        self.file_header = None
+        self.origin = None
+        self.parameter = None
+        self.frame = None
+        self.channel = None
         DLISObjectPool.init_pool()
         
     '''    
@@ -858,28 +1002,36 @@ class DLISFile(object):
                 if not lrs_header.get('Logical Record Segment Attributes')[2]: 
                     # It's time to work on logical record
                     lr_data_offset = 0
+                    
+                    
+                    
                     while lr_data_offset < len(lr_data):
+                        
                         # Explicitly Formatted Logical Records (EFLR)
                         if lrs_header.get('Logical Record Segment Attributes')[0] == 1:
+#                            print("EFLR")
                             role, definition = self.get_EFLR_process_descriptor(lr_data[lr_data_offset:lr_data_offset+1])
                             lr_data_offset += 1
+                            
                             if role == 'ABSATR':
                                 if not DLISObjectPool.get_logical_records()[-1].get('closed'):
                                     DLISObjectPool.get_logical_records()[-1].get('template').append(None)
                                 else:
                                     DLISObjectPool.get_object_values_list(current_obj_name).append(None)
                                 continue    
+                            
                             map_ = OrderedDict()
+                            
                             for key, (has_key, code) in definition.items():
                                  if has_key:
+                                     
                                      if code:
-                                        lr_data_offset, value = get_from_list(lr_data, 
-                                                        lr_data_offset, code
-                                        )
+                                        lr_data_offset, value = get_from_list(lr_data, lr_data_offset, code)
                                         #value = value.decode("utf-8") 
-                                        print(key, value)
-                                        print()
+#                                        print('code:', key, value, role)
+#                                        print()
                                         map_[key] = value
+                                        
                                      else:
                                         # Reading Value
                                         if key == 'V':
@@ -903,11 +1055,14 @@ class DLISFile(object):
                                                 if isinstance(value, str):
                                                     value = value.strip() 
                                                 elif code == 23:
-                                                    value = get_objname(value)   
+                                                    value = get_objname_from_tuple(value)   
                                                 values.append(value)
+#                                            print('not code: V', values, role)      
                                             map_['V'] = values    
                                         else:        
                                             raise Exception()           
+                            
+                            
                             if role == 'SET':
                                 # Reseting data_props used in IFLR Frame Data                                  
                                 if map_.get('T') == 'FILE-HEADER':
@@ -927,6 +1082,7 @@ class DLISFile(object):
                                         lrs_header.get('Logical Record Type')
                                 )
                                 current_obj_name = None
+                            
                             elif role == 'ATTRIB':
                                 if not DLISObjectPool.get_logical_records()[-1].get('closed'):
                                     new_template = OrderedDict()
@@ -935,20 +1091,25 @@ class DLISFile(object):
                                     new_template['code'] = map_.get('R')
                                     DLISObjectPool.get_logical_records()[-1].get('template').append(new_template)
                                 else:
+#                                    print('current_obj_name:', current_obj_name, map_.get('V'))
                                     DLISObjectPool.get_object_values_list(current_obj_name).append(map_.get('V'))
+                                    
                             elif role == 'OBJECT':
-                                current_obj_name = get_objname(map_.get('N'))
+                                current_obj_name = get_objname_from_tuple(map_.get('N'))
                                 DLISObjectPool.register_object(current_obj_name)     
+                            
                             else:
                                 #DLISObjectPool.printa()
-                                print()
-                                print(role, definition, current_obj_name, self.file.tell())
+#                                print()
+#                                print(role, definition, current_obj_name, self.file.tell())
                                 raise Exception()
+                            
                             
                         # Indirectly Formatted Logical Records (IFLR)        
                         else:
+#                            print("IFLR")
                             lr_data_offset, obj_name =  get_from_list(lr_data, lr_data_offset, 23)
-                            iflr_descriptor = get_objname(obj_name)
+                            iflr_descriptor = get_objname_from_tuple(obj_name)
                             # If LRT for IFLR is 127, then we have a EOD -> Nothing to do!
                             if lrs_header.get('Logical Record Type') == 127:
                                 if lr_data_offset == len(lr_data):
@@ -958,7 +1119,9 @@ class DLISFile(object):
                             
                             if self.data_props[-1] is None:    
                                 channel_objects = DLISObjectPool.get_objects_dict_of_type('CHANNEL')     
+                                print('\nchannel_objects:', channel_objects)
                                 frame_objects = DLISObjectPool.get_objects_dict_of_type('FRAME')
+                                print('\nframe_objects:', frame_objects)
                                 frame_data_prop = OrderedDict() 
                                 self.data_props[-1] = frame_data_prop
                                 for frame_obj_name, frame_obj_props in frame_objects.items():
@@ -978,6 +1141,7 @@ class DLISFile(object):
                                             if channel_key == 'AXIS' and channel_value is not None:
                                                 axis_props = OrderedDict()
                                                 axis_objects = DLISObjectPool.get_objects_dict_of_type('AXIS')
+                                                print('\naxis_objects:', axis_objects)
                                                 for axis_object_name in channel_value:
                                                     axis_props[axis_object_name] = OrderedDict()
                                                     for axis_key, axis_value in axis_objects.get(axis_object_name).items():
@@ -1008,8 +1172,9 @@ class DLISFile(object):
                                                 lr_data_offset, v = get_from_list(lr_data, lr_data_offset, code) 
                                                 value.append(v)
                                         list_.append(value)
-                    
-                    # End of Logical Record processing - Clearing lr_data                    
+                        # End of IFLR
+                        
+                    # End of Logical Record processing - Clearing lr_data               
                     lr_data = b''                
 
                 # (4) Logical Record Segment Trailer (LRST)
@@ -1029,7 +1194,33 @@ class DLISFile(object):
             #percent = float("{0:.2f}".format(self.get_file_read_percent()))
             #msg = 'Read: ' + str(percent) + '%'
             #print msg   
+
+
+
       
+        for fileno, map_ in DLISObjectPool.objects.items():
+            
+            
+            
+            print()
+            print('file number:', fileno)
+            lrs = DLISObjectPool.get_logical_records(fileno)
+            print()
+            for lr in lrs:
+                type_name = lr.get('type')
+                print('    ', type_name)
+                objs = DLISObjectPool.get_objects_dict_of_type(type_name)
+                for obj_name, obj_map in objs.items():
+                    print('        ', obj_name)
+                    for k, v in obj_map.items():
+                        print('            ', k, v)
+            print()
+            print()
+            print()
+            print('ending...')
+            for k, v in map_.items():
+                print('        ', k, v)
+            
         
         
     def get_EFLR_process_descriptor(self, descriptor_data):   
