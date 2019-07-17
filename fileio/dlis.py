@@ -110,6 +110,8 @@ import os
 import struct
 from collections import OrderedDict
 
+import numpy as np
+
 import app
 #from multiprocessing import Process, Queue
 #import threading
@@ -801,12 +803,47 @@ class DLISFile(object):
         else:    
             self.print_logical_file(-1, 1)           
         #
-        print()
+        print('\n\nself.data_props')
         print(self.data_props)
-        print()
-        print()
-        print()
-        print(self.data)
+        
+        
+        
+        # TODO: rever self._curves_info
+        self._curves_info = OrderedDict()
+        for item_od in self.data_props:
+            for curve_set_name in list(item_od.keys()):
+                curve_info_od = item_od[curve_set_name]
+                curve_set_name = get_actual_objname(curve_set_name)
+                self._curves_info[curve_set_name] = []
+                for curve_name, curve_props_od in curve_info_od.items():
+                    curve_actual_name = get_actual_objname(curve_name)
+                    curve_unit = curve_props_od['UNITS'].lower()
+                    self._curves_info[curve_set_name].append((curve_actual_name, curve_unit))
+            
+        print('\n\nself._curves_info')
+        print(self._curves_info)
+            
+        # TODO: rever self._curves_data
+        self._curves_data = OrderedDict()
+        for info in self._curves_info:
+            self._curves_data.append([])
+        #    
+        for item_od in self.data:
+            for iflr_descriptor in list(item_od.keys()):
+                curve_data_od = item_od[iflr_descriptor]
+                for curve_idx, curves_data_list in curve_data_od.items():
+                    for idx, value in enumerate(curves_data_list):
+                        self._curves_data[idx].append(value)
+        #
+        for idx in range(len(self._curves_data)):
+            self._curves_data[idx] = np.asarray(self._curves_data[idx])
+
+        print('\n\nself._curves:')
+        for idx in range(len(self._curves_data)):
+            print()
+            print(self._curves_info[idx])
+            print(self._curves_data[idx])            
+
 
 
     def _load_file_header_props(self):
@@ -1155,6 +1192,7 @@ class DLISFile(object):
                                                     channel_value = channel_value[0]
                                             channel_props[channel_key] = channel_value        
                             
+                            # TODO: Rever abaixo, reordenando o self.data
                             while lr_data_offset < len(lr_data):  
                                 if self.data[-1].get(iflr_descriptor) is None:
                                     self.data[-1][iflr_descriptor] = OrderedDict()           

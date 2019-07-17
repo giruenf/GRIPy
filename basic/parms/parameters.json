@@ -200,7 +200,7 @@
             "Caliper": 0
         },
         "cali": {
-            "Caliper": 0
+            "Caliper": 1
         },
         "caliper": {
             "Caliper": 0
@@ -275,7 +275,7 @@
             "MD": 3
         },
         "depth": {
-            "MD": 0
+            "MD": 1
         },
         "dev": {
             "Deviation": 0
@@ -416,7 +416,7 @@
             "GammaRay": 0
         },
         "gr": {
-            "GammaRay": 2
+            "GammaRay": 3
         },
         "gram": {
             "GammaRay": 0
@@ -779,7 +779,7 @@
             "Spectral": 0
         },
         "pr": {
-            "PoissonRatio": 0
+            "PoissonRatio": 1
         },
         "rach": {
             "DeepRes": 0
@@ -848,7 +848,7 @@
             "Density": 0
         },
         "rhob": {
-            "Density": 2
+            "Density": 3
         },
         "rhoc": {
             "Density": 0
@@ -1211,10 +1211,10 @@
             "Velocity": 0
         },
         "vp": {
-            "Velocity": 0
+            "Velocity": 1
         },
         "vs": {
-            "ShearVel": 0
+            "ShearVel": 1
         },
         "vsalt": {
             "Vsalt": 0

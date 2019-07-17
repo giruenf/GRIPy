@@ -230,7 +230,12 @@ class WellImportFrame(Frame):
         run = IOWellRun(run_name)
         well.append(run)
         #
-        
+        for idx, (mnem, unit) in enumerate(dlis_file._curves_info):
+            log = IOWellLog(mnem, 
+                            unit, 
+                            dlis_file._curves_data[idx]
+            )
+            run.append(log)
         #
         self.model = WellImportModel([well])
         self.dvc.AssociateModel(self.model)
