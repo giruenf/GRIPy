@@ -818,32 +818,49 @@ class DLISFile(object):
                 for curve_name, curve_props_od in curve_info_od.items():
                     curve_actual_name = get_actual_objname(curve_name)
                     curve_unit = curve_props_od['UNITS'].lower()
-                    self._curves_info[curve_set_name].append((curve_actual_name, curve_unit))
-            
+                    self._curves_info[curve_set_name].append(
+                                                (curve_actual_name, curve_unit)
+                    )
+        #
         print('\n\nself._curves_info')
         print(self._curves_info)
-            
+        #
+#        print('\n\nself.data')
+#        print(self.data)
+        #
+        
+#        """
         # TODO: rever self._curves_data
         self._curves_data = OrderedDict()
-        for info in self._curves_info:
-            self._curves_data.append([])
+        for curve_set_name, curves_info_list in self._curves_info.items():
+            self._curves_data[curve_set_name] = []
+            for idx in range(len(curves_info_list)):
+                self._curves_data[curve_set_name].append([])
         #    
         for item_od in self.data:
             for iflr_descriptor in list(item_od.keys()):
                 curve_data_od = item_od[iflr_descriptor]
-                for curve_idx, curves_data_list in curve_data_od.items():
+                curve_set_name = get_actual_objname(iflr_descriptor)
+                
+                for curves_data_list in list(curve_data_od.values()):
                     for idx, value in enumerate(curves_data_list):
-                        self._curves_data[idx].append(value)
+                        print('idx val:', idx, value)
+                        self._curves_data[curve_set_name][idx].append(value)
         #
-        for idx in range(len(self._curves_data)):
-            self._curves_data[idx] = np.asarray(self._curves_data[idx])
+        for curves_data_list in list(self._curves_data.values):
+            for idx in range(len(curves_data_list)):
+                curves_data_list[idx] = np.asarray(curves_data_list[idx])
 
         print('\n\nself._curves:')
-        for idx in range(len(self._curves_data)):
+        for curve_set_name, curves_data_list in self._curves_data.items():
             print()
-            print(self._curves_info[idx])
-            print(self._curves_data[idx])            
-
+            print('CURVE_SET:', curve_set_name)
+            print()
+            for idx in range(len(curves_data_list)):
+                print()
+                print(self._curves_info[curve_set_name][idx])
+                print(self._curves_data[curve_set_name][idx])            
+#        """    
 
 
     def _load_file_header_props(self):
