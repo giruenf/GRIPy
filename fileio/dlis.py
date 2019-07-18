@@ -685,6 +685,13 @@ class DLISFile(object):
                 os.path.join(base_path, mapping_file)
         )
         #
+        self._clear()
+
+
+    def _clear(self):
+        #
+        DLISObjectPool.init_pool()
+        #
         self.SUL = None    
         self.file_size = -1
         self.data = None
@@ -696,7 +703,10 @@ class DLISFile(object):
         self.frame = None
         self.channel = None
         #
-#        self.queue = Queue()
+        #self.queue = Queue()
+        #
+        
+
 
     def get_file_read_percent(self):
         if self.file_size == -1:
@@ -844,10 +854,10 @@ class DLISFile(object):
                 
                 for curves_data_list in list(curve_data_od.values()):
                     for idx, value in enumerate(curves_data_list):
-                        print('idx val:', idx, value)
+#                        print('idx val:', idx, value)
                         self._curves_data[curve_set_name][idx].append(value)
         #
-        for curves_data_list in list(self._curves_data.values):
+        for curves_data_list in list(self._curves_data.values()):
             for idx in range(len(curves_data_list)):
                 curves_data_list[idx] = np.asarray(curves_data_list[idx])
 
@@ -955,17 +965,6 @@ class DLISFile(object):
         
         
 
-
-    def _clear(self):
-        self.data = None
-        self.data_props = None
-        self.file_header = None
-        self.origin = None
-        self.parameter = None
-        self.frame = None
-        self.channel = None
-        DLISObjectPool.init_pool()
-        
     '''    
     def stop_reading(self):
         if self._reading_process.is_alive():
@@ -1124,11 +1123,16 @@ class DLISFile(object):
                                         self.data_props = [] 
                                     if self.data is None:
                                         self.data = []
-                                    # Appending new 'spaces' for log properties and for log data. 
-                                    # We'll have one dict of properties and one dict of data for each DLIS Logical File 
-                                    # Frame Data Prop dict will be compiled at logical file first IFLR
+                                    # Appending new 'spaces' for log properties
+                                    # and for log data. We will have one list
+                                    # of properties and one dict of data for 
+                                    # each DLIS Logical File.
+                                    # Frame Data Prop list will be compiled 
+                                    # at logical file first IFLR.
                                     # Data dict will be constructed on every IFLR frame data    
+#                                    """
                                     self.data_props.append(None)    
+#                                    """
                                     self.data.append(OrderedDict())    
                                 DLISObjectPool.register_logical_record(
                                         1, 
@@ -1171,13 +1175,19 @@ class DLISFile(object):
                                 else:
                                     raise Exception('ERROR: Found a IFLR EOD with LR data to be read.')                            
                             
-                            if self.data_props[-1] is None:    
-                                channel_objects = DLISObjectPool.get_objects_dict_of_type('CHANNEL')     
+                            if self.data_props[-1] is None:
+                                print('\n\n\n')
+                                print('self.data_props[-1] is None')
+                                print('\n\n\n')
+                                channel_objects = DLISObjectPool.get_objects_dict_of_type('CHANNEL')
                                 print('\nchannel_objects:', channel_objects)
                                 frame_objects = DLISObjectPool.get_objects_dict_of_type('FRAME')
                                 print('\nframe_objects:', frame_objects)
                                 frame_data_prop = OrderedDict() 
                                 self.data_props[-1] = frame_data_prop
+                                print('\n\nself.data_props[-1]:', self.data_props[-1])
+                                print('\n\n\n')
+                                #
                                 for frame_obj_name, frame_obj_props in frame_objects.items():
                                     frame_props = OrderedDict()
                                     frame_data_prop[frame_obj_name] = frame_props

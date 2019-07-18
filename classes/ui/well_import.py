@@ -226,16 +226,17 @@ class WellImportFrame(Frame):
         # 
         well = IOWell()    
         well.name = self._get_dlis_well_name(dlis_file)
-        run_name = well._get_run_name()
-        run = IOWellRun(run_name)
-        well.append(run)
         #
-        for idx, (mnem, unit) in enumerate(dlis_file._curves_info):
-            log = IOWellLog(mnem, 
-                            unit, 
-                            dlis_file._curves_data[idx]
-            )
-            run.append(log)
+        for curve_set_name, curves_info_list in dlis_file._curves_info.items():
+            run = IOWellRun(curve_set_name)
+            well.append(run)            
+            for idx in range(len(curves_info_list)):
+                mnem, unit = curves_info_list[idx]                
+                log = IOWellLog(mnem, 
+                                unit, 
+                                dlis_file._curves_data[curve_set_name][idx]
+                )
+                run.append(log)
         #
         self.model = WellImportModel([well])
         self.dvc.AssociateModel(self.model)
