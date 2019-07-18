@@ -159,31 +159,6 @@ def load():
         )
         
         
-        """
-        UIM.create('menu_item_controller', mc_import.uid, 
-                label=u"LAS File", 
-                help=u'Import a LAS file to current GriPy Project',
-                callback='app.menu_functions.on_import_las'
-        )
-        UIM.create('menu_item_controller', mc_import.uid, 
-                label=u"ODT File", 
-                help=u'Import a ODT file to current GriPy Project',
-                callback='app.menu_functions.on_import_odt'
-        )
-        UIM.create('menu_item_controller', mc_import.uid, 
-                label=u"LIS File", 
-                help=u'Import a LIS file to current GriPy Project',
-                callback='app.menu_functions.on_import_lis'
-        )       
-        # TODO: Falta DLIS !!!!
-        '''
-        mic_import_dlis = UIM.create('menu_item_controller', mc_import.uid, 
-                label=u"DLIS File", 
-                help=u'Import a DLIS file to current GriPy Project',
-                callback='app.menu_functions.on_import_dlis'
-        )  
-        '''
-        """
         
         UIM.create('menu_item_controller', mc_import.uid, 
                 label=u"SEG-Y Well Gather", 
@@ -324,7 +299,7 @@ def load():
                 callback='app.menu_functions.on_create_synthetic'
         )
         
-        
+        """
         ### Trabalho Roseane
         UIM.create('menu_item_controller', mc_well.uid, 
                        kind=wx.ITEM_SEPARATOR
@@ -351,11 +326,8 @@ def load():
                 label=u'Depth vs Acumulated KH',
                 callback='app.menu_functions.create_Depth_vs_kHAcum_xplot'
         )      
-
-
-    
         ### FIM - Trabalho Roseane
-        
+        """
         
         
         # Inference Menu
@@ -425,6 +397,7 @@ def load():
         #
 
 
+        """
         # Debug Menu
         UIM.create('menu_item_controller', mc_debug.uid, 
                 label=u"Load Wilson Synthetics", 
@@ -453,7 +426,8 @@ def load():
                 label="Load Teste 2019", 
                 callback='app.menu_functions.on_load_teste_2019'
         )  
-    
+        """
+        
         # Fim Main Menu Bar
 
        

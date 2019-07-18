@@ -200,7 +200,7 @@
             "Caliper": 0
         },
         "cali": {
-            "Caliper": 1
+            "Caliper": 2
         },
         "caliper": {
             "Caliper": 0
@@ -552,6 +552,9 @@
         },
         "inc": {
             "Deviation": 0
+        },
+        "index": {
+            "MD": 1
         },
         "ipvf": {
             "Sonic": 0

@@ -861,6 +861,7 @@ class DLISFile(object):
             for idx in range(len(curves_data_list)):
                 curves_data_list[idx] = np.asarray(curves_data_list[idx])
 
+        """
         print('\n\nself._curves:')
         for curve_set_name, curves_data_list in self._curves_data.items():
             print()
@@ -869,8 +870,8 @@ class DLISFile(object):
             for idx in range(len(curves_data_list)):
                 print()
                 print(self._curves_info[curve_set_name][idx])
-                print(self._curves_data[curve_set_name][idx])            
-#        """    
+                print(self._curves_data[curve_set_name][idx]) 
+        """    
 
 
     def _load_file_header_props(self):
@@ -886,18 +887,18 @@ class DLISFile(object):
         if not origin_od:
             return        
         
-        print('\n\n\norigin_od:', origin_od)
-        print('\n\n\n')
+#        print('\n\n\norigin_od:', origin_od)
+#        print('\n\n\n')
         try:
             obj_name, obj_map = list(origin_od.items())[0]
             print(obj_name)
             print(obj_map)
             for key, value in obj_map.items():
-                print('kv:', key, value)
+#                print('kv:', key, value)
                 self.origin[key] = value
         except:
             raise
-        print('FIM _load_origin_props')    
+#        print('FIM _load_origin_props')    
         
     def _load_parameter_props(self):
         self.parameter = OrderedDict()
@@ -951,14 +952,14 @@ class DLISFile(object):
             print('ERROR:', e)
             lr_props = OrderedDict()
         #
-        print()
-        print(lr_type)
-        for obj_name, obj_map in lr_props.items():
-            print('    ', obj_name)
-            for key, value in obj_map.items():
-                print('        ', key, value)
+#        print()
+#        print(lr_type)
+#        for obj_name, obj_map in lr_props.items():
+#            print('    ', obj_name)
+#            for key, value in obj_map.items():
+#                print('        ', key, value)
 
-        print()
+#        print()
         #   
         #
         return lr_props
@@ -974,6 +975,11 @@ class DLISFile(object):
     '''    
     
     def _read_Logical_Records(self, callback=None, threading_stop_event=None):
+        
+        print('\n\n\nENTROU _read_Logical_Records')
+        print('self.data_props:', self.data_props)
+        print('\n\n\n')
+        
         lr_data = b''
         current_obj_name = None
         i = 0
@@ -1012,6 +1018,11 @@ class DLISFile(object):
             # (2) an optional Logical Record Segment Encryption Packet,
             # (3) a Logical Record Segment Body, and
             # (4) an optional Logical Record Segment Trailer.
+
+            print('\n\n\n002 _read_Logical_Records')
+            print('self.data_props:', self.data_props)
+            print('\n\n\n')
+
 
             while self.file.tell() < end_vr_offset:                
                 # (1) Logical Record Segment Header
@@ -1119,10 +1130,16 @@ class DLISFile(object):
                             if role == 'SET':
                                 # Reseting data_props used in IFLR Frame Data                                  
                                 if map_.get('T') == 'FILE-HEADER':
+                                    
+                                    #print('FILE-HEADER')
+                                    
                                     if self.data_props is None:
                                         self.data_props = [] 
                                     if self.data is None:
                                         self.data = []
+                                        
+                                    print('FILE-HEADER:', len(self.data_props))    
+                                    
                                     # Appending new 'spaces' for log properties
                                     # and for log data. We will have one list
                                     # of properties and one dict of data for 
@@ -1178,6 +1195,8 @@ class DLISFile(object):
                             if self.data_props[-1] is None:
                                 print('\n\n\n')
                                 print('self.data_props[-1] is None')
+                                print('\n\n\n')
+                                print('self.data_props:', self.data_props)
                                 print('\n\n\n')
                                 channel_objects = DLISObjectPool.get_objects_dict_of_type('CHANNEL')
                                 print('\nchannel_objects:', channel_objects)
@@ -1263,28 +1282,28 @@ class DLISFile(object):
 
 
       
-        for fileno, map_ in DLISObjectPool.objects.items():
+#        for fileno, map_ in DLISObjectPool.objects.items():
             
             
             
-            print()
-            print('file number:', fileno)
-            lrs = DLISObjectPool.get_logical_records(fileno)
-            print()
-            for lr in lrs:
-                type_name = lr.get('type')
-                print('    ', type_name)
-                objs = DLISObjectPool.get_objects_dict_of_type(type_name)
-                for obj_name, obj_map in objs.items():
-                    print('        ', obj_name)
-                    for k, v in obj_map.items():
-                        print('            ', k, v)
-            print()
-            print()
-            print()
-            print('ending...')
-            for k, v in map_.items():
-                print('        ', k, v)
+#            print()
+#            print('file number:', fileno)
+#            lrs = DLISObjectPool.get_logical_records(fileno)
+#            print()
+#            for lr in lrs:
+#                type_name = lr.get('type')
+#                print('    ', type_name)
+#                objs = DLISObjectPool.get_objects_dict_of_type(type_name)
+#                for obj_name, obj_map in objs.items():
+#                    print('        ', obj_name)
+#                    for k, v in obj_map.items():
+#                        print('            ', k, v)
+#            print()
+#            print()
+#            print()
+#            print('ending...')
+#            for k, v in map_.items():
+#                print('        ', k, v)
             
         
         
