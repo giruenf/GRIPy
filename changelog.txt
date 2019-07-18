@@ -47,7 +47,11 @@ Versão 0.8.beta:
 - As classes usadas para representar um um dado em um Track (Representation classes:
   RepresentationLine, RepresentationIndex, RepresentationDensity) foram separadas 
   cada uma em um arquivo. Isso facilita o entendimento do código, o deixando mais "clean".
- 
+- Unificacao do Well Import para os arquivos LAS/LIS/DLIS através de uma unica
+  tela/sistema. Neste momento os arquivos ODF ainda nao foram migrados para este
+  sistema de loading. A localização desta nova feature foi alterada para o Menu
+  Well, opcao Import Well.
+   
   
 Versão 0.7:
 ===========
