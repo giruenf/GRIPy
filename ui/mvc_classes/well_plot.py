@@ -331,6 +331,7 @@ class WellPlotController(WorkPageController):
             new_tracks_uids.append(new_track.uid)            
         return new_tracks_uids
 
+
     def remove_selected_tracks(self):
         """
         Remove selected :class:`~GRIPy-3.ui.mvc_classes.TrackController` on 
@@ -344,6 +345,8 @@ class WellPlotController(WorkPageController):
         )
         for track in selected_tracks:
             UIM.remove(track.uid)  
+
+                
 
     def get_overview_track(self):
         """
@@ -586,7 +589,7 @@ class WellPlot(WorkPage):
         # The tracks panel is a horizontal wx.SplitterWindow object containing
         # 2 wx.MultiSplitterWindow (redesigned). In each of these, Track labels
         # canvas and Track data canvas are respectively placed. 
-        self._tracks_panel = WellPlotInternal(self._main_panel) 
+        self._tracks_panel = WellPlotInternal(self._main_panel)
         self._hbox.Add(self._tracks_panel, 1, wx.EXPAND) 
         #
         # Overview
@@ -908,15 +911,30 @@ class WellPlot(WorkPage):
         if ok:  
             controller.shown_ylim = (float(z_start_str), float(z_end_str))
 
-    def _on_fit(self, event): 
-        UIM = UIManager()
-        controller = UIM.get(self._controller_uid) 
-        controller.fit = event.IsChecked()
+
+
+
      
+        
     def set_fit(self, new_value, old_value):
+        """From object monitored attributes fit.
+        """
+        print('\nWellPlot.set_fit:', new_value, old_value)
+        
+        if self._tool_bar.cbFit.IsChecked() != new_value:
+            self._tool_bar.cbFit.SetValue(new_value)
+        
         self._tracks_panel.top_splitter._SetFit(new_value)
-        self._tracks_panel.bottom_splitter._SetFit(new_value)        
+        self._tracks_panel.bottom_splitter._SetFit(new_value)     
             
+        
+    def _on_fit(self, event): 
+        print('\nWellPlot._on_fit:', event.IsChecked())
+        UIM = UIManager()
+        controller = UIM.get(self._controller_uid)
+        controller.fit = event.IsChecked()        
+        
+        
     def _on_multicursor(self, event):
         UIM = UIManager()
         controller = UIM.get(self._controller_uid) 

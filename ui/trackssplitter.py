@@ -263,8 +263,16 @@ class MultiSplitterWindow(wx.Panel):
         if self._windows is None:
             return windows
         for window in self._windows:
+            """
+            try:
+                if window.IsShown():
+                    windows.append(window)
+            except:
+                pass
+            """
             if window.IsShown():
                 windows.append(window)
+
         return windows    
 
 

@@ -128,18 +128,24 @@ class BoolProperty(pg.BoolProperty, GripyPgProperty):
         value = self._get_value()
         self.SetValue(value)
         
-    """
+        
+#    """
     def ValueToString(self, *args):
         value = self._get_value()
+        print('BoolProperty.ValueToString:', str(value), args)
         return str(value)
-    """
+#    """
     
     def OnSetValue(self):
+        print('BoolProperty.OnSetValue: setting', self.GetValue())
         self._set_value(self.GetValue())
 
 
-            
-  
+    def IntToValue(self, *args):
+        print('BoolProperty.IntToValue: ', args)
+        ret_val = super().IntToValue(*args) 
+        print('BoolProperty.IntToValue 2: ', args, ret_val)
+        return ret_val
     
     
 class EnumProperty(pg.EnumProperty, GripyPgProperty):    
@@ -267,18 +273,18 @@ class EnumProperty(pg.EnumProperty, GripyPgProperty):
             A string that will be selected on wx.Choice container. 
         """
         
-        print('\nValueToString [{}]: {} - {}'.format(self._obj_attr, value, type(value)))
+#        print('\nValueToString [{}]: {} - {}'.format(self._obj_attr, value, type(value)))
         val = self._get_value()
         
-        print('val:', val, type(val))
+#        print('val:', val, type(val))
         
         
         #if isinstance(val, int):
         
         idx_val = self._opt_values.index(val)
-        print('idx_val:', idx_val)
+#        print('idx_val:', idx_val)
         ret_str = str(self._opt_labels[idx_val])
-        print('ret_str:', ret_str)
+#        print('ret_str:', ret_str)
         #ret_str = str(self._opt_labels[val])
             
             
@@ -289,7 +295,7 @@ class EnumProperty(pg.EnumProperty, GripyPgProperty):
         else:    
             print('ENTROU ELSE')
         """    
-        print('Retornando String \"' + ret_str + '\" para Value: ' + str(val))
+#        print('Retornando String \"' + ret_str + '\" para Value: ' + str(val))
         return ret_str
         
     
@@ -540,8 +546,13 @@ class PropertyGridController(UIControllerObject):
         """
         Refresh a property, when it is changed.
         """
+        
+        
+        
+        
         key = topicObj.getName().split('.')[-1]
         prop = self._properties[key]
+        print('\nrefresh_property:', new_value, old_value, key, topicObj, prop)
         self.view.RefreshProperty(prop)       
         
 

@@ -286,7 +286,8 @@ class Navigator(Frame):
         self.panels = []
 
     def add_panel(self, data_index_uid, display, start, end):
-        panel = DimensionPanel(data_index_uid, display, True, start, end, self.basepanel)
+        panel = DimensionPanel(data_index_uid, display, True, start, end, 
+                                                               self.basepanel)
         self.panels.append(panel)
         self.sizer.Add(panel, 0, wx.EXPAND|wx.TOP|wx.LEFT|wx.RIGHT, 5) #wx.ALIGN_CENTER
         self.sizer.Layout()
@@ -315,15 +316,19 @@ class Navigator(Frame):
         self.sizer.Add(buttons_panel, 0, wx.EXPAND|wx.TOP|wx.LEFT|wx.RIGHT, 5) 
         self.sizer.Layout()
 
+
     def on_ok(self, event):
         self._doApply()
         self._doCancel()
 
+
     def on_apply(self, event):
         self._doApply()
         
+        
     def on_cancel(self, event):
         self._doCancel()  
+
 
     def _doApply(self):
         results = []
@@ -332,6 +337,7 @@ class Navigator(Frame):
         UIM = UIManager()
         controller = UIM.get(self._controller_uid)    
         controller.Set(results)
+        
         
     def _doCancel(self):
         self.Close()  

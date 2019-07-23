@@ -725,6 +725,18 @@ class TrackLabel(UIViewObject, wx.Panel, SelectablePanelMixin):
         controller.subscribe(self._on_change_title, 'change.title_fontsize') 
 #        controller.subscribe(self._on_change_selected, 'change.selected') 
 
+
+    def PreDelete(self):
+        UIM = UIManager()
+        parent_controller_uid = UIM._getparentuid(self._controller_uid)
+        #parent_controller =  UIM.get(parent_controller_uid)
+        granpa_controller_uid = UIM._getparentuid(parent_controller_uid)
+        granpa_controller =  UIM.get(granpa_controller_uid)
+        #
+        granpa_controller.view._detach_top_window(self)
+        #
+
+
     def _on_change_title(self, new_value, old_value):
         UIM = UIManager()
         controller =  UIM.get(self._controller_uid)

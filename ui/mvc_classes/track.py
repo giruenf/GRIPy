@@ -280,34 +280,38 @@ class TrackView(UIViewObject):
 
     def PreDelete(self):
 
-        
-        UIM = UIManager()
-        controller = UIM.get(self._controller_uid)
-        parent_controller_uid = UIM._getparentuid(self._controller_uid)
-        parent_controller =  UIM.get(parent_controller_uid)
-        
-        #ctc = UIM.list('track_canvas_controller', self._controller_uid)[0]
-        
-        #ctc.view.disconnect_multicursor()
-        #self.track.disconnect_multicursor()
-        
-        # TODO: disconect ctc.view.mpl_connect('motion_notify_event', self.on_track_move) ????
-        
-        if not controller.overview:    
-            pos = controller.pos
-            #parent_controller.view._detach_windows(self.label, ctc.view)  
-            #parent_controller.view._detach_top_window(self.label)
-            #self.label.Destroy()
-            #UIM.remove(ctc.uid)
-            #self.track.Destroy()
-            parent_controller._adjust_positions_after_track_deletion(pos)
-        
-        #else:
-            # TODO: cade o remove DropTarget?? verificar....
-        #    if controller.overview:    
-        #        parent_controller._pre_delete_overview_track()
-
-        
+        try:
+            UIM = UIManager()
+            controller = UIM.get(self._controller_uid)
+            parent_controller_uid = UIM._getparentuid(self._controller_uid)
+            parent_controller =  UIM.get(parent_controller_uid)
+            
+            #ctc = UIM.list('track_canvas_controller', self._controller_uid)[0]
+            
+            #ctc.view.disconnect_multicursor()
+            #self.track.disconnect_multicursor()
+            
+            # TODO: disconect ctc.view.mpl_connect('motion_notify_event', self.on_track_move) ????
+            
+            if not controller.overview:    
+                pos = controller.pos
+                #parent_controller.view._detach_windows(self.label, ctc.view)  
+                #parent_controller.view._detach_top_window(self.label)
+                #self.label.Destroy()
+                #UIM.remove(ctc.uid)
+                #self.track.Destroy()
+                parent_controller._adjust_positions_after_track_deletion(pos)
+            
+            #else:
+                # TODO: cade o remove DropTarget?? verificar....
+            #    if controller.overview:    
+            #        parent_controller._pre_delete_overview_track()
+    
+        except Exception as e:
+            print('TRACK PreDelete:', e)
+            raise 
+            
+            
         
     def _get_label_controller(self):     
         """

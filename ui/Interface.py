@@ -115,9 +115,6 @@ def load():
         #mc_specdecom = UIM.create('menu_controller', menubar_ctrl.uid, label=u"&SpecDecom")
         mc_tools = UIM.create('menu_controller', menubar_ctrl.uid, label=u"&Tools")
         mc_plugins = UIM.create('menu_controller', menubar_ctrl.uid, label=u"&Plugins")
-        mc_debug = UIM.create('menu_controller', menubar_ctrl.uid, label=u"&Debug")  
-        
-        
         
         # Project Menu
         UIM.create('menu_item_controller', mc_project.uid, 
@@ -201,10 +198,12 @@ def load():
         
         
         # Edit Menu
+        """
         mc_partition = UIM.create('menu_controller', mc_edit.uid, 
                                       label=u"&Partition",
                                       help=u"Create / Edit Partition"
         )
+        """
         mc_rocktable = UIM.create('menu_controller', mc_edit.uid, 
                                       label=u"&Rock Table",
                                       help=u"Create / Edit RockTable"
@@ -219,6 +218,7 @@ def load():
                 help=u'Edit Rock Table',
                 callback='app.menu_functions.on_edit_rocktable'
         )
+        """
         UIM.create('menu_item_controller', mc_partition.uid, 
                 label=u"New Partition", 
                 help=u'New Partition',
@@ -229,6 +229,7 @@ def load():
                 help=u'Edit Partitions',
                 callback='app.menu_functions.on_edit_partition'
         )
+        """
         UIM.create('menu_item_controller', mc_edit.uid, 
                 label=u'&Well Plot', 
                 help=u'Well Plot',
