@@ -96,9 +96,9 @@ class GripyApp(wx.App):
         gripy_functions.register_app_functions()
         log.info('Registering Gripy internal functions ended.') 
         #
-#        log.info('Starting Gripy plugin system...')
-#        self._init_plugin_system()
-#        log.info('Plugin system was initializated.') 
+        log.info('Starting Gripy plugin system...')
+        self._init_plugin_system()
+        log.info('Plugin system was initializated.') 
         #
         
         self.load_app_interface()
@@ -127,14 +127,15 @@ class GripyApp(wx.App):
     Init plugin system
     """
     def _init_plugin_system(self):
+        print('\n\n_init_plugin_system:')
         PM = GripyPluginManagerSingleton.get()
         plugins_places = self._plugins_state.get('plugins_places')
-        #PM.setPluginPlaces(plugins_places)
+        PM.setPluginPlaces(plugins_places)
         PM.setPluginPlaces(['Plugins'])
         ok, exists_previously, error = PM.collectPlugins()   
-        print (ok)
-        print (exists_previously)
-        print (error)
+#        print (ok)
+#        print (exists_previously)
+#        print (error)
 
 
     #@staticmethod    

@@ -32,7 +32,7 @@ class GripyPluginManager(PluginManager):
         """
         Get the plugin correspoding to a given category and name
         """
-        for info in super(GripyPluginManager, self).getAllPlugins():
+        for info in super().getAllPlugins():
             if info.name == name:
                 return info
         return None
@@ -114,7 +114,7 @@ class GripyPluginManager(PluginManager):
         This function guarantees that a PluginInfo object will belong to only 
         one category (this is done by PluginManager.collectPlugins)
         """
-        super(GripyPluginManager, self).locatePlugins()
+        super().locatePlugins()
         exists_previously = []
         still_candidate = []
         for candidate_infofile, candidate_filepath, plugin_info in self._candidates:
@@ -127,11 +127,16 @@ class GripyPluginManager(PluginManager):
             else:
                 still_candidate.append((candidate_infofile, candidate_filepath, plugin_info))
         self._candidates = still_candidate        
-        processed_plugins = super(GripyPluginManager, self).loadPlugins()
+        processed_plugins = super().loadPlugins()
         ok = []
         error =  []        
         for info in processed_plugins:
             if info.error or not info.plugin_object or not info.categories:
+#                print('ERRO:')
+#                print('info.error:', info.error)
+#                print('info.plugin_object:', info.plugin_object)
+#                print('info.categories:', info.categories)
+#                print('FIM ERRO')
                 error.append(info)
             else:
                 ok.append(info)

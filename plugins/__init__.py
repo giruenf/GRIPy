@@ -1,11 +1,8 @@
-# -*- coding: utf-8 -*-
 
 import types
 import os
 import imp
-
 import wx
-
 from lib.yapsy.IPlugin import IPlugin
 from lib.yapsy.PluginInfo import PluginInfo
 from classes.ui import UIManager
@@ -21,8 +18,9 @@ It was done in GripyPluginManagerSingleton.get() function.
 class GripyPluginInfo(PluginInfo):
     
     def __init__(self, plugin_name, plugin_path):
-        super(GripyPluginInfo, self).__init__(plugin_name, plugin_path)
+        super().__init__(plugin_name, plugin_path)
         self._menu_item_uid = None
+        
         
     def reloadPlugin(self):
         if self.is_activated:
@@ -50,42 +48,35 @@ class GripyPluginInfo(PluginInfo):
 
 
     def activatePlugin(self):
-        print ('activatePlugin', self.is_activated)
         if self.is_activated:
             return
-        try:
-            #if self.plugin_object._parent_menu:
+        if self.plugin_object._parent_menu:
             menu_name = self.plugin_object._parent_menu
-        except Exception as e:
-            print (e)
+        else:
             menu_name = GripyPlugin._DEFAULT_PARENT_MENU
-            
         found = None    
         _UIM = UIManager()
-        
-        menus = _UIM.list('menu_item_controller')
-        print ('menus', menus)
+        menus = _UIM.list('menu_controller')
         for menu in menus:
-            testing_name = menu.label
-            
-            print ('testing_name',testing_name)
-            
+            testing_name = menu.model.label
             if testing_name.startswith('&'):
                 testing_name = testing_name[1:]
             if testing_name == menu_name:
                 found = menu
         if found:
-            log.debug('Plugin {} will try insert itself to Menu {}'.format(self.name, found.label))
+            msg = 'Plugin {} will try insert itself to Menu {}'.format(self.name, found.model.label)
+            print(msg)
+            log.debug(msg)
 
             menu_item = _UIM.create('menu_item_controller', found.uid, 
-                            label=str(self.name), 
-                            help=str(self.description),
+                            label=self.name,
+                            help=self.description,
                             callback=self.plugin_object.event_run
             )
 
             if menu_item:
                 self._menu_item_uid = menu_item.uid
-            log.debug('Plugin {} was inserted to Menu {}'.format(self.name, found.label))
+            log.debug('Plugin {} was inserted to Menu {}'.format(self.name, found.model.label))
         self.plugin_object.activate()
         log.debug('Activated plugin: {}'.format(self.name))
         
@@ -122,13 +113,13 @@ class GripyPlugin(IPlugin):
 
     def reload_module(self, module):
         # Reloads every function plugin module, not only doinput, dojob and dooutput
-        reload(module)
+        # reload(module)
         try:
             for candidate in (getattr(module,name) for name in dir(module)):
                 if callable(candidate):
                     setattr(self, candidate.__name__, candidate)
         except Exception as e: 
-            print (e.args)
+            print(e)
             raise
        
     def reload_all_modules(self, *args):
