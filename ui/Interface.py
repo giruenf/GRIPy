@@ -111,7 +111,7 @@ def load():
         mc_precond = UIM.create('menu_controller', menubar_ctrl.uid, label=u"&Preconditioning")
         mc_model = UIM.create('menu_controller', menubar_ctrl.uid, label=u"&Modeling")
         mc_interp = UIM.create('menu_controller', menubar_ctrl.uid, label=u"&Interpretation")
-        mc_infer = UIM.create('menu_controller', menubar_ctrl.uid, label=u"&Inference")
+#        mc_infer = UIM.create('menu_controller', menubar_ctrl.uid, label=u"&Inference")
         #mc_specdecom = UIM.create('menu_controller', menubar_ctrl.uid, label=u"&SpecDecom")
         mc_tools = UIM.create('menu_controller', menubar_ctrl.uid, label=u"&Tools")
         mc_plugins = UIM.create('menu_controller', menubar_ctrl.uid, label=u"&Plugins")
@@ -330,7 +330,7 @@ def load():
         ### FIM - Trabalho Roseane
         """
         
-        
+        """
         # Inference Menu
         UIM.create('menu_item_controller', mc_infer.uid, 
                 label=u"Avo PP", 
@@ -340,7 +340,7 @@ def load():
                 label=u"Avo PP-PS", 
                 callback='app.menu_functions.teste7'
         )  
-        
+        """
         
         # Interpretation Menu
         mc_specdecom = UIM.create('menu_controller', mc_interp.uid,  
