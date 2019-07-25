@@ -200,7 +200,7 @@
             "Caliper": 0
         },
         "cali": {
-            "Caliper": 2
+            "Caliper": 7
         },
         "caliper": {
             "Caliper": 0
@@ -272,10 +272,10 @@
             "Density": 0
         },
         "dept": {
-            "MD": 3
+            "MD": 4
         },
         "depth": {
-            "MD": 1
+            "MD": 5
         },
         "dev": {
             "Deviation": 0
@@ -305,7 +305,7 @@
             "ShalRes": 0
         },
         "dt": {
-            "Sonic": 0
+            "Sonic": 1
         },
         "dt-p": {
             "Sonic": 0
@@ -416,7 +416,7 @@
             "GammaRay": 0
         },
         "gr": {
-            "GammaRay": 3
+            "GammaRay": 8
         },
         "gram": {
             "GammaRay": 0
@@ -533,7 +533,7 @@
             "DeepRes": 0
         },
         "ild": {
-            "DeepRes": 0
+            "DeepRes": 1
         },
         "ildc": {
             "DeepRes": 0
@@ -554,7 +554,7 @@
             "Deviation": 0
         },
         "index": {
-            "MD": 1
+            "MD": 2
         },
         "ipvf": {
             "Sonic": 0
@@ -689,7 +689,7 @@
             "Neutron": 0
         },
         "nphi": {
-            "Neutron": 0
+            "Neutron": 1
         },
         "nplc": {
             "Neutron": 0
@@ -782,7 +782,7 @@
             "Spectral": 0
         },
         "pr": {
-            "PoissonRatio": 1
+            "PoissonRatio": 5
         },
         "rach": {
             "DeepRes": 0
@@ -851,7 +851,7 @@
             "Density": 0
         },
         "rhob": {
-            "Density": 3
+            "Density": 8
         },
         "rhoc": {
             "Density": 0
@@ -1214,10 +1214,10 @@
             "Velocity": 0
         },
         "vp": {
-            "Velocity": 1
+            "Velocity": 5
         },
         "vs": {
-            "ShearVel": 1
+            "ShearVel": 5
         },
         "vsalt": {
             "Vsalt": 0

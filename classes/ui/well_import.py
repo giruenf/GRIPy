@@ -283,7 +283,7 @@ class WellImportFrame(Frame):
     def _get_lis_well_name(self, liswell):
         for info in liswell.infos:
             if info.type == None or info.type == 'CONS':
-#                print('\nINFO.DATA: ', info.data)
+                print('\nINFO.DATA: ', info.data)
                 if info.data.get('WN'):
                     name = info.data.get('WN')[0]
                 elif info.data.get('WELL'):  

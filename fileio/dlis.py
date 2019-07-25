@@ -239,8 +239,11 @@ def get_from_list(data_list, start_offset, code, size=None):
             else:
                 value = mantissa * 16. ** (exponent - 64)            
             return start_offset+4, value    
+        #
         elif code == 6:
-            raise Exception()
+            raise Exception('code == 6!!!')
+            
+        #    
         elif code == 7:    
             values = [] 
             for i in range(8):
