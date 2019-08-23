@@ -489,6 +489,7 @@ class PropertyGridController(UIControllerObject):
         
     
     def on_change_obj_uid(self, new_value, old_value):
+        print('\n\non_change_obj_uid:', new_value, old_value)
         if old_value is not None:
             self.remove_properties(old_value)
         obj = self._get_object() 
@@ -542,19 +543,22 @@ class PropertyGridController(UIControllerObject):
         self.view.Clear()
 
 
+
+
     def refresh_property(self, new_value, old_value, topicObj=pub.AUTO_TOPIC):
         """
         Refresh a property, when it is changed.
         """
         
         
-        
-        
+    
         key = topicObj.getName().split('.')[-1]
         prop = self._properties[key]
         print('\nrefresh_property:', new_value, old_value, key, topicObj, prop)
         self.view.RefreshProperty(prop)       
         
+
+
 
 
 class PropertyGridView(UIViewObject, pg.PropertyGrid):

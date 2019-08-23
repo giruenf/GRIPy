@@ -74,11 +74,17 @@ from ui.mvc_classes.repr_index import \
 from ui.mvc_classes.repr_density import \
     DensityRepresentationController, DensityRepresentationView
 #    PatchesRepresentationController, PatchesRepresentationView, \
-#    ContourfRepresentationController, ContourfRepresentationView                          
-from ui.mvc_classes.lpf import WellPlotEditorController, WellPlotEditor  
-from ui.mvc_classes.lpf import LPEWellPlotPanelController, LPEWellPlotPanel      
-from ui.mvc_classes.lpf import LPETrackPanelController, LPETrackPanel
-from ui.mvc_classes.lpf import LPEObjectsPanelController, LPEObjectsPanel
+#    ContourfRepresentationController, ContourfRepresentationView        
+                  
+from ui.mvc_classes.well_plot_prop_editor import WellPlotEditorController, \
+                                                 WellPlotEditor  
+from ui.mvc_classes.well_plot_prop_editor import LPEWellPlotPanelController, \
+                                                 LPEWellPlotPanel      
+from ui.mvc_classes.well_plot_prop_editor import LPETrackPanelController, \
+                                                 LPETrackPanel
+from ui.mvc_classes.well_plot_prop_editor import LPEObjectsPanelController, \
+                                                 LPEObjectsPanel
+#                                                 
 from ui.mvc_classes.propgrid import PropertyGridController, PropertyGridView
 #                                            
 from ui.mvc_classes.canvas_plotter import CanvasPlotterController, CanvasPlotter                

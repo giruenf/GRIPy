@@ -7,11 +7,9 @@ import wx
 from wx.adv import OwnerDrawnComboBox  
 import wx.dataview as dv
 import wx.propgrid as pg
-from wx.propgrid import PropertyGrid
 import wx.lib.colourdb
 
 from classes.om import ObjectManager
-from ui.mvc_classes.well_plot import WellPlotController
 from classes.ui import UIManager
 from classes.ui import UIControllerObject  
 from classes.ui import UIViewObject 
@@ -847,7 +845,6 @@ class LPEObjectsPanelModel(dv.PyDataViewModel):
         dv.PyDataViewModel.__init__(self)
         self._controller_uid = controller_uid  # To send commands to controller...
         
-        
     def GetChildren(self, parent, children):  
         UIM = UIManager()
         # Root
@@ -902,39 +899,41 @@ class LPEObjectsPanelModel(dv.PyDataViewModel):
              
         
     def GetValue(self, item, col):
-        
-        obj = self.ItemToObject(item)    
-        
-        if isinstance(obj, TrackController):
-            if col == 0:
-                if obj.label:
-                    return obj.label
-                return 'Track ' + str(obj.pos + 1)
-            return wx.EmptyString     
-        
-        elif isinstance(obj, TrackObjectController):
-            if col == 0:
-                return wx.EmptyString 
-            elif col == 1:
-                try:
-                    if obj.data_obj_uid:
-                        ret = ObjectManager.get_tid_friendly_name(obj.data_obj_uid[0])
-                        if ret:
-                            return ret
-                        return wx.EmptyString
-                    else:
-                        return 'Select...'
-                except AttributeError:
-                    print ('\nERRO! O objeto nao possui model: ' + str(obj.uid) + '\n')
-                    return ''
+        try:
+            obj = self.ItemToObject(item)    
             
-            elif col == 2:    
-                return obj.get_data_name()
-
-        else:
-            raise RuntimeError("unknown node type")
+            if isinstance(obj, TrackController):
+                if col == 0:
+                    if obj.label:
+                        return obj.label
+                    return 'Track ' + str(obj.pos + 1)
+                return wx.EmptyString     
             
-
+            elif isinstance(obj, TrackObjectController):
+                if col == 0:
+                    return wx.EmptyString 
+                elif col == 1:
+                    try:
+                        if obj.data_obj_uid:
+                            ret = ObjectManager.get_tid_friendly_name(obj.data_obj_uid[0])
+                            if ret:
+                                return ret
+                            return wx.EmptyString
+                        else:
+                            return 'Select...'
+                    except AttributeError:
+                        print ('\nERRO! O objeto nao possui model: ' + str(obj.uid) + '\n')
+                        return ''
+                
+                elif col == 2:    
+                    return obj.get_data_name()
+    
+            else:
+                raise RuntimeError("unknown node type")
+            
+        except Exception  as  e:
+            print('\nGetValue: ERROR:', e)
+            raise
 
 
     def SetValue(self, value, item, col):
@@ -1003,7 +1002,7 @@ class LPEObjectsPanelModel(dv.PyDataViewModel):
     def ChangeValue(self, value, item, col):
         """ChangeValue(self, wxVariant variant, DataViewItem item, unsigned int col) -> bool"""
         print ('CurvesModel.ChangeValue: ', col, value)
-        return super(LPEObjectsPanelModel, self).ChangeValue(value, item, col)
+        return super().ChangeValue(value, item, col)
         if item is None:
             print ('item is None')
             return False
@@ -1113,7 +1112,7 @@ class LPEObjectsPanel(UIViewObject, wx.Panel):
         dv_col.SetMinWidth(85)
         dvc.AppendColumn(dv_col)
         # Object Name 
-        dvcr_curve_name = ObjectNameRenderer(model)
+        dvcr_curve_name = ObjectNameRenderer()
         dv_col = dv.DataViewColumn("Object Name", dvcr_curve_name, 2, width=130)      
         dv_col.SetMinWidth(85)
         dvc.AppendColumn(dv_col)
@@ -1157,23 +1156,33 @@ class LPEObjectsPanel(UIViewObject, wx.Panel):
             if toc_obj.is_valid():
                 pgcs = UIM.list('property_grid_controller', self._controller_uid)
                 if not pgcs:
-                    
-                    
+                    #
                     print ('\n\nCRIANDO property_grid_controller PARA:', self._controller_uid)
                     #print
                     pgc = UIM.create('property_grid_controller', 
-                                           self._controller_uid,
-                                           obj_uid=toc_obj.get_representation().uid
+                                           self._controller_uid #),
+                                           #obj_uid=toc_obj.get_representation().uid
                     )
+                    
                 else:
+                    print ('\n\nELSE CRIANDO property_grid_controller PARA:', self._controller_uid)
                     pgc = pgcs[0]   
-                    pgc.obj_uid = toc_obj.get_representation().uid
+                    
+                #print(self.splitter.IsSplit(), pgc.view, toc_obj.get_representation().uid)
                 if not self.splitter.IsSplit():
                     self.splitter.SplitVertically(self.dvc, pgc.view)
+                
+                # Setting object uid to Property Grid
+                pgc.obj_uid = toc_obj.get_representation().uid   
+                #
                 pg_shown = True
+                
+                
         if not pg_shown and self.splitter.IsSplit():
             pgc = UIM.list('property_grid_controller', self._controller_uid)[0]
             self.splitter.Unsplit(pgc.view)       
+            
+            
             
 
     def on_add_track_object(self, event):
