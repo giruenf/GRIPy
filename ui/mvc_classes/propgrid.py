@@ -157,7 +157,7 @@ class EnumProperty(pg.EnumProperty, GripyPgProperty):
             raise Exception('No options labels values found in: {} - model key: {}'.\
                             format(obj_uid, obj_attr)
             )   
-                     
+        """             
         print('\n\nCriando EnumProperty para:' + obj_attr)    
         print('Prop label:', label, type(label))
         print('Prop name:', name, type(name))
@@ -165,14 +165,14 @@ class EnumProperty(pg.EnumProperty, GripyPgProperty):
         print('Opt values:', opt_values, type(opt_values))
         print('Values:', values, type(values))
         print('Value', value, type(value))
-        
+        """
 
         if values is None:
             values = list(range(len(opt_labels)))
-            print('VALUES WAS NONE.')
-            print('NEW VALUES IS:' + str(values), type(values))
-        else:
-            print('VALUES OK.')
+#            print('VALUES WAS NONE.')
+#            print('NEW VALUES IS:' + str(values), type(values))
+#        else:
+#            print('VALUES OK.')
           
         try:
             
@@ -525,7 +525,8 @@ class PropertyGridController(UIControllerObject):
                 pass        
 
 
-    def remove_properties(self, obj_uid):        
+    def remove_properties(self, obj_uid):       
+#        print('\n\n\nRemoving properties for:', obj_uid)
         UIM = UIManager()
         parent_controller_uid = UIM._getparentuid(self.uid)
         parent_controller =  UIM.get(parent_controller_uid)
@@ -535,13 +536,14 @@ class PropertyGridController(UIControllerObject):
         #             
         if self._properties:
             obj = self._get_object(obj_uid)
-            for key, value in self._properties:
+#            print('self._properties:', self._properties)
+            for key, value in self._properties.items():
                 obj.unsubscribe(self.refresh_property, \
                                           'change.' + key
                 )                     
         self._properties.clear()
         self.view.Clear()
-
+#        print('Removed properties for:', obj_uid, ' OK!')
 
 
 

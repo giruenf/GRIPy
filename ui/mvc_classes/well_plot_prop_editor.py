@@ -1103,19 +1103,23 @@ class LPEObjectsPanel(UIViewObject, wx.Panel):
         UIM = UIManager()
         controller = UIM.get(self._controller_uid)
         model = controller._get_real_model()
+        
         # Track
         dv_col = dvc.AppendTextColumn("Track",  0, width=85)      
         dv_col.SetMinWidth(55)    
+        
         # Object Type 
         dvcr_object_tid = ObjectTidRenderer()
         dv_col = dv.DataViewColumn("Object Type", dvcr_object_tid, 1, width=85)          
         dv_col.SetMinWidth(85)
         dvc.AppendColumn(dv_col)
+        
         # Object Name 
         dvcr_curve_name = ObjectNameRenderer()
         dv_col = dv.DataViewColumn("Object Name", dvcr_curve_name, 2, width=130)      
         dv_col.SetMinWidth(85)
         dvc.AppendColumn(dv_col)
+        
         # Adjusting
         for idx, dv_col in enumerate(dvc.Columns):
             dv_col.Renderer.Alignment = wx.ALIGN_CENTER 
@@ -1146,43 +1150,45 @@ class LPEObjectsPanel(UIViewObject, wx.Panel):
         controller = UIM.get(self._controller_uid)
         model = controller._get_real_model()
         items = self.dvc.GetSelections()
-        objs = [model.ItemToObject(item) for item in items]
-        toc_objs = [obj for obj in objs if isinstance(obj, TrackObjectController)]
+        selected_objs = [model.ItemToObject(item) for item in items]
+        selected_toc_objs = [obj for obj in selected_objs if isinstance(obj, 
+                                                      TrackObjectController)
+        ]
+        #
         pg_shown = False
-        
-        
-        if toc_objs:
-            toc_obj = toc_objs[-1]
-            if toc_obj.is_valid():
-                pgcs = UIM.list('property_grid_controller', self._controller_uid)
-                if not pgcs:
-                    #
-                    print ('\n\nCRIANDO property_grid_controller PARA:', self._controller_uid)
-                    #print
-                    pgc = UIM.create('property_grid_controller', 
-                                           self._controller_uid #),
-                                           #obj_uid=toc_obj.get_representation().uid
-                    )
-                    
-                else:
-                    print ('\n\nELSE CRIANDO property_grid_controller PARA:', self._controller_uid)
-                    pgc = pgcs[0]   
-                    
-                #print(self.splitter.IsSplit(), pgc.view, toc_obj.get_representation().uid)
+        #
+        print('\n\ntoc_objs:', selected_toc_objs)
+        #
+        pgcs = UIM.list('property_grid_controller', self._controller_uid)
+        #
+        if pgcs:
+            pgc = pgcs[0]
+            if self.splitter.IsSplit():
+                self.splitter.Unsplit(pgc.view)
+            UIM.remove(pgc.uid)
+
+                
+        if selected_toc_objs:
+            selected_toc_obj = selected_toc_objs[-1]
+            if selected_toc_obj.is_valid():
+                #
+                print ('CRIANDO property_grid_controller PARA:', 
+                       self._controller_uid)
+                #print
+                pgc = UIM.create('property_grid_controller', 
+                                       self._controller_uid
+                )
+                 
                 if not self.splitter.IsSplit():
                     self.splitter.SplitVertically(self.dvc, pgc.view)
                 
                 # Setting object uid to Property Grid
-                pgc.obj_uid = toc_obj.get_representation().uid   
+                pgc.obj_uid = selected_toc_obj.get_representation().uid
+                #                
+#                self.Refresh()
+#                self.Layout()                
                 #
-                pg_shown = True
-                
-                
-        if not pg_shown and self.splitter.IsSplit():
-            pgc = UIM.list('property_grid_controller', self._controller_uid)[0]
-            self.splitter.Unsplit(pgc.view)       
-            
-            
+
             
 
     def on_add_track_object(self, event):
