@@ -410,12 +410,14 @@ def _get_pg_property(obj_uid, obj_attr, obj_attr_props):
     enable = obj_attr_props.get('enabled', True)
     prop = None
     
-    if obj_attr_props.get('pg_property') == 'IntProperty':
+    if obj_attr_props.get('pg_property') == 'IntProperty' or \
+                                        obj_attr_props.get('type') == int:
         prop = IntProperty(obj_uid, obj_attr, 
                                            label=obj_attr_props.get('label')
         )
         
-    elif obj_attr_props.get('pg_property') == 'FloatProperty':
+    elif obj_attr_props.get('pg_property') == 'FloatProperty' or \
+                                        obj_attr_props.get('type') == float:
         prop = FloatProperty(obj_uid, obj_attr, 
                                              label=obj_attr_props.get('label'),
                                              getter_func=getter_func,
@@ -439,16 +441,24 @@ def _get_pg_property(obj_uid, obj_attr, obj_attr_props):
                                  label=obj_attr_props.get('label')
         )          
         
-    elif obj_attr_props.get('pg_property') == 'BoolProperty':
+    elif obj_attr_props.get('pg_property') == 'BoolProperty' or \
+                                            obj_attr_props.get('type') == bool:
         prop = BoolProperty(obj_uid, obj_attr, 
                             label=obj_attr_props.get('label')
         )   
         
     elif obj_attr_props.get('pg_property') == 'StringProperty' or \
-                                            obj_attr_props.get('type') == str:
+                                        obj_attr_props.get('type') == str:
         prop = StringProperty(obj_uid, obj_attr, 
                                            label=obj_attr_props.get('label')
         )
+        
+    elif isinstance(obj_attr_props.get('type'), tuple) and \
+                                        obj_attr_props.get('type')[0] == tuple:
+        prop = StringProperty(obj_uid, obj_attr, 
+                                           label=obj_attr_props.get('label')
+        )       
+                                     
     if prop is not None:
         prop.Enable(enable)
         return prop
@@ -521,7 +531,7 @@ class PropertyGridController(UIControllerObject):
                 self._properties[key] = property_
                 obj.subscribe(self.refresh_property, 'change.' + key)
             except Exception as e:
-                print ('\nERRO loading properties:', obj, key, key_props, e)
+                print ('\nERRO loading properties:', obj, key, key_props)
                 pass        
 
 
