@@ -686,6 +686,9 @@ MPL_COLORMAPS = ['Accent', 'Accent_r', 'Blues', 'Blues_r', 'BrBG', 'BrBG_r',
   
 """
 
+###############################################################################
+###############################################################################  
+
 MPL_COLORS = collections.OrderedDict()
 MPL_COLORS['Black'] = None
 MPL_COLORS['Maroon'] = None
@@ -778,10 +781,25 @@ MPL_COLORS['MediumSlateBlue'] = wx.Colour(123, 104, 238)
 MPL_COLORS['MediumPurple'] = wx.Colour(147, 112, 219)
 MPL_COLORS['MediumOrchid'] = wx.Colour(186, 85, 211) 
 
-
-
+MPL_COLORS = collections.OrderedDict(sorted(MPL_COLORS.items()))
 
 ###############################################################################
 ###############################################################################        
 
+# Based on https://matplotlib.org/3.1.0/gallery/lines_bars_and_markers/linestyles.html
+# 10/September/2019 - Adriano Santana
 
+MPL_LINESTYLES = collections.OrderedDict()
+MPL_LINESTYLES['Solid'] = (0, ())
+MPL_LINESTYLES['Dotted'] = (0, (1, 1))
+MPL_LINESTYLES['Loosely dotted'] = (0, (1, 10))
+MPL_LINESTYLES['Densely dotted'] = (0, (1, 1))
+MPL_LINESTYLES['Dashed'] = (0, (5, 5))
+MPL_LINESTYLES['Loosely dashed'] = (0, (5, 10))
+MPL_LINESTYLES['Densely dashed'] = (0, (5, 1))
+MPL_LINESTYLES['Dashdotted'] = (0, (3, 5, 1, 5))
+MPL_LINESTYLES['Loosely dashdotted'] = (0, (3, 10, 1, 10))
+MPL_LINESTYLES['Densely dashdotted'] = (0, (3, 1, 1, 1))
+MPL_LINESTYLES['Dashdotdotted'] = (0, (3, 5, 1, 5, 1, 5))
+MPL_LINESTYLES['Loosely dashdotdotted'] = (0, (3, 10, 1, 10, 1, 10))
+MPL_LINESTYLES['Densely dashdotdotted'] = (0, (3, 1, 1, 1, 1, 1))

@@ -3666,8 +3666,6 @@ def on_create_synthetic(event):
                          datatype='SYNTHETIC'
             )
             
-            
-            
             ret = OM.add(log, curve_set_uid)
             print(ret)
             

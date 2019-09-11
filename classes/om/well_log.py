@@ -57,7 +57,7 @@ class Log(DataObject):
         curve_set_uid = OM._getparentuid(self.uid)
         return OM.get(curve_set_uid)
      
-    def _get_pg_properties_dict(self):
+    def _get_pg_properties(self):
         """
         """
         props = OrderedDict()

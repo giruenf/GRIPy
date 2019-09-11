@@ -86,7 +86,7 @@ class CanvasBaseController(UIControllerObject):
                 
         # Figure properties
         'figure_facecolor': {
-                'default_value': 'white', #'lightyellow',
+                'default_value': 'LightSkyBlue', #'lightyellow',
                 'type': str
         },
 
@@ -122,11 +122,11 @@ class CanvasBaseController(UIControllerObject):
           
         # Axes properties
         'axes_facecolor': {
-                'default_value': 'ivory', #'white', 
+                'default_value': 'Aqua', #'white', 
                 'type': str
         },   
         'axes_edgecolor': {
-                'default_value': 'red', 
+                'default_value': 'Red', 
                 'type': str
         },        
         'axes_axisbelow': {
@@ -158,7 +158,7 @@ class CanvasBaseController(UIControllerObject):
                 
                 
         'xgrid_major_color': {
-                'default_value': '#A9A9A9',
+                'default_value': 'DarkGray', #'#A9A9A9',
                 'type': str
         },  
         'xgrid_major_alpha': {
@@ -166,7 +166,7 @@ class CanvasBaseController(UIControllerObject):
                 'type': float
         },  
         'xgrid_major_linestyle': {
-                'default_value': '-', 
+                'default_value': 'solid', 
                 'type': str
         }, 
         'xgrid_major_linewidth': {
@@ -175,7 +175,7 @@ class CanvasBaseController(UIControllerObject):
         },
 
         'xgrid_minor_color': {
-                'default_value': '#A9A9A9',
+                'default_value': 'DarkGray', #'#A9A9A9',
                 'type': str
         },  
         'xgrid_minor_alpha': {
@@ -183,7 +183,7 @@ class CanvasBaseController(UIControllerObject):
                 'type': float
         },  
         'xgrid_minor_linestyle': {
-                'default_value': '-', 
+                'default_value': 'solid', 
                 'type': str
         }, 
         'xgrid_minor_linewidth': {
@@ -192,7 +192,7 @@ class CanvasBaseController(UIControllerObject):
         },
 
         'ygrid_major_color': {
-                'default_value': '#A9A9A9',
+                'default_value': 'DarkGray', #'#A9A9A9',
                 'type': str
         },  
         'ygrid_major_alpha': {
@@ -200,7 +200,7 @@ class CanvasBaseController(UIControllerObject):
                 'type': float
         },  
         'ygrid_major_linestyle': {
-                'default_value': '-', 
+                'default_value': 'solid', 
                 'type': str
         }, 
         'ygrid_major_linewidth': {
@@ -209,7 +209,7 @@ class CanvasBaseController(UIControllerObject):
         },
 
         'ygrid_minor_color': {
-                'default_value': '#A9A9A9',
+                'default_value': 'DarkGray', #'#A9A9A9',
                 'type': str
         },  
         'ygrid_minor_alpha': {
@@ -217,7 +217,7 @@ class CanvasBaseController(UIControllerObject):
                 'type': float
         },  
         'ygrid_minor_linestyle': {
-                'default_value': '-', 
+                'default_value': 'solid', 
                 'type': str
         }, 
         'ygrid_minor_linewidth': {
@@ -248,7 +248,7 @@ class CanvasBaseController(UIControllerObject):
 
 
         'axes_labelcolor': {
-                'default_value': 'black', 
+                'default_value': 'Black', 
                 'type': str
         },   
         'axes_labelpad': {        
@@ -279,7 +279,7 @@ class CanvasBaseController(UIControllerObject):
         },
                 
         'axes_titlecolor': {
-                'default_value': 'black', 
+                'default_value': 'Black', 
                 'type': str
         },         
         'axes_titlepad': {        
@@ -344,14 +344,7 @@ class CanvasBaseController(UIControllerObject):
                 'type': bool
         },                 
 
-        
-
-                
-                
-
-                           
-            
-            
+         
         # Tick label visibility   
         'xtick_labelbottom': {
                 'default_value': True, 
@@ -512,21 +505,21 @@ class CanvasBaseController(UIControllerObject):
                 
         # Tick color    
         'xtick_color': {
-                'default_value': 'black', 
+                'default_value': 'Black', 
                 'type': str
         },                
         'ytick_color': {
-                'default_value': 'black', 
+                'default_value': 'Black', 
                 'type': str
         }, 
                 
         # Tick label color     
         'xtick_labelcolor': {
-                'default_value': 'black', 
+                'default_value': 'Black', 
                 'type': str
         },                
         'ytick_labelcolor': {
-                'default_value': 'black', 
+                'default_value': 'Black', 
                 'type': str
         },   
                 

@@ -116,7 +116,7 @@ class WellPlotController(WorkPageController):
             return False
         
     
-    def _get_pg_properties_dict(self):
+    def _get_pg_properties(self):
         """
         """
         props = OrderedDict()  

@@ -37,40 +37,75 @@ class LineRepresentationController(RepresentationController):
             'type': bool
     }       
 
+
     def __init__(self, **state):
         super().__init__(**state)
 
-    def _get_pg_properties_dict(self):
+
+    def _get_pg_categories(self):
+        cats = OrderedDict([
+            ('category_scale', OrderedDict([
+                ('label', 'Scale')
+            ])),
+            ('category_others', OrderedDict([
+                ('label', 'Others'), 
+                ('children', OrderedDict([
+                    ('category_others_AAA', OrderedDict([
+                        ('label', 'Outras Cores')
+                    ]))
+                ])),
+            ])),   
+    
+            ('category_others_XYZ', OrderedDict([
+                ('label', 'Others XYZ')
+            ])),      
+                #,
+                #('children', OrderedDict([])),
+        ])
+    
+        return cats
+
+
+
+    def _get_pg_properties(self):
         """
         """
         props = OrderedDict()
+        
         props['left_scale'] = {
             'pg_property': 'FloatProperty',
-            'label': 'Left value'  
+            'label': 'Left value',
+            'category': 'category_scale'
         } 
         props['right_scale'] = {
             'pg_property': 'FloatProperty',
-            'label': 'Right value'
+            'label': 'Right value',
+            'category': 'category_scale'
         }
+        
         props['thickness'] = {
             'pg_property': 'EnumProperty',
             'label': 'Width',
             'options_labels': ['0', '1', '2', '3', '4', '5'],
-            'options_values': [0, 1, 2, 3, 4, 5 ]
+            'options_values': [0, 1, 2, 3, 4, 5 ],
+            'category': 'category_others'
         }    
         props['color'] = {
             'pg_property': 'MPLColorsProperty',
-            'label': 'Color'
+            'label': 'Color',
+            'category': 'category_others_AAA'
         }     
         props['x_scale'] = {
             'pg_property': 'EnumProperty',
             'label': 'X axis scale',
             'options_labels': ['Linear', 'Logarithmic'],
-            'options_values': [0, 1]
+            'options_values': [0, 1],
+            'category': 'category_others_XYZ'
         }                
         props['interpolate'] = {
             'pg_property': 'BoolProperty',
-            'label': 'Interpolate line'
+            'label': 'Interpolate line',
+            'category': 'category_others_XYZ'
         }              
         return props
     

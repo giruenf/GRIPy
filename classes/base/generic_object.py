@@ -28,7 +28,7 @@ class GripyObject(pubsub.PublisherMixin, metaclass=GripyWxMeta):
         * options_values:   The truly options valid for attribute (returned from wx.ComboBox selection event).
 
         * 25/8/2018: The least 4 above occours only in ui/mvc_classes/track_object.py and ui/mvc_classes/propgrid.py.
-        * 14/6/2019: The least 4 above are moving to _get_pg_properties_dict function.
+        * 14/6/2019: The least 4 above are moving to _get_pg_properties function.
         
     _READ_ONLY
         Attributes that must be setted only during object initialization. 
@@ -265,12 +265,17 @@ class GripyObject(pubsub.PublisherMixin, metaclass=GripyWxMeta):
      
     def _get_pubsub_uid(self):
         return pubsub.uid_to_pubuid(self.uid)         
-        
+           
     
-    def _get_pg_properties_dict(self):
-        """Returns data used to display object properties."""
+    def _get_pg_categories(self):
+        """Returns data categories used to display object properties."""
+        raise NotImplementedError('Must be implemented by subclass.')           
+   
+    def _get_pg_properties(self):
+        """Returns data properties used to display object properties."""
         raise NotImplementedError('Must be implemented by subclass.')    
       
+        
     # TODO: get_manager_class ou get_manager_class
     def get_manager_class(self):
         """

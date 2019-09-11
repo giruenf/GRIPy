@@ -191,7 +191,6 @@ class DataObject(OMBaseObject):
         #print('\n' + msg)
 
 
-
     def get_data_indexes(self, dimension=None):
         """
         """

@@ -56,7 +56,7 @@ class IndexRepresentationController(RepresentationController):
     def __init__(self, **state):
         super().__init__(**state)
  
-    def _get_pg_properties_dict(self):
+    def _get_pg_properties(self):
         """
         """
         props = OrderedDict()

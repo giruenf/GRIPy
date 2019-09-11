@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 
 import numpy as np
 
@@ -32,6 +31,7 @@ class CrossPlotController(WorkPageController):
     
     def __init__(self, **state):
         super().__init__(**state)
+
 
     
 class CrossPlot(WorkPage):
@@ -81,6 +81,8 @@ class CrossPlot(WorkPage):
 
     def get_friendly_name(self):   
         return self._get_tid_friendly_name()
+
+
 
     def _set_own_name(self):
         """

@@ -497,6 +497,7 @@ class TrackCanvas(CanvasBaseView, SelectablePanelMixin):
         if controller.plotgrid:
             self._ticks = False
             self._postpone_draw = True
+            
             # DEPTH LINES == DEFAULT - X GRIDS, BUT NO TICKS
             if value == 0:
                 controller.ygrid_major = True
@@ -505,6 +506,7 @@ class TrackCanvas(CanvasBaseView, SelectablePanelMixin):
                 controller.ytick_minor_left = False
                 controller.ytick_major_right = False
                 controller.ytick_minor_right = False
+                
             # DEPTH LINES == LEFT 
             elif value == 1:
                 self._ticks = True
@@ -517,6 +519,7 @@ class TrackCanvas(CanvasBaseView, SelectablePanelMixin):
                 controller.ytick_minor_left = True
                 controller.ytick_major_right = False
                 controller.ytick_minor_right = False
+                
             # DEPTH LINES == RIGHT
             elif value == 2:
                 self._ticks = True
@@ -529,6 +532,7 @@ class TrackCanvas(CanvasBaseView, SelectablePanelMixin):
                 controller.ytick_minor_left = False
                 controller.ytick_major_right = True
                 controller.ytick_minor_right = True
+                
             # DEPTH LINES == CENTER   
             elif value == 3:
                 self._ticks = True             
@@ -541,6 +545,7 @@ class TrackCanvas(CanvasBaseView, SelectablePanelMixin):
                 controller.ytick_minor_left = True
                 controller.ytick_major_right = True
                 controller.ytick_minor_right = True
+                
             # DEPTH LINES == LEFT AND RIGHT    
             elif value == 4:   
                 self._ticks = True
@@ -553,6 +558,7 @@ class TrackCanvas(CanvasBaseView, SelectablePanelMixin):
                 controller.ytick_minor_left = True
                 controller.ytick_major_right = True
                 controller.ytick_minor_right = True
+                
             # DEPTH LINES == NONE
             elif value == 5:
                 controller.ygrid_major = False

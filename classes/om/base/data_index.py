@@ -131,7 +131,7 @@ class DataIndex(DataObject):
         return self.name + '@' + parent_well.name 
     
 
-    def _get_pg_properties_dict(self):
+    def _get_pg_properties(self):
         """
         """
         props = OrderedDict()
