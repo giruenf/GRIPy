@@ -143,8 +143,9 @@ class CanvasPlotterController(CanvasBaseController):
         
         ### category_figure
         props['figure_facecolor'] = {
-            'pg_property': 'MPLColorsProperty',
+#            'pg_property': 'MPLColorsProperty',
 #            'pg_property': 'SystemColourProperty',
+            'pg_property': 'ColourProperty',
             'label': 'Face color',
             'category': 'category_figure'
         }    
@@ -186,21 +187,25 @@ class CanvasPlotterController(CanvasBaseController):
                
         ### category_axes
         props['axes_facecolor'] = {
-            'pg_property': 'MPLColorsProperty',
-#            'pg_property': 'ColourProperty',
+#           'pg_property': 'MPLColorsProperty',
+            'pg_property': 'ColourProperty',
             'label': 'Facecolor',
             'category': 'category_axes'
         }  
         props['axes_edgecolor'] = {
-            'pg_property': 'MPLColorsProperty',
+#            'pg_property': 'MPLColorsProperty',
+            'pg_property': 'ColourProperty',
             'label': 'Edgecolor',
             'category': 'category_axes'
         }  
         props['axes_axisbelow'] = {
-            'pg_property': 'StringProperty',
+            'pg_property': 'EnumProperty',
             'label': 'Axis below',
+            'options_labels': ['True', 'Line', 'False'],  
+            'options_values': [True, 'line', False],
             'category': 'category_axes'
-        }  
+        } 
+                
         props['axes_linewidth'] = {
             'pg_property': 'FloatProperty',
             'label': 'Line width',
@@ -208,7 +213,8 @@ class CanvasPlotterController(CanvasBaseController):
         }       
         
         props['axes_labelcolor'] = {
-            'pg_property': 'MPLColorsProperty',
+#            'pg_property': 'MPLColorsProperty',
+            'pg_property': 'ColourProperty',
             'label': 'Color',
             'category': 'category_axes_label'
         }              
@@ -244,7 +250,8 @@ class CanvasPlotterController(CanvasBaseController):
             'category': 'category_axes_titletext'
         }   
         props['axes_titlecolor'] = {
-            'pg_property': 'MPLColorsProperty',
+#            'pg_property': 'MPLColorsProperty',
+            'pg_property': 'ColourProperty',
             'label': 'Color',
             'category': 'category_axes_title'
         }   
@@ -286,7 +293,8 @@ class CanvasPlotterController(CanvasBaseController):
             'category': 'category_grid'
         }          
         props['xgrid_major_color'] = {
-            'pg_property': 'MPLColorsProperty',
+#            'pg_property': 'MPLColorsProperty',
+            'pg_property': 'ColourProperty',
             'label': 'Color',
             'category': 'category_grid_xmajor'
         }            
@@ -311,7 +319,8 @@ class CanvasPlotterController(CanvasBaseController):
             'category': 'category_grid_xmajor'
         }  
         props['xgrid_minor_color'] = {
-            'pg_property': 'MPLColorsProperty',
+#            'pg_property': 'MPLColorsProperty',
+            'pg_property': 'ColourProperty',
             'label': 'Color',
             'category': 'category_grid_xminor'
         }            
@@ -336,7 +345,8 @@ class CanvasPlotterController(CanvasBaseController):
             'category': 'category_grid_xminor'
         }  
         props['ygrid_major_color'] = {
-            'pg_property': 'MPLColorsProperty',
+#            'pg_property': 'MPLColorsProperty',
+            'pg_property': 'ColourProperty',
             'label': 'Color',
             'category': 'category_grid_ymajor'
         }            
@@ -361,7 +371,8 @@ class CanvasPlotterController(CanvasBaseController):
             'category': 'category_grid_ymajor'
         }  
         props['ygrid_minor_color'] = {
-            'pg_property': 'MPLColorsProperty',
+#            'pg_property': 'MPLColorsProperty',
+            'pg_property': 'ColourProperty',
             'label': 'Color',
             'category': 'category_grid_yminor'
         }            
@@ -653,25 +664,29 @@ class CanvasPlotterController(CanvasBaseController):
         # Tick color        
         props['xtick_color'] = {
             'label': 'X tick color',
-            'pg_property': 'MPLColorsProperty',
+#            'pg_property': 'MPLColorsProperty',
+            'pg_property': 'ColourProperty',
             'category': 'category_tick'
         }            
         props['ytick_color'] = {
             'label': 'Y tick color',
-            'pg_property': 'MPLColorsProperty',
+#            'pg_property': 'MPLColorsProperty',
+            'pg_property': 'ColourProperty',
             'category': 'category_tick'
         }   
                         
         # Tick label color  
         props['xtick_labelcolor'] = {
             'label': 'X tick label color',
-            'pg_property': 'MPLColorsProperty',
+#            'pg_property': 'MPLColorsProperty',
+            'pg_property': 'ColourProperty',
             'category': 'category_tick'
         }    
         
         props['ytick_labelcolor'] = {
             'label': 'Y tick label color',
-            'pg_property': 'MPLColorsProperty',
+#            'pg_property': 'MPLColorsProperty',
+            'pg_property': 'ColourProperty',
             'category': 'category_tick'
         }   
         

@@ -579,7 +579,16 @@ def parse_string_to_uid(obj_uid_string):
         raise
 
 
-
+def get_wx_colour_from_seq_string(seq_str):
+    # tuple or list
+    if seq_str.startswith('(') or seq_str.startswith('['): 
+        seq_str = seq_str[1:-1]
+        val = tuple([int(c.strip()) for c in seq_str.split(',')])
+        color = wx.Colour(val)
+        print('_get_wx_colour:', color, 
+                      color.GetAsString(wx.C2S_HTML_SYNTAX))
+        return color
+    return None
 
 
 # Have colormaps separated into categories:

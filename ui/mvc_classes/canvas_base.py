@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 
 import numpy as np
+import wx
 np.set_printoptions(suppress=True)
 
 import matplotlib
@@ -21,6 +22,9 @@ from classes.ui import UIManager
 from classes.ui import UIControllerObject 
 from classes.ui import UIViewObject 
 from app import pubsub 
+
+#from app import app_utils 
+
 from app import log
 
 
@@ -52,6 +56,7 @@ class CanvasBaseController(UIControllerObject):
             
         # Top level properties    
         'rect': {
+                #'default_value': (0.05, 0.05, 0.9, 0.9),
                 'default_value': (0.1, 0.1, 0.8, 0.8), 
                 #'default_value': (0.0, 0.0, 1.0, 1.0), 
                 'type': (tuple, float, 4)  
@@ -76,23 +81,23 @@ class CanvasBaseController(UIControllerObject):
         
         ##
         'xaxis_labeltext': {
-                'default_value': 'X Axis label', 
+                'default_value': '', #'X Axis label', 
                 'type': str                
         },
         'yaxis_labeltext': {
-                'default_value': 'Y Axis label', 
+                'default_value': '', #'Y Axis label', 
                 'type': str                
         },       
                 
         # Figure properties
         'figure_facecolor': {
-                'default_value': 'LightSkyBlue', #'lightyellow',
+                'default_value': '#e8f3ff', #'LightSkyBlue', #'lightyellow',
                 'type': str
         },
 
 
         'figure_titletext': {
-                'default_value': 'Figure Title', #wx.EmptyString, 
+                'default_value': '', #'Figure Title', #wx.EmptyString, 
                 'type': str
         },
         'figure_titlex': {
@@ -122,11 +127,11 @@ class CanvasBaseController(UIControllerObject):
           
         # Axes properties
         'axes_facecolor': {
-                'default_value': 'Aqua', #'white', 
+                'default_value': 'white', 
                 'type': str
         },   
         'axes_edgecolor': {
-                'default_value': 'Red', 
+                'default_value': 'black', 
                 'type': str
         },        
         'axes_axisbelow': {
@@ -140,15 +145,15 @@ class CanvasBaseController(UIControllerObject):
                 
                 
         'xgrid_major': {
-                'default_value': True, 
+                'default_value': False, #True, 
                 'type': bool
         },   
         'xgrid_minor': {
-                'default_value': True, 
+                'default_value': True,  
                 'type': bool
         },           
         'ygrid_major': {
-                'default_value': True, 
+                'default_value': False, #True, 
                 'type': bool
         },   
         'ygrid_minor': {
@@ -266,15 +271,15 @@ class CanvasBaseController(UIControllerObject):
 
 
         'axes_titletextcenter': {
-                'default_value': 'Axes title (center)',
+                'default_value': '', #'Axes title (center)',
                 'type': str
         },
         'axes_titletextleft': {
-                'default_value': 'Axes title (left)', 
+                'default_value': '', #'Axes title (left)', 
                 'type': str
         },
         'axes_titletextright': {
-                'default_value': 'Axes title (right)', 
+                'default_value': '', #'Axes title (right)', 
                 'type': str
         },
                 
@@ -347,7 +352,7 @@ class CanvasBaseController(UIControllerObject):
          
         # Tick label visibility   
         'xtick_labelbottom': {
-                'default_value': True, 
+                'default_value': False, #True, 
                 'type': bool
         },    
         'xtick_labeltop': {
@@ -355,7 +360,7 @@ class CanvasBaseController(UIControllerObject):
                 'type': bool
         },
         'ytick_labelleft': {
-                'default_value': True, 
+                'default_value': False, #True, 
                 'type': bool
         },
         'ytick_labelright': {
@@ -411,7 +416,7 @@ class CanvasBaseController(UIControllerObject):
                 
         # Tick visibility   
         'xtick_bottom': {
-                'default_value': True, 
+                'default_value': False, 
                 'type': bool
         },    
         'xtick_top': {
@@ -419,7 +424,7 @@ class CanvasBaseController(UIControllerObject):
                 'type': bool
         },
         'ytick_left': {
-                'default_value': True, 
+                'default_value': False,#True, 
                 'type': bool
         },
         'ytick_right': {
@@ -707,18 +712,16 @@ class CanvasBaseController(UIControllerObject):
                                                       topic=pubsub.AUTO_TOPIC):
         key = topic.getName().split('.')[2]
         prop = key.split('_')[1]
-    
+        #
         if prop == 'facecolor':
             self.view.set_axes_facecolor(new_value)
         elif prop == 'edgecolor':
-            self.view.set_axes_edgecolor(new_value)            
+            self.view.set_axes_edgecolor(new_value)         
         elif prop == 'axisbelow':
             self.view.set_axes_axisbelow(new_value)      
         elif prop == 'linewidth':   
-            self.view.set_axes_axislinewidth(new_value)
+            self.view.set_axes_linewidth(new_value)
         self.view.draw()  
-
-
 
 
     def on_change_grid_parameters(self, old_value, new_value, 
@@ -799,6 +802,7 @@ class CanvasBaseController(UIControllerObject):
                     print ('NOT LOADED: {} = {}'.format(new_key, value))
                     
 
+
     def on_change_figure_facecolor(self, old_value, new_value, 
                                                       topic=pubsub.AUTO_TOPIC):
         try:
@@ -809,7 +813,7 @@ class CanvasBaseController(UIControllerObject):
         finally:
             self.view.draw()         
             
-  
+
 
     def on_change_spine(self, old_value, new_value, topic=pubsub.AUTO_TOPIC):   
         key = topic.getName().split('.')[2]
@@ -868,26 +872,38 @@ class CanvasBaseController(UIControllerObject):
 
 
 
-    def on_change_text_properties(self, old_value, new_value, topic=pubsub.AUTO_TOPIC): 
-        attr_name = topic.getName().split('.')[2]
-        who, param_key = attr_name.split('_') 
-        axis = 'both'
-        if who[0] == 'x' or who[0] == 'y':
-            axis = who[0]
-            who = who[1:]
-        param = param_key[:5]
-        key = param_key[5:]
-        kw = {key: new_value}
-        if who == 'axes':
-            if param == 'label':
-                who = 'axis'        # axes_label refers to Axis label
-            elif key.startswith('text'):
-                kw['loc'] = key[4:]
-                kw.pop(key)         # key == textcenter, textleft or textright
-                kw['text'] = new_value
-        if who == 'axis':
-            kw['axis'] = axis
-        self.view.set_label_properties(who, **kw)
+    def on_change_text_properties(self, old_value, new_value, topic=pubsub.AUTO_TOPIC):
+        print('on_change_text_properties:', old_value, new_value, type(new_value), topic)
+        try:
+            attr_name = topic.getName().split('.')[2]
+            who, param_key = attr_name.split('_') 
+            axis = 'both'
+            if who[0] == 'x' or who[0] == 'y':
+                axis = who[0]
+                who = who[1:]
+            param = param_key[:5]
+            key = param_key[5:]
+            print(111)
+            kw = {key: new_value}
+            if who == 'axes':
+                if param == 'label':
+                    who = 'axis'        # axes_label refers to Axis label
+                elif key.startswith('text'):
+                    kw['loc'] = key[4:]
+                    kw.pop(key)         # key == textcenter, textleft or textright
+                    kw['text'] = new_value
+            print(222)        
+            if who == 'axis':
+                kw['axis'] = axis
+        except Exception as e:
+            print('ERROUUUU', e)
+            raise
+        print('on_change_text_properties 2:', who, kw)    
+        try:    
+            
+            self.view.set_label_properties(who, **kw)
+        except:
+            print('on_change_text_properties 3:', who, kw)
         self.view.draw()     
 
 
@@ -978,6 +994,9 @@ class CanvasBaseController(UIControllerObject):
         self.view.set_scale(axis, new_value)
         self.view.draw()  
 
+    
+   
+    
     
     
     
@@ -1070,7 +1089,13 @@ class CanvasBaseView(UIViewObject, FigureCanvas):
         #  
         self.figure.set_facecolor(controller.figure_facecolor)
 
-
+        #
+        
+        self.set_axes_facecolor(controller.axes_facecolor)
+        self.set_axes_edgecolor(controller.axes_edgecolor)
+        self.set_axes_axisbelow(controller.axes_axisbelow)
+        self.set_axes_linewidth(controller.axes_linewidth)
+        
         #
         self._load_spines_properties()
         self._load_locator_properties()
@@ -1078,7 +1103,6 @@ class CanvasBaseView(UIViewObject, FigureCanvas):
         self._load_grids_properties()
         self._load_labels_properties()
         #
-        
         #self._postpone_draw = True
         
 
@@ -1256,7 +1280,7 @@ class CanvasBaseView(UIViewObject, FigureCanvas):
 
 
 
-        self.teste('red')
+       # self.teste('red')
 
 
     def _load_labels_properties(self):
@@ -1449,6 +1473,24 @@ class CanvasBaseView(UIViewObject, FigureCanvas):
             raise
         
 
+
+        
+
+    #TODO: tirar isso 
+    #def teste(self, color):
+    #    self.base_axes.patch.set_edgecolor(color)
+        
+        
+    def set_axes_facecolor(self, color):
+        self.base_axes.set_facecolor(color)
+        
+        
+    def set_axes_edgecolor(self, color):
+        self.base_axes.spines['left'].set_edgecolor(color)
+        self.base_axes.spines['right'].set_edgecolor(color)
+        self.base_axes.spines['bottom'].set_edgecolor(color)
+        self.base_axes.spines['top'].set_edgecolor(color)
+        
     def set_axes_axisbelow(self, b):
         """
         Set whether axis ticks and gridlines are above or below most artists.
@@ -1463,24 +1505,17 @@ class CanvasBaseView(UIViewObject, FigureCanvas):
                              and ticks below or above most other artists,
                              or below lines but above patches
         """  
-        self.base_axes.set_axisbelow(b)
         
-
-    #TODO: tirar isso 
-    def teste(self, color):
-        self.base_axes.patch.set_edgecolor(color)
-        
-        
-    def set_axes_facecolor(self, color):
-        self.base_axes.set_facecolor(color)
-        
-        
-    def set_axes_edgecolor(self, color):
-        self.base_axes.spines['left'].set_edgecolor(color)
-        self.base_axes.spines['right'].set_edgecolor(color)
-        self.base_axes.spines['bottom'].set_edgecolor(color)
-        self.base_axes.spines['top'].set_edgecolor(color)
-        
+        try:
+            b = bool(b)
+        except Exception as e:
+            print('ERRO:', e)
+            
+        try:    
+            print('b:', b)
+            self.base_axes.set_axisbelow(b)
+        except:
+            raise
 
     def set_axes_linewidth(self, value):
         self.base_axes.spines['left'].set_linewidth(value)

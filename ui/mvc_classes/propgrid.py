@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-from collections import OrderedDict
+from collections import OrderedDict, Sequence
 
 import wx
 import wx.propgrid as pg 
@@ -12,6 +12,8 @@ from classes.ui import UIControllerObject
 from classes.ui import UIViewObject                                  
 import app.pubsub as pub
 from app.app_utils import MPL_COLORS, MPL_COLORMAPS
+
+import matplotlib.colors as mcolors
 
 from classes.ui import FrameController
 from classes.ui import Frame
@@ -59,17 +61,16 @@ class GripyPgProperty(object):
             return False
 
     def ValueToString(self, *args):
-        #print('GripyPgProperty.ValueToString')
         return str(self._get_value())
 
     def StringToValue(self, variant, text, flag):
-        return self._set_value(text)  
-
+        if self._set_value(text):
+            return True
+        return False
 
 
 
 class StringProperty(pg.StringProperty, GripyPgProperty):    
-
     def __init__(self, obj_uid, obj_attr, label=pg.PG_LABEL):
         GripyPgProperty.__init__(self, obj_uid, obj_attr)
         pg.StringProperty.__init__(self, label, name=obj_attr)
@@ -107,7 +108,7 @@ class BoolProperty(pg.BoolProperty, GripyPgProperty):
         self._set_value(self.GetValue())
         
         
-    
+
 class EnumProperty(pg.EnumProperty, GripyPgProperty):    
    
     def __init__(self, obj_uid, obj_attr, label=pg.PG_LABEL,
@@ -156,7 +157,6 @@ class EnumProperty(pg.EnumProperty, GripyPgProperty):
             #                ::wxPGChoices& choices,int value)
 
 
-
             self._opt_labels = opt_labels
             self._opt_values = opt_values        
             if self._opt_values is None:
@@ -166,16 +166,13 @@ class EnumProperty(pg.EnumProperty, GripyPgProperty):
             #
             #
             val = self._get_value()
-            #
-            
+            #  
             idx = self._get_index(val)
-
             # 
             if obj_attr == 'figure_facecolor':
                 print('idx:', idx)
             
             self.SetValue(idx)
-            #self.SetIndex(idx)
                       
         except Exception as e:
             print('\nDEU RUIM!!!! - {}\n\n\n'.format(e))
@@ -184,23 +181,26 @@ class EnumProperty(pg.EnumProperty, GripyPgProperty):
         
     def _get_index(self, val):
         #
-        if self._obj_attr == 'figure_facecolor':
-            print('val:', val)        
+        #if self._obj_attr == 'axes_axisbelow':
+        #    print('val:', val, type(val), self._opt_values)        
         try:
             return self._opt_values.index(val)
         except ValueError:
             try:
                 return [key.lower() for key in self._opt_values].index(val)
-            except ValueError:
-                print()
-                print('ERRO idx = self._opt_values.index(val)')          
-                print(self._opt_values)
-                print(val)
-                raise 
+            except:
+                try:
+                    return self._opt_labels.index(val)
+                except:
+                    print()
+                    print('ERRO idx = self._opt_values.index(val)')          
+                    print(self._opt_values)
+                    print(self._opt_labels)
+                    print(val, type(val))
+                    raise 
         #
 
-        
-        
+               
     def IntToValue(self, variant, int_value, flag):
         """Given a wx.Choice integer index, get its associated value 
         (from opt_values) and set the object attribute with this value.
@@ -222,22 +222,8 @@ class EnumProperty(pg.EnumProperty, GripyPgProperty):
         
         if self._obj_attr == 'figure_facecolor':
             print('\nIntToValue [{}]: {} - {}'.format(self._obj_attr, int_value, type(int_value)))
-
-        #val = self._values[int_value]
-        #print('val:', val, type(val))
-        
-        # This is the actual value
-        opt_value = self._opt_values[int_value]
-        
-#        if self._obj_attr == 'figure_facecolor':
-#            print('actual_value:', opt_value, type(opt_value))
-        #
-        
+        opt_value = self._opt_values[int_value]    
         ret_val = self._set_value(opt_value)
-        
-#        if self._obj_attr == 'figure_facecolor':
-#            print('ret_val:', ret_val)
-            
         return ret_val
         
 
@@ -261,29 +247,13 @@ class EnumProperty(pg.EnumProperty, GripyPgProperty):
         if self._obj_attr == 'figure_facecolor':
             print('\nValueToString [{}]: {} - {}'.format(self._obj_attr, value, type(value)))
             
-            
         val = self._get_value()
-        
-#        print('val:', val, type(val))
-        
-        
-        #if isinstance(val, int):
         idx = self._get_index(val)
 
         if self._obj_attr == 'figure_facecolor':
             print('idx:', idx)
         ret_str = str(self._opt_labels[idx])
-        #print('ret_str:', ret_str)
-        #ret_str = str(self._opt_labels[val])
-            
-            
-        """
-        elif isinstance(val, str): 
-            ret_str = val
-            
-        else:    
-            print('ENTROU ELSE')
-        """    
+   
         if self._obj_attr == 'figure_facecolor':
             print('Retornando String \"' + ret_str + '\" para Value: ' + str(val))
         return ret_str
@@ -307,33 +277,8 @@ class EnumProperty(pg.EnumProperty, GripyPgProperty):
         if self._obj_attr == 'figure_facecolor':
             print('\nGetIndexForValue [{}]: {} - {}'.format(self._obj_attr, value, type(value)))
 
-#        idx = self._opt_values.index(value)
-#        """
-
-        val = self._get_value()
-        
-#        print('val:', val, type(val))
-
-       
+        val = self._get_value() 
         idx = self._get_index(val)
-
-        
-        """
-        try:
-            print(1)
-            idx = self._values.index(value)
-        except ValueError:
-            try:
-                print(2)
-                idx = self._opt_values.index(value)
-            except:
-                raise   
-        """
-        
-#        """
-        if self._obj_attr == 'figure_facecolor':
-            print('Retornando Index', idx, 'para Value:', value, 'para val:', val)
-        
         return idx
 
 
@@ -411,7 +356,7 @@ class MPLFontWeightProperty(EnumProperty):
         )
 
 
-class SystemColourProperty(pg.SystemColourProperty):    
+class SystemColourProperty(pg.SystemColourProperty, GripyPgProperty):        
     def __init__(self, obj_uid, obj_attr, label=pg.PG_LABEL, 
                      opt_labels=[], opt_values=None, values=None, value=0): 
     
@@ -421,19 +366,87 @@ class SystemColourProperty(pg.SystemColourProperty):
 
 
 
-class ColourProperty(pg.ColourProperty):    
+class ColourProperty(pg.ColourProperty, GripyPgProperty):      
     def __init__(self, obj_uid, obj_attr, label=pg.PG_LABEL, 
                      opt_labels=[], opt_values=None, values=None, value=0): 
     
         GripyPgProperty.__init__(self, obj_uid, obj_attr)
-        pg.ColourProperty.__init__(self, label, name=obj_attr, value=wx.WHITE)
+        pg.ColourProperty.__init__(self, label, name=obj_attr)
+        #
+        color = self._get_value()
+        #
+        if mcolors.is_color_like(color):
+            color = tuple([255*c for c in mcolors.to_rgb(color)])
+        #
+        self.SetValue(color)
 
-#        pg.EnumProperty.__init__(self, label, obj_attr, opt_labels, 
-#                            values=list(range(len(opt_labels))), value=0)    
+
+    def OnSetValue(self):
+        # Called after m_value was setted...
+        val = self.GetValue()
+        print('\nOnSetValue:', val, type(val))
+        color = None
+        if isinstance(val, Sequence):
+            color = tuple([c/255 for c in val])
+            color = mcolors.to_hex(color)   
+        elif isinstance(val, wx.Colour):
+            color = val.GetAsString(wx.C2S_HTML_SYNTAX)
             
+        print('color:', color, type(color))    
+        self._set_value(color)
+        
+ 
+    def ValueToString(self, value, flag):
+        print('\nValueToString:', value)
+        ret_str = ''
+        mpl_colors_values_list = list(MPL_COLORS.values())
+        if wx.Colour(value) in mpl_colors_values_list:
+            idx = mpl_colors_values_list.index(wx.Colour(value))
+            ret_str = list(MPL_COLORS.keys())[idx]
+        #
+        mpl_colors_od = OrderedDict(mcolors.get_named_colors_mapping())
+        mpl_colors_values_list = list(mpl_colors_od.values())
+        #
+        if not ret_str:
+            value = tuple(c/255 for c in value)
+            if value in mpl_colors_values_list:
+                idx = mpl_colors_values_list.index(value)
+                ret_str = list(mpl_colors_od.keys())[idx]
+        #
+        if not ret_str:
+            value = mcolors.to_hex(value)
+            if value in mpl_colors_values_list:
+                idx = mpl_colors_values_list.index(value)
+                ret_str = list(mpl_colors_od.keys())[idx]
+            else:
+                ret_str = value
+        #        
+        if ret_str == 'k':
+            ret_str = 'Black'
+        elif ret_str == 'w':
+            ret_str = 'White'            
+        elif ret_str == 'b':
+            ret_str = 'Blue'
+        elif ret_str == 'g':
+            ret_str = 'Green'   
+        elif ret_str == 'r':
+            ret_str = 'Red'
+        elif ret_str == 'c':
+            ret_str = 'Cyan'   
+        elif ret_str == 'm':
+            ret_str = 'Magenta'
+        elif ret_str == 'w':
+            ret_str = 'Yellow'
+        elif ':' in ret_str:
+            ret_str = ret_str.split(':')[-1]
+        #    
+        ret_str = ret_str.capitalize()
+        #
+        print('ret_str:', ret_str)
+        return ret_str
+    
 
-
-   
+          
 def _get_pg_property(obj_uid, obj_attr, obj_attr_props):
     
     
