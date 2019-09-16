@@ -12,90 +12,57 @@ from classes.om import Seismic
 from classes.om import Spectogram
 from classes.om import Gather
 
-"""
-from classes.dt.datatypes import Core
-from classes.dt.datatypes import Partition
-from classes.dt.datatypes import RockTable
-from classes.dt.datatypes import Inference
-from classes.dt.datatypes import RockType
-from classes.dt.datatypes import Part
-from classes.dt.datatypes import Property
-
-#from classes.dt.datatypes import Velocity
-
-
-from classes.dt.datatypes import Scalogram
-from classes.dt.datatypes import GatherScalogram
-from classes.dt.datatypes import Spectogram
-from classes.dt.datatypes import GatherSpectogram
-
-#from classes.dt.datatypes import Angle
-#from classes.dt.datatypes import Inversion
-#from classes.dt.datatypes import InversionParameter
-from classes.dt.datatypes import WellGather
-#from classes.dt.datatypes import IndexSet
-
-
-from classes.dt.datatypes import Model1D
-from classes.dt.datatypes import Zone
-from classes.dt.datatypes import ZoneSet
-#
-from classes.inference.dtrock import Rock
-from classes.inference.dtrock import Fluid
-#
-"""
-#
 
 #
 from classes.ui import FrameController, Frame
 from classes.ui import DialogController, Dialog
 from classes.ui import LASHeaderController, LASHeader
 from classes.ui import WellImportFrameController, WellImportFrame
-#
-from ui.mvc_classes.main_window import MainWindowController,MainWindow
-from ui.mvc_classes.menu_bar import MenuBarController, MenuBarView
-from ui.mvc_classes.menu import MenuController, MenuView
-from ui.mvc_classes.menu_item import MenuItemController, MenuItemView
-from ui.mvc_classes.tree import TreeController, TreeView
-from ui.mvc_classes.tool_bar import ToolBarController, ToolBar
-from ui.mvc_classes.tool_bar_tool import ToolBarToolController
-from ui.mvc_classes.status_bar import StatusBarController, StatusBar
-from ui.mvc_classes.well_plot import WellPlotController, WellPlot
-from ui.mvc_classes.track import TrackController, TrackView
-from ui.mvc_classes.track_object import TrackObjectController
-from ui.mvc_classes.frame_nav import NavigatorController, Navigator
-from ui.mvc_classes.cross_plotter import CrossPlotController, CrossPlot
-from ui.mvc_classes.workpage import WorkPageController, WorkPage
 
-from ui.mvc_classes.repr_line import \
+from classes.ui import MainWindowController, MainWindow
+from classes.ui import MenuBarController, MenuBarView
+from classes.ui import MenuController, MenuView
+from classes.ui import MenuItemController, MenuItemView
+from classes.ui import TreeController, TreeView
+from classes.ui import ToolBarController, ToolBar
+from classes.ui import ToolBarToolController
+from classes.ui import StatusBarController, StatusBar
+from classes.ui import WellPlotController, WellPlot
+from classes.ui import TrackController, TrackView
+from classes.ui import TrackObjectController
+from classes.ui import NavigatorController, Navigator
+from classes.ui import CrossPlotController, CrossPlot
+from classes.ui import WorkPageController, WorkPage
+
+from classes.ui import \
     LineRepresentationController, LineRepresentationView
-from ui.mvc_classes.repr_index import \
+from classes.ui import \
     IndexRepresentationController, IndexRepresentationView
-from ui.mvc_classes.repr_density import \
+from classes.ui import \
     DensityRepresentationController, DensityRepresentationView
 #    PatchesRepresentationController, PatchesRepresentationView, \
 #    ContourfRepresentationController, ContourfRepresentationView        
                   
-from ui.mvc_classes.well_plot_prop_editor import WellPlotEditorController, \
+from classes.ui import WellPlotEditorController, \
                                                  WellPlotEditor  
-from ui.mvc_classes.well_plot_prop_editor import LPEWellPlotPanelController, \
+from classes.ui import LPEWellPlotPanelController, \
                                                  LPEWellPlotPanel      
-from ui.mvc_classes.well_plot_prop_editor import LPETrackPanelController, \
+from classes.ui import LPETrackPanelController, \
                                                  LPETrackPanel
-from ui.mvc_classes.well_plot_prop_editor import LPEObjectsPanelController, \
+from classes.ui import LPEObjectsPanelController, \
                                                  LPEObjectsPanel
 #                                                 
-from ui.mvc_classes.propgrid import PropertyGridController, PropertyGridView
+from classes.ui import PropertyGridController, PropertyGridView
 #                                            
-from ui.mvc_classes.canvas_plotter import CanvasPlotterController, CanvasPlotter                
-from ui.mvc_classes.canvas_track import TrackCanvasController, TrackCanvas   
-from ui.mvc_classes.track_label import TrackLabelController, TrackLabel
+from classes.ui import CanvasPlotterController, CanvasPlotter                
+from classes.ui import TrackCanvasController, TrackCanvas   
+from classes.ui import TrackLabelController, TrackLabel
                    
 #
-from ui.mvc_classes.dialog_obj_props import \
+from classes.ui import \
         ObjectPropertiesDialogController,ObjectPropertiesDialog
         
-from ui.mvc_classes.coding_console import ConsoleController, Console
+from classes.ui import ConsoleController, Console
 
 
 

@@ -5,49 +5,30 @@ import numpy as np
 from scipy.signal import chirp
 import wx
 
-import matplotlib as mpl
-
-#import classes.dt.datatypes
-from basic.uom import uom
-
-
+from app import app_utils
 from fileio import las
 from fileio import odt
 from fileio import segy
 
-
-from app import app_utils
-
-from algo.spectral.Spectral import STFT, WaveletTransform, MorletWavelet, \
+from algo.spectral.Spectral import WaveletTransform, MorletWavelet, \
     PaulWavelet, DOGWavelet, RickerWavelet
 from algo.spectral.Hilbert import HilbertTransform												  
-from algo.spectral import get_synthetic_ricker, phase_rotation, frequency_phase_rotation
-from algo import RockPhysics as RP
-from algo import avo
 
 from algo.modeling.reflectivity import Reflectivity
 from classes.om import ObjectManager
 from basic.parms import ParametersManager
 
-
 from fileio.lis import LISFile
 from fileio.dlis import DLISFile
-from fileio.liswell import LISWells, LISWell, LISWellLog
 
-
-#from  ui import HeaderEditor
 from  ui import ImportSelector
 from  ui import ExportSelector
 from  ui import ODTEditor
 
-#from  ui import lisloader
-from  ui import PartitionEditor
-from  ui import PartEditor
 from  ui import RockTableEditor
-from ui import ReflectivityModel as RM
-from classes.ui import UIManager
 
-from  ui import Interface
+from classes.ui import UIManager
+from classes.ui import interface
 
 from app.app_utils import GripyIcon
 
@@ -313,7 +294,7 @@ def on_new_wellplot(*args):
             welluid = results['welluid']
             zaxis_type = results['zaxis_type']
             #
-            mwc = Interface.get_main_window_controller()
+            mwc = interface.get_main_window_controller()
             UIM.create('wellplot_controller', mwc.uid, 
                        obj_uid=welluid, index_type=zaxis_type
             )
@@ -2200,7 +2181,7 @@ def on_hilbert_attributes(event):
 
 
 def on_exit(*args, **kwargs):
-    mwc = Interface.get_main_window_controller()
+    mwc = interface.get_main_window_controller()
     mwc.close()
 
     
@@ -2667,14 +2648,14 @@ def on_teste_container(event):
     print ('b4 on_teste_container')
     print (wx.SysErrorCode())
     UIM = UIManager()      
-    mwc = Interface.get_main_window_controller()
+    mwc = interface.get_main_window_controller()
     UIM.create('workpage_controller', mwc.uid)
     print ('a5 on_teste_container')
     
     
 def on_new_crossplot(event):
     UIM = UIManager()      
-    mwc = Interface.get_main_window_controller()
+    mwc = interface.get_main_window_controller()
 
     """
     # Log-Log
@@ -2888,7 +2869,7 @@ def on_new_crossplot(event):
 
 def on_coding_console(event):
     UIM = UIManager()      
-    mwc = Interface.get_main_window_controller()
+    mwc = interface.get_main_window_controller()
     UIM.create('console_controller', mwc.uid)
 
 
@@ -2917,7 +2898,7 @@ def on_import_las(*args):
     las_file.read()
     #
     UIM = UIManager()
-    mwc = Interface.get_main_window_controller()
+    mwc = interface.get_main_window_controller()
     well_import_ctrl = UIM.create('well_import_frame_controller', mwc.uid)
     well_import_ctrl.Show()
     #
@@ -3048,7 +3029,7 @@ def on_import_lis(*args):
     print ('FIM READ LOGICAL')   
     #
     UIM = UIManager()
-    mwc = Interface.get_main_window_controller()
+    mwc = interface.get_main_window_controller()
     well_import_ctrl = UIM.create('well_import_frame_controller', mwc.uid)
     well_import_ctrl.Show()
     #
@@ -3095,7 +3076,7 @@ def on_import_dlis(*args):
     
     #
     UIM = UIManager()
-    mwc = Interface.get_main_window_controller()
+    mwc = interface.get_main_window_controller()
     well_import_ctrl = UIM.create('well_import_frame_controller', mwc.uid)
     well_import_ctrl.Show()
     #
@@ -3364,52 +3345,7 @@ def on_edit_rocktable(event):
     tree_ctrl = _UIM.list('tree_controller')[0]
     tree_ctrl.refresh()
 
-def on_new_partition(event):
-    OM = ObjectManager()
-    partition_dlg = PartitionEditor.NewPartitionDialog(wx.App.Get().GetTopWindow())
-    try:
-        if partition_dlg.ShowModal() == wx.ID_OK:
-#            wx.MessageBox('It was created a partition.')
-            name = partition_dlg.get_value()
-            print ('name', name, type(str(name)), str(name).strip(''), str(name).strip())
-            if name == '': 
-                name = 'NEW'
-            rock = OM.new('partition', name = name)
-#            partition_dlg.Destroy()        
-            OM.add(rock)
-    except Exception as e:
-        print ('ERROR:', str(e))
-    finally:
-        partition_dlg.Destroy()
 
-def on_edit_partition(event):
-    OM = ObjectManager()
-    if not OM.list('partition'):
-#        partition_dlg = PartitionEditor.NewPartitionDialog(wx.App.Get().GetTopWindow())
-        try:
-#            if partition_dlg.ShowModal() == wx.ID_OK:
-            wx.MessageBox('Please create a new partition first!')
-#                name = partition_dlg.get_value()
-#                print 'name', name, type(str(name)), str(name).strip(''), str(name).strip()
-#                if name == '': name = 'NEW'
-#                rock = OM.new('partition', name = name)
-#            partition_dlg.Destroy()        
-#                OM.add(rock)
-        except Exception as e:
-            print ('ERROR:', str(e))
-        finally:
-#            partition_dlg.Destroy()
-            return
-            
-    dlg = PartEditor.Dialog(wx.App.Get().GetTopWindow())
-    dlg.ShowModal()
-    dlg.Destroy()
-    
-    _UIM = UIManager()
-    tree_ctrl = _UIM.list('tree_controller')[0]
-    tree_ctrl.refresh() 
- 
-    
 def on_createrock(event): 
     wells = get_wells_dict()
     if wells is None:
@@ -4163,7 +4099,7 @@ def _get_phi_K_objects(well_uid):
 
 def create_winland_xplot(event):
     UIM = UIManager()      
-    mwc = Interface.get_main_window_controller()
+    mwc = interface.get_main_window_controller()
 
     well_uid = ('well', 0)
 
@@ -4223,7 +4159,7 @@ def create_winland_xplot(event):
 
 def create_poro_perm_xplot(event):
     UIM = UIManager()      
-    mwc = Interface.get_main_window_controller()
+    mwc = interface.get_main_window_controller()
 
     well_uid = ('well', 0)
 
@@ -4289,7 +4225,7 @@ def create_poro_perm_xplot(event):
 def create_SMLP_xplot(event):
     
     UIM = UIManager()      
-    mwc = Interface.get_main_window_controller()   
+    mwc = interface.get_main_window_controller()   
     
     well_uid = ('well', 0)
     
@@ -4328,7 +4264,7 @@ def create_SMLP_xplot(event):
 def create_MLP_xplot(event):
     
     UIM = UIManager()      
-    mwc = Interface.get_main_window_controller()   
+    mwc = interface.get_main_window_controller()   
     
     well_uid = ('well', 0)
     
@@ -4383,7 +4319,7 @@ def create_MLP_xplot(event):
 def create_Depth_vs_kHAcum_xplot(event):
     OM = ObjectManager()
     UIM = UIManager()      
-    mwc = Interface.get_main_window_controller()   
+    mwc = interface.get_main_window_controller()   
     
     well_uid = ('well', 0)
 

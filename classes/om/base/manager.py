@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """
 Manager
 =======
@@ -65,41 +64,18 @@ class ObjectManager(GripyManager):
   
     
     def __init__(self):
-        #super().__init__()
         self._types = ObjectManager._types
         self._currentobjectids = ObjectManager._currentobjectids
-        self._parenttidmap = ObjectManager._parenttidmap   
-        
-#        print ('\nObjectManager is initing...')
-#        print ('ObjectManager._data:', ObjectManager._data)
+        self._parenttidmap = ObjectManager._parenttidmap          
         self._data = ObjectManager._data
         self._parentuidmap = ObjectManager._parentuidmap
         self._childrenuidmap = ObjectManager._childrenuidmap
-#        log.debug('ObjectManager new instance was solicitated by {}'.format(str(self._owner)))
-
         self._LOADING_STATE = ObjectManager._LOADING_STATE         
  
     
-    #### Remover isso assim que possivel
-    def print_info(self):
-        print ('\nObjectManager.print_info:')
-        #print (hex(id(ObjectManager)))
-        print ('ObjectManager._data: ', str(ObjectManager._data))
-        #print ('ObjectManager._types: ', ObjectManager._types)
-        #print ('ObjectManager._currentobjectids: ', ObjectManager._currentobjectids)
-        print ('ObjectManager._parentuidmap: ', ObjectManager._parentuidmap)
-        print ('ObjectManager._childrenuidmap: ', ObjectManager._childrenuidmap)
-        #print ('ObjectManager._parenttidmap: ', ObjectManager._parenttidmap)
-        #print ('ObjectManager._MVC_CLASSES: ', ObjectManager._MVC_CLASSES)    
-    ####
 
-
-       
     def _reset(self):
-        # TODO: Resolver DataMask tid 'data_filter'
-    
-        temp_parentuidmap = copy.deepcopy(self._parentuidmap)
-        
+        temp_parentuidmap = copy.deepcopy(self._parentuidmap)        
         for uid, parentuid in temp_parentuidmap.items():
             if parentuid is None and uid[0] != 'data_filter':
                 try:
@@ -211,11 +187,7 @@ class ObjectManager(GripyManager):
         """
         try:
             class_ = self._types[typeid]
-    #        print ('\n\n{}'.format(class_))
-    #        print (typeid, args, kwargs)
             obj = class_(*args, **kwargs)
-    #        objectid = self._getnewobjectid(typeid)
-    #        obj.oid = objectid
             return obj
         except Exception as e:
             msg = 'Error on creating object! [tid={}, args={}, kwargs={}, error={}]'.format(typeid, args, kwargs, e)
@@ -550,7 +522,6 @@ class ObjectManager(GripyManager):
         #
         old_dir = os.getcwd()
         temp_dir = tempfile.mkdtemp(prefix='griPy_')
-        print('\nSaving griPy project at temp directory: {}'.format(temp_dir))
         #
         try:
             os.chdir(temp_dir)
@@ -614,9 +585,7 @@ class ObjectManager(GripyManager):
             os.chdir(old_dir)
             shutil.rmtree(temp_dir)
         #    
-        print ('\npickle_proj_data:', pickle_proj_data)
-        print ()
-        print('\nProjeto {} salvo com sucesso!'.format(archivepath))
+
 
 
     def load(self, archivepath):
@@ -640,7 +609,7 @@ class ObjectManager(GripyManager):
 
         old_dir = os.getcwd()
         temp_dir = tempfile.mkdtemp(prefix='griPy_')
-        print('\nLoading griPy project at temp directory: {}'.format(temp_dir))
+
         #
         try:
             os.chdir(temp_dir)
@@ -654,24 +623,14 @@ class ObjectManager(GripyManager):
             pickle_proj_data = pickle.load(picklefile)
             picklefile.close()
             #
-#            print ('\npickle_proj_data:', pickle_proj_data)
-            
-#            print('\n\n_PROJ_NAME:', pickle_proj_data['_PROJ_NAME'])
-            
-#            print('\n\nBEFORE:', pickle_proj_data['_OM_OBJECTS_UIDS'])
             while pickle_proj_data['_OM_OBJECTS_UIDS']:
                 self._load_objects(pickle_proj_data['_OM_OBJECTS_UIDS'])
-#            print('AFTER:', pickle_proj_data['_OM_OBJECTS_UIDS'], '\n\n')
-            
-            
         except Exception as e:
             print('\n\n\nERROR OM.load:', e)            
         finally:
             os.chdir(old_dir)
             shutil.rmtree(temp_dir)
-        
-        
-        #self._LOADING_STATE = False
+
         self.unset_loading_state()
         
         return True        
@@ -697,10 +656,7 @@ class ObjectManager(GripyManager):
         # Load the object state from a pickle file
         picklefilename =  str_idx + ".pkl"
         
-        #if starts_with_uid == ('data_index_map', 1):
-        #    print()
-        #    print(7)
-        
+
         with open(picklefilename, 'rb') as picklefile:
             pickle_obj_state = pickle.load(picklefile)
         #
@@ -711,15 +667,14 @@ class ObjectManager(GripyManager):
             # Check for attributes keys stored in a NPZs file.
             if isinstance(value, str) and value.startswith(self._NPZIDENTIFIER):
                 npz_dict[key] = value.lstrip(self._NPZIDENTIFIER)
-#                print('NPZ NAME FOUND:', value)
-            
+           
         #
         if npz_dict:
             # Then, retrive attributes keys stored in a NPZs file.      
             npzfilename =  str_idx + ".npz"
             with open(npzfilename, 'rb') as npzfile:
                 npzdata = np.lib.npyio.NpzFile(npzfile, allow_pickle=False)
-#               print('NPZ DATA:', npzdata.files, type(npzdata))
+
                 # And give then back to the object state
                 for key, value in npz_dict.items():
                     pickle_obj_state[key] = npzdata[value]
@@ -780,141 +735,5 @@ class ObjectManager(GripyManager):
                 return tid
         return None
         
-
-
-
-        
-        
-        """
-                for uid, objdict in pickledata.items():
-            
-            print ('\n{}: {}'.format(uid, objdict))
-            
-            tid = uid[0]
-            for key, value in objdict.items():
-                if isinstance(value, str) and value.startswith(self._NPZIDENTIFIER):
-                    objdict[key] = npzdata[value.lstrip(self._NPZIDENTIFIER)]
-                    
-            print ()
-            print (tid, objdict)
-            
-            try:
-                obj = self.new(tid, oid=uid[1], **objdict)
-#                newuidsmap[olduid] = obj.uid
-#                self.add(obj, newuidsmap.get(parentuidmap[olduid]))
-            except Exception as e:
-                print (e)
-                raise 
-        """        
-    
-    
-        """
-        try:
-            
-            print ('\n\nObjectManager.load')
-            
-            try:
-                ObjectManager._on_load = True
-                dirname, filename = os.path.split(archivepath)
-                picklefilename = filename.rsplit('.', 1)[0] + ".pkl"
-                npzfilename = filename.rsplit('.', 1)[0] + ".npz"
-                
-                try:
-                    archivefile = zipfile.ZipFile(archivepath, mode='r')
-                    print ('A')
-                    archivefile.extract(picklefilename, path=dirname)
-                    print ('B')
-                    archivefile.extract(npzfilename, path=dirname)
-                    print ('C')
-                except Exception as e:    
-                    print ('Error 000:', e)  
-                    raise
-                finally:
-                    archivefile.close()
-                print ('D')
-                picklefile = open(os.path.join(dirname, picklefilename), 'rb')
-                pickledict = pickle.load(picklefile)
-                picklefile.close()
-                
-                print ('E')
-                npzfile = open(os.path.join(dirname, npzfilename), 'rb')
-                print ('G')
-                npzdata = np.load(npzfile)
-                print ('h')
-                pickledata = pickledict['data']
-                parentuidmap = pickledict['parentmap']
-                
-                newuidsmap = {}
-                
-                print ('parte 001 OK')   
-                
-            except Exception as e:
-                print ('Error 001:', e)   
-                raise
-            
-            print ()
-            
-            for olduid, objdict in pickledata.items():
-                try:
-                    tid = olduid[0]
-                    # Obtendo o state dict do objeto
-                    for key, value in objdict.items():
-                        if isinstance(value, str) and value.startswith(self._NPZIDENTIFIER):
-                            objdict[key] = npzdata[value.lstrip(self._NPZIDENTIFIER)]    
-                    # TODO: melhorar isso abaixo
-                    # A ideia e que a segunda opcao (except) venha a substituir a primeira
-                    print ('\ntentando criar:', tid, objdict)
-                    obj = self.new(tid, **objdict)
-                    print ('Ok')
-                except Exception as e:
-                    print ('Error', e)
-                    try:
-                        print ('tentando de novo',)
-                        obj = self.create_object_from_state(tid, **objdict)
-                        print ('Ok')
-                    except:
-                        print ('Error')
-                        print ('ERROR [ObjectManager.load]: Could not create object for tid={} with given state: {}'.format(tid, objdict))
-                        continue
-                #try:
-                    #print 'A:', olduid, obj.uid
-                newuidsmap[olduid] = obj.uid
-                #print 'B:', parentuidmap[olduid]
-                parent_uid = newuidsmap.get(parentuidmap[olduid])
-                #print 'Trying to add object:', obj, 'to parent:', parent_uid
-                self.add(obj, parent_uid)
-                    #    print 'Added', obj.uid, 'for', parent_uid
-                    #else:
-                    #    print 'Nao foi added'
-                #except Exception as e:
-                #    print 'S-ERROR:', e
-                #    pass
-            npzfile.close()
-            
-            os.remove(os.path.join(dirname, picklefilename))
-            os.remove(os.path.join(dirname, npzfilename))
-            ObjectManager._on_load = False
-            return True
-        except Exception as e:
-            print ('ERROR [ObjectManager.load]:', e)
-            try:
-                archivefile.close()
-                picklefile.close()
-                npzfile.close()
-            
-                os.remove(os.path.join(dirname, picklefilename))
-                os.remove(os.path.join(dirname, npzfilename))
-                ObjectManager._on_load = False 
-                ObjectManager._set_empty()
-                
-            except:
-                pass
-            return False
-        
-        """
-        
-        
-
-        
-        
+ 
         

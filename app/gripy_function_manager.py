@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 
 from six import add_metaclass
 
@@ -65,70 +64,9 @@ class FunctionManager(object):
 
     @classmethod
     def functions_available_for_class(cls, class_):
-        #print '\n\nfunctions_available_for_class:', str(class_)
         try:
             return [cls._registered.get(f) for f in cls._with_classes[class_]]
         except KeyError:
-            #print 'ERROR:'
-            #print cls._with_classes
             return []
                 
-"""                
-class Base(object):
-    def __init__(self, value):
-        self.valor = value
-        
-class A(Base):
-    tid = 'tid_A'
-    pass
-
-class B(Base):  
-    tid = 'tid_B'      
-    pass
-    
-class C(Base): 
-    tid = 'tid_C'       
-    pass                
-        
-        
-def ab2(*args, **kwargs):
-    print '\nentrou ab'
-    print args, kwargs
-    print a.valor + b.valor
-    print 'saiu ab'    
-    
-    
-def ab(*args, **kwargs):
-    print '\nentrou ab'
-    print args, kwargs
-    print a.valor + b.valor
-    print 'saiu ab'    
-    
-    
-def ac(*args, **kwargs):
-    print '\nentrou ab'
-    print args, kwargs
-    print args[0].valor + args[1].valor
-    print 'saiu ab'  
-    
-    
-FunctionManager.register_function(ab, 'Soma Normal', A, B, a=A)
-FunctionManager.register_function(ab2, 'Soma Especial', A)
-FunctionManager.register_function(ac, 'Soma em Testes', A, C)
-a = A(4)
-b = B(5)
-c = C(9)
-#FunctionManager.ab(a, b, a=a)           
-
-
-for f in FunctionManager.functions_available_for_class(B):
-    print 
-    print 'function name:', f['name']
-    print 'function friendy name:', f['friendly_name']
-    print 'function:', f['function']
-    print 'args:', f['args']
-    print 'kwargs:', f['kwargs']        
-        
-    #if f['name'] == 'ab':
-    #    f['function']()
-"""    
+ 

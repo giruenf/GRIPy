@@ -200,7 +200,7 @@
             "Caliper": 0
         },
         "cali": {
-            "Caliper": 7
+            "Caliper": 9
         },
         "caliper": {
             "Caliper": 0
@@ -305,7 +305,7 @@
             "ShalRes": 0
         },
         "dt": {
-            "Sonic": 1
+            "Sonic": 3
         },
         "dt-p": {
             "Sonic": 0
@@ -341,7 +341,7 @@
             "Sonic": 0
         },
         "dts": {
-            "ShearSonic": 0
+            "ShearSonic": 2
         },
         "dtsm": {
             "ShearSonic": 0
@@ -416,7 +416,7 @@
             "GammaRay": 0
         },
         "gr": {
-            "GammaRay": 8
+            "GammaRay": 10
         },
         "gram": {
             "GammaRay": 0
@@ -593,7 +593,7 @@
             "Lithology": 2
         },
         "lld": {
-            "DeepRes": 0
+            "DeepRes": 2
         },
         "lldc": {
             "DeepRes": 0
@@ -689,7 +689,7 @@
             "Neutron": 0
         },
         "nphi": {
-            "Neutron": 1
+            "Neutron": 3
         },
         "nplc": {
             "Neutron": 0
@@ -764,7 +764,7 @@
             "CorePhi": 0
         },
         "phie": {
-            "Phi": 0
+            "Phi": 2
         },
         "phit": {
             "PhiT": 0
@@ -851,7 +851,7 @@
             "Density": 0
         },
         "rhob": {
-            "Density": 8
+            "Density": 10
         },
         "rhoc": {
             "Density": 0
@@ -1151,10 +1151,12 @@
             "Tension": 0
         },
         "tvd": {
-            "Depth": 0
+            "Depth": 0,
+            "TVD": 1
         },
         "tvdss": {
-            "Depth": 0
+            "Depth": 0,
+            "TVDSS": 1
         },
         "tvt": {
             "Depth": 0
@@ -1214,10 +1216,10 @@
             "Velocity": 0
         },
         "vp": {
-            "Velocity": 5
+            "Velocity": 7
         },
         "vs": {
-            "ShearVel": 5
+            "ShearVel": 7
         },
         "vsalt": {
             "Vsalt": 0
