@@ -37,8 +37,9 @@ Versão 0.8.beta:
   Com isso, optou-se em reformular a forma de save e load. Agora sao gerados pastas temporarias onde para cada objeto sao criados um arquivo
   pickle e um arquivo npz (se necessario). As informacoes gerais do projeto griPy sao salvas em um arquivo pickle de nome project.dat.
   Por fim, todos arquivos sao salvos em um ZipFile com a tradicional extensao .pgg, na pasta informada pelo usuario.
-- Redefinição na forma de se exibir as propriedades dos objetos. O metodo _get_pg_properties_dict de cada classe
-  fornecerá os dados a serem utilizados para popular o PropertyGridController.
+- Redefinição na forma de se exibir as propriedades dos objetos. O metodo _get_pg_properties de cada classe
+  fornecerá os dados a serem utilizados para popular o PropertyGridController. Por sua vez, o metodo _get_pg_categories
+  é capaz de fornecer as categorias nas quais as propriedades serão inseridas.
 - Foi criada uma nova classe de Dialog (ObjectPropertiesDialogController) para exibir as propriedades de qualquer objeto griPy.  
 - Insercao das propriedades do WellPlot na janela de edicao 'WellPlotEditor'
 - O DebugConsole foi integrado ao sistema (M)VC e passou a se chamar ConsoleController.
@@ -51,6 +52,7 @@ Versão 0.8.beta:
   tela/sistema. Neste momento os arquivos ODF ainda nao foram migrados para este
   sistema de loading. A localização desta nova feature foi alterada para o Menu
   Well, opcao Import Well.
+- Well Plot Editor foi migrado para o sistema padrão de janelas Gripy.
    
   
 Versão 0.7:
