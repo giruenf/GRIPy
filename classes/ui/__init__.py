@@ -36,6 +36,11 @@ from .cross_plotter import CrossPlotController, CrossPlot
 #
 from . import interface
 #
+from . import ImportSelector
+from . import ExportSelector
+from . import ODTEditor
+from . import RockTableEditor
+#
 
 from .extras import SelectablePanelMixin
 from .dialog_obj_props import ObjectPropertiesDialogController, \
@@ -67,4 +72,5 @@ from .canvas_base import CanvasBaseController, CanvasBaseView
 from .canvas_plotter import CanvasPlotterController, CanvasPlotter                
 from .canvas_track import TrackCanvasController, TrackCanvas   
 from .track_label import TrackLabelController, TrackLabel
+
 

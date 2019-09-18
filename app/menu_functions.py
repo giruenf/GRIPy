@@ -21,14 +21,15 @@ from basic.parms import ParametersManager
 from fileio.lis import LISFile
 from fileio.dlis import DLISFile
 
-from  ui import ImportSelector
-from  ui import ExportSelector
-from  ui import ODTEditor
 
-from  ui import RockTableEditor
 
 from classes.ui import UIManager
 from classes.ui import interface
+
+from classes.ui import ImportSelector
+from classes.ui import ExportSelector
+from classes.ui import ODTEditor
+from classes.ui import RockTableEditor
 
 from app.app_utils import GripyIcon
 

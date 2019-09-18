@@ -110,7 +110,7 @@ class CrossPlot(WorkPage):
 
     def _OnEditFormat(self, event): 
         cpc = self.get_canvas_plotter_controller()
-        Interface.create_properties_dialog(cpc.uid, size=(600, 600))
+        interface.create_properties_dialog(cpc.uid, size=(600, 600))
 
     def _on_change_tool(self, event): 
         if event.GetId() == CP_NORMAL_TOOL:
