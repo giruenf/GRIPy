@@ -891,7 +891,7 @@ class TrackView(UIViewObject):
         UIM = UIManager()
         toc = UIM.get(args[0])    
         repr_ctrl = toc.get_representation()
-        Interface.create_properties_dialog(repr_ctrl.uid)
+        interface.create_properties_dialog(repr_ctrl.uid)
         
         
     def _delete_object_helper(self, *args, **kwargs):
