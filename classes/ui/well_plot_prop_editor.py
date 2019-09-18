@@ -1,6 +1,4 @@
-# -*- coding: utf-8 -*-
 
-import sys
 from collections import OrderedDict
 
 import wx
@@ -18,24 +16,30 @@ from classes.ui import TextChoiceRenderer
 from classes.ui import TrackController    
 from classes.ui import TrackObjectController
 #
+from classes.ui import FrameController
+from classes.ui import Frame
+#
 import app.pubsub as pub   
-from app.app_utils import parse_string_to_uid
 from app import log
 
 
 
 
-class WellPlotEditorController(UIControllerObject):
+
+
+class WellPlotEditorController(FrameController):
     tid = 'well_plot_editor_controller'
      
     def __init__(self, **state):
         super().__init__(**state)
-        class_full_name = str(self.__class__.__module__) + '.' + str(self.__class__.__name__)    
-        log.debug('Successfully created Controller object from class: {}.'.format(class_full_name))
+        state['title'] = 'Well Plot Editor'
+        state['size'] = (950, 600)
+        super().__init__(**state)
 
 
     def PostInit(self):
         UIM = UIManager()
+        #
         UIM.create('lpe_wellplot_panel_controller', self.uid)
         UIM.create('lpe_track_panel_controller', self.uid)
         UIM.create('lpe_objects_panel_controller', self.uid)
@@ -48,6 +52,9 @@ class WellPlotEditorController(UIControllerObject):
             track.subscribe(self._on_change_prop, 'change')
             for toc in UIM.list('track_object_controller', track.uid):
                 toc.subscribe(self._on_change_prop, 'change')
+        
+        wellplot_ctrl = UIM.get(wellplot_ctrl_uid)
+        self.title += ': ' + wellplot_ctrl.title.split(':')[1].strip()
         
     
     def PreDelete(self):
@@ -164,17 +171,13 @@ class WellPlotEditorController(UIControllerObject):
           
 
 
-class WellPlotEditor(UIViewObject, wx.Frame):
+class WellPlotEditor(Frame):
     tid = 'well_plot_editor'
 
     def __init__(self, controller_uid):
-        UIViewObject.__init__(self, controller_uid)
-        wx.Frame.__init__(self, None, -1, title='WellPlotEditor',
-                                          size=(950, 600),
-                                          style=wx.DEFAULT_FRAME_STYLE & 
-                                          (~wx.RESIZE_BORDER) &(~wx.MAXIMIZE_BOX)
-        )   
-
+        super().__init__(controller_uid)
+        
+        #self.status_bar = self.CreateStatusBar()
 
         main_sizer = wx.BoxSizer(wx.VERTICAL)  
         self.base_panel = wx.Panel(self)
@@ -182,31 +185,7 @@ class WellPlotEditor(UIViewObject, wx.Frame):
         bsizer = wx.BoxSizer(wx.HORIZONTAL)
         bsizer.Add(self.note, 1, wx.ALL|wx.EXPAND, border=5)        
         self.base_panel.SetSizer(bsizer)
-                
-        #UIM = UIManager()
-        #UIM.create('lpe_track_panel_controller', self.uid)
-        #parent_controller_uid = UIM._getparentuid(self._controller_uid)        
-        
-        '''
-        tracks_base_panel = wx.Panel(note, style=wx.SIMPLE_BORDER)
-        sizer_grid_panel = wx.BoxSizer(wx.VERTICAL)
-        self.tracks_model = TracksModel(parent_controller_uid)
-        tp = TracksPanel(tracks_base_panel, self.tracks_model)
-        sizer_grid_panel.Add(tp, 1, wx.EXPAND|wx.ALL, border=10)
-        tracks_base_panel.SetSizer(sizer_grid_panel)
-        note.AddPage(tracks_base_panel, "Tracks", True)
-        '''
-        
-        '''
-        curves_base_panel = wx.Panel(note, style=wx.SIMPLE_BORDER)
-        sizer_curves_panel = wx.BoxSizer(wx.VERTICAL)
-        self.curves_model = CurvesModel(parent_controller_uid)
-        cp = TrackObjectsPanel(curves_base_panel, self.curves_model)
-        sizer_curves_panel.Add(cp, 1, wx.EXPAND|wx.ALL, border=10)
-        curves_base_panel.SetSizer(sizer_curves_panel)
-        note.AddPage(curves_base_panel, "Objects", True)
-        '''
-        
+                        
         main_sizer.Add(self.base_panel, 1, wx.EXPAND)
         bottom_panel = wx.Panel(self)
         sizer = wx.BoxSizer(wx.VERTICAL)
@@ -220,6 +199,7 @@ class WellPlotEditor(UIViewObject, wx.Frame):
         log.debug('Successfully created View object from class: {}.'.format(class_full_name))
         self.Bind(wx.EVT_CLOSE, self.on_close) 
          
+        
     def on_close(self, event):
         event.Skip()
         UIM = UIManager()

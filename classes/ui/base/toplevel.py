@@ -525,13 +525,12 @@ class TopLevel(UIViewObject):
         controller.subscribe(self._set_maximized, 'change.maximized')
         controller.subscribe(self._set_size, 'change.size')
         controller.subscribe(self._set_position, 'change.pos')
+        controller.subscribe(self._set_title, 'change.title')
         #
         # TODO: try to remove _flag using new GripyObject style
         # little hack - on_size
 #        self._flag = False
         
-        
- 
     def on_maximize(self, event):
         UIM = UIManager()
         controller = UIM.get(self._controller_uid)
@@ -563,6 +562,9 @@ class TopLevel(UIViewObject):
         self.Unbind(wx.EVT_MOVE, handler=self.on_move) 
         self.SetPosition(new_value)
         self.Bind(wx.EVT_MOVE, self.on_move)  
+
+    def _set_title(self, new_value, old_value):
+        self.SetTitle(new_value)
 
 
 # Containers 

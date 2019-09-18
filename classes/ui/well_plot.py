@@ -204,6 +204,7 @@ class WellPlotController(WorkPageController):
             for track in selected_tracks:
                 track.selected = False
                     
+                
     def _reload_ylims_from_index_type(self):
         """
         Given a y axis datatype (e.g. MD), reload its limits.

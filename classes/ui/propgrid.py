@@ -1,28 +1,14 @@
-# -*- coding: utf-8 -*-
-
 from collections import OrderedDict, Sequence
 
 import wx
 import wx.propgrid as pg 
-from wx.adv import OwnerDrawnComboBox 
+import matplotlib.colors as mcolors
 
-from classes.om import ObjectManager
 from classes.ui import UIManager
 from classes.ui import UIControllerObject 
 from classes.ui import UIViewObject                                  
 import app.pubsub as pub
 from app.app_utils import MPL_COLORS, MPL_COLORMAPS
-
-import matplotlib.colors as mcolors
-
-from classes.ui import FrameController
-from classes.ui import Frame
-
-from pubsub.core.topicexc import MessageDataSpecError
-
-
-###############################################################################
-###############################################################################
 
 
 class GripyPgProperty(object):
