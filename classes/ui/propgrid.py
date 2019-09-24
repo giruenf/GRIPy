@@ -49,10 +49,11 @@ class GripyPgProperty(object):
     def ValueToString(self, *args):
         return str(self._get_value())
 
-    def StringToValue(self, variant, text, flag):
+    def StringToValue(self, text, flag=0):
+        variant = self._set_value(text)
         if self._set_value(text):
-            return True
-        return False
+            return True, variant
+        return False, variant
 
 
 
@@ -109,7 +110,7 @@ class EnumProperty(pg.EnumProperty, GripyPgProperty):
             
             GripyPgProperty.__init__(self, obj_uid, obj_attr)
             pg.EnumProperty.__init__(self, label, obj_attr, opt_labels, 
-                                values=list(range(len(opt_labels))), value=0)    
+                                values=list(range(len(opt_labels))), value=0)
 
             self._opt_labels = opt_labels
             self._opt_values = opt_values        
@@ -147,7 +148,7 @@ class EnumProperty(pg.EnumProperty, GripyPgProperty):
         #
 
                
-    def IntToValue(self, variant, int_value, flag):
+    def IntToValue(self, int_value, flag=0):
         """Given a wx.Choice integer index, get its associated value 
         (from opt_values) and set the object attribute with this value.
         
@@ -168,11 +169,11 @@ class EnumProperty(pg.EnumProperty, GripyPgProperty):
 
         opt_value = self._opt_values[int_value]    
         ret_val = self._set_value(opt_value)
-        return ret_val
+        return True, opt_value
         
 
 
-    def ValueToString(self, value, flag):
+    def ValueToString(self, value, flag=0):
         """Get object property value and returns a string associated with it.
         This string will be selected on wx.Choice container.
         

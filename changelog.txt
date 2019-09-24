@@ -1,5 +1,11 @@
 ﻿Gripy Change log - (pt-br only)
-Atualizado em 17/6/2019 por Adriano (@adrianopls)
+Atualizado em 24/09/2019 por Rafael (@rbscardini)
+
+
+Versão 0.9.beta:
+================
+- Correção do bug no Edit Plot que impedia a modificação dos valores encontrados nas propriedades "Scale" e "Visual"
+  de um objeto do tipo Log.
 
 
 Versão 0.8.beta:
