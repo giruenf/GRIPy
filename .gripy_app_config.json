@@ -10,7 +10,7 @@
         "app_name": "GriPy", 
         "class_name": "App.gripy_app.GripyApp", 
         "vendor_display_name": "UENF/LENEP/GIR", 
-        "app_version": "0.8 Beta", 
+        "app_version": "0.9 Beta", 
         "app_display_name": "GriPy 0.8 Beta - Powered with Python 3",
         "app_UI_file": "user_data/.gripy_UI_appdata.json", 
         "user_UI_file": "user_data/.gripy_UI_userdata.json", 
