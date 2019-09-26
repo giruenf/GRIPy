@@ -1,4 +1,3 @@
-#!/usr/bin/python
 # -*- coding: utf-8; tab-width: 4; indent-tabs-mode: t; python-indent: 4 -*-
 
 """
@@ -27,7 +26,7 @@ you to load and activate your plugins. So that the following code
 should get you a fully working plugin management system::
 
    from yapsy.PluginManager import PluginManager
-
+   
    # Build the manager
    simplePluginManager = PluginManager()
    # Tell it the default place(s) where to find plugins
@@ -53,7 +52,7 @@ should get you a fully working plugin management system::
 
 """
 
-__version__="1.10.423"
+__version__="1.12.2"
 
 # tell epydoc that the documentation is in the reStructuredText format
 __docformat__ = "restructuredtext en"
@@ -63,7 +62,6 @@ __docformat__ = "restructuredtext en"
 #log = logging.getLogger('yapsy')
 
 from app import log
-
 # Some constants concerning the plugins
 PLUGIN_NAME_FORBIDEN_STRING=";;"
 """
@@ -76,25 +74,25 @@ import re
 from lib.yapsy.compat import is_py2, str
 
 if is_py2:
-    RE_NON_ALPHANUM = re.compile("\W", re.U)
+	RE_NON_ALPHANUM = re.compile("\W", re.U)
 else:
-    RE_NON_ALPHANUM = re.compile("\W")
+	RE_NON_ALPHANUM = re.compile("\W")
 
 
 def NormalizePluginNameForModuleName(pluginName):
-    """
-    Normalize a plugin name into a safer name for a module name.
-
-    .. note:: may do a little more modifications than strictly
-              necessary and is not optimized for speed.
-    """
-    if is_py2:
-        pluginName = str(pluginName, 'utf-8')
-    if len(pluginName)==0:
-        return "_"
-    if pluginName[0].isdigit():
-        pluginName = "_" + pluginName
-    ret = RE_NON_ALPHANUM.sub("_",pluginName)
-    if is_py2:
-        ret = ret.encode('utf-8')
-    return ret
+	"""
+	Normalize a plugin name into a safer name for a module name.
+	
+	.. note:: may do a little more modifications than strictly
+	          necessary and is not optimized for speed.
+	"""
+	if is_py2:
+		pluginName = str(pluginName, 'utf-8')
+	if len(pluginName)==0:
+		return "_"
+	if pluginName[0].isdigit():
+		pluginName = "_" + pluginName
+	ret = RE_NON_ALPHANUM.sub("_",pluginName)
+	if is_py2:
+		ret = ret.encode('utf-8')
+	return ret

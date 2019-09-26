@@ -1,5 +1,10 @@
 ﻿Gripy Change log - (pt-br only)
-Atualizado em 24/09/2019 por Rafael (@rbscardini)
+Atualizado em 26/09/2019 por Rafael (@rbscardini)
+
+
+Versão 0.9.1.beta:
+================
+- Atualização da lib yapsy para versão 1.12.2
 
 
 Versão 0.9.beta:

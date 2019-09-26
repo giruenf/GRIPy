@@ -1,4 +1,3 @@
-#!/usr/bin/python
 # -*- coding: utf-8; tab-width: 4; indent-tabs-mode: t; python-indent: 4 -*-
 
 
@@ -36,25 +35,22 @@ API
 
 
 class IPlugin(object):
-    """
-    The most simple interface to be inherited when creating a plugin.
-    """
+	"""
+	The most simple interface to be inherited when creating a plugin.
+	"""
 
-    def __init__(self):
-        """
-        Set the basic variables.
-        """
-        self.is_activated = False
+	def __init__(self):
+		self.is_activated = False
 
-    def activate(self):
-        """
-        Called at plugin activation.
-        """
-        self.is_activated = True
+	def activate(self):
+		"""
+		Called at plugin activation.
+		"""
+		self.is_activated = True
 
-    def deactivate(self):
-        """
-        Called when the plugin is disabled.
-        """
-        self.is_activated = False
+	def deactivate(self):
+		"""
+		Called when the plugin is disabled.
+		"""
+		self.is_activated = False
 
