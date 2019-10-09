@@ -7,7 +7,7 @@ O desenvolvimento do software é conduzido por pesquisadores do Grupo de Inferê
 
 
 
-## Requisitos
+## Requisitos (para Windows ou Linux)
 * Python 3.6 (ou maior)
 * NumPy 1.17.2 (ou maior)
 * Matplotlib 3.1.1 (ou maior)
