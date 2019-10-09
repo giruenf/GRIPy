@@ -1,6 +1,4 @@
-# GRIPy
-
-## Geofísica de Reservatório Interativa em Python
+## GriPy: Geofísica de Reservatório Interativa em Python
 
 **GriPy**, acrônimo para Geofísica de Reservatório Interativa em Python, como explicitamente indicado, é um aplicativo escrito em linguagem Python e bibliotecas especialistas, projetado especialmente para a execução de estudos de caracterização e modelagem petrofísica probabilística com integração de dados e informações de rocha-perfil-sísmica.  
 O início de seu desenvolvimento ocorreu em 2013, através de um projeto patrocinado pela PETROBRAS com recursos da cláusula de P&D da Agência Nacional de Petróleo (ANP). O amadurecimento da consolidação da arquitetura do software foi seguido da proposta aprovada pela PETROBRAS de distribuição livre dos módulos básicos do GriPy na modalidade de código aberto (_open source_), com possibilidade de construção de módulos específicos na forma de _plugins_ com acesso aberto ou restrito.  
