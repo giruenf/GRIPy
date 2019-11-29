@@ -1,6 +1,14 @@
 ﻿Gripy Change log - (pt-br only)
-Atualizado em 26/09/2019 por Rafael (@rbscardini)
+Atualizado em 29/11/2019 por Rafael (@rbscardini)
 
+Versão 0.9.2.beta:
+================
+- Correção de inicialização dos plugins, os plugins não apareciam no menu (arq: gripy_app.py)
+- Correção do nome da pasta padrão de plugins (arq: .gripy_app_config.json)
+- Correção de bug que impedia a inicialização do software ao iniciar os plugins (arq: plugins/__init__.py)
+- Criado arquivo "repr_patches.py" para plotar em faixa de cores
+- Criado método estático "get_int_from_log" no arquivo "track_object.py" para manipular log de inteiros,
+  este método retorna um vetor com os códigos de inteiros e uma matriz de boleanos
 
 Versão 0.9.1.beta:
 ================

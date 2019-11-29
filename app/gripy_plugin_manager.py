@@ -22,7 +22,7 @@ class GripyPluginManager(PluginManager):
                                  plugin_info_ext=None, plugin_locator=None):
         if not categories_filter: 
             categories_filter = _CATEGORIES_FILTER                            
-        super(GripyPluginManager, self).__init__(categories_filter, 
+        super().__init__(categories_filter,
                         directories_list, plugin_info_ext, plugin_locator
         )
 
@@ -67,7 +67,7 @@ class GripyPluginManager(PluginManager):
     def getAllDataLoaded(self):
         # TODO: Comments   
         data_loaded = {}
-        for category in super(GripyPluginManager, self).getCategories():
+        for category in super().getCategories():
             files_infos = self._category_file_mapping.get(category)[:]
             plugins_infos = self.category_mapping.get(category)[:]
             category_list = zip(plugins_infos, files_infos)

@@ -53,7 +53,8 @@ from .repr_index import \
     IndexRepresentationController, IndexRepresentationView
 from .repr_density import \
     DensityRepresentationController, DensityRepresentationView
-#    PatchesRepresentationController, PatchesRepresentationView, \
+from .repr_patch import \
+    PatchesRepresentationController, PatchesRepresentationView
 #    ContourfRepresentationController, ContourfRepresentationView        
                   
 from .well_plot_prop_editor import WellPlotEditorController, \

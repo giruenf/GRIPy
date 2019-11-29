@@ -58,14 +58,13 @@ class GripyPluginInfo(PluginInfo):
         _UIM = UIManager()
         menus = _UIM.list('menu_controller')
         for menu in menus:
-            testing_name = menu.model.label
+            testing_name = menu.label
             if testing_name.startswith('&'):
                 testing_name = testing_name[1:]
             if testing_name == menu_name:
                 found = menu
         if found:
-            msg = 'Plugin {} will try insert itself to Menu {}'.format(self.name, found.model.label)
-            print(msg)
+            msg = 'Plugin {} will try insert itself to Menu {}'.format(self.name, found.label)
             log.debug(msg)
 
             menu_item = _UIM.create('menu_item_controller', found.uid, 
@@ -76,7 +75,7 @@ class GripyPluginInfo(PluginInfo):
 
             if menu_item:
                 self._menu_item_uid = menu_item.uid
-            log.debug('Plugin {} was inserted to Menu {}'.format(self.name, found.model.label))
+            log.debug('Plugin {} was inserted to Menu {}'.format(self.name, found.label))
         self.plugin_object.activate()
         log.debug('Activated plugin: {}'.format(self.name))
         
@@ -98,7 +97,7 @@ class GripyPlugin(IPlugin):
     _DEFAULT_PARENT_MENU = 'Plugins'    
     
     def __init__(self):
-        super(GripyPlugin, self).__init__()
+        super().__init__()
         self._parent_menu = GripyPlugin._DEFAULT_PARENT_MENU
         self._modules = []
 

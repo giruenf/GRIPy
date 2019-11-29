@@ -23,7 +23,7 @@
     },
 	"plugins": {
         "plugins_places": [
-			"Plugins", 
+			"plugins",
 			"../Plugins-GIR", 
 			"../Plugins-Petrobras",
 			"../GRIPyPluginsGIR", 

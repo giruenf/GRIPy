@@ -40,7 +40,8 @@ from classes.ui import \
     IndexRepresentationController, IndexRepresentationView
 from classes.ui import \
     DensityRepresentationController, DensityRepresentationView
-#    PatchesRepresentationController, PatchesRepresentationView, \
+from classes.ui import \
+    PatchesRepresentationController, PatchesRepresentationView
 #    ContourfRepresentationController, ContourfRepresentationView        
                   
 from classes.ui import WellPlotEditorController, \
@@ -196,9 +197,9 @@ def register_UIManager_classes():
     UIManager.register_class(DensityRepresentationController, 
                              DensityRepresentationView, TrackObjectController
     )
-#    UIManager.register_class(PatchesRepresentationController,
-#                              PatchesRepresentationView, TrackObjectController
-#    )
+    UIManager.register_class(PatchesRepresentationController,
+                              PatchesRepresentationView, TrackObjectController
+    )
 #    UIManager.register_class(ContourfRepresentationController,  
 #                              ContourfRepresentationView, TrackObjectController
 #    )    

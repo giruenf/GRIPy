@@ -37,7 +37,7 @@ class GripyApp(wx.App):
         if plugins_places:
             plugins_places = [str(place) for place in plugins_places]
         else:
-            plugins_places = ['Plugins']
+            plugins_places = ['plugins']
         self._plugins_state['plugins_places'] = plugins_places   
         self._logging_state = OrderedDict(DEFS.get('logging', dict()))   
         #   
@@ -72,14 +72,18 @@ class GripyApp(wx.App):
         #
         log.info('Starting to register Gripy internal functions...')
         gripy_functions.register_app_functions()
-        log.info('Registering Gripy internal functions ended.') 
+        log.info('Registering Gripy internal functions ended.')
+        #
+        self.load_app_interface()
         #
         log.info('Starting Gripy plugin system...')
+        print("Starting Gripy plugin system...")
         self._init_plugin_system()
-        log.info('Plugin system was initializated.') 
+        log.info('Plugin system was initializated.')
+        print("Plugin system was initializated.")
         #
         
-        self.load_app_interface()
+
          
         return True
 
@@ -102,8 +106,8 @@ class GripyApp(wx.App):
         PM = GripyPluginManagerSingleton.get()
         plugins_places = self._plugins_state.get('plugins_places')
         PM.setPluginPlaces(plugins_places)
-        PM.setPluginPlaces(['Plugins'])
-        ok, exists_previously, error = PM.collectPlugins()   
+        PM.collectPlugins()
+
         
 
     def get_project_filename(self):

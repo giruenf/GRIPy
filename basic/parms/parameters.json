@@ -272,10 +272,10 @@
             "Density": 0
         },
         "dept": {
-            "MD": 4
+            "MD": 16
         },
         "depth": {
-            "MD": 5
+            "MD": 32
         },
         "dev": {
             "Deviation": 0
@@ -305,7 +305,7 @@
             "ShalRes": 0
         },
         "dt": {
-            "Sonic": 3
+            "Sonic": 4
         },
         "dt-p": {
             "Sonic": 0
@@ -341,7 +341,7 @@
             "Sonic": 0
         },
         "dts": {
-            "ShearSonic": 2
+            "ShearSonic": 3
         },
         "dtsm": {
             "ShearSonic": 0
@@ -354,6 +354,12 @@
         },
         "epe": {
             "PEF": 0
+        },
+        "facies": {
+            "Lithology": 16
+        },
+        "facies_teste": {
+            "Lithology": 11
         },
         "febt": {
             "ECD": 0
@@ -416,7 +422,7 @@
             "GammaRay": 0
         },
         "gr": {
-            "GammaRay": 10
+            "GammaRay": 20
         },
         "gram": {
             "GammaRay": 0
@@ -431,7 +437,7 @@
             "GammaRay": 0
         },
         "grco": {
-            "GammaRay": 0
+            "GammaRay": 16
         },
         "grec": {
             "GammaRay": 0
@@ -689,7 +695,7 @@
             "Neutron": 0
         },
         "nphi": {
-            "Neutron": 3
+            "Neutron": 14
         },
         "nplc": {
             "Neutron": 0
@@ -764,7 +770,7 @@
             "CorePhi": 0
         },
         "phie": {
-            "Phi": 2
+            "Phi": 18
         },
         "phit": {
             "PhiT": 0
@@ -851,7 +857,7 @@
             "Density": 0
         },
         "rhob": {
-            "Density": 10
+            "Density": 21
         },
         "rhoc": {
             "Density": 0
@@ -959,7 +965,7 @@
             "ShalRes": 0
         },
         "rt": {
-            "DeepRes": 0
+            "DeepRes": 16
         },
         "rtav": {
             "RotarySpeed": 0
@@ -968,7 +974,7 @@
             "DeepRes": 0
         },
         "rxo": {
-            "MicroRes": 0
+            "MicroRes": 16
         },
         "rxoz": {
             "MicroRes": 0
@@ -1067,7 +1073,7 @@
             "VertStress": 0
         },
         "sw": {
-            "Sw": 0
+            "Sw": 27
         },
         "swb": {
             "Sw": 0
@@ -1152,11 +1158,11 @@
         },
         "tvd": {
             "Depth": 0,
-            "TVD": 1
+            "TVD": 28
         },
         "tvdss": {
             "Depth": 0,
-            "TVDSS": 1
+            "TVDSS": 28
         },
         "tvt": {
             "Depth": 0

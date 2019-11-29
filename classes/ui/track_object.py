@@ -465,5 +465,19 @@ class TrackObjectController(FrameController):
         if equivalent_di is None:
             return None
         slicer = self._get_slicer()
-        return equivalent_di.data[slicer[dim_idx]]   
-        
+        return equivalent_di.data[slicer[dim_idx]]
+
+    @staticmethod
+    def get_int_from_log(logdata, null=-1):
+        if not np.equal(np.mod(logdata[np.isfinite(logdata)], 1), 0).all():
+            print("Não é partição!")
+            return
+        codes = np.unique(logdata)
+        tokeep = np.isfinite(codes) * (codes != null)
+        codes = codes[tokeep]
+
+        booldata = np.zeros((len(codes), len(logdata)), dtype=bool)
+        for j in range(len(codes)):
+            booldata[j][logdata == codes[j]] = True
+
+        return booldata, codes
