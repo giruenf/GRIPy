@@ -1,74 +1,20 @@
-# GRIPy
+## GriPy: Geofísica de Reservatório Interativa em Python
 
-## Geofísica de Reservatório Interativa em Python
+**GriPy**, acrônimo para Geofísica de Reservatório Interativa em Python, como explicitamente indicado, é um aplicativo escrito em linguagem Python e bibliotecas especialistas, projetado especialmente para a execução de estudos de caracterização e modelagem petrofísica probabilística com integração de dados e informações de rocha-perfil-sísmica.  
+O início de seu desenvolvimento ocorreu em 2013, através de um projeto patrocinado pela PETROBRAS com recursos da cláusula de P&D da Agência Nacional de Petróleo (ANP). O amadurecimento da consolidação da arquitetura do software foi seguido da proposta aprovada pela PETROBRAS de distribuição livre dos módulos básicos do GriPy na modalidade de código aberto (_open source_), com possibilidade de construção de módulos específicos na forma de _plugins_ com acesso aberto ou restrito.  
+O software ainda está em estágio precoce de desenvolvimento com poucas funcionalidades para uso prático, sendo disponibilizado apenas para servir como uma plataforma de desenvolvimento de novas funcionalidades e fluxos de trabalho. O objetivo é que em breve teremos todas as funcionalidades básicas, incluindo a manipulação de arquivos (leitura e escrita), visualização (plotagem de perfis, _crossplots_, etc), edição de perfis, cálculo convencional de propriedades petrofísicas, modelagem sísmica em poços e análises de dados petrofísicos em testemunhos.  
+O desenvolvimento do software é conduzido por pesquisadores do Grupo de Inferência de Reservatório [(GIR)](http://www.giruenf.net/) na Universidade Estadual do Norte Fluminense [(UENF)](http://www.uenf.br/).
 
-O **GRIPy** é um software para manipulação de perfis de poço. É desenvolvido pelos pesquisadores [GIR](http://www.giruenf.net/) na [UENF](http://www.uenf.br/).
 
-## Requisitos
-* Python 3.6
-* NumPy 1.8.2
-* Matplotlib 2.2
-* SciPy 0.14.0
-* scikit-learn 0.15.2
-* PyMC 2.3.4
-* wxPython 4.0.0
 
-Sugerimos que utilizem o [Anaconda](https://www.continuum.io/downloads), pois já conta com todas as bibliotecas necessárias (exceto o versão wxPython), assim como com um ambiente de desenvolvimento completo.
+## Requisitos (para Windows ou Linux)
+* Python 3.6 (ou maior)
+* NumPy 1.17.2 (ou maior)
+* Matplotlib 3.1.1 (ou maior)
+* SciPy 1.2.1 (não pode ser maior)
+* scikit-learn 0.21.3 (ou maior)
+* PyMC 3.6 (ou maior) 
+* wxPython 4.0.0 (ou maior)
 
-O wxPython 4.0.x pode ser instalado através de PIP, utilizando o comando
+Uma boa ferramenta para a utilização do software, embora não seja a única, é o [Anaconda](https://www.continuum.io/downloads), pois conta com todas as bibliotecas necessárias (exceto o versão wxPython), assim como com um ambiente de desenvolvimento completo.
 
-    pip install --pre --find-links http://wxpython.org/Phoenix/snapshot-builds/ wxPython
-
-## Instalação com wxPython Phoenix e Python 2.7 no Linux
-
-### Ubuntu 16.04 e 17.04, sem utilizar o conda (ou miniconda)
-
-1. Instalar dependências do wxPython (pode usar um único comando) tomando cuidado para utilizar as versões apropriadas
-
-        sudo apt-get install dpkg-dev
-        sudo apt-get install build-essential
-        sudo apt-get install python2.7-dev
-        sudo apt-get install libwebkitgtk-dev
-        sudo apt-get install libjpeg-dev
-        sudo apt-get install libtiff-dev
-        sudo apt-get install libgtk2.0-dev
-        sudo apt-get install libsdl1.2-dev
-        sudo apt-get install libgstreamer-plugins-base1.0-dev
-        sudo apt-get install libnotify-dev
-        sudo apt-get install freeglut3
-        sudo apt-get install freeglut3-dev
-        sudo apt-get install python-pip
-    
-    > **Observação:** No caso de a biblioteca `libgstreamer-plugins-base1.0-dev` não estar disponível deve-se utilizar a versão `libgstreamer-plugins-base0.10-dev`
-
-2. (**Somente para Ubuntu 17.04**) Baixar libpng12-0 em [https://packages.ubuntu.com/xenial/amd64/libpng12-0/download](https://packages.ubuntu.com/xenial/amd64/libpng12-0/download)
-
-3. (**Somente para Ubuntu 17.04**) Instalar libpng12-0
-
-        sudo dpkg -i nomedoarquivo.deb
-      
-4. Atualizar o pip
-
-        pip install --upgrade pip
-    
-    > **Observação:** Caso algum dos comandos `pip` dê erro deve-se adicionar `sudo -H` ao seu início (por exemplo, `sudo -H pip install ...`)
-
-5. Instalar wxPython 4
-
-        pip install -U --pre -f https://wxpython.org/Phoenix/snapshot-builds/linux/gtk3/ubuntu-16.04 wxPython
-
-6. Instalar outras bibliotecas
-
-        pip install numpy scipy matplotlib enum34
-
-7. Instalar o git (também há a opção de baixar o GRIPy diretamente do [repositório](https://github.com/giruenf/GRIPy) sem instalar o git)
-
-        sudo apt-get install git
-
-8. Clonar repositório do GRIPy
-
-        git clone git://github.com/giruenf/GRIPy.git NOMEDODIRETORIODEDESTINO
-
-9. Pronto! Para rodar o GRIPy basta ir ao diretório em que ele foi isntalado e digitar
-
-        python main.py
