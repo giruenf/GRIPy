@@ -20,18 +20,20 @@ class PatchesRepresentationView(RepresentationView):
 
     def __init__(self, controller_uid):
         super(PatchesRepresentationView, self).__init__(controller_uid)
-        #if self.label:
+        # if self.label:
         #    self.label.set_plot_type('partition')
 
     # def PostInit(self):
     #    self.draw()
 
     """ TODO: Esta função precisa ser implementada corretamente """
+
     def get_data_info(self, event):
         return None
 
     """ TODO: Precisa adicionar as cores automaticamente para os
         respectivos codigos"""
+
     def draw(self):
         if self._mplot_objects:
             self.clear()
@@ -57,7 +59,7 @@ class PatchesRepresentationView(RepresentationView):
 
         toc_uid = UIM._getparentuid(self._controller_uid)
         track_controller_uid = UIM._getparentuid(toc_uid)
-        track_controller =  UIM.get(track_controller_uid)
+        track_controller = UIM.get(track_controller_uid)
         #
         for i, code in enumerate(codes):
             vec = []
@@ -75,14 +77,14 @@ class PatchesRepresentationView(RepresentationView):
 
             patches = []
             for start, end in vec:
-                patch = track_controller.append_artist('Rectangle',  (0.0, start),
-                                    160.0, end-start
-                )
+                patch = track_controller.append_artist('Rectangle', (0.0, start),
+                                                       160.0, end - start
+                                                       )
                 patches.append(patch)
             collection = track_controller.append_artist('PatchCollection',
-                                                         patches,
-                                                         color=COLOR_CYCLE_NAMES[i]
-            )
+                                                        patches,
+                                                        color=COLOR_CYCLE_NAMES[i]
+                                                        )
             print(COLOR_CYCLE_NAMES[i])
             self._set_picking(collection, 0)
             self._mplot_objects[('part', code)] = collection

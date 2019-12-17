@@ -3,17 +3,16 @@ from collections import OrderedDict
 import wx
 from wx.lib.mixins.listctrl import CheckListCtrlMixin, TextEditMixin, \
     ListCtrlAutoWidthMixin, ListRowHighlighter
-    
+
 from classes.ui import DialogController
 from classes.ui import Dialog
-
 
 MEDIUM_GREY = wx.Colour(224, 224, 224)
 
 
 class _LASSectionCtrl(wx.ListCtrl, TextEditMixin, CheckListCtrlMixin,
                       ListCtrlAutoWidthMixin, ListRowHighlighter):
-    
+
     def __init__(self, parent):
         wx.ListCtrl.__init__(self, parent, -1, style=wx.LC_REPORT)
         TextEditMixin.__init__(self)
@@ -22,7 +21,7 @@ class _LASSectionCtrl(wx.ListCtrl, TextEditMixin, CheckListCtrlMixin,
         ListRowHighlighter.__init__(self, color=MEDIUM_GREY, mode=1)
 
         self.index = 0
-        
+
         self.InsertColumn(0, '', width=24)
         self.InsertColumn(1, 'MNEM', width=80)
         self.InsertColumn(2, 'UNIT', width=80)
@@ -39,7 +38,7 @@ class _LASSectionCtrl(wx.ListCtrl, TextEditMixin, CheckListCtrlMixin,
 
     def set_section(self, section):
         for line in section.values():
-            #index = self.InsertStringItem(sys.maxint, '')
+            # index = self.InsertStringItem(sys.maxint, '')
             index = self.InsertItem(self.index, '')
             self.SetItem(index, 1, line["MNEM"])
             self.SetItem(index, 2, line["UNIT"])
@@ -97,7 +96,7 @@ class _LASSectionPanel(wx.Panel):
         return self.section_ctrl.get_section()
 
     def on_add(self, event):
-        #index = self.section_ctrl.InsertStringItem(sys.maxint, '')
+        # index = self.section_ctrl.InsertStringItem(sys.maxint, '')
         index = self.section_ctrl.InsertItem(self.index, '')
         self.section_ctrl.SetStringItem(index, 1, '')
         self.section_ctrl.SetStringItem(index, 2, '')
@@ -162,19 +161,18 @@ class HeaderPanel(wx.Panel):
         return header
 
 
-
 class LASHeaderController(DialogController):
     tid = 'las_header_controller'
-    
+
     def __init__(self, **state):
         super().__init__(**state)
-        self.title='LAS Header file'
+        self.title = 'LAS Header file'
         self.size = (800, 600)
-           
-        
-class LASHeader(Dialog):   
+
+
+class LASHeader(Dialog):
     tid = 'las_header'
-    
+
     def __init__(self, controller_uid):
         super().__init__(controller_uid)
         self.header_panel = HeaderPanel(self.mainpanel)
@@ -183,9 +181,6 @@ class LASHeader(Dialog):
 
     def set_header(self, las_file_header):
         self.header_panel.set_header(las_file_header)
-        
-    def get_results(self):    
-        return self.header_panel.get_header()
 
-       
-        
+    def get_results(self):
+        return self.header_panel.get_header()

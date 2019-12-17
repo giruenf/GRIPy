@@ -13,7 +13,7 @@
 # Copyright (c) 2014 Energistics. 
 
 import os
-import math        
+import math
 import xml.etree.ElementTree as ElementTree
 
 UOM_FILENAME = 'Energistics_Unit_of_Measure_Dictionary_V1.0.xml'
@@ -37,7 +37,7 @@ namespace = {NAMESPACE_KEY: NAMESPACE_VALUE}
 
 class UOM(object):
     _instance = None
-    
+
     def __init__(self, filename=None):
         if self.__class__._instance:
             raise Exception('Cannot create another UOM instance.')
@@ -49,8 +49,8 @@ class UOM(object):
         if filename:
             self._load_XML(filename)
         self.__class__._instance = self
-    
-    @classmethod    
+
+    @classmethod
     def get(cls):
         if not cls._instance:
             UOM()
@@ -62,31 +62,31 @@ class UOM(object):
             raise Exception('Invalid unit from')
         unit_to = self.get_unit(to_unit_symbol)
         if unit_to is None:
-            raise Exception('Invalid unit to')        
+            raise Exception('Invalid unit to')
         if unit_from.dimension != unit_to.dimension:
-            raise Exception('Cannot convert between diferent dimensions.')       
+            raise Exception('Cannot convert between diferent dimensions.')
         units_dimension = self.get_unit_dimension(unit_from.dimension)
         #
-        if units_dimension.baseForConversion == unit_from.symbol: 
+        if units_dimension.baseForConversion == unit_from.symbol:
             base_value = value
-        else:    
-            base_value = (unit_from.A + unit_from.B * value) / (unit_from.C + unit_from.D * value) 
+        else:
+            base_value = (unit_from.A + unit_from.B * value) / (unit_from.C + unit_from.D * value)
         if units_dimension.baseForConversion == unit_to.symbol:
             return base_value
         return (unit_to.A - unit_to.C * base_value) / (unit_to.D * base_value - unit_to.B)
 
     def get_unit_dimension(self, dimension):
         return self._unit_dimensions.get(dimension)
-    
+
     def get_quantity_class(self, name):
-        return self._quantity_classes.get(name)    
-    
+        return self._quantity_classes.get(name)
+
     def get_unit(self, symbol):
         return self._units.get(symbol)
-    
+
     def get_reference(self, ID):
         return self._references.get(ID)
-    
+
     def get_prefix(self, symbol):
         return self._prefixes.get(symbol)
 
@@ -100,11 +100,10 @@ class UOM(object):
         if quantity is None:
             return False
         return unit_symbol in quantity.memberUnit
-            
-        
+
     def _load_XML(self, filename):
         filename = os.path.join(
-                        os.path.dirname(os.path.realpath(__file__)), filename
+            os.path.dirname(os.path.realpath(__file__)), filename
         )
         tree = ElementTree.parse(filename)
         uds = tree.findall(TAG_UNIT_DIMENSION_SET, namespace)[0]
@@ -117,9 +116,9 @@ class UOM(object):
             for attr in ud:
                 key = attr.tag.split('}')[1]
                 if attr.text:
-                    #kv[key] = attr.text.translate(None, '\t\n')
+                    # kv[key] = attr.text.translate(None, '\t\n')
                     kv[key] = attr.text.translate('\t\n')
-            self._unit_dimensions[kv['dimension']] = UnitDimension(**kv) 
+            self._unit_dimensions[kv['dimension']] = UnitDimension(**kv)
         for qc in qcs:
             kv = {}
             member_unit = []
@@ -128,8 +127,8 @@ class UOM(object):
                 if attr.text:
                     if key == 'memberUnit':
                         member_unit.append(attr.text)
-                    else:    
-                        #kv[key] = attr.text.translate(None, '\t\n')
+                    else:
+                        # kv[key] = attr.text.translate(None, '\t\n')
                         kv[key] = attr.text.translate('\t\n')
             qc = QuantityClass(**kv)
             qc.memberUnit = member_unit
@@ -139,30 +138,29 @@ class UOM(object):
             for attr in ref:
                 key = attr.tag.split('}')[1]
                 if attr.text:
-                    #kv[key] = attr.text.translate(None, '\t\n')
+                    # kv[key] = attr.text.translate(None, '\t\n')
                     kv[key] = attr.text.translate('\t\n')
-            self._references[kv['ID']] = Reference(**kv)            
+            self._references[kv['ID']] = Reference(**kv)
         for pref in ps:
             kv = {}
             for attr in pref:
                 key = attr.tag.split('}')[1]
                 if attr.text:
-                    #kv[key] = attr.text.translate(None, '\t\n')
+                    # kv[key] = attr.text.translate(None, '\t\n')
                     kv[key] = attr.text.translate('\t\n')
-            self._prefixes[kv['symbol']] = Prefix(**kv)   
+            self._prefixes[kv['symbol']] = Prefix(**kv)
         for unit in us:
             kv = {}
             for attr in unit:
                 key = attr.tag.split('}')[1]
                 if attr.text:
-                    #kv[key] = attr.text.translate(None, '\t\n')
+                    # kv[key] = attr.text.translate(None, '\t\n')
                     kv[key] = attr.text.translate('\t\n')
-            self._units[kv['symbol']] = Unit(**kv)    
+            self._units[kv['symbol']] = Unit(**kv)
 
-        
 
 class Unit(object):
-    
+
     def __init__(self, **kwargs):
         self.symbol = kwargs.get('symbol')
         self.name = kwargs.get('name')
@@ -173,9 +171,9 @@ class Unit(object):
         self.conversionRef = kwargs.get('conversionRef')
         self.isExact = self._value_parser(kwargs.get('isExact'))
         self.A = self._value_parser(kwargs.get('A'))
-        self.B = self._value_parser(kwargs.get('B'))    
-        self.C = self._value_parser(kwargs.get('C'))   
-        self.D = self._value_parser(kwargs.get('D'))    
+        self.B = self._value_parser(kwargs.get('B'))
+        self.C = self._value_parser(kwargs.get('C'))
+        self.D = self._value_parser(kwargs.get('D'))
         if self.A is None:
             self.A = 0.0
         if self.B is None:
@@ -201,11 +199,11 @@ class Unit(object):
             if value_str == 'PI':
                 return math.pi
             elif value_str == '2*PI':
-                return 2*math.pi
+                return 2 * math.pi
             elif value_str == '4*PI':
-                return 4*math.pi
-            raise            
-        
+                return 4 * math.pi
+            raise
+
     def getstate(self):
         state = {
             'symbol': self.symbol,
@@ -224,83 +222,81 @@ class Unit(object):
             'description': self.description,
             'isBase': self.isBase
         }
-        return state        
+        return state
 
-        
+
 class QuantityClass(object):
-    
-    def __init__(self, **kwargs):    
+
+    def __init__(self, **kwargs):
         self.name = kwargs.get('name')
         self.dimension = kwargs.get('dimension')
         self.baseForConversion = kwargs.get('baseForConversion')
         self.alternativeBase = kwargs.get('name')
         self.memberUnit = []
         self.description = kwargs.get('description')
-        
+
     def getstate(self):
         state = {
-                'name': self.name,
-                'dimension': self.dimension,
-                'baseForConversion': self.baseForConversion,
-                'alternativeBase': self.alternativeBase,
-                'memberUnit': self.memberUnit,
-                'description': self.description
+            'name': self.name,
+            'dimension': self.dimension,
+            'baseForConversion': self.baseForConversion,
+            'alternativeBase': self.alternativeBase,
+            'memberUnit': self.memberUnit,
+            'description': self.description
         }
         return state
-    
-    
+
+
 class UnitDimension(object):
-    
-    def __init__(self, **kwargs):    
+
+    def __init__(self, **kwargs):
         self.name = kwargs.get('name')
         self.dimension = kwargs.get('dimension')
         self.baseForConversion = kwargs.get('baseForConversion')
         self.canonicalUnit = kwargs.get('canonicalUnit')
         self.description = kwargs.get('description')
 
-        
     def getstate(self):
         state = {
-                'name': self.name,
-                'dimension': self.dimension,
-                'baseForConversion': self.baseForConversion,
-                'canonicalUnit': self.canonicalUnit,
-                'description': self.description
+            'name': self.name,
+            'dimension': self.dimension,
+            'baseForConversion': self.baseForConversion,
+            'canonicalUnit': self.canonicalUnit,
+            'description': self.description
         }
         return state
-    
-    
+
+
 class Reference(object):
-    
-    def __init__(self, **kwargs):    
+
+    def __init__(self, **kwargs):
         self.ID = kwargs.get('ID')
         self.description = kwargs.get('description')
 
-        
     def getstate(self):
         state = {
-                'ID': self.ID,
-                'description': self.description
+            'ID': self.ID,
+            'description': self.description
         }
-        return state    
-    
-    
+        return state
+
+
 class Prefix(object):
-    
-    def __init__(self, **kwargs):    
+
+    def __init__(self, **kwargs):
         self.symbol = kwargs.get('symbol')
         self.name = kwargs.get('name')
         self.multiplier = kwargs.get('multiplier')
-        
+
     def getstate(self):
         state = {
-                'symbol': self.symbol,
-                'name': self.name,
-                'multiplier': self.multiplier
+            'symbol': self.symbol,
+            'name': self.name,
+            'multiplier': self.multiplier
         }
-        return state        
-    
-    
+        return state
+
+
 uom = UOM(UOM_FILENAME)
 
 """

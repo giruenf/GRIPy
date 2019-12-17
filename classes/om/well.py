@@ -1,20 +1,20 @@
-
 from collections import OrderedDict
 
 from classes.om import ObjectManager
 from classes.om import OMBaseObject
 
-VALID_Z_AXIS_DATATYPES = [('MD', 'Measured Depth'), 
+VALID_Z_AXIS_DATATYPES = [('MD', 'Measured Depth'),
                           ('TVD', 'True Vertical Depth'),
-                          ('TVDSS', 'True Vertical Depth Subsea'), 
+                          ('TVDSS', 'True Vertical Depth Subsea'),
                           ('TIME', 'One-Way Time'),
                           ('TWT', 'Two-Way Time')
-]
+                          ]
+
 
 class Well(OMBaseObject):
     tid = "well"
     _TID_FRIENDLY_NAME = 'Well'
- 
+
     def __init__(self, **attributes):
         super().__init__(**attributes)
 
@@ -23,7 +23,7 @@ class Well(OMBaseObject):
         existing_csets = OM.list('curve_set', self.uid)
         #
         if curve_set_name:
-            for cset in existing_csets: 
+            for cset in existing_csets:
                 if cset.name == curve_set_name:
                     curve_set_name = None
                     break
@@ -45,15 +45,15 @@ class Well(OMBaseObject):
         
         """
         OM = ObjectManager()
-        z_axis = OrderedDict()    
+        z_axis = OrderedDict()
         data_indexes = OM.list('data_index', self.uid, True)
-        
+
         for z_axis_dt, z_axis_dt_desc in VALID_Z_AXIS_DATATYPES:
             for data_index in data_indexes:
                 if (data_index.datatype == z_axis_dt) and \
-                                            z_axis_dt not in z_axis.values():
-                    z_axis[z_axis_dt] = z_axis_dt_desc      
-        if not inverted:            
+                        z_axis_dt not in z_axis.values():
+                    z_axis[z_axis_dt] = z_axis_dt_desc
+        if not inverted:
             return z_axis
         return OrderedDict(zip(z_axis.values(), z_axis.keys()))
 
@@ -70,45 +70,32 @@ class Well(OMBaseObject):
                 if data_index.start < min_:
                     min_ = data_index.start
                 if data_index.end > max_:
-                    max_ = data_index.end   
+                    max_ = data_index.end
         return (min_, max_)
-        
-        
+
     def get_curve_sets(self):
         OM = ObjectManager()
         curve_sets = OM.list('curve_set', self.uid)
         return curve_sets
 
-    
     def get_data_indexes(self):
         OM = ObjectManager()
         curve_sets = OM.list('curve_set', self.uid)
         ret = OrderedDict()
         for curve_set in curve_sets:
-            dis = OM.list('data_index', curve_set.uid)                 
-            ret[curve_set.uid] = dis     
-        return ret  
+            dis = OM.list('data_index', curve_set.uid)
+            ret[curve_set.uid] = dis
+        return ret
 
-        
     def get_friendly_indexes_dict(self):
         """Used by menu_functions
         """
         OM = ObjectManager()
         ret_od = OrderedDict()
-        indexes_set = self.get_data_indexes()  
+        indexes_set = self.get_data_indexes()
         for curve_set_uid, data_indexes in indexes_set.items():
             curve_set = OM.get(curve_set_uid)
             for data_index in data_indexes:
                 di_friendly_name = data_index.name + '@' + curve_set.name
-                ret_od[di_friendly_name] = data_index.uid 
-        return ret_od        
-                
-        
-        
-        
-        
-        
-        
-        
-        
-        
+                ret_od[di_friendly_name] = data_index.uid
+        return ret_od

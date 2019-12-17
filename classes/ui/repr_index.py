@@ -13,49 +13,49 @@ class IndexRepresentationController(RepresentationController):
 
     _ATTRIBUTES = OrderedDict()
     _ATTRIBUTES['step'] = {
-            'default_value': 100.0,
-            'type': float   
+        'default_value': 100.0,
+        'type': float
     }
     _ATTRIBUTES['pos_x'] = {
-            'default_value': 0.5, 
-            'type': float
+        'default_value': 0.5,
+        'type': float
     }
     _ATTRIBUTES['fontsize'] = {
-            'default_value': 11, 
-            'type': int
+        'default_value': 11,
+        'type': int
     }
     _ATTRIBUTES['color'] = {
-            'default_value': 'Black',
-            'type': str
-    }    
+        'default_value': 'Black',
+        'type': str
+    }
     _ATTRIBUTES['bbox'] = {
-            'default_value': True ,
-            'type': bool
-    }   
+        'default_value': True,
+        'type': bool
+    }
     _ATTRIBUTES['bbox_style'] = {
-            'default_value': 'round', 
-            'type': str
+        'default_value': 'round',
+        'type': str
     }
     _ATTRIBUTES['bbox_color'] = {
-            'default_value': 'White',
-            'type': str
-    }         
+        'default_value': 'White',
+        'type': str
+    }
     _ATTRIBUTES['bbox_alpha'] = {
-            'default_value': 0.5,
-            'type': float    
-    }    
+        'default_value': 0.5,
+        'type': float
+    }
     _ATTRIBUTES['ha'] = {
-            'default_value': 'center',
-            'type': str
-    } 
+        'default_value': 'center',
+        'type': str
+    }
     _ATTRIBUTES['va'] = {
-            'default_value': 'center',
-            'type': str
-    }  
-    
+        'default_value': 'center',
+        'type': str
+    }
+
     def __init__(self, **state):
         super().__init__(**state)
- 
+
     def _get_pg_properties(self):
         """
         """
@@ -63,7 +63,7 @@ class IndexRepresentationController(RepresentationController):
         props['step'] = {
             'pg_property': 'FloatProperty',
             'label': 'Step'
-        } 
+        }
         props['pos_x'] = {
             'pg_property': 'EnumProperty',
             'label': 'Text Horizontal Alignment',
@@ -79,77 +79,78 @@ class IndexRepresentationController(RepresentationController):
         props['color'] = {
             'pg_property': 'MPLColorsProperty',
             'label': 'Text Color'
-        }    
+        }
         props['bbox'] = {
             'pg_property': 'BoolProperty',
             'label': 'Bbox'
-        }   
+        }
         props['bbox_style'] = {
             'pg_property': 'EnumProperty',
             'label': 'Bbox Style',
-            'options_labels': ['Circle', 'DArrow', 'LArrow', 'RArrow', 
-                       'Round', 'Round4', 'Roundtooth', 'Sawtooth',
-                       'Square'
-            ],
+            'options_labels': ['Circle', 'DArrow', 'LArrow', 'RArrow',
+                               'Round', 'Round4', 'Roundtooth', 'Sawtooth',
+                               'Square'
+                               ],
             'options_values': ['circle', 'darrow', 'larrow', 'rarrow',
-                       'round', 'round4', 'roundtooth', 'sawtooth',
-                       'square'
-            ]
+                               'round', 'round4', 'roundtooth', 'sawtooth',
+                               'square'
+                               ]
         }
         props['bbox_color'] = {
             'pg_property': 'MPLColorsProperty',
             'label': 'Bbox Color'
-        }         
+        }
         props['bbox_alpha'] = {
             'pg_property': 'FloatProperty',
-            'label': 'Bbox Alpha'      
-        }    
+            'label': 'Bbox Alpha'
+        }
         props['ha'] = {
             'pg_property': 'EnumProperty',
             'label': 'Horizontal Alignment in the TextBox',
             'options_labels': ['Left', 'Center', 'Right'],
             'options_values': ['left', 'center', 'right']
-        } 
+        }
         props['va'] = {
             'pg_property': 'EnumProperty',
             'label': 'Vertical Alignment in the TextBox',
             'options_labels': ['Top', 'Center', 'Bottom', 'Baseline'],
             'options_values': ['top', 'center', 'bottom', 'baseline']
-        }  
+        }
         return props
-    
+
 
 class IndexRepresentationView(RepresentationView):
     tid = 'index_representation_view'
 
     def __init__(self, controller_uid):
-        super().__init__(controller_uid)        
+        super().__init__(controller_uid)
 
     def PostInit(self):
         UIM = UIManager()
-        controller =  UIM.get(self._controller_uid)
-        controller.subscribe(self._draw, 'change.step')    
-        controller.subscribe(self._draw, 'change.pos_x') 
+        controller = UIM.get(self._controller_uid)
+        controller.subscribe(self._draw, 'change.step')
+        controller.subscribe(self._draw, 'change.pos_x')
         controller.subscribe(self._draw, 'change.ha')
         controller.subscribe(self._draw, 'change.va')
         controller.subscribe(self._draw, 'change.fontsize')
-        controller.subscribe(self._draw, 'change.color') 
+        controller.subscribe(self._draw, 'change.color')
         controller.subscribe(self._draw, 'change.bbox')
         controller.subscribe(self._draw, 'change.bbox_style')
         controller.subscribe(self._draw, 'change.bbox_color')
         controller.subscribe(self._draw, 'change.bbox_alpha')
         controller.subscribe(self._draw, 'change.zorder')
-                  
+
     def _draw(self, new_value, old_value):
         # Bypass function
-       # print '\nIndexRepresentationView._draw (bypass)'
+        # print '\nIndexRepresentationView._draw (bypass)'
         self.draw()
-       # print '\nIndexRepresentationView._draw (bypass) end'
-                
+
+    # print '\nIndexRepresentationView._draw (bypass) end'
+
     def get_data_info(self, event):
-        #ydata = dm.get_last_dimension_index_data()
-        #print('get_data_info:', event.ydata)
-        return None       
+        # ydata = dm.get_last_dimension_index_data()
+        # print('get_data_info:', event.ydata)
+        return None
         """
         OM = ObjectManager()
         UIM = UIManager()
@@ -167,12 +168,12 @@ class IndexRepresentationView(RepresentationView):
         y_pos_index = (np.abs(position_data - event.ydata)).argmin()
         return str(controller._data[y_pos_index])
         """
-           
+
     def draw(self):
         try:
             if self._mplot_objects:
-                self.clear() 
-            self._mplot_objects['text'] = []    
+                self.clear()
+            self._mplot_objects['text'] = []
             UIM = UIManager()
             controller = UIM.get(self._controller_uid)
             toc = self.get_parent_controller()
@@ -196,45 +197,44 @@ class IndexRepresentationView(RepresentationView):
             y_values = np.arange(y_min, y_max, controller.step)   
             '''
             y_min, y_max = np.nanmin(equivalent_ydata), np.nanmax(equivalent_ydata)
-            if y_min%controller.step:
-                y_min = (y_min//controller.step + 1) * controller.step  
-            y_values = np.arange(y_min, y_max, controller.step)               
+            if y_min % controller.step:
+                y_min = (y_min // controller.step + 1) * controller.step
+            y_values = np.arange(y_min, y_max, controller.step)
             #
-#            track_controller_uid = UIM._getparentuid(toc_uid)
-            track_controller = self.get_track_controller()  
+            #            track_controller_uid = UIM._getparentuid(toc_uid)
+            track_controller = self.get_track_controller()
             #
             canvas = self.get_canvas()
-            transformated_pos_x = canvas.transform(controller.pos_x, 0.0, 1.0)         
+            transformated_pos_x = canvas.transform(controller.pos_x, 0.0, 1.0)
             #
-#            print('y_values:', y_values)
-            
+            #            print('y_values:', y_values)
+
             for y_value in y_values:
-#                print('\ny_value:', y_value)
+                #                print('\ny_value:', y_value)
                 y_pos_index = (np.abs(equivalent_ydata - y_value)).argmin()
                 y_pos = ydata[y_pos_index]
-                text = track_controller.append_artist('Text', 
-                                        transformated_pos_x, y_pos,
-                                        "%g"%y_value,
-                                        color=controller.color,
-                                        horizontalalignment=controller.ha,
-                                        verticalalignment=controller.va,
-                                        fontsize=controller.fontsize
-                )                        
+                text = track_controller.append_artist('Text',
+                                                      transformated_pos_x, y_pos,
+                                                      "%g" % y_value,
+                                                      color=controller.color,
+                                                      horizontalalignment=controller.ha,
+                                                      verticalalignment=controller.va,
+                                                      fontsize=controller.fontsize
+                                                      )
                 if controller.bbox:
                     pad = 0.2
                     boxstyle = controller.bbox_style
                     boxstyle += ",pad=%0.2f" % pad
                     text._bbox_patch = FancyBboxPatch(
-                                        (0., 0.),
-                                        1., 1.,
-                                        boxstyle=boxstyle,
-                                        color=controller.bbox_color,
-                                        alpha=controller.bbox_alpha
-                    )                    
-                #text.zorder = controller.zorder
+                        (0., 0.),
+                        1., 1.,
+                        boxstyle=boxstyle,
+                        color=controller.bbox_color,
+                        alpha=controller.bbox_alpha
+                    )
+                    # text.zorder = controller.zorder
                 self._mplot_objects['text'].append(text)
-            self.draw_canvas()   
+            self.draw_canvas()
         except Exception as e:
-            print ('ERROR IndexRepresentationView.draw', e)
+            print('ERROR IndexRepresentationView.draw', e)
             raise
-            

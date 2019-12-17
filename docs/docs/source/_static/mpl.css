@@ -36,11 +36,11 @@ div.highlight-python a:hover {
 }
 
 strong {
-  font-weight: strong;
+    font-weight: strong;
 }
 
 pre {
-    font-family:  Monaco, Menlo, Consolas, 'Courier New', monospace;
+    font-family: Monaco, Menlo, Consolas, 'Courier New', monospace;
     font-size: 0.90em;
     border-bottom-left-radius: 4px;
     border-bottom-right-radius: 4px;
@@ -226,7 +226,7 @@ div.sphinxsidebar {
     width: 210px;
     float: right;
     text-align: left;
-/*    margin-left: -100%; */
+    /*    margin-left: -100%; */
 }
 
 div.sphinxsidebar h4, div.sphinxsidebar h3 {
@@ -313,14 +313,14 @@ h3 {
 }
 
 h1 a, h2 a, h3 a, h4 a, h5 a, h6 a {
-    color: black!important;
+    color: black !important;
 }
 
 h1 a.anchor, h2 a.anchor, h3 a.anchor, h4 a.anchor, h5 a.anchor, h6 a.anchor {
     display: none;
     margin: 0 0 0 0.3em;
     padding: 0 0.2em 0 0.2em;
-    color: #aaa!important;
+    color: #aaa !important;
 }
 
 h1:hover a.anchor, h2:hover a.anchor, h3:hover a.anchor, h4:hover a.anchor,
@@ -396,7 +396,7 @@ div.admonition, div.deprecated {
     margin: 10px 0px;
     padding: 0.7em 1.4em;
     border-left: 5px solid;
-  }
+}
 
 div.note {
     background-color: #eee;
@@ -407,7 +407,7 @@ div.seealso {
     background-color: #EAF1F7;
     border-color: #8EADCC;
     color: #3F5E7F;
-  }
+}
 
 div.warning, div.important {
     background-color: #F3E5E5;
@@ -488,7 +488,7 @@ p.topic-title {
 }
 
 .multicol-toc > li {
-       /* break inside is not yet broadly supported, but we just try */
+    /* break inside is not yet broadly supported, but we just try */
     break-inside: avoid-column;
     -moz-break-inside: avoid-column;
     -webkit-break-inside: avoid-column;
@@ -509,7 +509,6 @@ p.topic-title {
 }
 
 
-
 div.versioninfo {
     margin: 1em 0 0 0;
     border: 1px solid #ccc;
@@ -520,11 +519,11 @@ div.versioninfo {
 }
 
 a.headerlink {
-    color: #c60f0f!important;
+    color: #c60f0f !important;
     font-size: 1em;
     margin-left: 6px;
     padding: 0 4px 0 4px;
-    text-decoration: none!important;
+    text-decoration: none !important;
     visibility: hidden;
 }
 
@@ -540,7 +539,7 @@ dt:hover > a.headerlink {
 
 a.headerlink:hover {
     background-color: #ccc;
-    color: white!important;
+    color: white !important;
 }
 
 table.indextable td {
@@ -677,11 +676,12 @@ dl.class p.rubric + table.docutils td:first-of-type > strong {
     font-size: 12px;
     margin-bottom: 30px;
 }
+
 .longtable.docutils, .longtable.docutils td {
     border-color: #ccc;
 }
 
-.longtable.docutils tr.row-even{
+.longtable.docutils tr.row-even {
     background-color: #eff3f4;
 }
 
@@ -725,6 +725,7 @@ td.field-body table.property-table tr:last-of-type td {
     font-weight: normal;
     font-family: monospace;
 }
+
 .descname {
     font-family: monospace;
 }
@@ -798,6 +799,7 @@ dl.class > dd {
 table.docutils.field-list {
     width: 100%;
 }
+
 .docutils.field-list th.field-name {
     background-color: #eee;
     padding: 10px;
@@ -805,16 +807,19 @@ table.docutils.field-list {
     vertical-align: top;
     width: 125px;
 }
+
 .docutils.field-list td.field-body {
     padding: 10px 10px 10px 20px;
     text-align: left;
     vertical-align: top;
 }
+
 .docutils.field-list td.field-body blockquote p {
     font-size: 13px;
     line-height: 18px;
 }
-.docutils.field-list td.field-body blockquote p ul li{
+
+.docutils.field-list td.field-body blockquote p ul li {
     font-size: 13px;
 }
 
@@ -824,126 +829,131 @@ p.rubric {
     margin: 15px 0 10px 0;
 }
 
-#matplotlib-examples ul li{
-  font-size: large;
+#matplotlib-examples ul li {
+    font-size: large;
 }
 
-#matplotlib-examples ul li ul{
-  margin-bottom:20px;
-  overflow:hidden;
-  border-top:1px solid #ccc;
+#matplotlib-examples ul li ul {
+    margin-bottom: 20px;
+    overflow: hidden;
+    border-top: 1px solid #ccc;
 }
 
 #matplotlib-examples ul li ul li {
-  font-size: small;
-  line-height:1.75em;
-  display:inline;
-  float: left;
-  width: 22em;
+    font-size: small;
+    line-height: 1.75em;
+    display: inline;
+    float: left;
+    width: 22em;
 }
 
-#overview ul li ul{
-  margin-bottom:20px;
-  overflow:hidden;
-  border-top:1px solid #ccc;
+#overview ul li ul {
+    margin-bottom: 20px;
+    overflow: hidden;
+    border-top: 1px solid #ccc;
 }
 
 #overview ul li ul li {
-  display:inline;
-  float: left;
-  width: 30em;
+    display: inline;
+    float: left;
+    width: 30em;
 }
 
 figure {
-  margin: 1em;
-  display: inline-block;
+    margin: 1em;
+    display: inline-block;
 }
 
 figure img {
-  margin-left: auto;
-  margin-right: auto;
+    margin-left: auto;
+    margin-right: auto;
 }
 
 figcaption {
-  text-align: center;
+    text-align: center;
 }
 
 
 /* "Go to released version" message. */
 #unreleased-message {
-  background: #d62728;
-  box-sizing: border-box;
-  color: #fff;
-  font-weight: bold;
-  left: 0;
-  min-height: 3em;
-  padding: 0.7em;
-  position: fixed;
-  top: 0;
-  width: 100%;
-  z-index: 10000;
+    background: #d62728;
+    box-sizing: border-box;
+    color: #fff;
+    font-weight: bold;
+    left: 0;
+    min-height: 3em;
+    padding: 0.7em;
+    position: fixed;
+    top: 0;
+    width: 100%;
+    z-index: 10000;
 }
 
 #unreleased-message + div {
-  margin-top: 3em;
+    margin-top: 3em;
 }
 
 #unreleased-message a {
-  color: #fff;
-  text-decoration:underline;
+    color: #fff;
+    text-decoration: underline;
 }
 
 /* Fork me on GitHub "button" */
-#forkongithub a{
-  background:#FF7F0E;
-  color:#fff !important;
-  text-decoration:none;
-  text-align:center;
-  font-weight:bold;
-  padding:5px 40px;
-  line-height:1.5rem;
-  position:relative;
-  transition:background .25s ease;
+#forkongithub a {
+    background: #FF7F0E;
+    color: #fff !important;
+    text-decoration: none;
+    text-align: center;
+    font-weight: bold;
+    padding: 5px 40px;
+    line-height: 1.5rem;
+    position: relative;
+    transition: background .25s ease;
 }
-#forkongithub a:hover{
-  background:#CA7900;
+
+#forkongithub a:hover {
+    background: #CA7900;
 }
-#forkongithub a::before,#forkongithub a::after{
-  content:"";
-  width:100%;
-  display:block;
-  position:absolute;
-  top:1px;
-  left:0;
-  height:1px;
-  background:#fff;
+
+#forkongithub a::before, #forkongithub a::after {
+    content: "";
+    width: 100%;
+    display: block;
+    position: absolute;
+    top: 1px;
+    left: 0;
+    height: 1px;
+    background: #fff;
 }
-#forkongithub a::after{
-  bottom:1px;
-  top:auto;
+
+#forkongithub a::after {
+    bottom: 1px;
+    top: auto;
 }
-@media screen and (min-width:700px){
-  #forkongithub{
-    position:absolute;
-    top:0;
-    right:0;
-    width:150px;
-    overflow:hidden;
-    height:150px;
-    z-index:9999;
-  }
-  #forkongithub a{
-    width:150px;
-    position:absolute;
-    top:40px;
-    right:-60px;
-    transform:rotate(45deg);
-    -webkit-transform:rotate(45deg);
-    -ms-transform:rotate(45deg);
-    -moz-transform:rotate(45deg);
-    -o-transform:rotate(45deg);
-    box-shadow:4px 4px 10px rgba(0,0,0,0.8);
-  }
+
+@media screen and (min-width: 700px) {
+    #forkongithub {
+        position: absolute;
+        top: 0;
+        right: 0;
+        width: 150px;
+        overflow: hidden;
+        height: 150px;
+        z-index: 9999;
+    }
+
+    #forkongithub a {
+        width: 150px;
+        position: absolute;
+        top: 40px;
+        right: -60px;
+        transform: rotate(45deg);
+        -webkit-transform: rotate(45deg);
+        -ms-transform: rotate(45deg);
+        -moz-transform: rotate(45deg);
+        -o-transform: rotate(45deg);
+        box-shadow: 4px 4px 10px rgba(0, 0, 0, 0.8);
+    }
 }
 
 #sidebar-donations {
@@ -951,20 +961,20 @@ figcaption {
 }
 
 .donate_button {
-    background:#11557C;
-    font-weight:normal;
+    background: #11557C;
+    font-weight: normal;
     clear: both;
     display: block;
-    width:200px;
-    line-height:2.8;
+    width: 200px;
+    line-height: 2.8;
     font-size: 16px;
     text-align: center;
-    cursor:pointer;
-    color:#fff;
+    cursor: pointer;
+    color: #fff;
     text-decoration: none;
     margin: 30px auto 0;
     border-radius: 6px;
-    z-index:1;
+    z-index: 1;
     transition: background .25s ease;
 }
 
@@ -986,18 +996,21 @@ div.responsive_screenshots {
     margin: auto;
 
     /* Do not go beyond 1:1 scale (and ensure a 1x4 tight layout) */
-    max-width: 640px;  /* at most 4 x 1:1 subfig width  */
+    max-width: 640px; /* at most 4 x 1:1 subfig width  */
     max-height: 120px; /* at most 1 x 1:1 subfig height */
 }
 
 /* To avoid subfigure parts outside of the responsive_screenshots  */
 /* element (see: https://stackoverflow.com/questions/2062258/      */
 /* floating-stuff-within-a-div-floats-outside-of-div-why)          */
-span.clear_screenshots { clear: left; display: block; }
+span.clear_screenshots {
+    clear: left;
+    display: block;
+}
 
-div.responsive_subfig{
+div.responsive_subfig {
     float: left;
-    width: 25%;  /* we want 4 subfigs in a row */
+    width: 25%; /* we want 4 subfigs in a row */
 
     /* Include content, padding and border in width. This should */
     /* avoid having to use tricks like "width: 24.9999%"         */
@@ -1010,26 +1023,25 @@ div.responsive_subfig img {
     margin: auto;
 
     /* Possible downscaling */
-    max-width: 162px;  /* at most 1 x 1:1 subfig width  */
+    max-width: 162px; /* at most 1 x 1:1 subfig width  */
     max-height: 139px; /* at most 1 x 1:1 subfig height */
 
     width: 100%;
 }
 
-@media only screen and (max-width: 1000px){
+@media only screen and (max-width: 1000px) {
     /* The value of 1000px was handcrafted to provide a more or less */
     /* smooth transition between the 1x4 and the 2x2 layouts. It is  */
     /* NB: it is slightly below 1024px: so one should still have a   */
     /* row in a 1024x768 window                                      */
-
     div.responsive_screenshots {
         /* Do not go beyond 1:1 scale (and ensure a 2x2 tight layout) */
-        max-width: 324px;  /* at most 2 x 1:1 subfig width  */
+        max-width: 324px; /* at most 2 x 1:1 subfig width  */
         max-height: 278px; /* at most 2 x 1:1 subfig height */
     }
 
     div.responsive_subfig {
-        width: 50%;  /* we want 2 subfigs in a row */
+        width: 50%; /* we want 2 subfigs in a row */
     }
 }
 
@@ -1048,7 +1060,7 @@ div#gallery.section, div#tutorials.section {
     overflow: hidden;
 }
 
-.sphx-glr-multi-img{
+.sphx-glr-multi-img {
     max-width: 99% !important;
 }
 
@@ -1063,17 +1075,17 @@ div.sphx-glr-download {
 }
 
 div.sphx-glr-download a {
-   background-color: #d9edf7 !important;
-   border: 1px solid #bce8f1 !important;
-   background-image: none !important;
+    background-color: #d9edf7 !important;
+    border: 1px solid #bce8f1 !important;
+    background-image: none !important;
 }
 
 p.sphx-glr-signature {
-   display: none !important;
+    display: none !important;
 }
 
 div.sphx-glr-download-link-note {
-   display: none !important;
+    display: none !important;
 }
 
 .sphx-glr-thumbcontainer a.internal {

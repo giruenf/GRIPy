@@ -8,14 +8,13 @@ from classes.ui import TrackObjectController
 
 
 def register_app_functions():
-    FunctionManager.register_function(do_STFT, 
-                                      "Fourier Transform", 
-                                      Log, 
+    FunctionManager.register_function(do_STFT,
+                                      "Fourier Transform",
+                                      Log,
                                       toc=TrackObjectController
-    )
-    FunctionManager.register_function(do_CWT, 
-                                      "Wavelet Transform", 
-                                      Log, 
+                                      )
+    FunctionManager.register_function(do_CWT,
+                                      "Wavelet Transform",
+                                      Log,
                                       toc=TrackObjectController
-    )
-
+                                      )

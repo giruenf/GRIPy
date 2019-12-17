@@ -15,7 +15,7 @@
 import os
 import sys
 
-#sys.path.insert(0, os.path.abspath('E:\\repo\\GRIPy-3'))
+# sys.path.insert(0, os.path.abspath('E:\\repo\\GRIPy-3'))
 sys.path.insert(0, 'E:\\repo\\GRIPy-3')
 sys.setrecursionlimit(1500)
 
@@ -30,7 +30,6 @@ version = ''
 # The full version, including alpha/beta/rc tags
 release = '0.1'
 
-
 # -- General configuration ---------------------------------------------------
 
 # If your documentation needs a minimal Sphinx version, state it here.
@@ -40,7 +39,7 @@ release = '0.1'
 # Add any Sphinx extension module names here, as strings. They can be
 # extensions coming with Sphinx (named 'sphinx.ext.*') or your custom
 # ones.
-#extensions = [
+# extensions = [
 #    'sphinx.ext.autodoc',
 #    'sphinx.ext.doctest',
 #    'sphinx.ext.todo',
@@ -48,7 +47,7 @@ release = '0.1'
 #    'sphinx.ext.viewcode',
 #    'sphinx.ext.githubpages',
 #	'rinoh.frontend.sphinx',
-#]
+# ]
 
 
 extensions = [
@@ -61,16 +60,16 @@ extensions = [
     'IPython.sphinxext.ipython_console_highlighting',
     'IPython.sphinxext.ipython_directive',
     'numpydoc',  # Needs to be loaded *after* autodoc.
-#    'sphinx_gallery.gen_gallery',
-#    'matplotlib.sphinxext.mathmpl',
-#    'matplotlib.sphinxext.plot_directive',
-#    'sphinxext.custom_roles',
-#    'sphinxext.github',
-#    'sphinxext.math_symbol_table',
-#    'sphinxext.mock_gui_toolkits',
-#    'sphinxext.skip_deprecated',
-#    'sphinx_copybutton',
-	'rinoh.frontend.sphinx'
+    #    'sphinx_gallery.gen_gallery',
+    #    'matplotlib.sphinxext.mathmpl',
+    #    'matplotlib.sphinxext.plot_directive',
+    #    'sphinxext.custom_roles',
+    #    'sphinxext.github',
+    #    'sphinxext.math_symbol_table',
+    #    'sphinxext.mock_gui_toolkits',
+    #    'sphinxext.skip_deprecated',
+    #    'sphinx_copybutton',
+    'rinoh.frontend.sphinx'
 ]
 
 # Add any paths that contain templates here, relative to this directory.
@@ -99,7 +98,6 @@ exclude_patterns = []
 
 # The name of the Pygments (syntax highlighting) style to use.
 pygments_style = None
-
 
 # -- Options for HTML output -------------------------------------------------
 
@@ -135,25 +133,24 @@ html_static_path = ['_static']
 # Output file base name for HTML help builder.
 htmlhelp_basename = 'GRIPy-3doc'
 
-
 # -- Options for LaTeX output ------------------------------------------------
 
 latex_elements = {
     # The paper size ('letterpaper' or 'a4paper').
     #
-     'papersize': 'letterpaper',
+    'papersize': 'letterpaper',
 
     # The font size ('10pt', '11pt' or '12pt').
     #
-     'pointsize': '10pt',
+    'pointsize': '10pt',
 
     # Additional stuff for the LaTeX preamble.
     #
-     'preamble': '',
+    'preamble': '',
 
     # Latex figure (float) alignment
     #
-     'figure_align': 'htbp',
+    'figure_align': 'htbp',
 }
 
 # Grouping the document tree into LaTeX files. List of tuples
@@ -164,7 +161,6 @@ latex_documents = [
      'GIR', 'manual'),
 ]
 
-
 # -- Options for manual page output ------------------------------------------
 
 # One entry per manual page. List of tuples
@@ -173,7 +169,6 @@ man_pages = [
     (master_doc, 'gripy-3', 'GRIPy-3 Documentation',
      [author], 1)
 ]
-
 
 # -- Options for Texinfo output ----------------------------------------------
 
@@ -185,7 +180,6 @@ texinfo_documents = [
      author, 'GRIPy-3', 'One line description of project.',
      'Miscellaneous'),
 ]
-
 
 # -- Options for Epub output -------------------------------------------------
 
@@ -203,7 +197,6 @@ epub_title = project
 
 # A list of files that should not be packed into the epub file.
 epub_exclude_files = ['search.html']
-
 
 # -- Extension configuration -------------------------------------------------
 

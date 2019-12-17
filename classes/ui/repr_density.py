@@ -4,89 +4,87 @@ from functools import reduce
 import numpy as np
 import matplotlib.collections as mcoll
 import matplotlib.mlab as mlab
-import matplotlib.cbook as cbook 
+import matplotlib.cbook as cbook
 
 from classes.om import ObjectManager
 from classes.ui import UIManager
 from classes.ui import RepresentationController
 from classes.ui import RepresentationView
 from app.app_utils import MPL_COLORMAPS
-  
-  
+
+
 class DensityRepresentationController(RepresentationController):
     tid = 'density_representation_controller'
 
     _ATTRIBUTES = OrderedDict()
     _ATTRIBUTES['type'] = {
-            'default_value': 'wiggle', #'density', 
-            'type': str
-    }    
+        'default_value': 'wiggle',  # 'density', 
+        'type': str
+    }
     _ATTRIBUTES['colormap'] = {
-            'default_value': 'Spectral_r', #'gray',
-            'type': str
-    }   
+        'default_value': 'Spectral_r',  # 'gray',
+        'type': str
+    }
     _ATTRIBUTES['interpolation'] = {
-            'default_value': 'bicubic', #'none', #'bilinear',
-            'type': str
-    }       
+        'default_value': 'bicubic',  # 'none', #'bilinear',
+        'type': str
+    }
     _ATTRIBUTES['min_density'] = {
-            'default_value': None,
-            'type': float  
+        'default_value': None,
+        'type': float
     }
     _ATTRIBUTES['max_density'] = {
-            'default_value': None,
-            'type': float
+        'default_value': None,
+        'type': float
     }
     _ATTRIBUTES['density_alpha'] = {
-            'default_value': 1.0,
-            'type': float
+        'default_value': 1.0,
+        'type': float
     }
     _ATTRIBUTES['linecolor'] = {
-            'default_value': 'Black',
-            'type': str
-    }        
+        'default_value': 'Black',
+        'type': str
+    }
     _ATTRIBUTES['linewidth'] = {
-            'default_value': 0.6, 
-            'type': float
-    }   
+        'default_value': 0.6,
+        'type': float
+    }
     _ATTRIBUTES['min_wiggle'] = {
-            'default_value': None,
-            'type': float
+        'default_value': None,
+        'type': float
     }
     _ATTRIBUTES['max_wiggle'] = {
-            'default_value': None,
-            'type': float
-    }  
+        'default_value': None,
+        'type': float
+    }
     _ATTRIBUTES['wiggle_alpha'] = {
-            'default_value': 0.5,
-            'type': float
-    }    
+        'default_value': 0.5,
+        'type': float
+    }
     _ATTRIBUTES['fill'] = {
-            'default_value': None,
-            'type': str
-    }      
+        'default_value': None,
+        'type': str
+    }
     _ATTRIBUTES['fill_color_left'] = {
-            'default_value': 'Red', 
-            'type': str
-    }       
+        'default_value': 'Red',
+        'type': str
+    }
     _ATTRIBUTES['fill_color_right'] = {
-            'default_value': 'Blue', 
-            'type': str
-    }  
-
+        'default_value': 'Blue',
+        'type': str
+    }
 
     def __init__(self, **state):
         super().__init__(**state)
-        
-    def PostInit(self):    
-        self.subscribe(self.on_change_colormap, 'change.colormap')   
-        self.subscribe(self.on_change_density_alpha, 
-                                                       'change.density_alpha'
-        )
-        self.subscribe(self.on_change_wiggle_alpha, 
-                                                       'change.wiggle_alpha'
-        )
 
+    def PostInit(self):
+        self.subscribe(self.on_change_colormap, 'change.colormap')
+        self.subscribe(self.on_change_density_alpha,
+                       'change.density_alpha'
+                       )
+        self.subscribe(self.on_change_wiggle_alpha,
+                       'change.wiggle_alpha'
+                       )
 
     def _get_pg_properties(self):
         """
@@ -95,9 +93,9 @@ class DensityRepresentationController(RepresentationController):
         props['type'] = {
             'pg_property': 'EnumProperty',
             'label': 'Plot type',
-            'options_labels': ['Density', 'Wiggle', 'Both'],  
+            'options_labels': ['Density', 'Wiggle', 'Both'],
             'options_values': ['density', 'wiggle', 'both']
-        } 
+        }
         props['colormap'] = {
             'pg_property': 'MPLColormapsProperty',
             'label': 'Colormap',
@@ -106,33 +104,33 @@ class DensityRepresentationController(RepresentationController):
             'pg_property': 'EnumProperty',
             'label': 'Colormap interpolation',
             'options_labels': ['none', 'nearest', 'bilinear', 'bicubic',
-                      'spline16', 'spline36', 'hanning', 'hamming',
-                      'hermite', 'kaiser', 'quadric', 'catrom',
-                      'gaussian', 'bessel', 'mitchell', 'sinc',
-                      'lanczos'
-            ]          
+                               'spline16', 'spline36', 'hanning', 'hamming',
+                               'hermite', 'kaiser', 'quadric', 'catrom',
+                               'gaussian', 'bessel', 'mitchell', 'sinc',
+                               'lanczos'
+                               ]
         }
         props['min_density'] = {
             'pg_property': 'FloatProperty',
-            'label': 'Colormap min value'     
+            'label': 'Colormap min value'
         }
         props['max_density'] = {
             'pg_property': 'FloatProperty',
-            'label': 'Colormap max value' 
-        }        
+            'label': 'Colormap max value'
+        }
         props['density_alpha'] = {
             'pg_property': 'FloatProperty',
             'label': 'Colormap alpha'
-        }        
+        }
         props['linecolor'] = {
             'pg_property': 'MPLColorsProperty',
             'label': 'Wiggle line color'
-        }           
+        }
         props['linewidth'] = {
             'pg_property': 'FloatProperty',
             'label': 'Wiggle line width'
-        }   
-        
+        }
+
         props['min_wiggle'] = {
             'pg_property': 'FloatProperty',
             'label': 'Wiggle min value'
@@ -140,79 +138,78 @@ class DensityRepresentationController(RepresentationController):
         props['max_wiggle'] = {
             'pg_property': 'FloatProperty',
             'label': 'Wiggle max value'
-        }          
+        }
         props['wiggle_alpha'] = {
             'pg_property': 'FloatProperty',
             'label': 'Wiggle alpha'
-        }    
+        }
         props['fill'] = {
             'pg_property': 'EnumProperty',
             'label': 'Wiggle fill type',
-            'options_labels': ['None', 'Left', 'Right', 'Both'],  
+            'options_labels': ['None', 'Left', 'Right', 'Both'],
             'options_values': [None, 'left', 'right', 'both']
-        }      
+        }
         props['fill_color_left'] = {
             'pg_property': 'MPLColorsProperty',
             'label': 'Wiggle left fill color'
-        }       
+        }
         props['fill_color_right'] = {
             'pg_property': 'MPLColorsProperty',
             'label': 'Wiggle right fill color'
-        }  
+        }
         return props
 
-
-    def on_change_density_alpha(self, new_value, old_value):    
+    def on_change_density_alpha(self, new_value, old_value):
         if new_value >= 0.0 and new_value <= 1.0:
             self.view.set_density_alpha(new_value)
         else:
             self.set_value_from_event('density_alpha', old_value)
-            
-    def on_change_wiggle_alpha(self, new_value, old_value):      
+
+    def on_change_wiggle_alpha(self, new_value, old_value):
         if new_value >= 0.0 and new_value <= 1.0:
             self.view.set_wiggle_alpha(new_value)
         else:
-            self.set_value_from_event('wiggle_alpha', old_value)   
-    
+            self.set_value_from_event('wiggle_alpha', old_value)
+
     def on_change_colormap(self, new_value, old_value):
         if new_value not in MPL_COLORMAPS:
             msg = 'Invalid colormap. Valid values are: {}'.format(MPL_COLORMAPS)
-            print (msg)
+            print(msg)
             self.set_value_from_event('colormap', old_value)
-        else:    
-            self.view.set_colormap(new_value)     
-            
+        else:
+            self.view.set_colormap(new_value)
+
 
 class DensityRepresentationView(RepresentationView):
     tid = 'density_representation_view'
 
     def __init__(self, controller_uid):
-        super().__init__(controller_uid)   
-         
+        super().__init__(controller_uid)
+
     def PostInit(self):
         UIM = UIManager()
-        controller =  UIM.get(self._controller_uid)
+        controller = UIM.get(self._controller_uid)
         #
         # TODO: Ver um melhor lugar para redefinir a colormap
         tid, _ = controller.get_data_object_uid()
         if tid == 'gather' or tid == 'seismic':
             controller.colormap = 'gray_r'
         #          
-        controller.subscribe(self._draw, 'change.type')    
+        controller.subscribe(self._draw, 'change.type')
         controller.subscribe(self.set_interpolation, 'change.interpolation')
-        controller.subscribe(self._draw, 'change.min_density')   
-        controller.subscribe(self._draw, 'change.max_density')  
-        controller.subscribe(self.set_line_width, 'change.linewidth')   
-        controller.subscribe(self.set_line_color, 'change.linecolor')   
-        controller.subscribe(self.fill_between, 'change.fill') 
+        controller.subscribe(self._draw, 'change.min_density')
+        controller.subscribe(self._draw, 'change.max_density')
+        controller.subscribe(self.set_line_width, 'change.linewidth')
+        controller.subscribe(self.set_line_color, 'change.linecolor')
+        controller.subscribe(self.fill_between, 'change.fill')
         controller.subscribe(self.fill_color_left, 'change.fill_color_left')
         controller.subscribe(self.fill_color_right, 'change.fill_color_right')
-        controller.subscribe(self._draw, 'change.min_wiggle')   
+        controller.subscribe(self._draw, 'change.min_wiggle')
         controller.subscribe(self._draw, 'change.max_wiggle')
 
     def _draw(self, new_value, old_value):
         # Bypass function
-        self.draw()  
+        self.draw()
 
     def set_colormap(self, colormap):
         if self._mplot_objects['density']:
@@ -221,12 +218,12 @@ class DensityRepresentationView(RepresentationView):
             label = toc.get_label()
             if label:
                 label.set_colormap(colormap)
-        self.draw_canvas()       
+        self.draw_canvas()
 
     def set_interpolation(self, new_value, old_value):
         if self._mplot_objects['density']:
             self._mplot_objects['density'].set_interpolation(new_value)
-        self.draw_canvas()                
+        self.draw_canvas()
 
     def set_density_alpha(self, alpha):
         if self._mplot_objects['density']:
@@ -236,7 +233,7 @@ class DensityRepresentationView(RepresentationView):
     def set_wiggle_alpha(self, alpha):
         if len(self._mplot_objects['wiggle']) == 0:
             return
-        for idx in range(0, len(self._mplot_objects['wiggle'])):    
+        for idx in range(0, len(self._mplot_objects['wiggle'])):
             mpl_obj = self._mplot_objects['wiggle'][idx]
             if mpl_obj is not None:
                 mpl_obj.set_alpha(alpha)
@@ -246,27 +243,27 @@ class DensityRepresentationView(RepresentationView):
         for idx_line in range(0, len(self._mplot_objects['wiggle']), 3):
             line = self._mplot_objects['wiggle'][idx_line]
             line.set_color(new_value)
-        self.draw_canvas()   
+        self.draw_canvas()
 
     def set_line_width(self, new_value, old_value):
         for idx_line in range(0, len(self._mplot_objects['wiggle']), 3):
             line = self._mplot_objects['wiggle'][idx_line]
             line.set_linewidth(new_value)
-        self.draw_canvas()    
+        self.draw_canvas()
 
     def fill_color_left(self, new_value, old_value):
         for idx_fill_obj in range(1, len(self._mplot_objects['wiggle']), 3):
             fill_mpl_obj = self._mplot_objects['wiggle'][idx_fill_obj]
             if fill_mpl_obj:
                 fill_mpl_obj.set_color(new_value)
-        self.draw_canvas()        
+        self.draw_canvas()
 
     def fill_color_right(self, new_value, old_value):
         for idx_fill_obj in range(2, len(self._mplot_objects['wiggle']), 3):
             fill_mpl_obj = self._mplot_objects['wiggle'][idx_fill_obj]
             if fill_mpl_obj:
                 fill_mpl_obj.set_color(new_value)
-        self.draw_canvas()   
+        self.draw_canvas()
 
     def get_data_info(self, event):
         """
@@ -277,16 +274,16 @@ class DensityRepresentationView(RepresentationView):
         if image:
             value = image.get_cursor_data(event)
             #
-#            UIM = UIManager()
-#            controller = UIM.get(self._controller_uid)
+            #            UIM = UIManager()
+            #            controller = UIM.get(self._controller_uid)
             toc = self.get_parent_controller()
             x_di_uid, x_index_data = toc.get_index_for_dimension(-2)
             y_di_uid, y_index_data = toc.get_index_for_dimension(-1)
             canvas = self.get_canvas()
-            xvalue = canvas.inverse_transform(event.xdata, 
-                                              x_index_data[0], 
+            xvalue = canvas.inverse_transform(event.xdata,
+                                              x_index_data[0],
                                               x_index_data[-1]
-            )  
+                                              )
             #
             OM = ObjectManager()
             x_data_index = OM.get(x_di_uid)
@@ -296,16 +293,17 @@ class DensityRepresentationView(RepresentationView):
                 return None
             #
             msg = x_data_index.name + ': {:0.2f}'.format(xvalue) + ', ' \
-                        +  y_data_index.name + ': {:0.2f}'.format(event.ydata)
-            msg += ', Value: {:0.2f}'.format(value)  
-            return '[' + msg +  ']'
+                  + y_data_index.name + ': {:0.2f}'.format(event.ydata)
+            msg += ', Value: {:0.2f}'.format(value)
+            return '[' + msg + ']'
         else:
             msg = ''
-            return '[' + msg +  ']'
-#            raise Exception('Tratar get_data_info para Wiggle.')
+            return '[' + msg + ']'
+
+    #            raise Exception('Tratar get_data_info para Wiggle.')
 
     def draw(self):
-        self.clear()    
+        self.clear()
         self._mplot_objects['density'] = None
         self._mplot_objects['wiggle'] = []
         #
@@ -324,160 +322,150 @@ class DensityRepresentationView(RepresentationView):
         canvas = self.get_canvas()
         toc_uid = UIM._getparentuid(self._controller_uid)
         track_controller_uid = UIM._getparentuid(toc_uid)
-        track_controller =  UIM.get(track_controller_uid)
+        track_controller = UIM.get(track_controller_uid)
         #
         xlim_min, xlim_max = canvas.get_xlim('plot_axes')
         #
         if controller.type == 'density' or controller.type == 'both':
             # (left, right, bottom, top)
-            extent = (xlim_min, xlim_max, 
+            extent = (xlim_min, xlim_max,
                       np.nanmax(y_index_data), np.nanmin(y_index_data)
-            )   
+                      )
             try:
                 image = track_controller.append_artist('AxesImage',
-                                        cmap=controller.colormap,
-                                        interpolation=controller.interpolation,
-                                        extent=extent
-                )
+                                                       cmap=controller.colormap,
+                                                       interpolation=controller.interpolation,
+                                                       extent=extent
+                                                       )
                 image.set_data(data.T)
-                image.set_label(self._controller_uid)            
+                image.set_label(self._controller_uid)
                 if image.get_clip_path() is None:
                     # image does not already have clipping set, 
                     # clip to axes patch
-                    image.set_clip_path(image.axes.patch)       
+                    image.set_clip_path(image.axes.patch)
                 if controller.min_density is None:
-                    controller.set_value_from_event('min_density', 
+                    controller.set_value_from_event('min_density',
                                                     np.nanmin(data)
-                    )
-                if controller.max_density is None:    
-                    controller.set_value_from_event('max_density', 
+                                                    )
+                if controller.max_density is None:
+                    controller.set_value_from_event('max_density',
                                                     np.nanmax(data)
-                    )        
-                #        
+                                                    )
+                    #        
                 image.set_clim(controller.min_density, controller.max_density)
                 image.set_alpha(controller.density_alpha)
                 self._mplot_objects['density'] = image
             except Exception as e:
                 print('ERRO density.draw:', e)
-                raise           
+                raise
         else:
             self._mplot_objects['density'] = None
         #
-        if controller.type == 'wiggle' or controller.type == 'both':    
+        if controller.type == 'wiggle' or controller.type == 'both':
             try:
 
                 self._lines_center = []
-                vec = np.arange(0.5, len(x_index_data)) 
-                x_lines_position = canvas.transform(vec, 0.0, len(x_index_data))           
+                vec = np.arange(0.5, len(x_index_data))
+                x_lines_position = canvas.transform(vec, 0.0, len(x_index_data))
                 if len(x_lines_position) > 1:
-                    increment = (x_lines_position[0] + x_lines_position[1])/2.0 
+                    increment = (x_lines_position[0] + x_lines_position[1]) / 2.0
                 elif len(x_lines_position) == 1:
                     increment = 0.5
                 else:
                     msg = 'Error. x_lines_position cannot have lenght 0. Shape: {}'.format(data.shape)
                     raise Exception(msg)
-                
-                
+
                 if controller.min_wiggle == None:
-                    controller.set_value_from_event('min_wiggle', 
-                                    (np.amax(np.absolute(data))) * -1
-                    )  
+                    controller.set_value_from_event('min_wiggle',
+                                                    (np.amax(np.absolute(data))) * -1
+                                                    )
                 if controller.max_wiggle == None:
-                    controller.set_value_from_event('max_wiggle', 
-                                            np.amax(np.absolute(data))
-                    )     
-                data_ = np.where(data<0, data/np.absolute(controller.min_wiggle), data)
-                data_ = np.where(data_>0, data_/controller.max_wiggle, data_)
-                #print('\n\ndata_:', data_)
-                
-                
+                    controller.set_value_from_event('max_wiggle',
+                                                    np.amax(np.absolute(data))
+                                                    )
+                data_ = np.where(data < 0, data / np.absolute(controller.min_wiggle), data)
+                data_ = np.where(data_ > 0, data_ / controller.max_wiggle, data_)
+                # print('\n\ndata_:', data_)
+
                 for idx, pos_x in enumerate(x_lines_position):
-                    
-                    self._lines_center.append(pos_x) 
+                    self._lines_center.append(pos_x)
                     xdata = data_[idx]
                     #  def _transform_xdata_to_wiggledata(self, values, axes_left, axes_right):
-                    
-                    xdata = self._transform_xdata_to_wiggledata(xdata, 
-                                                                pos_x, 
+
+                    xdata = self._transform_xdata_to_wiggledata(xdata,
+                                                                pos_x,
                                                                 increment
-                    )
-                    line = track_controller.append_artist('Line2D', 
-                                                xdata, y_index_data,
-                                                linewidth=controller.linewidth,
-                                                color=controller.linecolor   
-                    )
-                    self._mplot_objects['wiggle'].append(line)   
-                    self._mplot_objects['wiggle'].append(None) # left fill
-                    self._mplot_objects['wiggle'].append(None) # right fill
-                             
+                                                                )
+                    line = track_controller.append_artist('Line2D',
+                                                          xdata, y_index_data,
+                                                          linewidth=controller.linewidth,
+                                                          color=controller.linecolor
+                                                          )
+                    self._mplot_objects['wiggle'].append(line)
+                    self._mplot_objects['wiggle'].append(None)  # left fill
+                    self._mplot_objects['wiggle'].append(None)  # right fill
+
             except Exception as e:
                 print('ERRO wiggle.draw:', e)
                 raise
-                         
 
         #
         label = toc.get_label()
         if label:
             label.set_plot_type(controller.type)
-            if controller.type == 'density': 
+            if controller.type == 'density':
                 label.set_colormap(controller.colormap)
-                label.set_colormap_lim((controller.min_density, 
+                label.set_colormap_lim((controller.min_density,
                                         controller.max_density)
-                )
+                                       )
                 #
                 label.set_ruler(x_index_data[0], x_index_data[-1])
                 label.set_ruler_title(xdata_index.name)
-                label.set_ruler_subtitle(xdata_index.unit)                 
+                label.set_ruler_subtitle(xdata_index.unit)
                 #    
-                
-            elif controller.type == 'wiggle': 
-                label.set_offset(x_index_data, 
-                                     x_lines_position, 
-                                     xlim=(xlim_min, xlim_max)                     
-                )
+
+            elif controller.type == 'wiggle':
+                label.set_offset(x_index_data,
+                                 x_lines_position,
+                                 xlim=(xlim_min, xlim_max)
+                                 )
                 label.set_offset_title(xdata_index.name)
                 label.set_offset_subtitle(xdata_index.unit)
-                
+
             elif controller.type == 'both':
                 label.set_colormap(controller.colormap)
-                label.set_colormap_lim((controller.min_density, 
+                label.set_colormap_lim((controller.min_density,
                                         controller.max_density)
-                )
+                                       )
                 #        
-                label.set_offset(x_index_data, 
-                                     x_lines_position, 
-                                     xlim=(xlim_min, xlim_max)                     
-                )
+                label.set_offset(x_index_data,
+                                 x_lines_position,
+                                 xlim=(xlim_min, xlim_max)
+                                 )
                 label.set_offset_title(xdata_index.name)
-                label.set_offset_subtitle(xdata_index.unit)    
-            #    
-  
+                label.set_offset_subtitle(xdata_index.unit)
+                #    
+
         self.draw_canvas()
         if controller.type == 'wiggle' or controller.type == 'both':
             self.fill_between(controller.fill, None)
-        
-        
-    
+
     # Find a better name
     def _transform_xdata_to_wiggledata(self, values, center_pos, inc):
-        return inc * values + center_pos    
-
+        return inc * values + center_pos
 
     def _remove_fillings(self, type_='both'):
         for idx in range(0, len(self._mplot_objects['wiggle']), 3):
-            left_fill = self._mplot_objects['wiggle'][idx+1]
-            right_fill = self._mplot_objects['wiggle'][idx+2]         
+            left_fill = self._mplot_objects['wiggle'][idx + 1]
+            right_fill = self._mplot_objects['wiggle'][idx + 2]
             if left_fill is not None and type_ in ['left', 'both']:
                 left_fill.remove()
-                self._mplot_objects['wiggle'][idx+1] = None         
+                self._mplot_objects['wiggle'][idx + 1] = None
             if right_fill is not None and type_ in ['right', 'both']:
                 right_fill.remove()
-                self._mplot_objects['wiggle'][idx+2] = None
+                self._mplot_objects['wiggle'][idx + 2] = None
         self.draw_canvas()
-    
-    
-    
-    
+
     def fill_between(self, new_value, old_value):
         if new_value is None and old_value is None:
             return
@@ -485,42 +473,41 @@ class DensityRepresentationView(RepresentationView):
         if old_value is not None:
             self._remove_fillings()
         #    
-        fill_type = new_value    
+        fill_type = new_value
         UIM = UIManager()
         controller = UIM.get(self._controller_uid)
         #
         for idx_line in range(0, len(self._mplot_objects['wiggle']), 3):
             line = self._mplot_objects['wiggle'][idx_line]
-            left_fill = self._mplot_objects['wiggle'][idx_line+1]
-            right_fill = self._mplot_objects['wiggle'][idx_line+2]
-            axis_center = self._lines_center[idx_line//3]
+            left_fill = self._mplot_objects['wiggle'][idx_line + 1]
+            right_fill = self._mplot_objects['wiggle'][idx_line + 2]
+            axis_center = self._lines_center[idx_line // 3]
             left_fill = None
             if fill_type == 'left' or fill_type == 'both':
                 left_fill = self._my_fill(line.axes,
-                                                line.get_ydata(),                                     
-                                                line.get_xdata(), 
-                                                axis_center,
-                                                where=line.get_xdata() <= axis_center,
-                                                facecolor=controller.fill_color_left,
-                                                interpolate=True
-                )
-                
-            right_fill = None    
+                                          line.get_ydata(),
+                                          line.get_xdata(),
+                                          axis_center,
+                                          where=line.get_xdata() <= axis_center,
+                                          facecolor=controller.fill_color_left,
+                                          interpolate=True
+                                          )
+
+            right_fill = None
             if fill_type == 'right' or fill_type == 'both':
                 xdata = line.get_xdata()
                 right_fill = self._my_fill(line.axes,
-                                           line.get_ydata(),                                      
-                                           xdata, 
+                                           line.get_ydata(),
+                                           xdata,
                                            axis_center,
-                                           where=xdata>=axis_center,
+                                           where=xdata >= axis_center,
                                            facecolor=controller.fill_color_right,
                                            interpolate=True
-                )
-            self._mplot_objects['wiggle'][idx_line+1] = left_fill
-            self._mplot_objects['wiggle'][idx_line+2] = right_fill
+                                           )
+            self._mplot_objects['wiggle'][idx_line + 1] = left_fill
+            self._mplot_objects['wiggle'][idx_line + 2] = right_fill
         #    
-        self.draw_canvas()    
-    
+        self.draw_canvas()
 
     def _my_fill(self, axes, y, x1, x2=0, where=None, interpolate=False, step=None, **kwargs):
         # Handle united data, such as dates
@@ -550,7 +537,7 @@ class DensityRepresentationView(RepresentationView):
             where &= ~mask
 
         polys = []
-        
+
         for ind0, ind1 in mlab.contiguous_regions(where):
             yslice = y[ind0:ind1]
             x1slice = x1[ind0:ind1]
@@ -564,7 +551,7 @@ class DensityRepresentationView(RepresentationView):
 
             N = len(yslice)
             Y = np.zeros((2 * N + 2, 2), np.float)
-           
+
             if interpolate:
                 def get_interp_point(ind):
                     im1 = max(ind - 1, 0)
@@ -589,8 +576,8 @@ class DensityRepresentationView(RepresentationView):
                 # the purpose of the next two lines is for when x2 is a
                 # scalar like 0 and we want the fill to go all the way
                 # down to 0 even if none of the x1 sample points do
-                start = x2slice[0], yslice[0] #Y[0] = x2slice[0], yslice[0]
-                end = x2slice[-1], yslice[-1] #Y[N + 1] = x2slice[-1], yslice[-1]
+                start = x2slice[0], yslice[0]  # Y[0] = x2slice[0], yslice[0]
+                end = x2slice[-1], yslice[-1]  # Y[N + 1] = x2slice[-1], yslice[-1]
 
             Y[0] = start
             Y[N + 1] = end
@@ -614,5 +601,4 @@ class DensityRepresentationView(RepresentationView):
                                          updatex=True, updatey=False)
         axes.add_collection(collection, autolim=False)
         axes.autoscale_view()
-        return collection 
-
+        return collection

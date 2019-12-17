@@ -4,20 +4,10 @@ import wx
 from pubsub import pub
 
 from classes.ui import UIManager
-from classes.ui import UIControllerObject 
-from classes.ui import UIViewObject 
+from classes.ui import UIControllerObject
+from classes.ui import UIViewObject
 from app.pubsub import AUTO_TOPIC
 from app.app_utils import GripyIcon
-
-
-
-
-
-
-
-
-
-
 
 """
 Add(self, item, int proportion=0, int flag=0, int border=0,
@@ -32,37 +22,36 @@ __init__(self, Window parent, int id=-1, String label=EmptyString,
     Point pos=DefaultPosition, Size size=DefaultSize, 
     long style=0, String name=StaticBoxNameStr) -> StaticBox
 """
-static_box_keys =  ['id', 'label', 'pos', 'size', 'style', 'name']
+static_box_keys = ['id', 'label', 'pos', 'size', 'style', 'name']
 #
 """
 __init__(self, Window parent, int id=-1, Point pos=DefaultPosition, 
     Size size=DefaultSize, long style=wxTAB_TRAVERSAL|wxNO_BORDER, 
     String name=PanelNameStr) -> Panel
 """
-panel_keys =  ['id', 'pos', 'size', 'style', 'name']
+panel_keys = ['id', 'pos', 'size', 'style', 'name']
 #
-staticboxsizer_keys =  ['orient']
-boxsizer_keys =  ['orient']
+staticboxsizer_keys = ['orient']
+boxsizer_keys = ['orient']
 gridsizer_keys = ['rows', 'cols', 'vgap', 'hgap']
 flexgridsizer_keys = ['rows', 'cols', 'vgap', 'hgap']
 gridbagsizer_keys = ['vgap', 'hgap']
 #
-wx_statictext_keys =  ['label']
-wx_spinctrl_keys = ['id', 'value', 'pos', 'size', 'style', 'min', 'max', 
+wx_statictext_keys = ['label']
+wx_spinctrl_keys = ['id', 'value', 'pos', 'size', 'style', 'min', 'max',
                     'initial', 'name']
 wx_textctrl_keys = ['id', 'value', 'pos', 'size', 'style', 'validator', 'name']
-wx_choice_keys = ['id', 'value', 'pos', 'size', 'choices', 'style', 
+wx_choice_keys = ['id', 'value', 'pos', 'size', 'choices', 'style',
                   'validator', 'name']
-wx_listbox_keys = ['id', 'value', 'pos', 'size', 'choices', 'style', 
+wx_listbox_keys = ['id', 'value', 'pos', 'size', 'choices', 'style',
                    'validator', 'name']
 
-wx_filepickerctrl_keys = ['id', 'path', 'message', 'wildcard', 'pos', 'size', 
+wx_filepickerctrl_keys = ['id', 'path', 'message', 'wildcard', 'pos', 'size',
                           'style', 'validator', 'name']
 
 wx_checkbox_keys = ['id', 'label', 'value', 'pos', 'size', 'style', 'validator', 'name']
 
 wx_radiobutton_keys = ['id', 'label', 'pos', 'size', 'style', 'validator', 'name']
-
 
 registered_widgets = {
     wx.StaticText: wx_statictext_keys,
@@ -75,14 +64,13 @@ registered_widgets = {
     wx.RadioButton: wx_radiobutton_keys
 }
 
-
 widget_special_keys = ['initial', 'widget_name', 'options', 'controller_uid']
 
 
 def get_control_keys(control_class):
     if control_class in registered_widgets:
         return registered_widgets.get(control_class)
-    raise Exception('Unregistered class')   
+    raise Exception('Unregistered class')
 
 
 def pop_registers(keys, kwargs):
@@ -90,40 +78,40 @@ def pop_registers(keys, kwargs):
     for key in keys:
         if kwargs.get(key) is not None:
             ret[key] = kwargs.pop(key)
-    #for key in special_keys:        
+    # for key in special_keys:
     #    if kwargs.get(key) is not None:
     #        ret[key] = kwargs.pop(key)             
     return ret, kwargs
 
 
 def pop_widget_registers(keys, kwargs):
-    #print 'pop_widget_registers:', keys, kwargs
+    # print 'pop_widget_registers:', keys, kwargs
     ctrl_dict = {}
     special_dict = {}
-    for key in keys: 
+    for key in keys:
         if key in kwargs.keys():
             ctrl_dict[key] = kwargs.pop(key)
-    for key in widget_special_keys:        
+    for key in widget_special_keys:
         if key in kwargs.keys():
-            special_dict[key] = kwargs.pop(key)   
+            special_dict[key] = kwargs.pop(key)
     return ctrl_dict, special_dict, kwargs
 
 
 # TODO: Its a GripyObject?
 class EncapsulatedControl(object):
-    
+
     def __init__(self, *args, **kwargs):
         self._trigger_func = None
         self._trigger_kwargs_keys = None
         parent = args[0]
-        if not self._control_class in registered_widgets.keys():   
-            raise Exception('Unregistered class')  
-        special_kw = args[1]    
+        if not self._control_class in registered_widgets.keys():
+            raise Exception('Unregistered class')
+        special_kw = args[1]
         self.name = special_kw.get('widget_name')
         initial = special_kw.get('initial')
         options = special_kw.get('options', {})
         self._controller_uid = special_kw.get('controller_uid')
-        self.control = self._control_class(parent, **kwargs)  
+        self.control = self._control_class(parent, **kwargs)
         try:
             if options:
                 self.set_options(options)
@@ -133,20 +121,17 @@ class EncapsulatedControl(object):
             self.set_value(initial)
         self.old_value = None
 
-
     def get_topic(self):
         UIM = UIManager()
         dialog = UIM.get(self._controller_uid)
         return self.name + '_widget_changed@' + dialog.view.get_topic()
 
-   
     def set_trigger(self, func, *args):
         if not callable(func):
             raise Exception('A callable must be supplied.')
         self._trigger_func = func
         self._trigger_kwargs_keys = list(args)
-        pub.subscribe(self.check_change, self.get_topic())  
-
+        pub.subscribe(self.check_change, self.get_topic())
 
     def unset_trigger(self):
         if not callable(self._trigger_func):
@@ -157,8 +142,7 @@ class EncapsulatedControl(object):
         keys = self._trigger_kwargs_keys
         self._trigger_kwargs_keys = None
         return func, keys
-            
-         
+
     def check_change(self, name, old_value, new_value):
         if not callable(self._trigger_func):
             return
@@ -178,24 +162,24 @@ class EncapsulatedControl(object):
         new_value = self.get_value()
         pub.sendMessage(self.get_topic(), name=self.name,
                         old_value=self.old_value, new_value=new_value
-        )     
+                        )
         self.old_value = new_value
-        
+
     def set_options(self, options_dict=None):
-        raise NotImplementedError()     
-    
+        raise NotImplementedError()
+
     def set_value(self, value):
-        raise NotImplementedError()         
-  
+        raise NotImplementedError()
+
     def get_value(self):
         raise NotImplementedError()
-        
+
 
 class EncapsulatedChoice(EncapsulatedControl):
-    _control_class = wx.Choice    
-    
+    _control_class = wx.Choice
+
     def __init__(self, *args, **kwargs):
-        super(EncapsulatedChoice, self).__init__(*args, **kwargs)            
+        super(EncapsulatedChoice, self).__init__(*args, **kwargs)
         self.control.Bind(wx.EVT_CHOICE, self.on_change)
 
     def set_options(self, options_dict=None):
@@ -204,47 +188,46 @@ class EncapsulatedChoice(EncapsulatedControl):
         if self._map is not None:
             if not isinstance(self._map, OrderedDict):
                 self._map = OrderedDict(self._map)
-            self.control.AppendItems(list(self._map.keys()))                       
- 
-        
+            self.control.AppendItems(list(self._map.keys()))
+
     def set_value(self, value, event=False):
         if value is None:
             return
         if not isinstance(value, int):
             if not value in self._map.keys():
-                raise Exception('')  
-            value = self._map.keys().index(value)   
-        self.control.SetSelection(value)     
-        if event:             
-            self.on_change(None)    
-        
+                raise Exception('')
+            value = self._map.keys().index(value)
+        self.control.SetSelection(value)
+        if event:
+            self.on_change(None)
+
     def get_value(self):
         if not self._map:
             return None
         if self.control.GetSelection() == -1:
             return None
-        return self._map[self.control.GetString(self.control.GetSelection())]    
-    
+        return self._map[self.control.GetString(self.control.GetSelection())]
+
     def show(self):
         return self.control.Show()
-    
+
     def hide(self):
         return self.control.Hide()
-        
+
     def destroy(self):
         return self.control.Destroy()
-            
+
 
 class EncapsulatedRadioButton(EncapsulatedControl):
     _control_class = wx.RadioButton
 
     def __init__(self, *args, **kwargs):
-        super(EncapsulatedRadioButton, self).__init__(*args, **kwargs)    
+        super(EncapsulatedRadioButton, self).__init__(*args, **kwargs)
         self.control.Bind(wx.EVT_RADIOBUTTON, self.on_change)
 
     def set_value(self, value):
         self.control.SetValue(value)
-   
+
     def get_value(self):
         return self.control.GetValue()
 
@@ -253,21 +236,21 @@ class EncapsulatedCheckBox(EncapsulatedControl):
     _control_class = wx.CheckBox
 
     def __init__(self, *args, **kwargs):
-        super(EncapsulatedCheckBox, self).__init__(*args, **kwargs)    
+        super(EncapsulatedCheckBox, self).__init__(*args, **kwargs)
         self.control.Bind(wx.EVT_CHECKBOX, self.on_change)
 
     def set_value(self, value):
         self.control.SetValue(value)
-   
+
     def get_value(self):
         return self.control.GetValue()
 
 
 class EncapsulatedTextCtrl(EncapsulatedControl):
     _control_class = wx.TextCtrl
-    
+
     def __init__(self, *args, **kwargs):
-        super(EncapsulatedTextCtrl, self).__init__(*args, **kwargs)    
+        super(EncapsulatedTextCtrl, self).__init__(*args, **kwargs)
         self.control.Bind(wx.EVT_TEXT, self.on_change)
 
     def set_value(self, value):
@@ -275,34 +258,35 @@ class EncapsulatedTextCtrl(EncapsulatedControl):
             self.control.SetValue(wx.EmptyString)
         else:
             self.control.SetValue(str(value))
-          
+
     def get_value(self):
         return self.control.GetValue().strip()
-        
+
     def disable(self):
         return self.control.Disable()
-        
+
     def enable(self):
         return self.control.Enable()
-        
+
     def hide(self):
         return self.control.Hide()
-    
+
     def show(self):
         return self.control.Show()
-        
+
     def destroy(self):
         return self.control.Destroy()
 
+
 class EncapsulatedFilePickerCtrl(EncapsulatedControl):
     _control_class = wx.FilePickerCtrl
-    
+
     def __init__(self, *args, **kwargs):
         try:
-            super(EncapsulatedFilePickerCtrl, self).__init__(*args, **kwargs)    
+            super(EncapsulatedFilePickerCtrl, self).__init__(*args, **kwargs)
         except Exception as e:
-            print (e)
-               
+            print(e)
+
     def set_value(self, value):
         self.control.SetPath(value)
 
@@ -312,48 +296,49 @@ class EncapsulatedFilePickerCtrl(EncapsulatedControl):
 
 class EncapsulatedSpinCtrl(EncapsulatedControl):
     _control_class = wx.SpinCtrl
-    
+
     def __init__(self, *args, **kwargs):
-        super(EncapsulatedSpinCtrl, self).__init__(*args, **kwargs)      
+        super(EncapsulatedSpinCtrl, self).__init__(*args, **kwargs)
         self.control.Bind(wx.EVT_SPINCTRL, self.on_change)
 
     def set_value(self, value):
         if value is not None:
-            #print 'spin =', value, type(value)
+            # print 'spin =', value, type(value)
             self.control.SetValue(value)
-   
+
     def get_value(self):
-        #print 'spin:', self.control.GetValue()
+        # print 'spin:', self.control.GetValue()
         return self.control.GetValue()
-   
-     
+
+
 class EncapsulatedStaticText(EncapsulatedControl):
     _control_class = wx.StaticText
-    
+
     def __init__(self, *args, **kwargs):
-        super(EncapsulatedStaticText, self).__init__(*args, **kwargs)            
+        super(EncapsulatedStaticText, self).__init__(*args, **kwargs)
 
     def set_value(self, value):
         if value is not None:
             self.control.SetLabel(str(value))
-   
+
     def get_value(self):
         return self.control.GetLabel()
-        
+
     def hide(self):
         return self.control.Hide()
-    
+
     def show(self):
         return self.control.Show()
 
     def destroy(self):
         return self.control.Destroy()
-        
+
+
 class EncapsulatedListBox(EncapsulatedControl):
-    _control_class = wx.ListBox 
-    
+    _control_class = wx.ListBox
+
     def __init__(self, *args, **kwargs):
-        super(EncapsulatedListBox, self).__init__(*args, **kwargs)             
+        super(EncapsulatedListBox, self).__init__(*args, **kwargs)
         self.control.Bind(wx.EVT_LISTBOX, self.on_change)
 
     def set_value(self, value, event=True):
@@ -362,41 +347,38 @@ class EncapsulatedListBox(EncapsulatedControl):
             self._map = None
         else:
             self._map = value
-            self.control.AppendItems(self._map.keys())        
-        # To force on_change    
-        if event:              
-            self.on_change(None)           
+            self.control.AppendItems(self._map.keys())
+            # To force on_change
+        if event:
+            self.on_change(None)
 
     def get_value(self):
         if not self._map:
             return None
         if not self.control.GetSelections():
             return None
-        return [self._map.get(self.control.GetString(sel)) for sel in self.control.GetSelections()]   
-
-
-
+        return [self._map.get(self.control.GetString(sel)) for sel in self.control.GetSelections()]
 
 
 class PanelContainer(wx.Panel):
-    
-    def __init__(self, *args, **kwargs): 
-        #print '\nPanelContainer:', args, kwargs
+
+    def __init__(self, *args, **kwargs):
+        # print '\nPanelContainer:', args, kwargs
         if not kwargs.get('sizer_class'):
-            raise Exception()    
+            raise Exception()
         sizer_class = kwargs.pop('sizer_class')
         panel_kw, sizer_kw = pop_registers(panel_keys, kwargs)
         wx.Panel.__init__(self, args[0], **panel_kw)
         try:
             sizer = sizer_class(**sizer_kw)
-            self.SetSizer(sizer)    
+            self.SetSizer(sizer)
         except:
-            raise        
-    
-    
+            raise
+
+
 class BoxSizerContainer(PanelContainer):
-    
-    def __init__(self, *args, **kwargs): 
+
+    def __init__(self, *args, **kwargs):
         if not kwargs:
             kwargs = {
                 'sizer_class': wx.BoxSizer,
@@ -407,42 +389,42 @@ class BoxSizerContainer(PanelContainer):
             if not kwargs.get('orient'):
                 kwargs['orient'] = wx.VERTICAL
             elif kwargs.get('orient') not in [wx.HORIZONTAL, wx.VERTICAL]:
-                raise Exception() 
+                raise Exception()
         super().__init__(*args, **kwargs)
 
 
 class GridSizerContainer(PanelContainer):
-    
-    def __init__(self, *args, **kwargs): 
+
+    def __init__(self, *args, **kwargs):
         if not kwargs:
             kwargs = {'sizer_class': wx.GridSizer}
         else:
             kwargs['sizer_class'] = wx.GridSizer
-        super().__init__(*args, **kwargs)   
+        super().__init__(*args, **kwargs)
 
 
 class GridBagSizerContainer(PanelContainer):
-    def __init__(self, *args, **kwargs): 
+    def __init__(self, *args, **kwargs):
         if not kwargs:
             kwargs = {'sizer_class': wx.GridBagSizer}
         else:
             kwargs['sizer_class'] = wx.GridBagSizer
-        super().__init__(*args, **kwargs)          
-      
-      
+        super().__init__(*args, **kwargs)
+
+
 class FlexGridSizerContainer(PanelContainer):
-    
-    def __init__(self, *args, **kwargs): 
+
+    def __init__(self, *args, **kwargs):
         if not kwargs:
             kwargs = {'sizer_class': wx.FlexGridSizer}
         else:
             kwargs['sizer_class'] = wx.FlexGridSizer
-        super().__init__(*args, **kwargs)    
+        super().__init__(*args, **kwargs)
 
 
 class WarpSizerContainer(PanelContainer):
-    
-    def __init__(self, *args, **kwargs): 
+
+    def __init__(self, *args, **kwargs):
         if not kwargs:
             kwargs = {
                 'sizer_class': wx.WarpSizer,
@@ -453,27 +435,24 @@ class WarpSizerContainer(PanelContainer):
             if not kwargs.get('orient'):
                 kwargs['orient'] = wx.VERTICAL
             elif kwargs.get('orient') not in [wx.HORIZONTAL, wx.VERTICAL]:
-                raise Exception() 
+                raise Exception()
         super().__init__(*args, **kwargs)
 
 
-
 class StaticBoxContainer(wx.StaticBox):
-    
-    def __init__(self, *args, **kwargs): 
+
+    def __init__(self, *args, **kwargs):
         sbkw, kwargs = pop_registers(static_box_keys, kwargs)
         wx.StaticBox.__init__(self, args[0], **sbkw)
         if kwargs.get('orient') is None:
             orient = wx.VERTICAL
-        else:    
-            orient = kwargs.pop('orient')  
-        self._sizer = wx.StaticBoxSizer(self, orient)       
- 
-    def GetSizer(self):        
+        else:
+            orient = kwargs.pop('orient')
+        self._sizer = wx.StaticBoxSizer(self, orient)
+
+    def GetSizer(self):
         return self._sizer
-      
-        
-    
+
 
 ###############################################################################
 ###############################################################################
@@ -485,32 +464,32 @@ class TopLevelController(UIControllerObject):
     _ATTRIBUTES = OrderedDict()
 
     _ATTRIBUTES['title'] = {
-            'default_value': wx.EmptyString, 
-            'type': str
+        'default_value': wx.EmptyString,
+        'type': str
     }
     # TODO: Use icon from App parameters          
     _ATTRIBUTES['icon'] = {
-            'default_value': 'basic/icons/logo-transp.ico',
-            'type': str
+        'default_value': 'basic/icons/logo-transp.ico',
+        'type': str
     }
     _ATTRIBUTES['style'] = {
-            'default_value': wx.DEFAULT_FRAME_STYLE, 
-            'type': int        
+        'default_value': wx.DEFAULT_FRAME_STYLE,
+        'type': int
     }
     _ATTRIBUTES['maximized'] = {
-            'default_value': False,  
-            'type': bool
+        'default_value': False,
+        'type': bool
     }
     _ATTRIBUTES['size'] = {
-            'default_value': wx.Size(800, 600), 
-            'type': wx.Size
+        'default_value': wx.Size(800, 600),
+        'type': wx.Size
     }
     _ATTRIBUTES['pos'] = {
-            'default_value': wx.Point(50, 50), 
-            'type': wx.Point
-    }    
-   
-    def __init__(self, **state):     
+        'default_value': wx.Point(50, 50),
+        'type': wx.Point
+    }
+
+    def __init__(self, **state):
         super().__init__(**state)
 
 
@@ -520,7 +499,7 @@ class TopLevel(UIViewObject):
     def __init__(self, controller_uid):
         UIViewObject.__init__(self, controller_uid)
         UIM = UIManager()
-        controller = UIM.get(self._controller_uid)      
+        controller = UIM.get(self._controller_uid)
         # MainWindow subscribing MainWindowController PubSub messages
         controller.subscribe(self._set_maximized, 'change.maximized')
         controller.subscribe(self._set_size, 'change.size')
@@ -529,8 +508,9 @@ class TopLevel(UIViewObject):
         #
         # TODO: try to remove _flag using new GripyObject style
         # little hack - on_size
-#        self._flag = False
-        
+
+    #        self._flag = False
+
     def on_maximize(self, event):
         UIM = UIManager()
         controller = UIM.get(self._controller_uid)
@@ -547,27 +527,26 @@ class TopLevel(UIViewObject):
         controller.set_value_from_event('size', event.GetSize())
         controller.set_value_from_event('maximized', self.IsMaximized())
         event.Skip()
-  
-    def _set_maximized(self, new_value, old_value):  
-        self.Unbind(wx.EVT_MAXIMIZE, handler=self.on_maximize)  
+
+    def _set_maximized(self, new_value, old_value):
+        self.Unbind(wx.EVT_MAXIMIZE, handler=self.on_maximize)
         self.Maximize(new_value)
-        self.Bind(wx.EVT_MAXIMIZE, self.on_maximize)  
-    
+        self.Bind(wx.EVT_MAXIMIZE, self.on_maximize)
+
     def _set_size(self, new_value, old_value):
         self.Unbind(wx.EVT_SIZE, handler=self.on_size)
         self.SetSize(new_value)
-        self.Bind(wx.EVT_SIZE, self.on_size)    
-    
-    def _set_position(self, new_value, old_value):  
-        self.Unbind(wx.EVT_MOVE, handler=self.on_move) 
+        self.Bind(wx.EVT_SIZE, self.on_size)
+
+    def _set_position(self, new_value, old_value):
+        self.Unbind(wx.EVT_MOVE, handler=self.on_move)
         self.SetPosition(new_value)
-        self.Bind(wx.EVT_MOVE, self.on_move)  
+        self.Bind(wx.EVT_MOVE, self.on_move)
 
     def _set_title(self, new_value, old_value):
         self.SetTitle(new_value)
 
-
-# Containers 
+    # Containers
     def AddCreateContainer(self, container_type_name, *args, **kwargs):
         try:
             item_sizer_kw, kwargs = pop_registers(item_sizer_keys, kwargs)
@@ -584,15 +563,15 @@ class TopLevel(UIViewObject):
             elif container_type_name == 'GridSizer':
                 container_class = GridSizerContainer
             elif container_type_name == 'FlexGridSizer':
-                container_class = FlexGridSizerContainer            
+                container_class = FlexGridSizerContainer
             elif container_type_name == 'GridBagSizer':
-                container_class = GridBagSizerContainer             
+                container_class = GridBagSizerContainer
             elif container_type_name == 'StaticBox':
-                container_class = StaticBoxContainer   
+                container_class = StaticBoxContainer
             elif container_type_name == 'WarpSizer':
-                container_class = WarpSizerContainer  
+                container_class = WarpSizerContainer
             else:
-                raise Exception('Unregistered container.')          
+                raise Exception('Unregistered container.')
             if not args:
                 parent = self.mainpanel
             else:
@@ -601,7 +580,7 @@ class TopLevel(UIViewObject):
             return container
         except:
             raise
-                      
+
     def AddContainer(self, container, *args, **kwargs):
         for key in kwargs.keys():
             if key not in item_sizer_keys:
@@ -611,10 +590,10 @@ class TopLevel(UIViewObject):
             parent = self.mainpanel
         else:
             parent = args[0]
-#        container.Show()            
+        #        container.Show()
         if container.__class__ == StaticBoxContainer:
             parent.GetSizer().Add(container.GetSizer(), **kwargs)
-        else:    
+        else:
             parent.GetSizer().Add(container, **kwargs)
         parent.GetSizer().Layout()
 
@@ -624,11 +603,11 @@ class TopLevel(UIViewObject):
         if container.__class__ == StaticBoxContainer:
             result = parent.GetSizer().Detach(ctn_sizer)
         else:
-            result =  parent.GetSizer().Detach(container)  
-        container.Show(False)    
+            result = parent.GetSizer().Detach(container)
+        container.Show(False)
         return result
 
-# Controllers        
+    # Controllers
 
     def _get_button(self, button_id):
         UIM = UIManager()
@@ -644,7 +623,7 @@ class TopLevel(UIViewObject):
     def register(self, enc_control):
         if enc_control.name:
             self._objects[enc_control.name] = enc_control
-     
+
     def CreateControl(self, enc_class, container, **kwargs):
         # Create and Add a new control.
         try:
@@ -658,7 +637,6 @@ class TopLevel(UIViewObject):
         except:
             raise
 
-            
     def AddChoice(self, *args, **kwargs):
         self.CreateControl(EncapsulatedChoice, args[0], **kwargs)
 
@@ -676,21 +654,18 @@ class TopLevel(UIViewObject):
 
     def AddSpinCtrl(self, *args, **kwargs):
         self.CreateControl(EncapsulatedSpinCtrl, args[0], **kwargs)
-        
+
     def AddStaticText(self, *args, **kwargs):
-        self.CreateControl(EncapsulatedStaticText, args[0], **kwargs)        
+        self.CreateControl(EncapsulatedStaticText, args[0], **kwargs)
 
     def AddListBox(self, *args, **kwargs):
-        self.CreateControl(EncapsulatedListBox, args[0], **kwargs)        
-
+        self.CreateControl(EncapsulatedListBox, args[0], **kwargs)
 
     def get_results(self):
         ret = {}
         for name, widget in self._objects.items():
             ret[name] = widget.get_value()
-        return ret    
-    
+        return ret
+
     def get_object(self, name):
         return self._objects.get(name)
-
-

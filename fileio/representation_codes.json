@@ -1,201 +1,200 @@
-
 [
-	{
-		"code": 1,
-		"name": "FSHORT",
-		"size": 2,
-		"special": true,
-		"description": "Low precision floating point"	
-	},
-	{
-		"code": 2,
-		"name": "FSINGL",
-		"size": 4,
-		"special": true,
-		"description": "IEEE single precision floating point"	
-	},
-	{
-		"code": 3,
-		"name": "FSING1",
-		"size": 8,
-		"special": true,
-		"description": "Validated single precision floating point"	
-	},
-	{
-		"code": 4,
-		"name": "FSING2",
-		"size": 12,
-		"special": true,
-		"description": "IEEE single precision floating point"	
-	},	
-	{
-		"code": 5,
-		"name": "ISINGL",
-		"size": 4,
-		"special": true,
-		"description": "IBM single precision floating point"	
-	},	
-	{
-		"code": 6,
-		"name": "VSINGL",
-		"size": 4,
-		"special": true,
-		"description": "VAX single precision floating point"	
-	},
-	{
-		"code": 7,
-		"name": "FDOUBL",
-		"size": 8,
-		"special": true,
-		"description": "IEEE double precision floating point"	
-	},
-	{
-		"code": 8,
-		"name": "FDOUB1",
-		"size": 16,
-		"special": true,
-		"description": "Validated double precision floating point"	
-	},
-	{
-		"code": 9,
-		"name": "FDOUB2",
-		"size": 24,
-		"special": true,
-		"description": "Two-way validated double precision floating point"	
-	},	
-	{
-		"code": 10,
-		"name": "CSINGL",
-		"size": 8,
-		"special": true,
-		"description": "Single precision complex"	
-	},	
-	{
-		"code": 11,
-		"name": "CDOUBL",
-		"size": 16,
-		"special": true,
-		"description": "Double precision complex"	
-	},
-	{
-		"code": 12,
-		"name": "SSHORT",
-		"size": 1,
-		"format": "b",
-		"description": "Short signed integer"	
-	},
-	{
-		"code": 13,
-		"name": "SNORM",
-		"size": 2,
-		"format": "h",
-		"description": "Normal signed integer"	
-	},
-	{
-		"code": 14,
-		"name": "SLONG",
-		"size": 4,
-		"format": "l",
-		"description": "Long signed integer"	
-	},	
-	{
-		"code": 15,
-		"name": "USHORT",
-		"size": 1,
-		"format": "B",
-		"description": "Short unsigned integer"	
-	},	
-	{
-		"code": 16,
-		"name": "UNORM",
-		"size": 2,
-		"format": "H",
-		"description": "Normal unsigned integer"	
-	},
-	{
-		"code": 17,
-		"name": "ULONG",
-		"size": 4,
-		"format": "L",
-		"description": "Long unsigned integer"	
-	},
-	{
-		"code": 18,
-		"name": "UVARI",
-		"size": "variable",
-		"special": true,
-		"description": "Variable-length unsigned integer"	
-	},
-	{
-		"code": 19,
-		"name": "IDENT",
-		"size": "variable",
-		"special": true,
-		"description": "Variable-length identifier"	
-	},	
-	{
-		"code": 20,
-		"name": "ASCII",
-		"size": "variable",
-		"special": true,
-		"description": "Variable-length ASCII character string"	
-	},	
-	{
-		"code": 21,
-		"name": "DTIME",
-		"size": 8,
-		"special": true,
-		"description": "Date and time"	
-	},
-	{
-		"code": 22,
-		"name": "ORIGIN",
-		"size": "variable",
-		"special": true,
-		"description": "Origin reference"	
-	},
-	{
-		"code": 23,
-		"name": "OBNAME",
-		"size": "variable",
-		"special": true,
-		"description": "Object name"	
-	},
-	{
-		"code": 24,
-		"name": "OBJREF",
-		"size": "variable",
-		"special": true,
-		"description": "Object reference"	
-	},	
-	{
-		"code": 25,
-		"name": "ATTREF",
-		"size": "variable",
-		"special": true,
-		"description": "Attribute reference"	
-	},		
-	{
-		"code": 26,
-		"name": "STATUS",
-		"size": 1,
-		"special": true,
-		"description": "Boolean status"	
-	},
-	{
-		"code": 27,
-		"name": "UNITS",
-		"size": "variable",
-		"special": true,
-		"description": "Units expression"	
-	},
-	{
-		"code": 28,
-		"name": "LRSA",
-		"size": 1,
-		"special": true,
-		"description": "Code created by developer for Logical Record Segment Attributes, not a original RP66 V1 code."	
-	}
+  {
+    "code": 1,
+    "name": "FSHORT",
+    "size": 2,
+    "special": true,
+    "description": "Low precision floating point"
+  },
+  {
+    "code": 2,
+    "name": "FSINGL",
+    "size": 4,
+    "special": true,
+    "description": "IEEE single precision floating point"
+  },
+  {
+    "code": 3,
+    "name": "FSING1",
+    "size": 8,
+    "special": true,
+    "description": "Validated single precision floating point"
+  },
+  {
+    "code": 4,
+    "name": "FSING2",
+    "size": 12,
+    "special": true,
+    "description": "IEEE single precision floating point"
+  },
+  {
+    "code": 5,
+    "name": "ISINGL",
+    "size": 4,
+    "special": true,
+    "description": "IBM single precision floating point"
+  },
+  {
+    "code": 6,
+    "name": "VSINGL",
+    "size": 4,
+    "special": true,
+    "description": "VAX single precision floating point"
+  },
+  {
+    "code": 7,
+    "name": "FDOUBL",
+    "size": 8,
+    "special": true,
+    "description": "IEEE double precision floating point"
+  },
+  {
+    "code": 8,
+    "name": "FDOUB1",
+    "size": 16,
+    "special": true,
+    "description": "Validated double precision floating point"
+  },
+  {
+    "code": 9,
+    "name": "FDOUB2",
+    "size": 24,
+    "special": true,
+    "description": "Two-way validated double precision floating point"
+  },
+  {
+    "code": 10,
+    "name": "CSINGL",
+    "size": 8,
+    "special": true,
+    "description": "Single precision complex"
+  },
+  {
+    "code": 11,
+    "name": "CDOUBL",
+    "size": 16,
+    "special": true,
+    "description": "Double precision complex"
+  },
+  {
+    "code": 12,
+    "name": "SSHORT",
+    "size": 1,
+    "format": "b",
+    "description": "Short signed integer"
+  },
+  {
+    "code": 13,
+    "name": "SNORM",
+    "size": 2,
+    "format": "h",
+    "description": "Normal signed integer"
+  },
+  {
+    "code": 14,
+    "name": "SLONG",
+    "size": 4,
+    "format": "l",
+    "description": "Long signed integer"
+  },
+  {
+    "code": 15,
+    "name": "USHORT",
+    "size": 1,
+    "format": "B",
+    "description": "Short unsigned integer"
+  },
+  {
+    "code": 16,
+    "name": "UNORM",
+    "size": 2,
+    "format": "H",
+    "description": "Normal unsigned integer"
+  },
+  {
+    "code": 17,
+    "name": "ULONG",
+    "size": 4,
+    "format": "L",
+    "description": "Long unsigned integer"
+  },
+  {
+    "code": 18,
+    "name": "UVARI",
+    "size": "variable",
+    "special": true,
+    "description": "Variable-length unsigned integer"
+  },
+  {
+    "code": 19,
+    "name": "IDENT",
+    "size": "variable",
+    "special": true,
+    "description": "Variable-length identifier"
+  },
+  {
+    "code": 20,
+    "name": "ASCII",
+    "size": "variable",
+    "special": true,
+    "description": "Variable-length ASCII character string"
+  },
+  {
+    "code": 21,
+    "name": "DTIME",
+    "size": 8,
+    "special": true,
+    "description": "Date and time"
+  },
+  {
+    "code": 22,
+    "name": "ORIGIN",
+    "size": "variable",
+    "special": true,
+    "description": "Origin reference"
+  },
+  {
+    "code": 23,
+    "name": "OBNAME",
+    "size": "variable",
+    "special": true,
+    "description": "Object name"
+  },
+  {
+    "code": 24,
+    "name": "OBJREF",
+    "size": "variable",
+    "special": true,
+    "description": "Object reference"
+  },
+  {
+    "code": 25,
+    "name": "ATTREF",
+    "size": "variable",
+    "special": true,
+    "description": "Attribute reference"
+  },
+  {
+    "code": 26,
+    "name": "STATUS",
+    "size": 1,
+    "special": true,
+    "description": "Boolean status"
+  },
+  {
+    "code": 27,
+    "name": "UNITS",
+    "size": "variable",
+    "special": true,
+    "description": "Units expression"
+  },
+  {
+    "code": 28,
+    "name": "LRSA",
+    "size": 1,
+    "special": true,
+    "description": "Code created by developer for Logical Record Segment Attributes, not a original RP66 V1 code."
+  }
 ]	
 	
 

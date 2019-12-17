@@ -12,37 +12,36 @@ class Log(DataObject):
                          ('unit', 'Unit'),
                          ('min', 'Min Value'),
                          ('max', 'Max Value')
-    ]
-    
+                         ]
+
     def __init__(self, *args, **attributes):
-        super().__init__(*args, **attributes) 
-     
+        super().__init__(*args, **attributes)
+
     @classmethod
     def _is_tree_tid_node_needed(cls):
-        #From matplotlib.docstring.py 
-        #@_autogen_docstring(Axes.plot)
-        #@_autogen_docstring(OMBaseObject._is_tree_tid_node_needed)
+        # From matplotlib.docstring.py 
+        # @_autogen_docstring(Axes.plot)
+        # @_autogen_docstring(OMBaseObject._is_tree_tid_node_needed)
         __doc__ = OMBaseObject._is_tree_tid_node_needed.__doc__
         return False
-#    _is_tree_tid_node_needed.__doc__ = OMBaseObject._is_tree_tid_node_needed.__doc__
-    
-    
+
+    #    _is_tree_tid_node_needed.__doc__ = OMBaseObject._is_tree_tid_node_needed.__doc__
+
     # https://docs.scipy.org/doc/numpy-1.15.0/docs/howto_document.html
-    
+
     # TODO: Usar Sphinx, como modelo abaixo do MPL - confirmar visitando respectiva pagina do MPL
     # neste caso eh a pagina Artist.set_clip_path do docs online.
-    
 
     def _get_max_dimensions(self):
         return 1
-    
+
     def get_friendly_name(self):
         """
         Metodo duplicado em Log e DataIndex
         """
         OM = ObjectManager()
         parent_well_uid = OM._getparentuid(self.uid)
-        parent_well = OM.get(parent_well_uid)         
+        parent_well = OM.get(parent_well_uid)
         return self.name + '@' + parent_well.name
 
     def get_curve_set(self):
@@ -56,7 +55,7 @@ class Log(DataObject):
         OM = ObjectManager()
         curve_set_uid = OM._getparentuid(self.uid)
         return OM.get(curve_set_uid)
-     
+
     def _get_pg_properties(self):
         """
         """
@@ -65,7 +64,7 @@ class Log(DataObject):
             'type': str,
             'label': 'Datatype',
             'enabled': False
-        }    
+        }
         props['unit'] = {
             'type': str,
             'label': 'Unit',
@@ -75,16 +74,14 @@ class Log(DataObject):
             'type': str,
             'label': 'Min Value',
             'enabled': False
-        }    
+        }
         props['max'] = {
             'type': str,
             'label': 'Max Value',
             'enabled': False
-        }        
+        }
         return props
 
-
-    
     """
     Set the artist's clip path, which may be:
 
@@ -100,9 +97,8 @@ class Log(DataObject):
     and set the clipping path to ``None``.
 
     ACCEPTS: [(`~matplotlib.path.Path`, `.Transform`) | `.Patch` | None]
-        """    
-    
-    
+        """
+
     '''
     #From matplotlib.axes._base.py line 3152
     
@@ -112,7 +108,7 @@ class Log(DataObject):
     Written after function
     
     '''
-    
+
     '''
     #From matplotlib.pyplot.py 
     

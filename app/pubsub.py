@@ -50,13 +50,11 @@ references in the notes section above.
 
 """
 
-
 # TODO: corrigir Docs
 
 
-#from wx.lib.pubsub import pub
+# from wx.lib.pubsub import pub
 from pubsub import pub
-
 
 
 def pubuid_to_uid(value):
@@ -73,16 +71,14 @@ def uid_to_pubuid(value):
         return tid + '&' + str(oid)
     except:
         raise
-    
 
 
 ALL_TOPICS = pub.ALL_TOPICS
 AUTO_TOPIC = pub.AUTO_TOPIC
 
 
-
 class PublisherMixin(object):
-    
+
     # TODO: Unsubscribe
     def subscribe(self, listener, topic):
         """
@@ -129,23 +125,20 @@ class PublisherMixin(object):
         # TODO: Check for caller 'can subscribe'
         # TODO: Check for function_ 'can be subscribed'
         topic = self._get_pubsub_uid() + '.' + topic
-        return pub.subscribe(listener, topic)    
-
+        return pub.subscribe(listener, topic)
 
     def subsALL(self, listener):
-        return pub.subscribe(listener, ALL_TOPICS) 
-    
-    
+        return pub.subscribe(listener, ALL_TOPICS)
+
     def unsubscribe(self, listener, topic):
         try:
             topic = self._get_pubsub_uid() + '.' + topic
-            return pub.unsubscribe(listener, topic)   
+            return pub.unsubscribe(listener, topic)
         except:
             raise
-    
-    
+
     def unsubAll(self):
-#        print ('Unsubscribing ALL', self._topic_filter)
+        #        print ('Unsubscribing ALL', self._topic_filter)
         #
         # topicName – if none given, unsub from all topics
         # listenerFilter – filter function to apply to listeners, 
@@ -158,18 +151,14 @@ class PublisherMixin(object):
         # pubsub.pub.unsubAll(topicName=None, listenerFilter=None, 
         #                                                     topicFilter=None)
         #
-        return pub.unsubAll(topicFilter=self._topic_filter)  
+        return pub.unsubAll(topicFilter=self._topic_filter)
 
-
-    
     def _topic_filter(self, topic_name):
         return topic_name.startswith(self._get_pubsub_uid())
 
-
     def isSubscribed(self, listener, topic):
         topic = self._get_pubsub_uid() + '.' + topic
-        return pub.isSubscribed(listener, topic)        
-
+        return pub.isSubscribed(listener, topic)
 
     def send_message(self, topic, **data):
         """
@@ -195,21 +184,18 @@ class PublisherMixin(object):
             >>> b = B()
             >>> b.send_message(('attr_changed', 'width'), arg1=value, arg2=old_value)
         """
-        
+
         # TODO: Refazer docs
         # print ('publisher: {} - topic: {} - data: {}'.format(self._get_pubsub_uid(), topic, data))
         try:
             topic = self._get_pubsub_uid() + '.' + topic
-            #print ('\nPublisherMixin.send_message - topic:', topic, data)
+            # print ('\nPublisherMixin.send_message - topic:', topic, data)
             pub.sendMessage(topic, **data)
         except:
-#            print ('ERROR [PublisherMixin.send_message]:', self)
-#            print ('At:', topic, data)
-#            print ('Expection was:', e, '\n')
+            #            print ('ERROR [PublisherMixin.send_message]:', self)
+            #            print ('At:', topic, data)
+            #            print ('Expection was:', e, '\n')
             raise
 
-    
     def _get_pubsub_uid(self):
         raise NotImplementedError()
-
-      

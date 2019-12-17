@@ -1,86 +1,277 @@
-
-
-{	"GRIPY_WELL_HEADER_INFOS": {
-		"UWI": {
-			"DESC": "UNIQUE WELL ID"
-		},
-				
-		"API": {
-
-			"DESC": "API NUMBER"
-		},
-	},
-	
-	"LAS_FILE_HEADER_INFOS": {
-		"VERS": {
-			
-		}
-		"WRAP": {
-			
-		}	
-	},
-	"LAS_FILE_SECTIONS": {
-		"~V": {
-			"DESC": "VERSION INFORMATION SECTION"
-			"ITEMS": [
-				"VERS",
-				"WRAP"
-			]
-		},
-				
-		"~W": {
-			"DESC": "WELL INFORMATION SECTION"
-		},
-				
-		"~C": {
-			"DESC": "CURVE INFORMATION SECTION"
-		},
-				
-		"~P": {
-			"DESC": "PARAMETER INFORMATION SECTION"
-		},
-		"~O": {
-			"DESC": "OTHER"
-		},
-		"~A": {
-			"DESC": "VERSION INFORMATION SECTION"
-		}
-	},
-	
+{
+  "GRIPY_WELL_HEADER_INFOS": {
+    "UWI": {
+      "DESC": "UNIQUE WELL ID"
+    },
+    "API": {
+      "DESC": "API NUMBER"
+    }
+  },
+  "LAS_FILE_HEADER_INFOS": {
+    "VERS": {
+    }
+    "WRAP": {
+    }
+  },
+  "LAS_FILE_SECTIONS": {
+    "~V": {
+      "DESC": "VERSION INFORMATION SECTION"
+      "ITEMS": [
+        "VERS",
+        "WRAP"
+      ]
+    },
+    "~W": {
+      "DESC": "WELL INFORMATION SECTION"
+    },
+    "~C": {
+      "DESC": "CURVE INFORMATION SECTION"
+    },
+    "~P": {
+      "DESC": "PARAMETER INFORMATION SECTION"
+    },
+    "~O": {
+      "DESC": "OTHER"
+    },
+    "~A": {
+      "DESC": "VERSION INFORMATION SECTION"
+    }
+  }
 }
 
 
 W_MNEMS = OrderedDict()
-W_MNEMS['CN'] = {'LAS_MNEM': "COMP', "LAS_DESC": "CCOMPANY'}
-W_MNEMS['WN'] = {'LAS_MNEM': "WELL', "LAS_DESC": "WELL'}
-W_MNEMS['WBN'] = {'LAS_MNEM': "WELL', "LAS_DESC": "WELL'}
-W_MNEMS['FN'] = {'LAS_MNEM': "FLD', "LAS_DESC": "FIELD'}
-#W_MNEMS[''] = {'LAS_MNEM': "LOC', "LAS_DESC": "LOCATION'}
-#W_MNEMS[''] = {'LAS_MNEM': "PROV', "LAS_DESC": "PROVINCE'}
-#W_MNEMS[''] = {'LAS_MNEM': "CNTY', "LAS_DESC": "COUNTY'}
-W_MNEMS['STAT'] = {'LAS_MNEM': "STAT', "LAS_DESC": "STATE'}
-W_MNEMS['NATI'] = {'LAS_MNEM': "CTRY', "LAS_DESC": "COUNTRY'}
-W_MNEMS['SRVC'] = {'LAS_MNEM': "SRVC', "LAS_DESC": "SERVICE COMPANY'}
-W_MNEMS['DATE'] = {'LAS_MNEM': "DATE', "LAS_DESC": "DATE'}
+W_MNEMS[
+  'CN'
+] = {
+  'LAS_MNEM': "COMP', "
+  LAS_DESC
+  ": "
+  CCOMPANY
+  '}
+  W_MNEMS[
+  'WN'
+] = {
+  'LAS_MNEM': "WELL', "
+  LAS_DESC
+  ": "
+  WELL
+  '}
+  W_MNEMS[
+  'WBN'
+] = {
+  'LAS_MNEM': "WELL', "
+  LAS_DESC
+  ": "
+  WELL
+  '}
+  W_MNEMS[
+  'FN'
+] = {
+  'LAS_MNEM': "FLD', "
+  LAS_DESC
+  ": "
+  FIELD
+  '}
+  #
+  W_MNEMS[
+  ''
+] = {
+  'LAS_MNEM': "LOC', "
+  LAS_DESC
+  ": "
+  LOCATION
+  '}
+  #
+  W_MNEMS[
+  ''
+] = {
+  'LAS_MNEM': "PROV', "
+  LAS_DESC
+  ": "
+  PROVINCE
+  '}
+  #
+  W_MNEMS[
+  ''
+] = {
+  'LAS_MNEM': "CNTY', "
+  LAS_DESC
+  ": "
+  COUNTY
+  '}
+  W_MNEMS[
+  'STAT'
+] = {
+  'LAS_MNEM': "STAT', "
+  LAS_DESC
+  ": "
+  STATE
+  '}
+  W_MNEMS[
+  'NATI'
+] = {
+  'LAS_MNEM': "CTRY', "
+  LAS_DESC
+  ": "
+  COUNTRY
+  '}
+  W_MNEMS[
+  'SRVC'
+] = {
+  'LAS_MNEM': "SRVC', "
+  LAS_DESC
+  ": "
+  SERVICE
+  COMPANY
+  '}
+  W_MNEMS[
+  'DATE'
+] = {
+  'LAS_MNEM': "DATE', "
+  LAS_DESC
+  ": "
+  DATE
+  '}
 
-W_MNEMS['API'] = {'LAS_MNEM': "API', "LAS_DESC": "API NUMBER'}
-W_MNEMS['APIN'] = {'LAS_MNEM': "API', "LAS_DESC": "API NUMBER'}
-W_MNEMS['LATD'] = {'LAS_MNEM': "LATI', "LAS_DESC": "LATITUDE'}
-W_MNEMS['LATI'] = {'LAS_MNEM': "LATI', "LAS_DESC": "LATITUDE'}
-W_MNEMS['LOND'] = {'LAS_MNEM': "LONG', "LAS_DESC": "LONGITUDE'}
-W_MNEMS['LONG'] = {'LAS_MNEM': "LONG', "LAS_DESC": "LONGITUDE'}
-#W_MNEMS['TDL'] = {'LAS_MNEM': '', "LAS_DESC": "TOTAL DEPTH (LOGGER)'}
-#W_MNEMS['TDD'] = {'LAS_MNEM': '', "LAS_DESC": "TOTAL DEPTH (DRILLER)'}
-#W_MNEMS['UBID'] = {'LAS_MNEM': '', "LAS_DESC": "UNIQUE BOREHOLE ID'}
-#W_MNEMS['PDAT'] = {'LAS_MNEM': '', "LAS_DESC": "PERMANENT DATUM'}
-#W_MNEMS['EPD'] = {'LAS_MNEM': "EPD', "LAS_DESC": "ELEVATION OF PERMANENT DATUM'}
-#W_MNEMS['LMF'] = {'LAS_MNEM': '', "LAS_DESC": "LOGGING MEASURED FROM'}
-#W_MNEMS['APD'] = {'LAS_MNEM': '', "LAS_DESC": "LMF ELEVATION'}
-#W_MNEMS['EDF'] = {'LAS_MNEM': '', "LAS_DESC": "ELEVATION OF DERRICK FLOOR'}
-#W_MNEMS['EGL'] = {'LAS_MNEM': "EGL', "LAS_DESC": "GROUND ELEVATION'}
-#W_MNEMS['EKB'] = {'LAS_MNEM': '', "LAS_DESC": "ELEVATION OF KELLY BUSHING'}
-#W_MNEMS['TOOT'] = {'LAS_MNEM': '', "LAS_DESC": "TOOL TYPE'}
-#W_MNEMS['MDEC'] = {'LAS_MNEM': '', "LAS_DESC": "MAGNETIC FIELD DECLINATION'}
-#W_MNEMS['STATIC_COLOR_THRESHOLDS'] = {'LAS_MNEM': '', "LAS_DESC": ''}
+  W_MNEMS[
+  'API'
+] = {
+  'LAS_MNEM': "API', "
+  LAS_DESC
+  ": "
+  API
+  NUMBER
+  '}
+  W_MNEMS[
+  'APIN'
+] = {
+  'LAS_MNEM': "API', "
+  LAS_DESC
+  ": "
+  API
+  NUMBER
+  '}
+  W_MNEMS[
+  'LATD'
+] = {
+  'LAS_MNEM': "LATI', "
+  LAS_DESC
+  ": "
+  LATITUDE
+  '}
+  W_MNEMS[
+  'LATI'
+] = {
+  'LAS_MNEM': "LATI', "
+  LAS_DESC
+  ": "
+  LATITUDE
+  '}
+  W_MNEMS[
+  'LOND'
+] = {
+  'LAS_MNEM': "LONG', "
+  LAS_DESC
+  ": "
+  LONGITUDE
+  '}
+  W_MNEMS[
+  'LONG'
+] = {
+  'LAS_MNEM': "LONG', "
+  LAS_DESC
+  ": "
+  LONGITUDE
+  '}
+  #
+  W_MNEMS[
+  'TDL'
+] = {
+  'LAS_MNEM': '',
+  "LAS_DESC": "TOTAL DEPTH (LOGGER)'}
+  #
+  W_MNEMS[
+  'TDD'
+] = {
+  'LAS_MNEM': '',
+  "LAS_DESC": "TOTAL DEPTH (DRILLER)'}
+  #
+  W_MNEMS[
+  'UBID'
+] = {
+  'LAS_MNEM': '',
+  "LAS_DESC": "UNIQUE BOREHOLE ID'}
+  #
+  W_MNEMS[
+  'PDAT'
+] = {
+  'LAS_MNEM': '',
+  "LAS_DESC": "PERMANENT DATUM'}
+  #
+  W_MNEMS[
+  'EPD'
+] = {
+  'LAS_MNEM': "EPD', "
+  LAS_DESC
+  ": "
+  ELEVATION
+  OF
+  PERMANENT
+  DATUM
+  '}
+  #
+  W_MNEMS[
+  'LMF'
+] = {
+  'LAS_MNEM': '',
+  "LAS_DESC": "LOGGING MEASURED FROM'}
+  #
+  W_MNEMS[
+  'APD'
+] = {
+  'LAS_MNEM': '',
+  "LAS_DESC": "LMF ELEVATION'}
+  #
+  W_MNEMS[
+  'EDF'
+] = {
+  'LAS_MNEM': '',
+  "LAS_DESC": "ELEVATION OF DERRICK FLOOR'}
+  #
+  W_MNEMS[
+  'EGL'
+] = {
+  'LAS_MNEM': "EGL', "
+  LAS_DESC
+  ": "
+  GROUND
+  ELEVATION
+  '}
+  #
+  W_MNEMS[
+  'EKB'
+] = {
+  'LAS_MNEM': '',
+  "LAS_DESC": "ELEVATION OF KELLY BUSHING'}
+  #
+  W_MNEMS[
+  'TOOT'
+] = {
+  'LAS_MNEM': '',
+  "LAS_DESC": "TOOL TYPE'}
+  #
+  W_MNEMS[
+  'MDEC'
+] = {
+  'LAS_MNEM': '',
+  "LAS_DESC": "MAGNETIC FIELD DECLINATION'}
+  #
+  W_MNEMS[
+  'STATIC_COLOR_THRESHOLDS'
+] = {
+  'LAS_MNEM': '',
+  "LAS_DESC": ''
+}
 #W_MNEMS['BS'] = {'LAS_MNEM': '', "LAS_DESC": "BIT SIZE'}
 #

@@ -12,7 +12,6 @@ References
     http://www.cwls.org/wp-content/uploads/2014/09/LAS_20_Update_Jan2014.pdf
 """
 
-
 import numpy as np
 from collections import OrderedDict
 
@@ -64,7 +63,7 @@ class LASFile(object):
         is nc x ns, where nc is the number of curves and ns is the
         number of samples.
     """
-    
+
     def __init__(self, filename):
         self.filename = filename
         self.header = OrderedDict()
@@ -109,20 +108,20 @@ class LASReader(LASFile):
 
     def __init__(self, filename):
         super(LASReader, self).__init__(filename)
-    
+
     @property
     def wellname(self):
         return self.header["W"]["WELL"]["DATA"]
-    
+
     @property
     def curvesnames(self):
         return [line['MNEM'] for line in iter(self.header["C"].values())]
-    
+
     @property
     def curvesunits(self):
         return [line['UNIT'] for line in iter(self.header["C"].values())]
 
-    @staticmethod    
+    @staticmethod
     def _splitline(line):
         """
         Split a LAS line in MNEM, UNITS, DATA and DESCRIPTION.
@@ -153,31 +152,30 @@ class LASReader(LASFile):
         ('  DEPTH', 'M', '       ', ' MEASURED DEPTH  ')
         """
         # if ":" not in line:
-            # desc = ''
+        # desc = ''
         # else:
-            # line, desc = line.rsplit(":", 1)
-            # desc = desc.strip()
+        # line, desc = line.rsplit(":", 1)
+        # desc = desc.strip()
         # line = line.strip()
         # if " " not in line:
-            # data = ''
+        # data = ''
         # else:
-            # line, data = line.rsplit(" ", 1)
-            # data = data.strip()
+        # line, data = line.rsplit(" ", 1)
+        # data = data.strip()
         # line = line.strip()    
         # if "." not in line:
-            # unit = ''
-            # mnem = line
+        # unit = ''
+        # mnem = line
         # else:
-            # mnem, unit = line.split(".", 1)
+        # mnem, unit = line.split(".", 1)
         # return mnem, unit, data, desc
         rest, desc = line.rsplit(":", 1)
         mnem, rest = rest.split(".", 1)
         unit, data = rest.split(" ", 1)
-        
+
         return mnem, unit, data, desc
-        
-    
-    @staticmethod    
+
+    @staticmethod
     def _getlinelayout(splittedline):
         """
         Obtain the layout, i.e. the whitespace structure, of a splitted line.
@@ -219,7 +217,7 @@ class LASReader(LASFile):
         layout.append(len(ldesc) - len(ldesc.rstrip()))
         return layout
 
-    @staticmethod        
+    @staticmethod
     def _parseline(line, withlayout=False):
         """
         Parse a LAS line in its components and, if specified, its layout.
@@ -261,7 +259,7 @@ class LASReader(LASFile):
             layout = LASReader._getlinelayout((mnem, unit, data, desc))
             return parsedline, layout
 
-    @staticmethod    
+    @staticmethod
     def _getheaderlines(fileobject):
         """
         Obtain the LAS header lines from a file object.
@@ -282,9 +280,9 @@ class LASReader(LASFile):
         while not line.lstrip().startswith('~A'):
             headerlines.append(line.replace('\t', ' '))  # TODO: Suportar vários tipos de separadores
             line = fileobject.readline()
-        headerlines.append(line) 
+        headerlines.append(line)
         return headerlines
-    
+
     @staticmethod
     def _getheader(headerlines, withsectionnames=False, withlayout=False, withcomments=False):
         """
@@ -332,7 +330,7 @@ class LASReader(LASFile):
         layout = {}
         currentsection = None
         linecount = 0
-    
+
         for line in headerlines:
             if not line:
                 continue
@@ -347,7 +345,7 @@ class LASReader(LASFile):
             else:
                 currentsection.append(line.split('\n')[0])
             linecount += 1
-        
+
         for sectionkey, lines in header.items():
             try:
                 section = OrderedDict()
@@ -355,10 +353,10 @@ class LASReader(LASFile):
                 for line in lines:
                     parsedline, linelayout = LASReader._parseline(line, True)
                     # if parsedline['MNEM'] in section:
-                        # print "Curva repetida:", parsedline['MNEM']  # TODO: Fazer algo
+                    # print "Curva repetida:", parsedline['MNEM']  # TODO: Fazer algo
                     # section[parsedline['MNEM']] = parsedline
                     # sectionlayout[parsedline['MNEM']] = linelayout
-                    
+
                     # TODO: Melhorar e ver se funcionou
                     old_mnem = parsedline['MNEM']
                     new_mnem = old_mnem
@@ -366,15 +364,15 @@ class LASReader(LASFile):
                     while new_mnem in section:
                         count += 1
                         new_mnem = old_mnem + '_{:0>4}'.format(count)
-                    
+
                     if _VERBOSE and count:
-                        print ("Nome de curva repetido:", old_mnem)
-                        print ("Substituindo por:", new_mnem)
-                    
+                        print("Nome de curva repetido:", old_mnem)
+                        print("Substituindo por:", new_mnem)
+
                     parsedline['MNEM'] = new_mnem
                     section[new_mnem] = parsedline
                     sectionlayout[new_mnem] = linelayout
-                    
+
                 if not section:
                     header[sectionkey] = ''
                 else:
@@ -382,7 +380,7 @@ class LASReader(LASFile):
                     layout[sectionkey] = sectionlayout
             except:
                 header[sectionkey] = '\n'.join(lines)
-    
+
         if (not withsectionnames) and (not withlayout) and (not withcomments):
             return header
         else:
@@ -394,7 +392,7 @@ class LASReader(LASFile):
             if withcomments:
                 returns += (comments,)
             return returns
-    
+
     @staticmethod
     def _getdatalines(fileobject):
         """
@@ -417,7 +415,7 @@ class LASReader(LASFile):
             line = fileobject.readline()
         datalines = fileobject.readlines()
         return datalines
-    
+
     @staticmethod
     def _getflatdata(datalines):
         """
@@ -466,7 +464,7 @@ class LASReader(LASFile):
         """
         data = np.reshape(flatdata, (-1, ncurves)).T
         return data
-    
+
     @staticmethod
     def _replacenullvalues(data, nullvalue, copy=False):
         """
@@ -494,7 +492,7 @@ class LASReader(LASFile):
         where = (newdata == nullvalue)
         newdata[where] = np.nan
         return newdata
-    
+
     @staticmethod
     def _reorderdata(data, copy=False):
         """
@@ -524,7 +522,7 @@ class LASReader(LASFile):
             newdata = data
 
         return newdata[:, ::-1]
-    
+
     def read(self):
         """
         Read the file.
@@ -540,23 +538,25 @@ class LASReader(LASFile):
         headerlines = LASReader._getheaderlines(fileobject)
         datalines = LASReader._getdatalines(fileobject)
         fileobject.close()
-        
-        self.header, self.headersectionnames, self.headerlayout, self.headercomments = LASReader._getheader(headerlines, True, True, True)
+
+        self.header, self.headersectionnames, self.headerlayout, self.headercomments = LASReader._getheader(headerlines,
+                                                                                                            True, True,
+                                                                                                            True)
         ncurves = len(self.header["C"])
         nullvalue = float(self.header["W"]["NULL"]["DATA"])
         stepvalue = float(self.header["W"]["STEP"]["DATA"])
-        
+
         flattendata = LASReader._getflatdata(datalines)
         nandata = LASReader._replacenullvalues(flattendata, nullvalue)
         self.data = LASReader._reshapeflatdata(nandata, ncurves)
-        
+
         if (stepvalue == nullvalue) or (stepvalue == 0.0):
             stepvalue = self.data[0][1] - self.data[0][0]
-        
+
         if stepvalue < 0:
             self.data = LASReader._reorderdata(self.data)
-        
-        
+
+
 class LASWriter(LASFile):
     """
     A specialization of `LASFile` for writing files.
@@ -583,18 +583,18 @@ class LASWriter(LASFile):
     >>> lasfile.data = existing_data
     >>> lasfile.write()
     """
-    
+
     DEFAULTMNEMSTYLE = {'leftmargin': 1, 'rightmargin': 0, 'allign': 'left'}
     DEFAULTDATASTYLE = {'leftmargin': 1, 'rightmargin': 1, 'allign': 'left'}
     DEFAULTDESCSTYLE = {'leftmargin': 1, 'righmargin': 0, 'allign': 'left'}
     DEFAULTUNIFORMSECTIONS = True
-    
-    MINIMALLINELAYOUT = [0,0,1,0,0,0]
+
+    MINIMALLINELAYOUT = [0, 0, 1, 0, 0, 0]
     LASLINEPATTERN = "{0[0]}{MNEM}{0[1]}.{UNIT}{0[2]}{DATA}{0[3]}:{0[4]}{DESC}{0[5]}"
-    
+
     def __init__(self, filename):
         super(LASWriter, self).__init__(filename)
-    
+
     @staticmethod
     def _composeline(parsedline, linelayout=None):
         """
@@ -627,9 +627,9 @@ class LASWriter(LASFile):
         if not linelayout:
             linelayout = LASWriter.MINIMALLINELAYOUT
 
-        line = LASWriter.LASLINEPATTERN.format([" "*n for n in linelayout], **parsedline)
+        line = LASWriter.LASLINEPATTERN.format([" " * n for n in linelayout], **parsedline)
         return line
-    
+
     @staticmethod
     def _getspaces(style, spaces):
         """
@@ -665,8 +665,8 @@ class LASWriter(LASFile):
             left = style.get('leftmargin', 0)
             right = style.get('rightmargin', 0) + spaces
         elif style.get('allign') == 'center':
-            left = style.get('leftmargin', 0) + spaces//2
-            right = style.get('rightmargin', 0) + (spaces + 1)//2
+            left = style.get('leftmargin', 0) + spaces // 2
+            right = style.get('rightmargin', 0) + (spaces + 1) // 2
         elif style.get('allign') == 'right':
             left = style.get('leftmargin', 0) + spaces
             right = style.get('rightmargin', 0)
@@ -674,7 +674,7 @@ class LASWriter(LASFile):
             left = style.get('leftmargin', 0)
             right = style.get('rightmargin', 0)
         return left, right
-    
+
     @staticmethod
     def getprettyheaderlayout(header, mnemstyle=None, datastyle=None, descstyle=None, uniformsections=None):
         """
@@ -713,16 +713,16 @@ class LASWriter(LASFile):
             descstyle = LASWriter.DEFAULTDESCSTYLE
         if uniformsections is None:
             uniformsections = LASWriter.DEFAULTUNIFORMSECTIONS
-        
+
         style = {}
         style["MNEM"] = mnemstyle
         style["DATA"] = datastyle
         style["DESC"] = descstyle
-        
+
         allignmnem = bool(style["MNEM"].get('allign'))
         alligndata = bool(style["DATA"].get('allign'))
         alligndesc = bool(style["DESC"].get('allign'))
-        
+
         sizearrays = {}
         for sectionkey, section in header.items():
             if isinstance(section, str) or not section:
@@ -731,26 +731,26 @@ class LASWriter(LASFile):
             for key in ("MNEM", "UNIT", "DATA", "DESC"):
                 sizearray[key] = np.array([len(line[key]) for line in iter(section.values())])
             sizearrays[sectionkey] = sizearray
-        
+
         usizearray = {}
         for key in ("MNEM", "UNIT", "DATA", "DESC"):
             usizearray[key] = np.hstack(sizearray[key] for sizearray in iter(sizearrays.values()))
-        
+
         leftpositions = {}
         for sectionkey, section in header.items():
             if isinstance(section, str) or not section:
                 continue
             leftposition = {}
-            
+
             sizearray = sizearrays[sectionkey]
-            
+
             if uniformsections:
                 msizearray = usizearray
             else:
                 msizearray = sizearray
-            
+
             mnemleft = np.zeros(len(section))
-            
+
             if not alligndata:
                 dataleft = np.zeros(len(section))
             else:
@@ -761,7 +761,7 @@ class LASWriter(LASFile):
                     size = sizearray['MNEM'] + sizearray['UNIT']
                     maxsize = np.max(msizearray['MNEM'] + msizearray['UNIT'])
                 dataleft = maxsize - size
-            
+
             if not alligndesc or alligndata:
                 descleft = np.zeros(len(section))
             else:
@@ -772,18 +772,18 @@ class LASWriter(LASFile):
                     size = sizearray['MNEM'] + sizearray['UNIT'] + sizearray['DATA']
                     maxsize = np.max(msizearray['MNEM'] + msizearray['UNIT'] + msizearray['DATA'])
                 descleft = maxsize - size
-                
+
             leftposition["MNEM"] = mnemleft
             leftposition["DATA"] = dataleft
             leftposition["DESC"] = descleft
-            
+
             leftpositions[sectionkey] = leftposition
-        
+
         headerlayout = {}
         for sectionkey, section in header.items():
             if isinstance(section, str) or not section:
                 continue
-            
+
             sectionlayout = {}
             if uniformsections:
                 msizearray = usizearray
@@ -799,9 +799,9 @@ class LASWriter(LASFile):
                     linelayout.append(right)
                 sectionlayout[line["MNEM"]] = linelayout
             headerlayout[sectionkey] = sectionlayout
-        
+
         return headerlayout
-    
+
     @staticmethod
     def getemptyheader():
         """
@@ -813,7 +813,7 @@ class LASWriter(LASFile):
             An empty LAS header.
         """
         pass  # TODO: implementar
-    
+
     @staticmethod
     def correctwellsection(header, depthdata, depthunit, copy=False):
         """
@@ -857,9 +857,9 @@ class LASWriter(LASFile):
         hdr["W"]["STOP"]["DATA"] = "{:g}".format(stop)
         hdr["W"]["STEP"]["UNIT"] = depthunit
         hdr["W"]["STEP"]["DATA"] = "{:g}".format(step)
-        
+
         return hdr
-    
+
     @staticmethod
     def correctcurvesection(header, mnems, units, keep=False, copy=False):
         """
@@ -911,7 +911,7 @@ class LASWriter(LASFile):
             for name, unit in zip(mnems, units):
                 hdr["C"][name] = {"MNEM": name, "UNIT": unit, "DATA": "", "DESC": ""}
         return hdr
-    
+
     @staticmethod
     def _headertostring(header, sectionnames=None, layout=None, comments=None):
         """
@@ -941,20 +941,20 @@ class LASWriter(LASFile):
             A string containing all the header lines separated by '\\n'.
         """
         lines = []
-        
+
         if not sectionnames:
             sectionnames = {}
             for key in header.iterkeys():
                 sectionnames[key] = '~' + key
-        
+
         if not layout:
             layout = {}
             for key in header.iterkeys():
                 layout[key] = {}.fromkeys(header[key])
-        
+
         if not comments:
             comments = {}
-        
+
         for sectionkey, section in header.items():
             while len(lines) in comments:
                 lines.append(comments[len(lines)])
@@ -978,9 +978,10 @@ class LASWriter(LASFile):
 
         string = '\n'.join(lines)
         return string
-    
+
     @staticmethod
-    def _datatostring(data, nullvalue=-999.25, revertorder=False, wrap=False, allign='right', collumnwidth=10, maxprecision=8, copy=False):  # TODO: rever (alinhar pontos e etc)
+    def _datatostring(data, nullvalue=-999.25, revertorder=False, wrap=False, allign='right', collumnwidth=10,
+                      maxprecision=8, copy=False):  # TODO: rever (alinhar pontos e etc)
         """
         Convert the given LAS data to a string ready for writing into a file.
         
@@ -1018,41 +1019,41 @@ class LASWriter(LASFile):
             newdata = np.copy(data)
         else:
             newdata = data
-        
+
         if revertorder:
             newdata = newdata[:, ::-1]
-            
+
         isnan = np.isnan(newdata)
         newdata[isnan] = nullvalue
-        
+
         if allign == 'left':
             allignsymbol = '<'
         else:
             allignsymbol = '>'
-        
+
         maxwidth = 80
         pattern = '{{:{}{}.{}g}}'.format(allignsymbol, collumnwidth, maxprecision)
-        
+
         lines = []
         if wrap:
-            ncolumns = (maxwidth + 1)//(collumnwidth + 1)
-            nrows = (newdata.shape[0] - 1)//ncolumns
+            ncolumns = (maxwidth + 1) // (collumnwidth + 1)
+            nrows = (newdata.shape[0] - 1) // ncolumns
             nrest = (newdata.shape[0] - 1) % ncolumns
-            linepattern = ' '.join([pattern]*ncolumns)
-            restpattern = ' '.join([pattern]*nrest)
+            linepattern = ' '.join([pattern] * ncolumns)
+            restpattern = ' '.join([pattern] * nrest)
             for line in newdata.T:
                 lines.append(pattern.format(line[0]))
                 for i in range(nrows):
-                    lines.append(linepattern.format(*line[1+i*ncolumns:1+(i+1)*ncolumns]))
-                lines.append(restpattern.format(*line[1+nrows*ncolumns:]))
+                    lines.append(linepattern.format(*line[1 + i * ncolumns:1 + (i + 1) * ncolumns]))
+                lines.append(restpattern.format(*line[1 + nrows * ncolumns:]))
         else:
-            linepattern = ' '.join([pattern]*newdata.shape[0])
+            linepattern = ' '.join([pattern] * newdata.shape[0])
             for line in newdata.T:
                 lines.append(linepattern.format(*line))
-        
+
         string = '\n'.join(lines)
         return string
-    
+
     def write(self):
         """
         Write the file.
@@ -1071,21 +1072,22 @@ class LASWriter(LASFile):
         
         Calling this method may modify `header` and `data` attributes.
         """
-        headerstring = LASWriter._headertostring(self.header, self.headersectionnames, self.headerlayout, self.headercomments)
-        
+        headerstring = LASWriter._headertostring(self.header, self.headersectionnames, self.headerlayout,
+                                                 self.headercomments)
+
         nullvalue = float(self.header["W"]["NULL"]["DATA"])
         stepvalue = float(self.header["W"]["STEP"]["DATA"])
         revertorder = (stepvalue != nullvalue) and (stepvalue < 0)
         wrap = self.header["V"]["WRAP"]["DATA"].upper().startswith("Y")
-        
+
         datastring = LASWriter._datatostring(self.data, nullvalue, revertorder, wrap)
-        
+
         fileobject = builtins.open(self.filename, 'w')
         fileobject.write(headerstring)
         fileobject.write('\n')
         fileobject.write(datastring)
         fileobject.close()
-                
+
 
 def open(name, mode='r'):
     """
@@ -1115,8 +1117,9 @@ def open(name, mode='r'):
         lasfile = LASWriter(name)
     else:
         lasfile = None
-    
+
     return lasfile
+
 
 def verbose(v=True):
     global _VERBOSE

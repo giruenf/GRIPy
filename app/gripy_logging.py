@@ -22,12 +22,14 @@ def setup_logging(level, path, env_key='LOG_CFG'):
     if os.path.exists(path):
         with open(path, 'rt') as f:
             config = json.load(f)
-        print config
+        print
+        config
         raise Exception()
         logging.config.dictConfig(config)
     else:
         logging.basicConfig(level=level)
-     
+
+
 """     
 CRITICAL = 50
 FATAL = CRITICAL
@@ -53,4 +55,4 @@ _levelNames = {
     'DEBUG' : DEBUG,
     'NOTSET' : NOTSET,
 }      
-"""        
+"""

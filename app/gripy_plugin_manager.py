@@ -14,18 +14,15 @@ from plugins import _CATEGORIES_FILTER
 from plugins import GripyPluginInfo
 
 
-
 class GripyPluginManager(PluginManager):
-        
-        
-    def __init__(self, categories_filter=None, directories_list=None,
-                                 plugin_info_ext=None, plugin_locator=None):
-        if not categories_filter: 
-            categories_filter = _CATEGORIES_FILTER                            
-        super().__init__(categories_filter,
-                        directories_list, plugin_info_ext, plugin_locator
-        )
 
+    def __init__(self, categories_filter=None, directories_list=None,
+                 plugin_info_ext=None, plugin_locator=None):
+        if not categories_filter:
+            categories_filter = _CATEGORIES_FILTER
+        super().__init__(categories_filter,
+                         directories_list, plugin_info_ext, plugin_locator
+                         )
 
     def getPluginByName(self, name):
         # TODO: Comments        
@@ -36,7 +33,6 @@ class GripyPluginManager(PluginManager):
             if info.name == name:
                 return info
         return None
-        
 
     def activatePluginByName(self, name):
         # TODO: Comments     
@@ -49,7 +45,6 @@ class GripyPluginManager(PluginManager):
             return pta_item
         return None
 
-
     def deactivatePluginByName(self, name):
         # TODO: Comments     
         """
@@ -57,12 +52,10 @@ class GripyPluginManager(PluginManager):
         """
         plugin_to_deactivate = self.getPluginByName(name)
         if plugin_to_deactivate is not None:
-            log.debug("Deactivating plugin: %s"% (name))
+            log.debug("Deactivating plugin: %s" % (name))
             plugin_to_deactivate.deactivate()
             return plugin_to_deactivate
         return None
-
-
 
     def getAllDataLoaded(self):
         # TODO: Comments   
@@ -73,20 +66,19 @@ class GripyPluginManager(PluginManager):
             category_list = zip(plugins_infos, files_infos)
             data_loaded[category] = category_list
         return data_loaded
-        
 
     def searchForPluginLoaded(self, **kwargs):
         # TODO: Comments  
-        if not kwargs: 
+        if not kwargs:
             return None
-        plugin_name = kwargs.get('name', None)    
-        infofile = kwargs.get('infofile', None)    
-        filepath =  kwargs.get('filepath', None)  
+        plugin_name = kwargs.get('name', None)
+        infofile = kwargs.get('infofile', None)
+        filepath = kwargs.get('filepath', None)
         if not plugin_name and not infofile and not filepath:
             return None
         data_loaded = []
         for list_ in self.getAllDataLoaded().values():
-            data_loaded.extend(list_) 
+            data_loaded.extend(list_)
         if plugin_name:
             for plugin_info, info_file in data_loaded:
                 if plugin_info.name == plugin_name:
@@ -100,9 +92,8 @@ class GripyPluginManager(PluginManager):
         if infofile:
             for plugin_info, info_file in data_loaded:
                 if info_file == infofile:
-                    return plugin_info, info_file, 'infofile'            
-        return None                
-                 
+                    return plugin_info, info_file, 'infofile'
+        return None
 
     def collectPlugins(self):
         """
@@ -118,45 +109,43 @@ class GripyPluginManager(PluginManager):
         exists_previously = []
         still_candidate = []
         for candidate_infofile, candidate_filepath, plugin_info in self._candidates:
-            loaded = self.searchForPluginLoaded(name=plugin_info.name, 
-                                           filepath=candidate_filepath,
-                                           infofile=candidate_infofile
-            )
+            loaded = self.searchForPluginLoaded(name=plugin_info.name,
+                                                filepath=candidate_filepath,
+                                                infofile=candidate_infofile
+                                                )
             if loaded:
                 exists_previously.append(plugin_info)
             else:
                 still_candidate.append((candidate_infofile, candidate_filepath, plugin_info))
-        self._candidates = still_candidate        
+        self._candidates = still_candidate
         processed_plugins = super().loadPlugins()
         ok = []
-        error =  []        
+        error = []
         for info in processed_plugins:
             if info.error or not info.plugin_object or not info.categories:
-#                print('ERRO:')
-#                print('info.error:', info.error)
-#                print('info.plugin_object:', info.plugin_object)
-#                print('info.categories:', info.categories)
-#                print('FIM ERRO')
+                #                print('ERRO:')
+                #                print('info.error:', info.error)
+                #                print('info.plugin_object:', info.plugin_object)
+                #                print('info.categories:', info.categories)
+                #                print('FIM ERRO')
                 error.append(info)
             else:
                 ok.append(info)
-                        
+
         for plugin_info in ok:
-            plugin_info.activatePlugin()    
-        return ok, exists_previously, error    
-
-
+            plugin_info.activatePlugin()
+        return ok, exists_previously, error
 
     def loadPluginDirectly(self, name, fullfilename):
         """
         TODO
         """
-        loaded = self.searchForPluginLoaded(name=name, 
-                                           filepath=fullfilename
-        )
+        loaded = self.searchForPluginLoaded(name=name,
+                                            filepath=fullfilename
+                                            )
         if loaded:
             raise Exception('GripyPluginManager.loadPluginDirectly: Plugin {} already exist.'.format(loaded[2]))
-            
+
         # If there is candidates before, they are not loaded this time...
         try:
             candidates = self.getPluginCandidates()
@@ -167,49 +156,44 @@ class GripyPluginManager(PluginManager):
         # locatePlugins will be a best option because it does not try 
         # to load unsuccessful candidates again   
         self._candidates = []  # It's a kind of hack to avoid using locatePlugins 
-        #self.locatePlugins()    
+        # self.locatePlugins()    
         if fullfilename.endswith('.py'):
             candidate_filepath = fullfilename[:-3]
         else:
             raise Exception('Only .py files are accept as Plugins.')
         plugin_info = PluginInfo(name, candidate_filepath)
         candidate_tuple = fullfilename, candidate_filepath, plugin_info
-        self.appendPluginCandidate(candidate_tuple)  
+        self.appendPluginCandidate(candidate_tuple)
         infos = self.loadPlugins()
         # Putting candidates back, if any
         if candidates:
             for candidate in candidates:
                 self.appendPluginCandidate(candidate)
         if len(infos) > 1:
-            raise Exception('Unknown error. Call software devolper.')                
-        info = infos[0]        
+            raise Exception('Unknown error. Call software devolper.')
+        info = infos[0]
         if info.error:
             raise info.error[1]
         if not info.plugin_object:
             msg = 'Either this file was already loaded or the plugin class ' + \
-                    'does not derive from a plugin base class.'
+                  'does not derive from a plugin base class.'
             raise Exception(msg)
-        info.activatePlugin()    
-        return info      
- 
+        info.activatePlugin()
+        return info
 
     def reloadPlugin(self, name):
         loaded = self.searchForPluginLoaded(name=name)
         if not loaded:
             msg = 'Cannot reload a plugin that was not loaded before.'
-            raise Exception(msg) 
+            raise Exception(msg)
         plugin_info, _, _ = loaded
         plugin_info.reloadPlugin()
-        
-
 
 
 class GripyPluginManagerSingleton(object):
-    
     __instance = None
     __decoration_chain = None
-    
-    
+
     # Verificar uso de decorators atraves de PluginManagerSingleton.setBehaviour
     def get(self):
         """
@@ -220,10 +204,10 @@ class GripyPluginManagerSingleton(object):
         if self.__instance is None:
             if self.__decoration_chain is not None:
                 # Get the object to be decorated
-#                print self.__decoration_chain
+                #                print self.__decoration_chain
                 pm = self.__decoration_chain[0]()
                 for cls_item in self.__decoration_chain[1:]:
-#                    print cls_item
+                    #                    print cls_item
                     pm = cls_item(decorated_manager=pm)
                 # Decorate the whole object
                 self.__instance = pm
@@ -232,9 +216,7 @@ class GripyPluginManagerSingleton(object):
                 self.__instance = GripyPluginManager()
             log.debug("GripyPluginManagerSingleton initialised.")
         # In order to use only GripyPluginInfo as PluginInfo    
-        self.__instance.getPluginLocator().setPluginInfoClass(GripyPluginInfo)    
+        self.__instance.getPluginLocator().setPluginInfoClass(GripyPluginInfo)
         return self.__instance
-    get = classmethod(get)       
-    
-    
-    
+
+    get = classmethod(get)

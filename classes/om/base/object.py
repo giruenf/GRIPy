@@ -1,4 +1,3 @@
-
 from collections import OrderedDict
 
 from classes.base import GripyObject
@@ -10,7 +9,7 @@ class OMBaseObject(GripyObject):
     """
     tid = None
     _TID_FRIENDLY_NAME = None
-    
+
     def _get_tree_object_node_properties(self):
         """Used by TreeController to get the way a object is represented in the
         Tree. General usage is return a dict with object name as main key and
@@ -28,13 +27,13 @@ class OMBaseObject(GripyObject):
                 if isinstance(value, float):
                     value = "{0:.2f}".format(value)
                 elif value is None:
-                    value = 'None'               
-                ret_od[attr]  = attr_label + ': ' + str(value)  
-            
+                    value = 'None'
+                ret_od[attr] = attr_label + ': ' + str(value)
+
         except AttributeError:
             pass
-        return ret_od  
-        
+        return ret_od
+
     def _is_tree_tid_node_needed(self):
         """Used by TreeController to create or not a tid node as a objects
         from a given class grouper. If tid node is created, the method 
@@ -42,16 +41,14 @@ class OMBaseObject(GripyObject):
         
         """
         return True
-    
+
     def _get_tree_object_friendly_name(self):
         """Returns a name to be used by TreeController as object node label."""
         return self.name
 
-    def get_friendly_name(self): 
+    def get_friendly_name(self):
         tid_friendly_name = self._get_tid_friendly_name()
         name = self.name
-        if isinstance(name, tuple): # Name is a uid 
-            name = '[' + str(self.oid) + ']' 
-        return tid_friendly_name + ': ' + name    
-    
-      
+        if isinstance(name, tuple):  # Name is a uid
+            name = '[' + str(self.oid) + ']'
+        return tid_friendly_name + ': ' + name

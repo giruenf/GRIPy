@@ -5,7 +5,6 @@ Created on Sat Aug 25 20:45:36 2018
 @author: Adriano
 """
 
-
 import gc
 from collections import OrderedDict
 
@@ -15,11 +14,11 @@ import app
 from app import log
 from classes.base import GripyManager
 
-from classes.ui import UIControllerObject 
+from classes.ui import UIControllerObject
 
 
 class UIManager(GripyManager):
-    #tid = 'ui_manager'
+    # tid = 'ui_manager'
     _data = OrderedDict()
     _types = OrderedDict()
     _currentobjectids = {}
@@ -28,11 +27,11 @@ class UIManager(GripyManager):
     _parenttidmap = {}
     _MVC_CLASSES = {}
     _wx_ID = 2000  # for a shortcut do wx.NewId. See self.new_wx_id  
-#    _PUB_NAME = 'UIManager'
-    #_VALID_PUBSUB_TOPICS = ['uim', 'uim.object_removed']
 
+    #    _PUB_NAME = 'UIManager'
+    # _VALID_PUBSUB_TOPICS = ['uim', 'uim.object_removed']
 
-    def __init__(self):   
+    def __init__(self):
         super().__init__()
         self._data = UIManager._data
         self._types = UIManager._types
@@ -42,29 +41,27 @@ class UIManager(GripyManager):
         self._parenttidmap = UIManager._parenttidmap
         self._MVC_CLASSES = UIManager._MVC_CLASSES
 
-
-#    def get_root_controller(self):
-#        main_ctrl_view = wx.App.Get().GetTopWindow()
-#        controller_uid = main_ctrl_view._controller_uid
-#        return self.get(controller_uid)
-
+    #    def get_root_controller(self):
+    #        main_ctrl_view = wx.App.Get().GetTopWindow()
+    #        controller_uid = main_ctrl_view._controller_uid
+    #        return self.get(controller_uid)
 
     #### Remover isso assim que possivel
     def print_info(self):
-        print ('\nUIManager.print_info:')
-        print ('UIManager._data: ', UIManager._data)
-        #print ('UIManager._types: ', UIManager._types)
-        #print ('UIManager._currentobjectids: ', UIManager._currentobjectids)
-        print ('UIManager._parentuidmap: ', UIManager._parentuidmap)
-        print ('UIManager._childrenuidmap: ', UIManager._childrenuidmap)
-        print ('UIManager._parenttidmap: ', UIManager._parenttidmap)
-        #print ('UIManager._MVC_CLASSES: ', UIManager._MVC_CLASSES)    
-    ####
+        print('\nUIManager.print_info:')
+        print('UIManager._data: ', UIManager._data)
+        # print ('UIManager._types: ', UIManager._types)
+        # print ('UIManager._currentobjectids: ', UIManager._currentobjectids)
+        print('UIManager._parentuidmap: ', UIManager._parentuidmap)
+        print('UIManager._childrenuidmap: ', UIManager._childrenuidmap)
+        print('UIManager._parenttidmap: ', UIManager._parenttidmap)
+        # print ('UIManager._MVC_CLASSES: ', UIManager._MVC_CLASSES)
 
+    ####
 
     @classmethod
     def register_class(cls, controller_class, view_class,
-                                               controller_parent_class=None):  
+                       controller_parent_class=None):
         #
         if controller_class is None:
             msg = "Controller class cannot be None"
@@ -74,20 +71,20 @@ class UIManager(GripyManager):
         if not issubclass(controller_class, UIControllerObject):
             msg = "Controller class must inherit from UIControllerObject."
             log.exception(msg)
-            raise TypeError(msg)           
-        #    
-        cls._types[controller_class.tid] = controller_class 
-        cls._currentobjectids[controller_class.tid] = 0    
+            raise TypeError(msg)
+            #
+        cls._types[controller_class.tid] = controller_class
+        cls._currentobjectids[controller_class.tid] = 0
         #
         if view_class is not None:
             view_class_tid = view_class.tid
             if view_class_tid not in cls._types.keys():
                 cls._types[view_class_tid] = view_class
-                cls._currentobjectids[view_class_tid] = 0     
+                cls._currentobjectids[view_class_tid] = 0
         else:
             view_class_tid = None
         #    
-        if controller_class.tid not in cls._MVC_CLASSES.keys():    
+        if controller_class.tid not in cls._MVC_CLASSES.keys():
             cls._MVC_CLASSES[controller_class.tid] = view_class_tid
         else:
             if view_class_tid != cls._MVC_CLASSES.get(controller_class.tid):
@@ -108,71 +105,70 @@ class UIManager(GripyManager):
                 parent_class = cls._types.get(controller_parent_class.tid)
                 if not issubclass(parent_class, UIControllerObject):
                     msg = "Type {} is not instance of UIControllerObject.".format(controller_parent_class)
-                    log.exception(msg)                    
-                    raise TypeError(msg)                  
+                    log.exception(msg)
+                    raise TypeError(msg)
             except Exception:
                 raise
-            controller_parent_class_tid = controller_parent_class.tid   
+            controller_parent_class_tid = controller_parent_class.tid
         else:
-            controller_parent_class_tid  = None   
-        #         
-        if controller_class.tid not in cls._parenttidmap.keys():   
+            controller_parent_class_tid = None
+            #
+        if controller_class.tid not in cls._parenttidmap.keys():
             cls._parenttidmap[controller_class.tid] = [controller_parent_class_tid]
         else:
             cls._parenttidmap.get(controller_class.tid).append(controller_parent_class_tid)
         #    
         class_full_name = str(controller_class.__module__) + '.' + \
-                                                str(controller_class.__name__)
+                          str(controller_class.__name__)
         if controller_parent_class:
             parent_full_name = str(controller_parent_class.__module__) + '.' + \
-                                        str(controller_parent_class.__name__)
-            log.info('UIManager registered class {} for parent class {} successfully.'.format(class_full_name, parent_full_name))
-        else:    
-            log.info('UIManager registered class {} successfully.'.format(class_full_name))                          
+                               str(controller_parent_class.__name__)
+            log.info('UIManager registered class {} for parent class {} successfully.'.format(class_full_name,
+                                                                                              parent_full_name))
+        else:
+            log.info('UIManager registered class {} successfully.'.format(class_full_name))
         return True
-      
-        
+
     def get(self, uid):
         if isinstance(uid, str):
             uid = app.app_utils.parse_string_to_uid(uid)
         return self._data.get(uid)
-        #return self._data[uid]
-    
+        # return self._data[uid]
 
     # Something like a mix between new and add in ObjectManager
     # Object Factory        
-    def create(self, controller_tid, 
-                               parent_uid=None, **base_state):
+    def create(self, controller_tid,
+               parent_uid=None, **base_state):
         try:
             class_ = self._check_controller_tid(controller_tid)
         except Exception as e:
             log.exception('Error during calling UIManager.create({}, {})'.format(controller_tid, parent_uid))
-            raise e          
+            raise e
         if parent_uid is None:
             parent_obj = parent_tid = None
-        else:    
+        else:
             parent_obj = self.get(parent_uid)
             parent_tid = parent_obj.tid
         if parent_tid not in self._parenttidmap.get(controller_tid):
             msg = "Parent object given ({}) is not a instance of {} parent class.".format(parent_tid, controller_tid)
-            raise TypeError(msg)  
+            raise TypeError(msg)
         if class_._singleton:
-            objs = self.list(controller_tid)    
+            objs = self.list(controller_tid)
             if len(objs) > 0:
                 msg = 'Cannot create more than one object stated as Singleton.'
-                raise Exception(msg)        
+                raise Exception(msg)
         if class_._singleton_per_parent:
-            objs = self.list(controller_tid, parent_uid) 
+            objs = self.list(controller_tid, parent_uid)
             if len(objs) > 0:
                 msg = 'Cannot create more than one per parent object stated as Singleton per parent.'
-                raise Exception(msg)     
-        try: 
+                raise Exception(msg)
+        try:
             obj = class_(**base_state)
         except Exception:
-            msg = 'ERROR found in Controller {} creation.'.format(class_.__name__)      
+            msg = 'ERROR found in Controller {} creation.'.format(class_.__name__)
             log.exception(msg)
             raise
-        self._data[obj.uid] = obj      
+        self._data[obj.uid] = obj
         self._parentuidmap[obj.uid] = parent_uid
         self._childrenuidmap[obj.uid] = []
         if parent_uid:
@@ -180,19 +176,18 @@ class UIManager(GripyManager):
         try:
             obj._create_view()
         except Exception as e:
-            print (e)
-            msg = 'ERROR found in View creation for class {}.'.format(class_.__name__)      
+            print(e)
+            msg = 'ERROR found in View creation for class {}.'.format(class_.__name__)
             log.exception(msg)
-            raise         
+            raise
         try:
             obj._PostInit()
         except Exception:
             msg = 'Error found in {}._PostInit(). Object was not created.'.format(obj.__class__.__name__)
             log.exception(msg)
-            
-        self.send_message('create', objuid=obj.uid, parentuid=parent_uid)    
+
+        self.send_message('create', objuid=obj.uid, parentuid=parent_uid)
         return obj
- 
 
     def new_wx_id(self):
         """
@@ -205,9 +200,9 @@ class UIManager(GripyManager):
         """
         ret_val = self.__class__._wx_ID
         self.__class__._wx_ID += 1
-        
+
         return ret_val
-        
+
     def _isvalidparent(self, objuid, parentuid):
         """
         Verify if a given parent is suited for an object using their `uid`s.
@@ -252,10 +247,7 @@ class UIManager(GripyManager):
             The unique identificator of the object's parent.
         """
         return self._parentuidmap.get(uid)
-               
- 
-    
-    
+
     def _prepare_object_for_deletion(self, obj):
         """
         """
@@ -263,104 +255,98 @@ class UIManager(GripyManager):
             # With detach, controller will not receiver messages of object 
             # deletion from ObjectManager. 
             obj.detach()
-            
+
             # Unsubscribing listeners from controller, this implies controller
             # will not send messages anymore.
-            obj.unsubAll()    
-            
+            obj.unsubAll()
+
             # PreDelete must close (delete) all references 
             # from controller's parent.    
-            obj.PreDelete()        
+            obj.PreDelete()
         except:
             raise
-            
-            
-    
+
     # Before exit application
     def PreExit(self):
-#        print ('\nUIManager PreExit')
+        #        print ('\nUIManager PreExit')
         for obj in self.list():
             self._prepare_object_for_deletion(obj)
 
             try:
-                obj.view.unsubAll() 
-                obj.view.PreDelete() 
+                obj.view.unsubAll()
+                obj.view.PreDelete()
             except AttributeError:
                 pass
             except Exception as e:
-                print ('\n\nERROR with object {}: {} \n\n'.format(obj.uid, e))
-                raise      
+                print('\n\nERROR with object {}: {} \n\n'.format(obj.uid, e))
+                raise
 
-            
-   
-    
     def remove(self, uid):
         msg = 'Removing object from UI Manager: {}.'.format(uid)
         log.debug(msg)
-#        print ('\n' + msg)
-        
+        #        print ('\n' + msg)
+
         self.send_message('pre_remove', objuid=uid)
         obj = self.get(uid)
         if not isinstance(obj, UIControllerObject):
             return False
-        
+
         for childuid in self._childrenuidmap.get(uid)[::-1]:
-            self.remove(childuid) 
+            self.remove(childuid)
 
         self._prepare_object_for_deletion(obj)
-        
+
         if obj.view:
             msg = 'Deleting UI view object {}.'.format(obj.view.uid)
-#            print (msg)
+            #            print (msg)
             log.debug(msg)
-            
-#            try:
-            obj.view.unsubAll() 
-            obj.view.PreDelete() 
+
+            #            try:
+            obj.view.unsubAll()
+            obj.view.PreDelete()
 
             # TODO: rever se este eh o melhor caminho....
             if isinstance(obj.view, wx.Window):
                 obj.view.Destroy()
             else:
                 del obj.view
-#            except Exception as e:
-#                print ('ERROR:', obj.uid, e)
+        #            except Exception as e:
+        #                print ('ERROR:', obj.uid, e)
 
         # Removing from _childrenuidmap    
         parent_uid = self._parentuidmap.get(uid)
         if parent_uid:
-            self._childrenuidmap.get(parent_uid).remove(uid) 
+            self._childrenuidmap.get(parent_uid).remove(uid)
         del self._childrenuidmap[uid]
         # Removing from _parentuidmap
         del self._parentuidmap[uid]
         # And from _data
-        del self._data[uid]  
+        del self._data[uid]
         msg = 'Deleting UI controller object {}.'.format(uid)
-        #print msg
+        # print msg
         log.debug(msg)
         # Finally, deletes the controller
         del obj
         gc.collect()
         self.send_message('post_remove', objuid=uid)
-        msg = 'UI Manager removed sucessfully {}.'.format(uid) 
-        log.debug(msg)    
-#        print (msg)
+        msg = 'UI Manager removed sucessfully {}.'.format(uid)
+        log.debug(msg)
+        #        print (msg)
         return True
 
-
     def reparent(self, uid, new_parent_uid):
-        print ('UIM.reparent:', uid, new_parent_uid)
+        print('UIM.reparent:', uid, new_parent_uid)
         if uid not in self._data:
             raise Exception('uid={} is not a UIManager object.'.format(uid))
         if new_parent_uid not in self._data:
-            raise Exception('New parent uid={} is not a UIManager object.'.format(new_parent_uid))   
+            raise Exception('New parent uid={} is not a UIManager object.'.format(new_parent_uid))
         obj = self._data[uid]
-        
+
         if new_parent_uid[0] not in self._parenttidmap.get(uid[0], None):
             raise Exception('New parent tid={} not registered as {} parent.'.format(new_parent_uid.tid,
-                            obj.__class__.__name__)
-        )
-         
+                                                                                    obj.__class__.__name__)
+                            )
+
         #
         old_parent_uid = self._parentuidmap[uid]
         self._parentuidmap[uid] = new_parent_uid
@@ -370,31 +356,25 @@ class UIManager(GripyManager):
         # Make obj.view do the wx reparent
         obj.view.reparent(old_parent_uid, new_parent_uid)
 
-
-
-
-
     # TODO: escolher um melhor nome para este método
     def close(self):
         msg = 'UI Manager has received a close call.'
         log.info(msg)
-        print (msg)
-        #print
-        #self.print_info()
+        print(msg)
+        # print
+        # self.print_info()
         for top_level_uid in self._get_top_level_uids():
-            print ('Removing ' + str(top_level_uid))
+            print('Removing ' + str(top_level_uid))
             self.remove(top_level_uid)
-        #msg = 'ENDS.'
-        #log.info(msg)
-        #print ('\n' + msg)
-        #print
-#        self.print_info()    
+        # msg = 'ENDS.'
+        # log.info(msg)
+        # print ('\n' + msg)
+        # print
+        #        self.print_info()
         msg = 'UI Manager has closed.'
         log.info(msg)
-        print (msg + '\n')
+        print(msg + '\n')
 
-
-            
     def _get_top_level_uids(self):
         return [uid for uid, puid in UIManager._parentuidmap.items() if puid is None]
 
@@ -414,7 +394,6 @@ class UIManager(GripyManager):
         """
         return self._types.get(tid)
 
-
     def get_view_class(self, controller_tid):
         try:
             self._check_controller_tid(controller_tid)
@@ -423,7 +402,7 @@ class UIManager(GripyManager):
         view_tid = self._MVC_CLASSES.get(controller_tid)
         if view_tid is None:
             view_class = None
-        else:      
+        else:
             view_class = self._gettype(view_tid)
         return view_class
 
@@ -434,12 +413,12 @@ class UIManager(GripyManager):
         if controller_tid not in self._MVC_CLASSES.keys():
             msg = "Type {} is not registered".format(controller_tid)
             raise TypeError(msg)
-        class_ = self._gettype(controller_tid)  
+        class_ = self._gettype(controller_tid)
         if not issubclass(class_, UIControllerObject):
             msg = "Type {} is not instance of UIControllerObject.".format(controller_tid)
-            raise TypeError(msg)  
+            raise TypeError(msg)
         return class_
-          
+
     def _getnewobjectid(self, object_tid):
         """
         Return a new object identifier for the desired tid.
@@ -453,13 +432,10 @@ class UIManager(GripyManager):
         -------
         idx : int
             A new unique object identifier for a given tid.
-        """     
+        """
         idx = self._currentobjectids[object_tid]
         self._currentobjectids[object_tid] += 1
         return idx
-
-     
-
 
     # TODO:
     # DAQUI PARA BAIXO PRECISA SER REVISTO
@@ -611,7 +587,4 @@ class UIManager(GripyManager):
             except Exception:
                 raise        
         
-    """    
-
-
-                
+    """

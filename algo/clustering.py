@@ -19,31 +19,31 @@ def reorder_clusters(clusters, centers, covars=None):
         covars = np.empty((nc, nf, nf))
         for i in range(nc):
             covars[i] = np.eye(nf)
-    
+
     d2 = np.empty(nc)
-    
+
     for i in range(nc):
         d2[i] = np.dot(np.dot(centers[i], covars[i]), centers[i].T)
-    
+
     argsort = np.argsort(d2)
-    
+
     new_clusters = np.empty_like(clusters)
-    
+
     for i in range(nc):
         new_clusters[clusters == argsort[i]] = i
-    
+
     return new_clusters, argsort
 
 
 def k_means(data, nc, req_info=None):
     means = np.mean(data, axis=0)
     stds = np.std(data, axis=0)
-    
-    sdata = (data - means)/stds
-    
+
+    sdata = (data - means) / stds
+
     km = KMeans(init='k-means++', n_clusters=nc, n_init=10)
     km.fit(sdata)
-    
+
     if req_info == 'all':
         req_info = ['silhouette', 'inertia', 'centers']
     elif req_info is None:
@@ -56,8 +56,8 @@ def k_means(data, nc, req_info=None):
     if 'inertia' in req_info:
         info['inertia'] = km.inertia_
     if 'centers' in req_info:
-        info['centers'] = km.cluster_centers_*stds + means
-    
+        info['centers'] = km.cluster_centers_ * stds + means
+
     return km.labels_, info
 
 

@@ -33,12 +33,14 @@ plane = PyEmbeddedImage(
     "Tp3zjOfa76vLeYVXWjZRM7IvWJJSpjvdkunR8L3MFukXIor2GXvikxbf4/ZMm+NRiv8dVIl9"
     "fgLNk71QGMHX+Q6QYssPOfX/t+gTnvCEx4pfALyBxD1SVtncAAAAAElFTkSuQmCC")
 
+
 class MainWindow(wx.Frame):
     def __init__(self, *args, **kwargs):
         wx.Frame.__init__(self, *args, **kwargs)
         self.SetIcon(plane.GetIcon())
         self.panel = wx.Panel(self)
         self.Show()
+
 
 app = wx.App(False)
 win = MainWindow(None)

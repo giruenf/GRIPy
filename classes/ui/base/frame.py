@@ -1,14 +1,14 @@
 import wx
 
 from classes.ui import UIManager
-from .toplevel import  TopLevelController, TopLevel
+from .toplevel import TopLevelController, TopLevel
 from app.app_utils import GripyIcon
 
 
 class FrameController(TopLevelController):
     tid = 'frame_controller'
-         
-    def __init__(self, **state):  
+
+    def __init__(self, **state):
         super().__init__(**state)
 
 
@@ -28,27 +28,23 @@ class Frame(TopLevel, wx.Frame):
             wx_parent = parent_obj.view
         #
         wx.Frame.__init__(self, wx_parent, wx.ID_ANY, controller.title,
-            pos=controller.pos, size=controller.size, 
-            style=controller.style              
-        ) 
-        if controller.icon:   
-            self.icon = GripyIcon(controller.icon, wx.BITMAP_TYPE_ICO)        
-            self.SetIcon(self.icon)     
+                          pos=controller.pos, size=controller.size,
+                          style=controller.style
+                          )
+        if controller.icon:
+            self.icon = GripyIcon(controller.icon, wx.BITMAP_TYPE_ICO)
+            self.SetIcon(self.icon)
         if controller.maximized:
-            self.Maximize()               
-        # TODO: Bind para a super class???    
-        self.Bind(wx.EVT_MAXIMIZE, self.on_maximize)       
-        self.Bind(wx.EVT_SIZE, self.on_size)    
-        self.Bind(wx.EVT_MOVE, self.on_move)    
-        self.Bind(wx.EVT_CLOSE, self.on_close)  
-        
+            self.Maximize()
+            # TODO: Bind para a super class???
+        self.Bind(wx.EVT_MAXIMIZE, self.on_maximize)
+        self.Bind(wx.EVT_SIZE, self.on_size)
+        self.Bind(wx.EVT_MOVE, self.on_move)
+        self.Bind(wx.EVT_CLOSE, self.on_close)
 
     def on_close(self, event):
-        print ('\n\nFrame on_close')
-#        event.Skip()
-#        self._call_self_remove()
+        print('\n\nFrame on_close')
+        #        event.Skip()
+        #        self._call_self_remove()
         self._auto_removal()
         wx.CallAfter(self.Destroy)
-        
-
-

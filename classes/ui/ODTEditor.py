@@ -33,32 +33,32 @@ class _ODTSectionCtrl(wx.ListCtrl, TextEditMixin, CheckListCtrlMixin,
             event.Veto()
         else:
             event.Skip()
-        
+
     def set_version(self, section):
         index = self.InsertStringItem(sys.maxint, '')
         self.SetStringItem(index, 1, section[1])
         self.SetStringItem(index, 3, section[0])
         self.SetStringItem(index, 4, section[2])
         self.RefreshRows()
-        
+
     def set_well(self, maxd, mind, step):
         index = self.InsertStringItem(sys.maxint, '')
         self.SetStringItem(index, 1, 'STRT')
-#        self.SetStringItem(index, 2, unit)
+        #        self.SetStringItem(index, 2, unit)
         self.SetStringItem(index, 3, str(mind))
         self.SetStringItem(index, 4, 'START DEPTH')
         index1 = self.InsertStringItem(sys.maxint, '')
         self.SetStringItem(index1, 1, 'STOP')
-#        self.SetStringItem(index1, 2, unit)
+        #        self.SetStringItem(index1, 2, unit)
         self.SetStringItem(index1, 3, str(maxd))
         self.SetStringItem(index1, 4, 'STOP DEPTH')
         index2 = self.InsertStringItem(sys.maxint, '')
         self.SetStringItem(index2, 1, 'STEP')
-#        self.SetStringItem(index1, 2, unit)
+        #        self.SetStringItem(index1, 2, unit)
         self.SetStringItem(index2, 3, str(step))
         self.SetStringItem(index2, 4, 'STEP')
         self.RefreshRows()
-        
+
     def set_curve(self, logheader):
         index0 = self.InsertStringItem(sys.maxint, '')
         self.SetStringItem(index0, 1, 'DEPT')
@@ -67,7 +67,7 @@ class _ODTSectionCtrl(wx.ListCtrl, TextEditMixin, CheckListCtrlMixin,
             index = self.InsertStringItem(sys.maxint, '')
             self.SetStringItem(index, 1, line['Name'][1:5])
             self.SetStringItem(index, 2, line['Unit of Measure'])
-#            self.SetStringItem(index, 3, section[0])
+            #            self.SetStringItem(index, 3, section[0])
             self.SetStringItem(index, 4, line['Name'])
         self.RefreshRows()
 
@@ -110,19 +110,19 @@ class _ODTSectionPanel(wx.Panel):
         hbox.Add(self.section_ctrl, 1, wx.EXPAND)
 
         self.SetSizer(hbox)
-        
+
     def set_version(self, fileheader):
         self.section_ctrl.set_version(fileheader)
-    
+
     def set_well(self, maxd, mind, step):
         self.section_ctrl.set_well(maxd, mind, step)
-        
+
     def set_curve(self, logheader):
         self.section_ctrl.set_curve(logheader)
 
     def get_section(self):
         return self.section_ctrl.get_section()
-        
+
     def on_add(self, event):
         index = self.section_ctrl.InsertStringItem(sys.maxint, '')
         self.section_ctrl.SetStringItem(index, 1, '')
@@ -154,9 +154,9 @@ class Panel(wx.Panel):
         box = wx.BoxSizer()
         box.Add(self.other_textctrl, 1, wx.EXPAND)
         other_panel.SetSizer(box)
-        print ('\nno panel', self.version_panel)
+        print('\nno panel', self.version_panel)
         nb.AddPage(self.version_panel, "~VERSION INFORMATION")
-        print ('\nno panel')
+        print('\nno panel')
         nb.AddPage(self.well_panel, "~WELL INFORMATION")
         nb.AddPage(self.curve_panel, "~CURVE INFORMATION")
         nb.AddPage(self.parameter_panel, "~PARAMETER INFORMATION")
@@ -167,14 +167,14 @@ class Panel(wx.Panel):
         self.SetSizer(sizer)
 
     def set_fileheader(self, fileheader):
-        self.version_panel.set_version(fileheader)   
-        
+        self.version_panel.set_version(fileheader)
+
     def set_logheader(self, maxd, mind, step):
-        self.well_panel.set_well (maxd, mind, step)  
+        self.well_panel.set_well(maxd, mind, step)
 
     def set_curveheader(self, logheader):
         self.curve_panel.set_curve(logheader)
-        
+
     def get_header(self):  # TODO: Manter os nomes das seções originais
         header = OrderedDict()
         header["V"] = self.version_panel.get_section()
@@ -221,9 +221,9 @@ class Dialog(wx.Dialog):
         maxd = ndepth[-1]
         mind = ndepth[0]
         step = ndepth[1] - ndepth[0]
-        self.header_panel.set_fileheader (fileheader)
-        self.header_panel.set_logheader (maxd, mind, step)
-        self.header_panel.set_curveheader (logheader)
+        self.header_panel.set_fileheader(fileheader)
+        self.header_panel.set_logheader(maxd, mind, step)
+        self.header_panel.set_curveheader(logheader)
 
     def get_header(self):
         return self.header_panel.get_header()

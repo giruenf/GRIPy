@@ -16,8 +16,6 @@ from .well_import import WellImportFrameController, WellImportFrame
 from .representation import RepresentationController, RepresentationView
 from .track_object import TrackObjectController
 
-
-
 from .plotstatusbar import PlotStatusBar
 from .main_window import MainWindowController, MainWindow
 from .menu_bar import MenuBarController, MenuBarView
@@ -44,7 +42,7 @@ from . import RockTableEditor
 
 from .extras import SelectablePanelMixin
 from .dialog_obj_props import ObjectPropertiesDialogController, \
-                                                    ObjectPropertiesDialog
+    ObjectPropertiesDialog
 from .coding_console import ConsoleController, Console
 #
 from .repr_line import \
@@ -56,22 +54,20 @@ from .repr_density import \
 from .repr_patch import \
     PatchesRepresentationController, PatchesRepresentationView
 #    ContourfRepresentationController, ContourfRepresentationView        
-                  
+
 from .well_plot_prop_editor import WellPlotEditorController, \
-                                                 WellPlotEditor  
-                                               
+    WellPlotEditor
+
 from .well_plot_prop_editor import LPEWellPlotPanelController, \
-                                                 LPEWellPlotPanel      
+    LPEWellPlotPanel
 from .well_plot_prop_editor import LPETrackPanelController, \
-                                                 LPETrackPanel
+    LPETrackPanel
 from .well_plot_prop_editor import LPEObjectsPanelController, \
-                                                 LPEObjectsPanel
+    LPEObjectsPanel
 #                                                 
 from .propgrid import PropertyGridController, PropertyGridView
 #
-from .canvas_base import CanvasBaseController, CanvasBaseView                                         
-from .canvas_plotter import CanvasPlotterController, CanvasPlotter                
-from .canvas_track import TrackCanvasController, TrackCanvas   
+from .canvas_base import CanvasBaseController, CanvasBaseView
+from .canvas_plotter import CanvasPlotterController, CanvasPlotter
+from .canvas_track import TrackCanvasController, TrackCanvas
 from .track_label import TrackLabelController, TrackLabel
-
-

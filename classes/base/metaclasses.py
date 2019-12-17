@@ -28,7 +28,7 @@ from app import log
 
 
 class GripyMeta(type):
-    
+
     def __new__(cls, clsname, superclasses, dict_):
         """
         Function reponsible for creating classes.
@@ -61,31 +61,31 @@ class GripyMeta(type):
         # The idea is deal with GripyObject._GripyMeta__initialised only in 
         # this metaclass.
         dict_['is_initialised'] = lambda self: self.__dict__.get( \
-                                            '_GripyMeta__initialised', False)
+            '_GripyMeta__initialised', False)
         # Time to create the new class...
         ret_class = super().__new__(cls, clsname, superclasses, dict_)
-        
+
         # By default, _ATTRIBUTES and _READ_ONLY are incremented with every 
         # superclass _ATTRIBUTES and _READ_ONLY. 
         # If this behavior is not desired for _ATTRIBUTES, the key must be 
         # setted with None as value.
-        
-#        print('\n\n', clsname)
-#        print('\tATTR:', ret_class.__dict__['_ATTRIBUTES'])
+
+        #        print('\n\n', clsname)
+        #        print('\tATTR:', ret_class.__dict__['_ATTRIBUTES'])
         for superclass in superclasses:
-#            print('\t\tSUPER:', superclass)
+            #            print('\t\tSUPER:', superclass)
             if '_ATTRIBUTES' in superclass.__dict__:
                 for key, value in superclass.__dict__['_ATTRIBUTES'].items():
                     if key not in ret_class.__dict__['_ATTRIBUTES']:
-#                        print('\t\t\tkv:', key, value)
+                        #                        print('\t\t\tkv:', key, value)
                         ret_class.__dict__['_ATTRIBUTES'][key] = value
             if '_READ_ONLY' in superclass.__dict__:
                 for item in superclass.__dict__['_READ_ONLY']:
                     if item not in ret_class.__dict__['_READ_ONLY']:
-                        ret_class.__dict__['_READ_ONLY'].append(item)          
-                        
-#        print('\tTOTAL ATTR:', ret_class.__dict__['_ATTRIBUTES'])                
-        log.debug('Successfully created class: {}.'.format(clsname))                         
+                        ret_class.__dict__['_READ_ONLY'].append(item)
+
+                    #        print('\tTOTAL ATTR:', ret_class.__dict__['_ATTRIBUTES'])
+        log.debug('Successfully created class: {}.'.format(clsname))
         return ret_class
 
     def __call__(cls, *args, **kwargs):
@@ -96,10 +96,10 @@ class GripyMeta(type):
         # Time to create the new object... 
         obj = super().__call__(*args, **kwargs)
         # Setting obj._GripyMeta__initialised used by is_initialised method.
-        obj.__initialised = True 
+        obj.__initialised = True
         #
         msg = 'Successfully created object from class: {}.'.format(
-                                                                obj.__class__)
+            obj.__class__)
         log.debug(msg)
         return obj
 
@@ -110,7 +110,5 @@ class GripyWxMeta(GripyMeta, wx.siplib.wrappertype):
 
 class GripyManagerMeta(type):
     pass
-    #def __new__(cls, clsname, superclasses, dict_):
-    #    return super().__new__(cls, clsname, superclasses, dict_)     
-    
-    
+    # def __new__(cls, clsname, superclasses, dict_):
+    #    return super().__new__(cls, clsname, superclasses, dict_)

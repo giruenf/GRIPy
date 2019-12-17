@@ -26,20 +26,21 @@ Examples of use:
     
 """
 
+
 def rolling_window_lastaxis(a, window_size, noverlap):
     if window_size < 1:
-       raise ValueError("`window_size` must be at least 1.")
+        raise ValueError("`window_size` must be at least 1.")
     if window_size > a.shape[-1]:
-       raise ValueError("`window_size` is too long.")
+        raise ValueError("`window_size` is too long.")
     if noverlap is None:
-        noverlap = window_size - 1 
-    step = window_size - noverlap 
+        noverlap = window_size - 1
+    step = window_size - noverlap
     if noverlap > window_size:
-        raise Exception('Overlap cannot be greater than window size.')    
-    try:    
+        raise Exception('Overlap cannot be greater than window size.')
+    try:
         # // for integer division in Python 3
-        shape = a.shape[:-1] + ((a.shape[-1]-window_size)//step+1, window_size) 
-        strides = a.strides[:-1] + (a.strides[-1]*step,) + a.strides[-1:]
+        shape = a.shape[:-1] + ((a.shape[-1] - window_size) // step + 1, window_size)
+        strides = a.strides[:-1] + (a.strides[-1] * step,) + a.strides[-1:]
         ret = np.lib.stride_tricks.as_strided(a, shape=shape, strides=strides)
     except Exception as e:
         print('rolling_window_lastaxis:', e)
@@ -56,5 +57,5 @@ def SlidingWindow(a, window_size, noverlap=None):
             a = a.swapaxes(-2, i)
     return a
 
-#a = np.array(range(100), dtype=np.int)
-#print SlidingWindow(a, 10, 5)   # window_size=10, no overlap
+# a = np.array(range(100), dtype=np.int)
+# print SlidingWindow(a, 10, 5)   # window_size=10, no overlap

@@ -1,4 +1,3 @@
-
 import types
 import os
 import imp
@@ -8,33 +7,32 @@ from lib.yapsy.PluginInfo import PluginInfo
 from classes.ui import UIManager
 from app import log
 
-
 """
 A reloadable PluginInfo. Must be setted as PluginInfo class in
 PluginFileLocator.setPluginInfoClass(GripyPluginInfo) 
 It was done in GripyPluginManagerSingleton.get() function.
 """
 
+
 class GripyPluginInfo(PluginInfo):
-    
+
     def __init__(self, plugin_name, plugin_path):
         super().__init__(plugin_name, plugin_path)
         self._menu_item_uid = None
-        
-        
+
     def reloadPlugin(self):
         if self.is_activated:
             self.deactivatePlugin()
         mod_name = self.plugin_object.__module__
         if os.path.isdir(self.path):
-            module = imp.load_module(mod_name, None, 
-                                     self.path, ("py","r",imp.PKG_DIRECTORY)
-            )
+            module = imp.load_module(mod_name, None,
+                                     self.path, ("py", "r", imp.PKG_DIRECTORY)
+                                     )
         else:
-            with open(self.path+".py","r") as plugin_file:
-                module = imp.load_module(mod_name, plugin_file, 
-                                     self.path+".py",("py","r",imp.PY_SOURCE)
-        )        
+            with open(self.path + ".py", "r") as plugin_file:
+                module = imp.load_module(mod_name, plugin_file,
+                                         self.path + ".py", ("py", "r", imp.PY_SOURCE)
+                                         )
         for element in (getattr(module, name) for name in dir(module)):
             for category_name in _CATEGORIES_FILTER.keys():
                 try:
@@ -43,9 +41,8 @@ class GripyPluginInfo(PluginInfo):
                     continue
                 if is_correct_subclass and element is not _CATEGORIES_FILTER[category_name]:
                     self.plugin_object = element()
-        self.activatePlugin()            
-        log.debug('Reloaded plugin: {}'.format(self.name))            
-
+        self.activatePlugin()
+        log.debug('Reloaded plugin: {}'.format(self.name))
 
     def activatePlugin(self):
         if self.is_activated:
@@ -54,7 +51,7 @@ class GripyPluginInfo(PluginInfo):
             menu_name = self.plugin_object._parent_menu
         else:
             menu_name = GripyPlugin._DEFAULT_PARENT_MENU
-        found = None    
+        found = None
         _UIM = UIManager()
         menus = _UIM.list('menu_controller')
         for menu in menus:
@@ -67,18 +64,18 @@ class GripyPluginInfo(PluginInfo):
             msg = 'Plugin {} will try insert itself to Menu {}'.format(self.name, found.label)
             log.debug(msg)
 
-            menu_item = _UIM.create('menu_item_controller', found.uid, 
-                            label=self.name,
-                            help=self.description,
-                            callback=self.plugin_object.event_run
-            )
+            menu_item = _UIM.create('menu_item_controller', found.uid,
+                                    label=self.name,
+                                    help=self.description,
+                                    callback=self.plugin_object.event_run
+                                    )
 
             if menu_item:
                 self._menu_item_uid = menu_item.uid
             log.debug('Plugin {} was inserted to Menu {}'.format(self.name, found.label))
         self.plugin_object.activate()
         log.debug('Activated plugin: {}'.format(self.name))
-        
+
     def deactivatePlugin(self):
         if not self.is_activated:
             return
@@ -93,9 +90,8 @@ class GripyPluginInfo(PluginInfo):
 
 
 class GripyPlugin(IPlugin):
-    
-    _DEFAULT_PARENT_MENU = 'Plugins'    
-    
+    _DEFAULT_PARENT_MENU = 'Plugins'
+
     def __init__(self):
         super().__init__()
         self._parent_menu = GripyPlugin._DEFAULT_PARENT_MENU
@@ -106,7 +102,7 @@ class GripyPlugin(IPlugin):
             raise TypeError('Cannot register a non-Module object.')
         try:
             self.reload_module(module)
-            self._modules.append(module)    
+            self._modules.append(module)
         except Exception:
             raise
 
@@ -114,18 +110,19 @@ class GripyPlugin(IPlugin):
         # Reloads every function plugin module, not only doinput, dojob and dooutput
         # reload(module)
         try:
-            for candidate in (getattr(module,name) for name in dir(module)):
+            for candidate in (getattr(module, name) for name in dir(module)):
                 if callable(candidate):
                     setattr(self, candidate.__name__, candidate)
-        except Exception as e: 
+        except Exception as e:
             print(e)
             raise
-       
+
     def reload_all_modules(self, *args):
         for module in self._modules:
-            self.reload_module(module)       
-    
-    # To be called by an event (like wx.Menu or wx.Toolbar)
+            self.reload_module(module)
+
+            # To be called by an event (like wx.Menu or wx.Toolbar)
+
     def event_run(self, *args):
         if isinstance(self, DefaultPlugin):
             self.run()
@@ -134,23 +131,24 @@ class GripyPlugin(IPlugin):
 
     def run(*args, **kwargs):
         raise NotImplementedError("'run' must be reimplemented by %s" % args[0])
-    
+
 
 class SimpleDialogPlugin(GripyPlugin):
     pass
 
+
 class AutoGenDataPlugin(GripyPlugin):
     pass
 
-class DefaultPlugin(GripyPlugin):
-    pass    
 
+class DefaultPlugin(GripyPlugin):
+    pass
 
 # Observation: Below "default" category is not the as 
+
+
 # yapsy.PluginManager.PluginManager category "Default".
-_CATEGORIES_FILTER = dict(default=DefaultPlugin, 
-                        simpledialog=SimpleDialogPlugin, 
-                        autogendata=AutoGenDataPlugin
-)
-
-
+_CATEGORIES_FILTER = dict(default=DefaultPlugin,
+                          simpledialog=SimpleDialogPlugin,
+                          autogendata=AutoGenDataPlugin
+                          )

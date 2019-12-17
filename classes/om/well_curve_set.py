@@ -1,22 +1,19 @@
-
 from collections import OrderedDict
 
 from classes.om import ObjectManager
 from classes.om import OMBaseObject
 
 
-
 class CurveSet(OMBaseObject):
     tid = 'curve_set'
- 
+
     def __init__(self, **attributes):
-        super().__init__(**attributes)    
-        
+        super().__init__(**attributes)
+
     @classmethod
     def _is_tree_tid_node_needed(cls):
         __doc__ = OMBaseObject._is_tree_tid_node_needed.__doc__
         return False
-
 
     """             
     def _on_OM_add(self, objuid):
@@ -29,9 +26,8 @@ class CurveSet(OMBaseObject):
         for obj in OM.list(self.tid, parent_uid):
             if obj is not self and obj.name == self.name:
                 raise Exception('Parent object has another son with same name.')
-    """            
+    """
 
-                
     """
     @property
     def vinculated(self):
@@ -66,7 +62,7 @@ class CurveSet(OMBaseObject):
         z_axis_indexes = self.get_data_indexes()[0]
         return [data_index for data_index in z_axis_indexes if data_index.datatype == datatype]
     """
-    
+
     """
     def get_state(self):
         state = super().get_state()

@@ -5,198 +5,194 @@ import wx
 import app
 from classes.ui import UIManager
 
-#from Algo.Modeling.Reflectivity import Reflectivity2
+
+# from Algo.Modeling.Reflectivity import Reflectivity2
 
 
 def create_properties_dialog(obj_uid, size=None):
     if not size:
         size = (300, 330)
     UIM = UIManager()
-    try:      
+    try:
         dlg = UIM.create('object_properties_dialog_controller')
-        #print(dlg)
+        # print(dlg)
         dlg.obj_uid = obj_uid
         dlg.view.SetSize(size)
-        dlg.view.ShowModal()            
+        dlg.view.ShowModal()
     except Exception as e:
-        print ('\nERROR create_properties_dialog:', e)
+        print('\nERROR create_properties_dialog:', e)
         raise
     finally:
-        UIM.remove(dlg.uid)    
+        UIM.remove(dlg.uid)
 
 
 """
 Load interface data.
 """
+
+
 def load_application_UI_data(fullfilename):
     pass
-    #UIM = UIManager()
-    #UIM.load_application_state_from_file(fullfilename)
+    # UIM = UIManager()
+    # UIM.load_application_state_from_file(fullfilename)
 
 
 """
 Load interface data.
 """
+
+
 def load_user_UI_data(fullfilename):
     pass
-    #UIM = UIManager()
-    #UIM.load_user_state_from_file(fullfilename)
+    # UIM = UIManager()
+    # UIM.load_user_state_from_file(fullfilename)
 
 
 """
 Save application structure UI data.
-"""        
+"""
+
+
 def save_UI_application_data(fullfilename):
     pass
-    #UIM = UIManager()
-    #UIM.save_application_state_to_file(fullfilename)
- 
- 
+    # UIM = UIManager()
+    # UIM.save_application_state_to_file(fullfilename)
+
+
 """
 Save user UI data.
-"""        
+"""
+
+
 def save_UI_user_data(fullfilename):
     pass
-    #UIM = UIManager()
-    #UIM.save_user_state_to_file(fullfilename)
-    #UIM._save_state_to_file(self.UIM_file)     
+    # UIM = UIManager()
+    # UIM.save_user_state_to_file(fullfilename)
+    # UIM._save_state_to_file(self.UIM_file)
 
 
 """
 Loads Gripy Initial Interface (MainWindow and it's children).
 """
+
+
 def load():
-    #load_UI_file = True        
+    # load_UI_file = True
     load_UI_file = False
-    
+
     gripy_app = wx.GetApp()
-    #gripy_app = app.gripy_app.GripyApp.Get()
-    
+    # gripy_app = app.gripy_app.GripyApp.Get()
+
     if not gripy_app:
         raise Exception('ERRO grave.')
-    
-    
+
     UIM = UIManager()
-    
+
     if load_UI_file:
         """
         Load basic app from file.            
         """
         load_application_UI_data(gripy_app._gripy_app_state.get('app_UI_file'))
         load_user_UI_data(gripy_app._gripy_app_state.get('user_UI_file'))
-        mwc = UIM.list('main_window_controller')[0]      
+        mwc = UIM.list('main_window_controller')[0]
     else:
         """
         Construct the application itself.
-        """    
-        mwc = UIM.create('main_window_controller', 
+        """
+        mwc = UIM.create('main_window_controller',
                          title=gripy_app._gripy_app_state.get('app_display_name'),
-                         
-                         pos=(2000, 800), maximized=True
-        )
+                         pos=(2000, 800), maximized=True)
 
-       # """
+        # """
 
         # Menubar
         menubar_ctrl = UIM.create('menubar_controller', mwc.uid)
-        
-        
+
         # First level Menus
-        mc_project = UIM.create('menu_controller', menubar_ctrl.uid, label=u"&Project")      
-        
-        
-        
+        mc_project = UIM.create('menu_controller', menubar_ctrl.uid, label=u"&Project")
+
         mc_edit = UIM.create('menu_controller', menubar_ctrl.uid, label=u"&Edit")
         mc_well = UIM.create('menu_controller', menubar_ctrl.uid, label=u"&Well")
         mc_precond = UIM.create('menu_controller', menubar_ctrl.uid, label=u"&Preconditioning")
         mc_model = UIM.create('menu_controller', menubar_ctrl.uid, label=u"&Modeling")
         mc_interp = UIM.create('menu_controller', menubar_ctrl.uid, label=u"&Interpretation")
-#        mc_infer = UIM.create('menu_controller', menubar_ctrl.uid, label=u"&Inference")
-        #mc_specdecom = UIM.create('menu_controller', menubar_ctrl.uid, label=u"&SpecDecom")
+        #        mc_infer = UIM.create('menu_controller', menubar_ctrl.uid, label=u"&Inference")
+        # mc_specdecom = UIM.create('menu_controller', menubar_ctrl.uid, label=u"&SpecDecom")
         mc_tools = UIM.create('menu_controller', menubar_ctrl.uid, label=u"&Tools")
         mc_plugins = UIM.create('menu_controller', menubar_ctrl.uid, label=u"&Plugins")
-        
+
         # Project Menu
-        UIM.create('menu_item_controller', mc_project.uid, 
-                label=u'&New project', 
-                help=u'Create a new empty GriPy Project.',
-                id=wx.ID_NEW,
-                callback='app.menu_functions.on_new'
-        )
-        UIM.create('menu_item_controller', mc_project.uid, 
-                       kind=wx.ITEM_SEPARATOR
-        )
-        UIM.create('menu_item_controller', mc_project.uid, 
-                label=u'&Open', 
-                help=u'Open GriPy Project (*.pgg)',
-                id=wx.ID_OPEN,
-                callback='app.menu_functions.on_open'
-        )
-        UIM.create('menu_item_controller', mc_project.uid, 
-                label=u'&Save', 
-                help=u'Save GriPy Project',
-                id=wx.ID_SAVE,
-                callback='app.menu_functions.on_save'
-        )   
-        UIM.create('menu_item_controller', mc_project.uid, 
-                label=u'&Save as', 
-                help=u'Save GriPy Project with a new name',
-                id=wx.ID_SAVEAS, 
-                callback='app.menu_functions.on_save_as'
-        ) 
-        UIM.create('menu_item_controller', mc_project.uid, 
-                       kind=wx.ITEM_SEPARATOR
-        )
-        
-       
-        
-        mc_import = UIM.create('menu_controller', mc_project.uid, 
-                                      label=u"&Import",
-                                      help=u"Import file"
-        )
-        
-        
-        
-        UIM.create('menu_item_controller', mc_import.uid, 
-                label=u"SEG-Y Well Gather", 
-                help=u'Import a SEG-Y Seismic file as Well Gather',
-                callback='app.menu_functions.on_import_segy_well_gather'
-        )  
-        UIM.create('menu_item_controller', mc_import.uid, 
-                label=u"SEG-Y Seismic", 
-                help=u'Import a SEG-Y Seismic file to current GriPy Project',
-                callback='app.menu_functions.on_import_segy_seis'
-        )  
-        UIM.create('menu_item_controller', mc_import.uid, 
-                label=u"SEG-Y Velocity", 
-                help=u'Import a SEG-Y Velocity file to current GriPy Project',
-                callback='app.menu_functions.on_import_segy_vel'
-        )  
-        mc_export = UIM.create('menu_controller', mc_project.uid, 
-                                      label=u"Export",
-                                      help=u"Export file"
-        )      
-        UIM.create('menu_item_controller', mc_export.uid, 
-                label=u"LAS File", 
-                help=u'Export a LAS file from a well in current GriPy Project',
-                callback='app.menu_functions.on_export_las'
-        )
-        
-        
-        
-        
-        UIM.create('menu_item_controller', mc_project.uid, 
-                       kind=wx.ITEM_SEPARATOR
-        )
-        UIM.create('menu_item_controller', mc_project.uid, 
-                label=u'Exit', 
-                help=u'Exits GRIPy application.',
-                id=wx.ID_EXIT,
-                callback='app.menu_functions.on_exit'
-        )            
-        
-        
-        
+        UIM.create('menu_item_controller', mc_project.uid,
+                   label=u'&New project',
+                   help=u'Create a new empty GriPy Project.',
+                   id=wx.ID_NEW,
+                   callback='app.menu_functions.on_new'
+                   )
+        UIM.create('menu_item_controller', mc_project.uid,
+                   kind=wx.ITEM_SEPARATOR
+                   )
+        UIM.create('menu_item_controller', mc_project.uid,
+                   label=u'&Open',
+                   help=u'Open GriPy Project (*.pgg)',
+                   id=wx.ID_OPEN,
+                   callback='app.menu_functions.on_open'
+                   )
+        UIM.create('menu_item_controller', mc_project.uid,
+                   label=u'&Save',
+                   help=u'Save GriPy Project',
+                   id=wx.ID_SAVE,
+                   callback='app.menu_functions.on_save'
+                   )
+        UIM.create('menu_item_controller', mc_project.uid,
+                   label=u'&Save as',
+                   help=u'Save GriPy Project with a new name',
+                   id=wx.ID_SAVEAS,
+                   callback='app.menu_functions.on_save_as'
+                   )
+        UIM.create('menu_item_controller', mc_project.uid,
+                   kind=wx.ITEM_SEPARATOR
+                   )
+
+        mc_import = UIM.create('menu_controller', mc_project.uid,
+                               label=u"&Import",
+                               help=u"Import file"
+                               )
+
+        UIM.create('menu_item_controller', mc_import.uid,
+                   label=u"SEG-Y Well Gather",
+                   help=u'Import a SEG-Y Seismic file as Well Gather',
+                   callback='app.menu_functions.on_import_segy_well_gather'
+                   )
+        UIM.create('menu_item_controller', mc_import.uid,
+                   label=u"SEG-Y Seismic",
+                   help=u'Import a SEG-Y Seismic file to current GriPy Project',
+                   callback='app.menu_functions.on_import_segy_seis'
+                   )
+        UIM.create('menu_item_controller', mc_import.uid,
+                   label=u"SEG-Y Velocity",
+                   help=u'Import a SEG-Y Velocity file to current GriPy Project',
+                   callback='app.menu_functions.on_import_segy_vel'
+                   )
+        mc_export = UIM.create('menu_controller', mc_project.uid,
+                               label=u"Export",
+                               help=u"Export file"
+                               )
+        UIM.create('menu_item_controller', mc_export.uid,
+                   label=u"LAS File",
+                   help=u'Export a LAS file from a well in current GriPy Project',
+                   callback='app.menu_functions.on_export_las'
+                   )
+
+        UIM.create('menu_item_controller', mc_project.uid,
+                   kind=wx.ITEM_SEPARATOR
+                   )
+        UIM.create('menu_item_controller', mc_project.uid,
+                   label=u'Exit',
+                   help=u'Exits GRIPy application.',
+                   id=wx.ID_EXIT,
+                   callback='app.menu_functions.on_exit'
+                   )
+
         # Edit Menu
         """
         mc_partition = UIM.create('menu_controller', mc_edit.uid, 
@@ -204,91 +200,90 @@ def load():
                                       help=u"Create / Edit Partition"
         )
         """
-        mc_rocktable = UIM.create('menu_controller', mc_edit.uid, 
-                                      label=u"&Rock Table",
-                                      help=u"Create / Edit RockTable"
-        )
-        UIM.create('menu_item_controller', mc_rocktable.uid, 
-                label=u"New Rock Table", 
-                help=u'New Rock Table',
-                callback='app.menu_functions.on_new_rocktable'
-        )
-        UIM.create('menu_item_controller', mc_rocktable.uid, 
-                label=u"Edit Rock Table", 
-                help=u'Edit Rock Table',
-                callback='app.menu_functions.on_edit_rocktable'
-        )
+        mc_rocktable = UIM.create('menu_controller', mc_edit.uid,
+                                  label=u"&Rock Table",
+                                  help=u"Create / Edit RockTable"
+                                  )
+        UIM.create('menu_item_controller', mc_rocktable.uid,
+                   label=u"New Rock Table",
+                   help=u'New Rock Table',
+                   callback='app.menu_functions.on_new_rocktable'
+                   )
+        UIM.create('menu_item_controller', mc_rocktable.uid,
+                   label=u"Edit Rock Table",
+                   help=u'Edit Rock Table',
+                   callback='app.menu_functions.on_edit_rocktable'
+                   )
 
-        UIM.create('menu_item_controller', mc_edit.uid, 
-                label=u'&Well Plot', 
-                help=u'Well Plot',
-                callback='app.menu_functions.on_new_wellplot'
-        ) 
-        UIM.create('menu_item_controller', mc_edit.uid, 
-                label=u'&Crossplot', 
-                help=u'Crossplot',
-                callback='app.menu_functions.on_new_crossplot'
-        )            
-#        UIM.create('menu_item_controller', mc_edit.uid, 
-#                label=u'&Rock', 
-#                help=u'Initialize rock model',
-#                callback='app.menu_functions.on_rock'
-#        )
-#        UIM.create('menu_item_controller', mc_edit.uid, 
-#                label=u'&Fluid', 
-#                help=u'Initialize fluid model',
-#                callback='app.menu_functions.on_fluid'
-#        )             
-        
-        
+        UIM.create('menu_item_controller', mc_edit.uid,
+                   label=u'&Well Plot',
+                   help=u'Well Plot',
+                   callback='app.menu_functions.on_new_wellplot'
+                   )
+        UIM.create('menu_item_controller', mc_edit.uid,
+                   label=u'&Crossplot',
+                   help=u'Crossplot',
+                   callback='app.menu_functions.on_new_crossplot'
+                   )
+        #        UIM.create('menu_item_controller', mc_edit.uid,
+        #                label=u'&Rock',
+        #                help=u'Initialize rock model',
+        #                callback='app.menu_functions.on_rock'
+        #        )
+        #        UIM.create('menu_item_controller', mc_edit.uid,
+        #                label=u'&Fluid',
+        #                help=u'Initialize fluid model',
+        #                callback='app.menu_functions.on_fluid'
+        #        )
+
         # Well Menu
-        UIM.create('menu_item_controller', 
-                   mc_well.uid, 
+        UIM.create('menu_item_controller',
+                   mc_well.uid,
                    label=u"New well",
                    help=u"Create well",
                    callback='app.menu_functions.on_create_well'
-        ) 
+                   )
         # Import Well
-        mc_import_well = UIM.create('menu_controller', 
-                                    mc_well.uid, 
+        mc_import_well = UIM.create('menu_controller',
+                                    mc_well.uid,
                                     label=u"&Import Well"
-        )
-        UIM.create('menu_item_controller', 
-                   mc_import_well.uid, 
-                   label=u"LAS File", 
+                                    )
+        UIM.create('menu_item_controller',
+                   mc_import_well.uid,
+                   label=u"LAS File",
                    help=u'Import a LAS file to current GriPy Project',
                    callback='app.menu_functions.on_import_las'
-        )
-        UIM.create('menu_item_controller', 
-                   mc_import_well.uid, 
-                   label=u"LIS File", 
+                   )
+        UIM.create('menu_item_controller',
+                   mc_import_well.uid,
+                   label=u"LIS File",
                    help=u'Import a LIS file to current GriPy Project',
                    callback='app.menu_functions.on_import_lis'
-        )       
+                   )
 
-        UIM.create('menu_item_controller', 
-                   mc_import_well.uid, 
-                   label=u"DLIS File", 
+        UIM.create('menu_item_controller',
+                   mc_import_well.uid,
+                   label=u"DLIS File",
                    help=u'Import a DLIS file to current GriPy Project',
                    callback='app.menu_functions.on_import_dlis'
-        )  
-        UIM.create('menu_item_controller', 
-                   mc_import_well.uid, 
-                   label=u"ODT File", 
+                   )
+        UIM.create('menu_item_controller',
+                   mc_import_well.uid,
+                   label=u"ODT File",
                    help=u'Import a ODT file to current GriPy Project',
                    callback='app.menu_functions.on_import_odt'
-        )        
-     
-        #
-        UIM.create('menu_item_controller', mc_well.uid, 
-                       kind=wx.ITEM_SEPARATOR
-        )
+                   )
 
-        UIM.create('menu_item_controller', mc_well.uid, 
-                label=u"Create Synthetic Log",
-                callback='app.menu_functions.on_create_synthetic'
-        )
-        
+        #
+        UIM.create('menu_item_controller', mc_well.uid,
+                   kind=wx.ITEM_SEPARATOR
+                   )
+
+        UIM.create('menu_item_controller', mc_well.uid,
+                   label=u"Create Synthetic Log",
+                   callback='app.menu_functions.on_create_synthetic'
+                   )
+
         """
         ### Trabalho Roseane
         UIM.create('menu_item_controller', mc_well.uid, 
@@ -318,7 +313,7 @@ def load():
         )      
         ### FIM - Trabalho Roseane
         """
-        
+
         """
         # Inference Menu
         UIM.create('menu_item_controller', mc_infer.uid, 
@@ -330,62 +325,60 @@ def load():
                 callback='app.menu_functions.teste7'
         )  
         """
-        
-        # Interpretation Menu
-        mc_specdecom = UIM.create('menu_controller', mc_interp.uid,  
-                                      label=u"Spectral Decomposition",
-                                      help=u"Spectral Decomposition",
-        )
-        UIM.create('menu_item_controller', mc_specdecom.uid, 
-                label=u"Continuous Wavelet Transform", 
-                callback='app.menu_functions.on_cwt'
-        )          
-        mc_attributes = UIM.create('menu_controller', mc_interp.uid,  
-                                      label=u"Attributes",
-                                      help=u"Attributes",
-        )
-        UIM.create('menu_item_controller', mc_attributes.uid, 
-                label=u"Phase Rotation", 
-                callback='app.menu_functions.on_phase_rotation'
-        )
 
-        UIM.create('menu_item_controller', mc_attributes.uid, 
-                label=u"Hilbert Attributes", 
-                callback='app.menu_functions.on_hilbert_attributes'
-        )             
-        
+        # Interpretation Menu
+        mc_specdecom = UIM.create('menu_controller', mc_interp.uid,
+                                  label=u"Spectral Decomposition",
+                                  help=u"Spectral Decomposition",
+                                  )
+        UIM.create('menu_item_controller', mc_specdecom.uid,
+                   label=u"Continuous Wavelet Transform",
+                   callback='app.menu_functions.on_cwt'
+                   )
+        mc_attributes = UIM.create('menu_controller', mc_interp.uid,
+                                   label=u"Attributes",
+                                   help=u"Attributes",
+                                   )
+        UIM.create('menu_item_controller', mc_attributes.uid,
+                   label=u"Phase Rotation",
+                   callback='app.menu_functions.on_phase_rotation'
+                   )
+
+        UIM.create('menu_item_controller', mc_attributes.uid,
+                   label=u"Hilbert Attributes",
+                   callback='app.menu_functions.on_hilbert_attributes'
+                   )
+
         # Modeling Menu  
-        UIM.create('menu_item_controller', mc_model.uid, 
-                label=u"Create 2/3 layers model", 
-                callback='app.menu_functions.on_create_model'
-        )   
         UIM.create('menu_item_controller', mc_model.uid,
-                       kind=wx.ITEM_SEPARATOR
-        )        
+                   label=u"Create 2/3 layers model",
+                   callback='app.menu_functions.on_create_model'
+                   )
         UIM.create('menu_item_controller', mc_model.uid,
-                label=u"Aki-Richards PP", 
-                callback='app.menu_functions.on_akirichards_pp'
-        )      
-        UIM.create('menu_item_controller', mc_model.uid, 
-				label=u"Reflectivity Method", 
-				callback='app.menu_functions.ReflectivityModel'
-        )
-        #UIM.create('menu_item_controller', mc_model.uid,
+                   kind=wx.ITEM_SEPARATOR
+                   )
+        UIM.create('menu_item_controller', mc_model.uid,
+                   label=u"Aki-Richards PP",
+                   callback='app.menu_functions.on_akirichards_pp'
+                   )
+        UIM.create('menu_item_controller', mc_model.uid,
+                   label=u"Reflectivity Method",
+                   callback='app.menu_functions.ReflectivityModel'
+                   )
+        # UIM.create('menu_item_controller', mc_model.uid,
         #               kind=wx.ITEM_SEPARATOR
-        #) 
-        #UIM.create('menu_item_controller', mc_model.uid,
+        # )
+        # UIM.create('menu_item_controller', mc_model.uid,
         #        label=u"Poisson ratio", 
         #        callback='app.menu_functions.on_poisson_ratio'
-        #)            
-
+        # )
 
         # Tools Menu
-        UIM.create('menu_item_controller', mc_tools.uid, 
-                label="Coding Console", help=u"Gripy Coding Console", 
-                callback='app.menu_functions.on_coding_console'
-        )  
+        UIM.create('menu_item_controller', mc_tools.uid,
+                   label="Coding Console", help=u"Gripy Coding Console",
+                   callback='app.menu_functions.on_coding_console'
+                   )
         #
-
 
         """
         # Debug Menu
@@ -417,84 +410,76 @@ def load():
                 callback='app.menu_functions.on_load_teste_2019'
         )  
         """
-        
+
         # Fim Main Menu Bar
 
-       
+        # Object Manager TreeController
+        UIM.create('tree_controller', mwc.uid)
 
-        # Object Manager TreeController                                                          
-        UIM.create('tree_controller', mwc.uid)                            
-            
         # Main ToolBar 
         tbc = UIM.create('toolbar_controller', mwc.uid)
         UIM.create('toolbartool_controller', tbc.uid,
-                       label=u"New project", 
-                       bitmap='new_file-30.png',
-                       help='New project', 
-                       long_help='Start a new Gripy project, closes existing',
-                       callback='app.menu_functions.on_new'
-        )            
+                   label=u"New project",
+                   bitmap='new_file-30.png',
+                   help='New project',
+                   long_help='Start a new Gripy project, closes existing',
+                   callback='app.menu_functions.on_new'
+                   )
         UIM.create('toolbartool_controller', tbc.uid,
-                       label=u"Abrir projeto", 
-                       bitmap='open_folder-30.png',
-                       help='Abrir projeto', 
-                       long_help='Abrir projeto GriPy',
-                       callback='app.menu_functions.on_open'
-        )
+                   label=u"Abrir projeto",
+                   bitmap='open_folder-30.png',
+                   help='Abrir projeto',
+                   long_help='Abrir projeto GriPy',
+                   callback='app.menu_functions.on_open'
+                   )
         UIM.create('toolbartool_controller', tbc.uid,
-                       label=u"Salvar projeto", 
-                       bitmap='save_close-30.png',
-                       help='Salvar projeto', 
-                       long_help='Salvar projeto GriPy',
-                       callback='app.menu_functions.on_save'
-        )
+                   label=u"Salvar projeto",
+                   bitmap='save_close-30.png',
+                   help='Salvar projeto',
+                   long_help='Salvar projeto GriPy',
+                   callback='app.menu_functions.on_save'
+                   )
         UIM.create('toolbartool_controller', tbc.uid,
-                       label=u"Well Plot", 
-                       bitmap='oil_rig-30.png',
-                       help='Well Plot', 
-                       long_help='Well Plot',
-                       callback='app.menu_functions.on_new_wellplot'
-        )
+                   label=u"Well Plot",
+                   bitmap='oil_rig-30.png',
+                   help='Well Plot',
+                   long_help='Well Plot',
+                   callback='app.menu_functions.on_new_wellplot'
+                   )
         UIM.create('toolbartool_controller', tbc.uid,
-                       label=u"Crossplot", 
-                       bitmap='scatter_plot-30.png',
-                       help='Crossplot', 
-                       long_help='Crossplot',
-                       callback='app.menu_functions.on_new_crossplot'
-        )               
-
+                   label=u"Crossplot",
+                   bitmap='scatter_plot-30.png',
+                   help='Crossplot',
+                   long_help='Crossplot',
+                   callback='app.menu_functions.on_new_crossplot'
+                   )
 
         # StatusBar
-        UIM.create('statusbar_controller', mwc.uid, 
-            label='Bem vindo ao ' + \
-            app.gripy_app.GripyApp.Get()._gripy_app_state.get('app_display_name')
-        )  
-        
-        
-        
+        UIM.create('statusbar_controller', mwc.uid,
+                   label='Bem vindo ao ' + \
+                         app.gripy_app.GripyApp.Get()._gripy_app_state.get('app_display_name')
+                   )
 
-    # _do_initial_tests()
+        # _do_initial_tests()
 
 
-
-
-def get_main_window_controller():    
+def get_main_window_controller():
     UIM = UIManager()
-    mwc = UIM.list('main_window_controller')[0]   
+    mwc = UIM.list('main_window_controller')[0]
     return mwc
-   
-    
-    
+
+
 """
 Funcao reservada para alguns testes 
 """
+
+
 def _do_initial_tests():
-   # pass
-   
+    # pass
+
     mwc = get_main_window_controller()
-    #mwc.size = (1000, 700)
-  
-    
+    # mwc.size = (1000, 700)
+
     depth = [
         2240.07,
         2240.22,
@@ -791,10 +776,10 @@ def _do_initial_tests():
         2284.57,
         2284.72,
         2284.88,
-        2285.03            
-            
-    ] 
-   
+        2285.03
+
+    ]
+
     phi = [
         12.71,
         13.03,
@@ -1091,9 +1076,8 @@ def _do_initial_tests():
         15.77,
         12.90,
         11.81,
-        10.72     
+        10.72
     ]
-    
 
     k = [
         3.17,
@@ -1392,41 +1376,31 @@ def _do_initial_tests():
         1.22,
         0.62,
         0.01
-    ]    
-    
+    ]
+
     from classes.om import ObjectManager
     import numpy as np
-    
+
     OM = ObjectManager()
     #
     well = OM.new('well', name='Winland-Lorenz')
-    OM.add(well)	
+    OM.add(well)
     #
-   
-    
-  
+
     iset = OM.new('curve_set', name='Run 001')
     OM.add(iset, well.uid)
     #
-    
-    
-    
-    
-    #"""
-    
-    index = OM.new('data_index', np.array(depth), name='Depth', dimension=0, datatype='MD', unit='m') 
+
+    # """
+
+    index = OM.new('data_index', np.array(depth), name='Depth', dimension=0, datatype='MD', unit='m')
     OM.add(index, iset.uid)
-    
+
     #      
-    log = OM.new('log', np.array(phi)/100, index_uid=index.uid, name='Phi', unit='dec', datatype='NMRperm')
-    OM.add(log, iset.uid)  
-    #"""
-    
-    
-    
-    
-    
-    
+    log = OM.new('log', np.array(phi) / 100, index_uid=index.uid, name='Phi', unit='dec', datatype='NMRperm')
+    OM.add(log, iset.uid)
+    # """
+
     """
     #
     log = OM.new('log', np.array(k), index_uid=index.uid, name='K', unit='mD', datatype='CorePerm')
@@ -1438,48 +1412,43 @@ def _do_initial_tests():
     iset2 = OM.new('curve_set', name='Run 002')
     OM.add(iset2, well.uid)
     #
-    
-    
-    index = OM.new('data_index', np.array(depth), name='Depth', dimension=0, datatype='MD', unit='m') 
+
+    index = OM.new('data_index', np.array(depth), name='Depth', dimension=0, datatype='MD', unit='m')
     OM.add(index, iset2.uid)
     #      
-    log = OM.new('log', np.array(phi)/100, index_uid=index.uid, name='Phi', unit='dec', datatype='NMRperm')
-    OM.add(log, iset2.uid)  
+    log = OM.new('log', np.array(phi) / 100, index_uid=index.uid, name='Phi', unit='dec', datatype='NMRperm')
+    OM.add(log, iset2.uid)
     #
     log = OM.new('log', np.array(k), index_uid=index.uid, name='K', unit='mD', datatype='CorePerm')
-    OM.add(log, iset2.uid)  
+    OM.add(log, iset2.uid)
     #
-    
-    #"""
-        
-    
-    
+
+    # """
+
     # Trabalho Sala GBDI/PCE
-    #mwc.pos = (-1900, -700)
-    #mwc.maximized = False
-    
+    # mwc.pos = (-1900, -700)
+    # mwc.maximized = False
+
     # CASA
     mwc.pos = (-8, 0)
     mwc.size = (1240, 1046)
     mwc.maximized = False
 
     # BR
-    #mwc.pos = (-1925, -921) 
-    #mwc.size = (1116, 1131)    
-    
-    
-#    mwc.pos = (-1300,600)
+    # mwc.pos = (-1925, -921)
+    # mwc.size = (1116, 1131)
 
-   # mwc.maximized = True
-    
-    
+    #    mwc.pos = (-1300,600)
+
+    # mwc.maximized = True
+
     """  
     from om.manager import ObjectManager
     OM = ObjectManager()
     well = OM.new('well', name='ZZZ')
     OM.add(well)
     """
-    
+
     """
     mwc = get_main_window_controller()
     
@@ -1494,7 +1463,7 @@ def _do_initial_tests():
 #    del mwc['name']
     
     """
-    
+
     '''
     mwc = get_main_window_controller()
     mwc.pos = (-1092, 606)
@@ -1516,8 +1485,7 @@ def _do_initial_tests():
     OM.add(well)
     
     '''
-    
-    
+
     """
     
     OM.print_info()
@@ -1550,26 +1518,23 @@ def _do_initial_tests():
 
     """
 
-    #fullfilename = 'C:\\Users\\Adriano\\Desktop\\aaa_teste_5.pgg'
-    
-    #fullfilename = 'C:\\Users\\Adriano\\Desktop\\aaa_teste_8.pgg'
-    
-    #fullfilename = 'C:\\Users\\Adriano\\Desktop\\2709_pocos_classes.pgg'
-    #app.load_project_data(fullfilename)    
+# fullfilename = 'C:\\Users\\Adriano\\Desktop\\aaa_teste_5.pgg'
 
-    #
-    #lpc = UIM.create('logplot_controller', mwc.uid)
-    #tc1 = UIM.create('track_controller', lpc.uid)
-    #tc1.width = 900
-    
-    #UIM.create('track_controller', lpc.uid)
-    #UIM.create('track_controller', lpc.uid)
-    #UIM.create('track_controller', lpc.uid, overview=True, plotgrid=False)
+# fullfilename = 'C:\\Users\\Adriano\\Desktop\\aaa_teste_8.pgg'
+
+# fullfilename = 'C:\\Users\\Adriano\\Desktop\\2709_pocos_classes.pgg'
+# app.load_project_data(fullfilename)    
+
+#
+# lpc = UIM.create('logplot_controller', mwc.uid)
+# tc1 = UIM.create('track_controller', lpc.uid)
+# tc1.width = 900
+
+# UIM.create('track_controller', lpc.uid)
+# UIM.create('track_controller', lpc.uid)
+# UIM.create('track_controller', lpc.uid, overview=True, plotgrid=False)
 
 
-
-    # """    
-    # Fim - Testes
-    # """
-    
-    
+# """    
+# Fim - Testes
+# """

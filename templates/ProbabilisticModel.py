@@ -41,7 +41,7 @@ class ProbabilisticModel(object):
     probability mass. In the case of continuous models, they must return the
     probability density.
     """
-    
+
     def fit(self, data):
         """
         Fit the parameters of the model to the `data`.
@@ -72,7 +72,7 @@ class ProbabilisticModel(object):
         The model must be fitted before this method is called.
         """
         pass
-    
+
     def prob(self, x):
         """
         The probability of `x`.
@@ -124,16 +124,16 @@ class Discrete1DPM(ProbabilisticModel):
         A dictionary whose keys are the values of the random variable and
         values are their respectives probabilities.
     """
-    
+
     def __init__(self):
         self.probabilities = defaultdict(float)
-    
+
     def logprob(self, x):
         return np.log(self.prob(x))
-    
+
     def prob(self, x):
         return np.vectorize(self.probabilities.__getitem__)(x)  # TODO: alguma forma melhor de fazer isso?
-    
+
     def sample(self, n=1):
         return np.random.choice(self.probabilities.keys(), size=n, p=self.probabilities.values())
 
@@ -163,12 +163,12 @@ class UniformD1DPM(Discrete1DPM):
     >>> model.prob(8)
     0.0
     """
-    
+
     def fit(self, data):
         self.probabilities.clear()
         uniquedata = np.unique(data)
         for ud in uniquedata:
-            self.probabilities[ud] = 1.0/len(uniquedata)
+            self.probabilities[ud] = 1.0 / len(uniquedata)
 
 
 class ProportionalD1DPM(Discrete1DPM):
@@ -197,12 +197,12 @@ class ProportionalD1DPM(Discrete1DPM):
     >>> model.prob(8)
     0.0
     """
-    
+
     def fit(self, data):
         uniquedata = np.unique(data)
         self.probabilities = {}
         for ud in uniquedata:
-            self.probabilities[ud] = np.sum(data == ud)/len(data)
+            self.probabilities[ud] = np.sum(data == ud) / len(data)
 
 
 class FixedD1DPM(Discrete1DPM):
@@ -230,7 +230,7 @@ class FixedD1DPM(Discrete1DPM):
     >>> model.prob(8)
     0.0
     """
-    
+
     def __init__(self, probabilities):
         super(FixedD1DPM, self).__init__()
         self.probabilities.update(probabilities)
@@ -267,21 +267,21 @@ class Normal1DPM(ProbabilisticModel):
     >>> model.sample(3)
     array([-0.0674..., 1.7581..., -1.0981..., -0.7181... ])
     """
-    
+
     def fit(self, data):
         self.mean = np.mean(data)
         self.std = max(np.std(data, ddof=0), _MIN_STD)  # TODO: verificar qual o ddof correto a se utilizar
 
     def logprob(self, x):
         return stats.norm.logpdf(x, loc=self.mean, scale=self.std)
-        
+
     def prob(self, x):
         return stats.norm.pdf(x, loc=self.mean, scale=self.std)
 
     def sample(self, n=1):
         return stats.norm.rvs(loc=self.mean, scale=self.std, size=n)
-        
-        
+
+
 class NormalPM(ProbabilisticModel):
     """
     Probabilistic model for multi-variate normal random variables.
@@ -326,7 +326,7 @@ class NormalPM(ProbabilisticModel):
     >>> model.sample(1)
     array([-0.3807..., 1.3748...])
     """
-    
+
     def __init__(self, cv_type='full'):
         self.cv_type = cv_type
 
@@ -343,7 +343,7 @@ class NormalPM(ProbabilisticModel):
 
     def logprob(self, x):
         return stats.multivariate_normal.logpdf(x, mean=self.mean, cov=self.cov)
-    
+
     def prob(self, x):
         return stats.multivariate_normal.pdf(x, mean=self.mean, cov=self.cov)
 
@@ -386,18 +386,22 @@ class NaiveNormalPM(ProbabilisticModel):
     >>> model.sample(1)
     array([-0.3807..., 1.3748...])
     """
-    
+
     def fit(self, data):
         self.mean = np.mean(data, axis=0)
         self.std = np.std(data, ddof=0, axis=0)
         self.std[self.std <= _MIN_STD] = _MIN_STD  # TODO: verificar qual o ddof correto a se utilizar
-    
+
     def logprob(self, x):
-        return np.sum(np.vstack(stats.norm.logpdf(x_, loc=mean, scale=std) for x_, mean, std in zip(x.T, self.mean, self.std)), axis=0)
-    
+        return np.sum(
+            np.vstack(stats.norm.logpdf(x_, loc=mean, scale=std) for x_, mean, std in zip(x.T, self.mean, self.std)),
+            axis=0)
+
     def prob(self, x):
-        return np.prod(np.vstack(stats.norm.pdf(x_, loc=mean, scale=std) for x_, mean, std in zip(x.T, self.mean, self.std)), axis=0)
-    
+        return np.prod(
+            np.vstack(stats.norm.pdf(x_, loc=mean, scale=std) for x_, mean, std in zip(x.T, self.mean, self.std)),
+            axis=0)
+
     def sample(self, n=1):
         return np.vstack(stats.norm.rvs(loc=mean, scale=std, size=n) for mean, std in zip(self.mean, self.std)).T
 
@@ -409,6 +413,7 @@ _PMDICT = {"uniform": UniformD1DPM,
            "normal": NormalPM,
            "naivenormal": NaiveNormalPM,
            }
+
 
 def get_probabilistic_model(key):
     return _PMDICT.get(key, None)

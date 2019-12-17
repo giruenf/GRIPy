@@ -12,7 +12,6 @@ from classes.om import Seismic
 from classes.om import Spectogram
 from classes.om import Gather
 
-
 #
 from classes.ui import FrameController, Frame
 from classes.ui import DialogController, Dialog
@@ -43,35 +42,34 @@ from classes.ui import \
 from classes.ui import \
     PatchesRepresentationController, PatchesRepresentationView
 #    ContourfRepresentationController, ContourfRepresentationView        
-                  
+
 from classes.ui import WellPlotEditorController, \
-                                                 WellPlotEditor  
+    WellPlotEditor
 from classes.ui import LPEWellPlotPanelController, \
-                                                 LPEWellPlotPanel      
+    LPEWellPlotPanel
 from classes.ui import LPETrackPanelController, \
-                                                 LPETrackPanel
+    LPETrackPanel
 from classes.ui import LPEObjectsPanelController, \
-                                                 LPEObjectsPanel
+    LPEObjectsPanel
 #                                                 
 from classes.ui import PropertyGridController, PropertyGridView
 #                                            
-from classes.ui import CanvasPlotterController, CanvasPlotter                
-from classes.ui import TrackCanvasController, TrackCanvas   
+from classes.ui import CanvasPlotterController, CanvasPlotter
+from classes.ui import TrackCanvasController, TrackCanvas
 from classes.ui import TrackLabelController, TrackLabel
-                   
+
 #
 from classes.ui import \
-        ObjectPropertiesDialogController,ObjectPropertiesDialog
-        
-from classes.ui import ConsoleController, Console
+    ObjectPropertiesDialogController, ObjectPropertiesDialog
 
+from classes.ui import ConsoleController, Console
 
 
 def register_app_classes():
     register_OM_classes()
-    register_UIManager_classes()    
-    
-    
+    register_UIManager_classes()
+
+
 def register_OM_classes():
     ObjectManager.register_class(Well)
     ObjectManager.register_class(CurveSet, Well)
@@ -94,7 +92,7 @@ def register_OM_classes():
     ObjectManager.register_class(DataIndexMap, Spectogram)
     ObjectManager.register_class(DataIndex, Spectogram)
     #    
-    
+
     """
 #    ObjectManager.register_class(IndexSet, Well)
     ObjectManager.register_class(Core, Well)
@@ -150,17 +148,18 @@ def register_OM_classes():
     ObjectManager.register_class(Property, Zone)
     #
     """
-    
+
+
 def register_UIManager_classes():
     UIManager.register_class(FrameController, Frame)
     UIManager.register_class(DialogController, Dialog)
-    UIManager.register_class(MainWindowController, MainWindow)    
-    UIManager.register_class(MenuBarController, MenuBarView, MainWindowController) 
+    UIManager.register_class(MainWindowController, MainWindow)
+    UIManager.register_class(MenuBarController, MenuBarView, MainWindowController)
     UIManager.register_class(MenuController, MenuView, MenuBarController)
     UIManager.register_class(MenuController, MenuView, MenuController)
     UIManager.register_class(MenuItemController, MenuItemView, MenuController)
-    UIManager.register_class(ToolBarController, ToolBar, MainWindowController)     
-    UIManager.register_class(ToolBarToolController, None, ToolBarController)  
+    UIManager.register_class(ToolBarController, ToolBar, MainWindowController)
+    UIManager.register_class(ToolBarToolController, None, ToolBarController)
     UIManager.register_class(TreeController, TreeView, MainWindowController)
     UIManager.register_class(StatusBarController, StatusBar, MainWindowController)
     # 
@@ -178,70 +177,64 @@ def register_UIManager_classes():
     #    
     UIManager.register_class(TrackController, TrackView, WellPlotController)
     UIManager.register_class(TrackObjectController, None,
-                              TrackController
-    )
-    UIManager.register_class(WellPlotEditorController, WellPlotEditor, 
+                             TrackController
+                             )
+    UIManager.register_class(WellPlotEditorController, WellPlotEditor,
                              WellPlotController
-    )
+                             )
     #
-    UIManager.register_class(NavigatorController, Navigator, 
+    UIManager.register_class(NavigatorController, Navigator,
                              TrackObjectController
-    )
+                             )
     #
-    UIManager.register_class(LineRepresentationController, 
+    UIManager.register_class(LineRepresentationController,
                              LineRepresentationView, TrackObjectController
-    )
-    UIManager.register_class(IndexRepresentationController, 
+                             )
+    UIManager.register_class(IndexRepresentationController,
                              IndexRepresentationView, TrackObjectController
-    )
-    UIManager.register_class(DensityRepresentationController, 
+                             )
+    UIManager.register_class(DensityRepresentationController,
                              DensityRepresentationView, TrackObjectController
-    )
+                             )
     UIManager.register_class(PatchesRepresentationController,
-                              PatchesRepresentationView, TrackObjectController
-    )
-#    UIManager.register_class(ContourfRepresentationController,  
-#                              ContourfRepresentationView, TrackObjectController
-#    )    
+                             PatchesRepresentationView, TrackObjectController
+                             )
+    #    UIManager.register_class(ContourfRepresentationController,
+    #                              ContourfRepresentationView, TrackObjectController
+    #    )
     #
-    UIManager.register_class(LPEWellPlotPanelController, LPEWellPlotPanel, 
+    UIManager.register_class(LPEWellPlotPanelController, LPEWellPlotPanel,
                              WellPlotEditorController
-    )    
-    UIManager.register_class(LPETrackPanelController, LPETrackPanel, 
+                             )
+    UIManager.register_class(LPETrackPanelController, LPETrackPanel,
                              WellPlotEditorController
-    )
-    UIManager.register_class(LPEObjectsPanelController, LPEObjectsPanel, 
+                             )
+    UIManager.register_class(LPEObjectsPanelController, LPEObjectsPanel,
                              WellPlotEditorController
-    )
+                             )
     UIManager.register_class(PropertyGridController,
                              PropertyGridView, LPEObjectsPanelController
-    )
+                             )
     #
 
-    UIManager.register_class(CanvasPlotterController, CanvasPlotter, CrossPlotController) 
-    
+    UIManager.register_class(CanvasPlotterController, CanvasPlotter, CrossPlotController)
+
     #
     UIManager.register_class(FrameController, Frame, MainWindowController)
     #
     UIManager.register_class(TrackCanvasController, TrackCanvas, TrackController)
     UIManager.register_class(TrackLabelController, TrackLabel, TrackController)
     #
-    UIManager.register_class(ObjectPropertiesDialogController, 
-                                                 ObjectPropertiesDialog)
+    UIManager.register_class(ObjectPropertiesDialogController,
+                             ObjectPropertiesDialog)
     UIManager.register_class(PropertyGridController,
                              PropertyGridView, ObjectPropertiesDialogController
-    )    
+                             )
     UIManager.register_class(PropertyGridController,
                              PropertyGridView, LPEWellPlotPanelController
-    ) 
+                             )
     #
-    #UIManager.register_class(DataMaskController, DataMask, TrackObjectController)      
+    # UIManager.register_class(DataMaskController, DataMask, TrackObjectController)
     UIManager.register_class(LASHeaderController, LASHeader)
     #
-    UIManager.register_class(WellImportFrameController, WellImportFrame, MainWindowController)    
-    
-    
-    
-    
-    
-    
+    UIManager.register_class(WellImportFrameController, WellImportFrame, MainWindowController)

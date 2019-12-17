@@ -24,9 +24,7 @@ Created on Sun Jun 12 10:53:59 2016
     
 """
 
-
 import struct
-
 
 
 def _get_tif_register(data):
@@ -36,29 +34,28 @@ def _get_tif_register(data):
     if len(data) != 4:
         raise ValueError('TIF register must have 4 bytes.')
     n = struct.unpack('L', data)
-    return n[0]      
-        
-        
-        
+    return n[0]
+
+
 class TIFFile(object):
-       
+
     @staticmethod
     def get_TIF_registers(data):
         registers = []
         offset = 0
         while offset < len(data):
             tif_register = []
-            record_type = _get_tif_register(data[offset:offset+4])
+            record_type = _get_tif_register(data[offset:offset + 4])
             if record_type not in [0, 1]:
                 return None
             offset += 4
-            previous_record = _get_tif_register(data[offset:offset+4])
+            previous_record = _get_tif_register(data[offset:offset + 4])
             offset += 4
-            next_record = _get_tif_register(data[offset:offset+4])
+            next_record = _get_tif_register(data[offset:offset + 4])
             offset += 4
             if offset == next_record:
                 encapsulated_data = None
-            else:    
+            else:
                 encapsulated_data = data[offset:next_record]
             offset = next_record
             tif_register.append(record_type)
@@ -66,10 +63,8 @@ class TIFFile(object):
             tif_register.append(next_record)
             tif_register.append(encapsulated_data)
             registers.append(tif_register)
-        return registers        
+        return registers
 
-       
-    
     @staticmethod
     def desencapsulate(data):
         registers = TIFFile.get_TIF_registers(data)
@@ -77,7 +72,7 @@ class TIFFile(object):
         if registers is None:
             return False, data
         #
-        return_data = []    
+        return_data = []
         tif_file = bytes('', 'utf-8')
         for register in registers:
             if register[0] == 1:
@@ -87,6 +82,3 @@ class TIFFile(object):
                 tif_file += register[3]
         # Returning True for success        
         return True, return_data
-
-
-

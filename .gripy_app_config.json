@@ -1,34 +1,33 @@
 {
-    "wx.App": {
-        "redirect": false, 
-        "file_name": null, 
-        "clear_sig_int": true, 
-        "use_best_visual": false
-    }, 
-    "app.gripy_app.GripyApp": {
-        "vendor_name": "GIR", 
-        "app_name": "GriPy", 
-        "class_name": "App.gripy_app.GripyApp", 
-        "vendor_display_name": "UENF/LENEP/GIR", 
-        "app_version": "0.9 Beta", 
-        "app_display_name": "GriPy 0.9 Beta - Powered with Python 3",
-        "app_UI_file": "user_data/.gripy_UI_appdata.json", 
-        "user_UI_file": "user_data/.gripy_UI_userdata.json", 
-        "gripy_debug_file": "user_data/debug.gripy_console"
-    }, 
-    "logging": {
-        "logging_level": 10, 
-        "logging_filename": "logs/gripy_application.log", 
-        "logging_filemode": "w"
-    },
-	"plugins": {
-        "plugins_places": [
-			"plugins",
-			"../Plugins-GIR", 
-			"../Plugins-Petrobras",
-			"../GRIPyPluginsGIR", 
-			"../GRIPyPluginsPetrobras"
-		]	
-    }
-
+  "wx.App": {
+    "redirect": false,
+    "file_name": null,
+    "clear_sig_int": true,
+    "use_best_visual": false
+  },
+  "app.gripy_app.GripyApp": {
+    "vendor_name": "GIR",
+    "app_name": "GriPy",
+    "class_name": "App.gripy_app.GripyApp",
+    "vendor_display_name": "UENF/LENEP/GIR",
+    "app_version": "0.9 Beta",
+    "app_display_name": "GriPy 0.9 Beta - Powered with Python 3",
+    "app_UI_file": "user_data/.gripy_UI_appdata.json",
+    "user_UI_file": "user_data/.gripy_UI_userdata.json",
+    "gripy_debug_file": "user_data/debug.gripy_console"
+  },
+  "logging": {
+    "logging_level": 10,
+    "logging_filename": "logs/gripy_application.log",
+    "logging_filemode": "w"
+  },
+  "plugins": {
+    "plugins_places": [
+      "plugins",
+      "../Plugins-GIR",
+      "../Plugins-Petrobras",
+      "../GRIPyPluginsGIR",
+      "../GRIPyPluginsPetrobras"
+    ]
+  }
 }

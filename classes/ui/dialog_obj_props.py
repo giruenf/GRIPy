@@ -1,4 +1,3 @@
-
 from collections import OrderedDict
 
 import wx
@@ -17,42 +16,36 @@ class ObjectPropertiesDialogController(DialogController):
         'type': 'uid'
     }
 
-    
     def __init__(self, **state):
         state['flags'] = wx.OK
         state['title'] = 'Object properties'
-        super().__init__(**state)    
+        super().__init__(**state)
 
-        
-    def PostInit(self):  
+    def PostInit(self):
         self.subscribe(self.on_change_obj_uid, 'change.obj_uid')
         # The lines below are placed here because Controller.PostInit is called
         # after View.PostInit
         UIM = UIManager()
         pgc = UIM.create('property_grid_controller', self.uid)
-        self.view.mainpanel.GetSizer().Add(pgc.view, 
-                            proportion=1,
-                            flag=wx.TOP|wx.LEFT|wx.RIGHT|wx.EXPAND, 
-                            border=10
-        )
+        self.view.mainpanel.GetSizer().Add(pgc.view,
+                                           proportion=1,
+                                           flag=wx.TOP | wx.LEFT | wx.RIGHT | wx.EXPAND,
+                                           border=10
+                                           )
         self.view.mainpanel.GetSizer().Layout()
         self.view.GetSizer().Layout()
 
-             
     def on_change_obj_uid(self, new_value, old_value):
         UIM = UIManager()
-        pgc = UIM.list('property_grid_controller', parent_uid=self.uid)[0]      
+        pgc = UIM.list('property_grid_controller', parent_uid=self.uid)[0]
         pgc.obj_uid = new_value
-        
 
-        
-    
+
 class ObjectPropertiesDialog(Dialog):
     tid = 'object_properties_dialog'
-    
+
     def __init__(self, controller_uid):
-        super().__init__(controller_uid)        
+        super().__init__(controller_uid)
 
     def _get_wx_parent(self, *args, **kwargs):
-        return self.mainpanel        
-        
+        return self.mainpanel

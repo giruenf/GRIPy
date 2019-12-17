@@ -5,7 +5,7 @@ from classes.base.metaclasses import GripyManagerMeta
 from app import log
 
 
-class GripyManager(pubsub.PublisherMixin, metaclass=GripyManagerMeta):  
+class GripyManager(pubsub.PublisherMixin, metaclass=GripyManagerMeta):
     """
     The parent class for a Manager.
     
@@ -19,25 +19,25 @@ class GripyManager(pubsub.PublisherMixin, metaclass=GripyManagerMeta):
     the data.
     """
     _LOADING_STATE = False
-    
-    
+
     def __init__(self):
         pass
-        #self._ownerref = None
+        # self._ownerref = None
 
     def _get_pubsub_uid(self):
         return self.__class__.__name__
-   
+
     def is_loading_state(self):
-        return self.__class__._LOADING_STATE 
+        return self.__class__._LOADING_STATE
 
     def set_loading_state(self):
         self.__class__._LOADING_STATE = True
-        
+
     def unset_loading_state(self):
-        self.__class__._LOADING_STATE = False    
-       
-    # Criado por Adriano em 08-11-2018
+        self.__class__._LOADING_STATE = False
+
+        # Criado por Adriano em 08-11-2018
+
     def get_children_uids(self, parent_uid=None, recursively=False):
         """
         Given a parent object unique identificator (uid), returns children 
@@ -67,11 +67,11 @@ class GripyManager(pubsub.PublisherMixin, metaclass=GripyManagerMeta):
             ret_list = []
             ret_list += children_uids
             for child_uid in children_uids:
-                ret_list += self.get_children_uids(child_uid, True) 
-            return ret_list                
+                ret_list += self.get_children_uids(child_uid, True)
+            return ret_list
 
+            # Migrado para a SuperClasse em 10-11-2018
 
-    # Migrado para a SuperClasse em 10-11-2018
     # TODO: Add recursively to docs.
     def list(self, tid=None, parent_uid=None, recursively=False):
         """
@@ -126,10 +126,8 @@ class GripyManager(pubsub.PublisherMixin, metaclass=GripyManagerMeta):
         return [self.get(child_uid) \
                 for child_uid in children_uids \
                 if child_uid[0] == tid
-        ]
+                ]
 
-
-        
     def exec_query(self, tid, parent_uid=None, *args, **kwargs):
         """
         Execute queries for searching managed objects.
@@ -138,8 +136,8 @@ class GripyManager(pubsub.PublisherMixin, metaclass=GripyManagerMeta):
         try:
             recursively = kwargs.pop('recursively', False)
             objects = self.list(tid, parent_uid, recursively)
-            if not objects: return None  
-            comparators = self._create_query_comparators(*args)  
+            if not objects: return None
+            comparators = self._create_query_comparators(*args)
             ret_list = []
             for obj in objects:
                 ok = True
@@ -147,8 +145,8 @@ class GripyManager(pubsub.PublisherMixin, metaclass=GripyManagerMeta):
                     ok = False
                     attr = obj.find_attribute(key)
                     if attr is None:
-                        raise Exception('Attribute {} was not found.'.format(\
-                                                                        key)
+                        raise Exception('Attribute {} was not found.'.format( \
+                            key)
                         )
                     type_ = attr.get('type')
                     value = type_(value)
@@ -157,21 +155,21 @@ class GripyManager(pubsub.PublisherMixin, metaclass=GripyManagerMeta):
                     if operator == '>=':
                         ok = attr_value >= value
                     elif operator == '<=':
-                        ok = attr_value <= value                  
+                        ok = attr_value <= value
                     elif operator == '>':
                         ok = attr_value > value
                     elif operator == '<':
-                        ok = attr_value < value     
+                        ok = attr_value < value
                     elif operator == '!=':
                         ok = attr_value != value
                     elif operator == '=':
                         ok = attr_value == value
-                            
+
                     if not ok:
                         break
                 if ok:
                     ret_list.append(obj)
-            #if kwargs:
+            # if kwargs:
             orderby = kwargs.get('orderby')
             if orderby and len(ret_list) >= 2:
                 aux_list = []
@@ -185,16 +183,14 @@ class GripyManager(pubsub.PublisherMixin, metaclass=GripyManagerMeta):
                 ret_list = aux_list
             reverse = kwargs.get('reverse')
             if reverse:
-                ret_list.reverse()                     
+                ret_list.reverse()
             return ret_list
         except Exception as e:
             msg = 'ERROR in {}.exec_query({}, {}, {}, {})'.format( \
-                        self.__class__.__name__, tid, parent_uid, args, kwargs)
-            print ('\n' + msg)
+                self.__class__.__name__, tid, parent_uid, args, kwargs)
+            print('\n' + msg)
             raise
-            
-            
-            
+
     def _create_query_comparators(self, *args):
         """
         Create the comparators used by `.exec_query`.
@@ -209,14 +205,10 @@ class GripyManager(pubsub.PublisherMixin, metaclass=GripyManagerMeta):
                     operator = oper
                     break
             if not operator:
-                raise ValueError('Operator not found. Valid operators are: {}'\
+                raise ValueError('Operator not found. Valid operators are: {}' \
                                  .format(operators)
-                )
-            ret_list.append((arg.split(operator)[0], operator, 
+                                 )
+            ret_list.append((arg.split(operator)[0], operator,
                              arg.split(operator)[1])
-            )
-        return ret_list          
-        
-    
-    
-    
+                            )
+        return ret_list

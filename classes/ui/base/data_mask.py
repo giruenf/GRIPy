@@ -1,31 +1,27 @@
-
 from collections import OrderedDict
 
 import numpy as np
 
 from classes.om import ObjectManager
 from classes.ui import UIManager
-from classes.ui import UIControllerObject 
-from classes.ui import UIViewObject 
-
+from classes.ui import UIControllerObject
+from classes.ui import UIViewObject
 
 
 class DataMaskController(UIControllerObject):
     tid = 'data_mask_controller'
 
     _ATTRIBUTES = OrderedDict()
-            
-    _ATTRIBUTES['data_obj_uid'] = {
-            'default_value': None,
-            'type': 'uid'
-    }             
-  
-   
-    def __init__(self, **state):     
-        super().__init__(**state)
-        self._data = []     
-        self._init_data()
 
+    _ATTRIBUTES['data_obj_uid'] = {
+        'default_value': None,
+        'type': 'uid'
+    }
+
+    def __init__(self, **state):
+        super().__init__(**state)
+        self._data = []
+        self._init_data()
 
     def _init_data(self):
         try:
@@ -33,31 +29,30 @@ class DataMaskController(UIControllerObject):
             data_obj = OM.get(self.data_obj_uid)
             # No need to get unit from data_obj if it not changed.
             self._data_name = data_obj.name
-            self._data_unit = data_obj.unit 
+            self._data_unit = data_obj.unit
             self._data_type = data_obj.datatype
             #
-            data_indexes = data_obj.get_data_indexes() 
+            data_indexes = data_obj.get_data_indexes()
             for dim_idx in range(len(data_indexes)):
                 indexes_per_dim_uid = data_indexes[dim_idx]
                 di_uid = indexes_per_dim_uid[0]  # Chosing the first one!
-                di = OM.get(di_uid)  
-                if (len(data_indexes) - dim_idx) <= 2:    
+                di = OM.get(di_uid)
+                if (len(data_indexes) - dim_idx) <= 2:
                     # Sempre exibe as 2 ultimas dimensoes do dado.
                     # Ex: sismica 3-d stacked (iline, xline, tempo) serah exibido
                     # xline e tempo, em principio.
                     # (di_uid, is_ranged, start, stop)
                     self._data.append([di_uid, True, 0, len(di.data)])
                 else:
-                    self._data.append([di_uid, False, 0, len(di.data)])            
-                # 
+                    self._data.append([di_uid, False, 0, len(di.data)])
+                    #
         except Exception as e:
             print('ERROR _init_data:', e)
             raise
 
-
     def get_data_name(self):
         return self._data_name
-    
+
     def get_data_unit(self):
         return self._data_unit
 
@@ -65,18 +60,19 @@ class DataMaskController(UIControllerObject):
         return self._data_type
 
     def get_data_object_uid(self):
-        return self.data_obj_uid 
+        return self.data_obj_uid
 
-    # TODO: rename to set_dimension_data
+        # TODO: rename to set_dimension_data
+
     def set_dimension(self, dim_idx=-1, **kwargs):
         """
         dim_idx here refers to object actual data indexes.
         """
         # TODO: make dimensions changeable with np.transpose.
-        #"""
-        #dim_idx here refers to DataMask current dimension, not object
-        #data indexes.
-        #"""      
+        # """
+        # dim_idx here refers to DataMask current dimension, not object
+        # data indexes.
+        # """
         datatype = kwargs.pop('datatype', None)
         name = kwargs.pop('name', None)
         di_uid = kwargs.pop('di_uid', None)
@@ -85,64 +81,62 @@ class DataMaskController(UIControllerObject):
             raise Exception('Either di_uid, datatype or name must be informed.')
         #   
         OM = ObjectManager()
-        data_obj = OM.get(self.data_obj_uid )        
+        data_obj = OM.get(self.data_obj_uid)
         data_indexes = data_obj.get_data_indexes()
-        dim_dis_uids = data_indexes[dim_idx] 
-#        print('dim_dis_uids:', dim_dis_uids)
+        dim_dis_uids = data_indexes[dim_idx]
+        #        print('dim_dis_uids:', dim_dis_uids)
         ret_datatypes = []
         #
         for dim_di_uid in dim_dis_uids:
             if dim_di_uid == di_uid:
                 self._data[dim_idx][0] = di_uid
-#                print('self._data[dim_idx] 2.1:', self._data[dim_idx])
+                #                print('self._data[dim_idx] 2.1:', self._data[dim_idx])
                 return True
             dim_di = OM.get(dim_di_uid)
-#            print(dim_di.datatype, datatype)
+            #            print(dim_di.datatype, datatype)
             if dim_di.name == name:
                 self._data[dim_idx][0] = dim_di_uid
-#                print('self._data[dim_idx] 2.2:', self._data[dim_idx])
-                return True                
+                #                print('self._data[dim_idx] 2.2:', self._data[dim_idx])
+                return True
             elif dim_di.datatype == datatype:
                 ret_datatypes.append(dim_di_uid)
         if ret_datatypes:
-            self._data[dim_idx][0] = ret_datatypes[0] # Sets with the first one
-#            print('self._data[dim_idx] 2.3:', self._data[dim_idx])
+            self._data[dim_idx][0] = ret_datatypes[0]  # Sets with the first one
+            #            print('self._data[dim_idx] 2.3:', self._data[dim_idx])
             return True
-#        print('set_dimension DEU FALSE')
+        #        print('set_dimension DEU FALSE')
         return False
-    
-    
-    def _get_slicer(self):        
-        slicer = []     
-        for [di_uid, is_range, start, stop] in self._data:       
-            if not is_range:                
+
+    def _get_slicer(self):
+        slicer = []
+        for [di_uid, is_range, start, stop] in self._data:
+            if not is_range:
                 slicer.append(start)
-            else:                
-                slicer.append(slice(start, stop))            
+            else:
+                slicer.append(slice(start, stop))
         slicer = tuple(slicer)
         return slicer
-    
-    
+
     def get_data(self, dimensions_desired=None):
         if dimensions_desired is not None and dimensions_desired not in [1, 2]:
             raise Exception('Dimensions must be 1 or 2.')
         OM = ObjectManager()
-        data_obj = OM.get(self.data_obj_uid )  
+        data_obj = OM.get(self.data_obj_uid)
         #
         slicer = self._get_slicer()
         data = data_obj.data[slicer]
         #
-#        print('get_data - len(data.shape):', len(data.shape), 
-#                                  ' dimensions_desired:', dimensions_desired)
-        if (dimensions_desired is None or 
-                                    (dimensions_desired == len(data.shape))):
+        #        print('get_data - len(data.shape):', len(data.shape),
+        #                                  ' dimensions_desired:', dimensions_desired)
+        if (dimensions_desired is None or
+                (dimensions_desired == len(data.shape))):
             return data
         #
         if dimensions_desired > len(data.shape):
             # Quando se deseja acrescentar dimensoes ao dado. Por exemplo,
             # exibindo dados 1-D em um grafico 2-D.
             redim_slicer = []
-            for i in range(dimensions_desired-len(data.shape)):
+            for i in range(dimensions_desired - len(data.shape)):
                 redim_slicer.append(np.newaxis)
             for i in range(len(data.shape)):
                 # slice(None, None, None) equals ":" 
@@ -157,13 +151,12 @@ class DataMaskController(UIControllerObject):
             new_dim = 1
             for dim_value in data.shape[::-1][1::]:
                 new_dim *= dim_value
-            data = data.reshape(new_dim, data.shape[-1])            
-        #    
+            data = data.reshape(new_dim, data.shape[-1])
+            #
         else:
             # Possivel uso alem 2-D ou algum erro nao mapeado.
             raise Exception('get_data - Tratar isso.')
-        return data    
-
+        return data
 
     def get_index_for_dimension(self, dim_idx=-1):
         """
@@ -171,26 +164,26 @@ class DataMaskController(UIControllerObject):
         its data filtered by mask values.
         """
         OM = ObjectManager()
-        dim_data = self._data[dim_idx]     
+        dim_data = self._data[dim_idx]
         dim_di_uid = dim_data[0]
         di = OM.get(dim_di_uid)
         slicer = self._get_slicer()
         dim_di_data = di.data[slicer[dim_idx]]
-        return dim_di_uid, dim_di_data 
-        
+        return dim_di_uid, dim_di_data
+
     def get_index_data_for_dimension(self, dim_idx=-1):
         """
         Returns the DataIndex data being applied to some dimension. 
         """
-        _, dim_di_data  = self.get_index_for_dimension(dim_idx)
+        _, dim_di_data = self.get_index_for_dimension(dim_idx)
         return dim_di_data
-       
+
     def get_last_dimension_index(self):
         return self.get_index_for_dimension()
-  
+
     def get_last_dimension_index_data(self):
         return self.get_index_data_for_dimension()
-      
+
     def get_equivalent_index(self, datatype, dim_idx=-1):
         """
         Metodo usado para se obter um DataIndex de equivalencia (e.g. obter
@@ -208,7 +201,7 @@ class DataMaskController(UIControllerObject):
         dim_di_uid, _ = self.get_index_for_dimension(dim_idx)
         OM = ObjectManager()
         di = OM.get(dim_di_uid)
-        
+
         if di.datatype == datatype:
             return False, di
         OM = ObjectManager()
@@ -224,16 +217,12 @@ class DataMaskController(UIControllerObject):
                 return True, possible_di
         return False, None
 
-
     def get_equivalent_index_data(self, datatype, dim_idx=-1):
         found, equivalent_di = self.get_equivalent_index(datatype, dim_idx)
         if equivalent_di is None:
             return None
         slicer = self._get_slicer()
-        return equivalent_di.data[slicer[dim_idx]]   
-        
-   
-
+        return equivalent_di.data[slicer[dim_idx]]
 
 
 class DataMask(UIViewObject):
@@ -241,15 +230,12 @@ class DataMask(UIViewObject):
 
     def __init__(self, controller_uid):
         UIViewObject.__init__(self, controller_uid)
+
+
 #        UIM = UIManager()
 #        controller = UIM.get(self._controller_uid)
 
 
-
-
-
-
-        
 '''        
 # DataMaskController
 class DataMask(OMBaseObject):
@@ -710,5 +696,3 @@ class DataMask(OMBaseObject):
 
 
 '''
-
-       

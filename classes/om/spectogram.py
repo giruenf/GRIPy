@@ -8,10 +8,10 @@ class Spectogram(Density):
                          ('unit', 'Unit'),
                          ('min', 'Min Value'),
                          ('max', 'Max Value')
-    ]
+                         ]
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        
+
     def _get_max_dimensions(self):
         return 5

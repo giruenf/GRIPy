@@ -173,7 +173,7 @@ class Paul(object):
         x = t / s
 
         const = (2 ** m * 1j ** m * factorial(m)) \
-            / (np.pi * factorial(2 * m)) ** .5
+                / (np.pi * factorial(2 * m)) ** .5
         functional_form = (1 - 1j * x) ** -(m + 1)
 
         output = const * functional_form

@@ -20,4 +20,3 @@ from .well_log import Log
 from .seismic import Seismic
 from .spectogram import Spectogram
 from .gather import Gather
-

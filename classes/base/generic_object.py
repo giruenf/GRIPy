@@ -1,4 +1,3 @@
-
 import types
 from collections import OrderedDict
 from collections import Sequence
@@ -12,7 +11,7 @@ from classes.base.metaclasses import GripyWxMeta
 from app import log
 
 
-class GripyObject(pubsub.PublisherMixin, metaclass=GripyWxMeta):  
+class GripyObject(pubsub.PublisherMixin, metaclass=GripyWxMeta):
     """
     Base for all GRIPy classes.
     
@@ -39,11 +38,11 @@ class GripyObject(pubsub.PublisherMixin, metaclass=GripyWxMeta):
     _ATTRIBUTES = OrderedDict()
     _ATTRIBUTES['name'] = {
         'default_value': wx.EmptyString,
-        'type': str        
-    }      
+        'type': str
+    }
     _READ_ONLY = ['oid']
-    
-    def __init__(self, **kwargs): 
+
+    def __init__(self, **kwargs):
         _manager_class = self.get_manager_class()
         _manager_obj = _manager_class()
         #
@@ -51,22 +50,22 @@ class GripyObject(pubsub.PublisherMixin, metaclass=GripyWxMeta):
         if _manager_obj.is_loading_state():
             self.oid = kwargs.pop('oid')
             _manager_obj._test_new_object_id(self.tid, self.oid)
-        else:    
-            self.oid = _manager_obj._getnewobjectid(self.tid)     
-        # 
+        else:
+            self.oid = _manager_obj._getnewobjectid(self.tid)
+            #
         # TODO: verificar isso...   
         self._processing_value_from_event = True
         self.name = '{}.{}'.format(*self.uid)
         for attr_name, attr_props in self._ATTRIBUTES.items():
-            self[attr_name] = kwargs.get(attr_name, 
-                                            attr_props.get('default_value')
-            )    
+            self[attr_name] = kwargs.get(attr_name,
+                                         attr_props.get('default_value')
+                                         )
         self._processing_value_from_event = False
         #
-        
+
     def __str__(self):
         return '{}.{}'.format(*self.uid)
-                            
+
     def __getattribute__(self, key):
         try:
             return object.__getattribute__(self, key)
@@ -88,30 +87,30 @@ class GripyObject(pubsub.PublisherMixin, metaclass=GripyWxMeta):
             prop = None
             for cls in self.__class__.__mro__[:-2]:
                 if key in cls.__dict__ and isinstance(cls.__dict__[key], property):
-                    prop = cls.__dict__[key]      
+                    prop = cls.__dict__[key]
                     break
             if not prop:
-                raise Exception ('ERROR __getitem__({}, {}): property not found.'.format(self, key))
+                raise Exception('ERROR __getitem__({}, {}): property not found.'.format(self, key))
             try:
                 return prop.__get__(self, key)
             except Exception:
-                raise Exception ('ERROR __getitem__({}, {}): property cannot be obtained.'.format(self, key))
-                                 
+                raise Exception('ERROR __getitem__({}, {}): property cannot be obtained.'.format(self, key))
+
     def __delitem__(self, key):
         self._do_del(key)
-        
-    def __delattr__(self, key):  
+
+    def __delattr__(self, key):
         self._do_del(key)
-        
+
     def _do_del(self, key):
         if key in self._READ_ONLY:
             msg = 'Cannot delete attribute {}.'.format(key)
-            raise AttributeError(msg)           
+            raise AttributeError(msg)
         if key in self._ATTRIBUTES:
             msg = 'Cannot delete _ATTRIBUTE {}.'.format(key)
-            raise AttributeError(msg)     
+            raise AttributeError(msg)
         object.__delattr__(self, key)
- 
+
     def __setitem__(self, key, value):
         self._do_set(key, value)
 
@@ -122,12 +121,11 @@ class GripyObject(pubsub.PublisherMixin, metaclass=GripyWxMeta):
                 return
             else:
                 msg = '{} cannot be changed. It is on {}._READ_ONLY ' + \
-                                'list.'.format(key, self.__class__.__name__)
-                raise Exception(msg)   
+                      'list.'.format(key, self.__class__.__name__)
+                raise Exception(msg)
         self._do_set(key, value)
-        
-           
-    def _do_set(self, key, value):       
+
+    def _do_set(self, key, value):
         """
         #
         # key not in ATTR, not in DICT, is PROP, is INITED  -> OK -> Case 1   
@@ -152,32 +150,30 @@ class GripyObject(pubsub.PublisherMixin, metaclass=GripyWxMeta):
             prop = None
             for cls in self.__class__.__mro__[:-2]:
                 if key in cls.__dict__ and isinstance(cls.__dict__[key], property):
-                    prop = cls.__dict__[key]                 
+                    prop = cls.__dict__[key]
             if prop:
                 # Key was a property - Case 1
                 try:
                     prop.__set__(self, value)
                     return
                 except:
-                    raise                    
-             
+                    raise
+
         if key not in self._ATTRIBUTES:
             # Cases 2.1 and 2.2
             # Inserting or editing a non-monitorated attribute.
             object.__setattr__(self, key, value)
             return
-              
+
         # Case 3: Okay,we have a monitorated attribute
         attr = self.find_attribute(key)
         type_ = attr.get('type')
-         
-             
+
         # Special treatment for objects uids.     
         if type_ == 'uid':
-            type_ = (tuple, [str, int])   
+            type_ = (tuple, [str, int])
 
- 
-        # Special treatment for some Sequences attributes like 
+            # Special treatment for some Sequences attributes like
         # _ATTRIBUTES.type: (sequence, sequence_inner_type, sequence_lenght)
         # e.g., 'type': (tuple, float, 2) or 'type': (tuple, [str, int])  
         # In case we have 'type': tuple, the default threatment will be given.
@@ -185,31 +181,31 @@ class GripyObject(pubsub.PublisherMixin, metaclass=GripyWxMeta):
             # When a tuple attribute is setted to None, bypass the checkage
             if value is not None:
                 if len(type_) >= 3:
-                    seq_len = type_[2]   
+                    seq_len = type_[2]
                     if len(value) != seq_len:
-                        raise Exception('Wrong lenght on attribute {}.{}'.format(\
-                                        self.__class__.__name__, key)
+                        raise Exception('Wrong lenght on attribute {}.{}'.format( \
+                            self.__class__.__name__, key)
                         )
                 if len(type_) >= 2:
                     sequence_inner_type = type_[1]
                     if sequence_inner_type:
                         if isinstance(sequence_inner_type, Sequence):
                             if len(value) != len(sequence_inner_type):
-                                raise Exception('Wrong lenght on attribute {}.{}'.format(\
-                                                self.__class__.__name__, key)
-                                )    
-                            value = [sequence_inner_type[i](val) for i, val in enumerate(value)]    
-                        else:    
-                            value = [sequence_inner_type(val) for val in value]              
+                                raise Exception('Wrong lenght on attribute {}.{}'.format( \
+                                    self.__class__.__name__, key)
+                                )
+                            value = [sequence_inner_type[i](val) for i, val in enumerate(value)]
+                        else:
+                            value = [sequence_inner_type(val) for val in value]
                 type_ = type_[0]
                 value = type_(value)
-                     
+
         # Special treatment for numpy arrays. No events are generated.
         elif type_ == np.ndarray:
             value = np.asarray(value)
             self.__dict__[key] = value
             return
-                     
+
         # Special treatment for functions
         elif type_ == types.FunctionType:
             if isinstance(value, str):
@@ -218,43 +214,42 @@ class GripyObject(pubsub.PublisherMixin, metaclass=GripyWxMeta):
                 msg = 'ERROR: Attributes signed as \"types.FunctionType\" can recieve only \"str\" or \"types.FunctionType\" values. '
                 msg += 'Received: {} - Type: {}'.format(value, type(value))
                 log.error(msg)
-                raise AttributeError(msg) 
-                
+                raise AttributeError(msg)
+
         elif not isinstance(value, type_):
             try:
-                if value is not None:    
+                if value is not None:
                     value = type_(value)
             except:
-                raise 
-                
+                raise
+
         if not self.is_initialised():
             # Setting attribute under object.__init__.
             # No need to send any messages
             self.__dict__[key] = value
-        else:    
+        else:
             # Object was initializated.
             if self.__dict__[key] == value:
                 # No change. Just return
-                return      
-            #
-            old_value = self[key]    
+                return
+                #
+            old_value = self[key]
             self.__dict__[key] = value
             #
             if not self._processing_value_from_event:
                 # Notify about the change ocurred.
                 topic = 'change.' + key
                 self.send_message(topic, old_value=old_value, new_value=value)
-                
-        msg = '    {} has setted attribute {} = {}'.format(self.uid, key, self[key])  
-        log.debug(msg)
 
+        msg = '    {} has setted attribute {} = {}'.format(self.uid, key, self[key])
+        log.debug(msg)
 
     @property
     def uid(self):
         """
         """
         return self.tid, self.oid
-    
+
     @uid.setter
     def uid(self, value):
         raise Exception('Object uid cannot be setted.')
@@ -262,58 +257,53 @@ class GripyObject(pubsub.PublisherMixin, metaclass=GripyWxMeta):
     @uid.deleter
     def uid(self):
         raise Exception('Object uid cannot be deleted.')
-     
+
     def _get_pubsub_uid(self):
-        return pubsub.uid_to_pubuid(self.uid)         
-           
-    
+        return pubsub.uid_to_pubuid(self.uid)
+
     def _get_pg_categories(self):
         """Returns data categories used to display object properties."""
-        raise NotImplementedError('Must be implemented by subclass.')           
-   
+        raise NotImplementedError('Must be implemented by subclass.')
+
     def _get_pg_properties(self):
         """Returns data properties used to display object properties."""
-        raise NotImplementedError('Must be implemented by subclass.')    
-      
-        
-    # TODO: get_manager_class ou get_manager_class
+        raise NotImplementedError('Must be implemented by subclass.')
+
+        # TODO: get_manager_class ou get_manager_class
+
     def get_manager_class(self):
         """
         """
         app = wx.App.Get()
         return app.get_manager_class(self.tid)
-    
-    
-    #TODO: Verificar se deve incluir a funcao get_manager()  
 
-         
+    # TODO: Verificar se deve incluir a funcao get_manager()
+
     # TODO: rever este nome
     def set_value_from_event(self, key, value):
         self._processing_value_from_event = True
         try:
             self._do_set(key, value)
-        except: 
+        except:
             raise
-        finally:    
-            self._processing_value_from_event = False   
-            
+        finally:
+            self._processing_value_from_event = False
 
-    # TODO: Aqui serah pesquisado os atributos atraves dos subniveis...
+            # TODO: Aqui serah pesquisado os atributos atraves dos subniveis...
+
     def find_attribute(self, key):
         """
         Find a Gripy attribute inside _ATTRIBUTES structure.
         """
         return self._ATTRIBUTES.get(key, None)
-            
 
     def get_state(self):
-        #print('\nGripyObject.get_state:', self.uid, self._ATTRIBUTES.keys())
+        # print('\nGripyObject.get_state:', self.uid, self._ATTRIBUTES.keys())
         state = OrderedDict()
         for attr_name in self._ATTRIBUTES.keys():
-            #print(attr_name, self[attr_name])
-            state[attr_name] = self[attr_name]    
-        return state  
-
+            # print(attr_name, self[attr_name])
+            state[attr_name] = self[attr_name]
+        return state
 
     @classmethod
     def _get_tid_friendly_name(cls):
@@ -327,6 +317,3 @@ class GripyObject(pubsub.PublisherMixin, metaclass=GripyWxMeta):
             # be None because super class OMBaseObject stats it.
             tid_label = cls.tid
         return tid_label
-    
-    
-    

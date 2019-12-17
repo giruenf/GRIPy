@@ -203,6 +203,7 @@ class WaveletTransform(object):
     The equivalent Fourier period is defined as where the wavelet
     power spectrum reaches its maximum and can be found analytically.
     """
+
     def __init__(self, data=None, time=None, dt=1,
                  dj=0.125, wavelet=Morlet(), unbias=False,
                  mask_coi=False, frequency=False, axis=-1):
@@ -231,8 +232,8 @@ class WaveletTransform(object):
         if time is None:
             time = np.indices((data.shape[axis],)).squeeze() * dt
         self.time = time
-        self.anomaly_data = self.data# - self.data.mean(axis=axis,
-                                     #                  keepdims=True)
+        self.anomaly_data = self.data  # - self.data.mean(axis=axis,
+        #                  keepdims=True)
         self.N = data.shape[axis]
         self.data_variance = self.data.var(axis=axis, keepdims=True)
         self.dt = dt
@@ -305,6 +306,7 @@ class WaveletTransform(object):
 
         def f(s):
             return self.fourier_period(s) - 2 * dt
+
         return scipy.optimize.fsolve(f, 1)[0]
 
     @property
@@ -392,7 +394,6 @@ class WaveletTransform(object):
             return (np.abs(self.wavelet_transform).T ** 2 / self.scales).T
         elif not self.unbias:
             return np.abs(self.wavelet_transform) ** 2
-        
 
     def reconstruction(self, scales=None):
         """Reconstruct the original signal from the wavelet
@@ -573,7 +574,6 @@ class WaveletTransform(object):
         sS = S[iC]
 
         return sC, sS
-
 
     def plot_power(self, ax=None, coi=True):
         """Create a basic wavelet power plot with time on the

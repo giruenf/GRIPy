@@ -12,25 +12,27 @@ from algo import rockphysics as RP
 import app.app_utils
 from basic.colors import COLOR_CYCLE_RGB
 
-
 COLOUR_DATA = wx.ColourData()
 for i, color in enumerate(COLOR_CYCLE_RGB):
     COLOUR_DATA.SetCustomColour(i, color)
 
 __DEBUG = False
 
+
 def debugdecorator(func):
     if not __DEBUG:
         return func
     funcname = func.__name__
+
     def wrapper(*args, **kwargs):
-        print (funcname, "IN")
-        print ("args:", repr(args))
-        print ("kwargs:", repr(kwargs))
+        print(funcname, "IN")
+        print("args:", repr(args))
+        print("kwargs:", repr(kwargs))
         result = func(*args, **kwargs)
-        print ("return:", repr(result))
-        print (funcname, "OUT")
+        print("return:", repr(result))
+        print(funcname, "OUT")
         return result
+
     wrapper.__name__ = funcname
     return wrapper
 
@@ -39,25 +41,25 @@ class RockTable(wx.grid.GridTableBase):
     @debugdecorator
     def __init__(self, rocktableuid):
         super(RockTable, self).__init__()
-        
+
         self.OM = ObjectManager()
         self.rocktypeuid = []
         self.rocktableuid = rocktableuid
-        
+
         self.rocktypemap = [rocktype.uid for rocktype in self.OM.list('rocktype', self.rocktableuid)]
         self.N_COLS = 4
         self.N_ROWS = 0
-    
+
     @debugdecorator
     def AppendRows(self, numRows=1):
         rocktype = self.GrainEntry()
-#        rocktype = self.OM.new('rocktype')
+        #        rocktype = self.OM.new('rocktype')
         rocktype.defaultdata = np.nan
         self.OM.add(rocktype, self.rocktableuid)
-        
+
         self.rocktypemap.append(rocktype.uid)
         color = self.get_color(0)
-        self.set_color(-1,color)
+        self.set_color(-1, color)
 
         self.GetView().BeginBatch()
         msg = wx.grid.GridTableMessage(self, wx.grid.GRIDTABLE_NOTIFY_ROWS_APPENDED, numRows)
@@ -65,22 +67,24 @@ class RockTable(wx.grid.GridTableBase):
         self.GetView().EndBatch()
 
         return True
-    
-    @debugdecorator 
+
+    @debugdecorator
     def GrainEntry(self):
         UIM = UIManager()
         dlg = UIM.create('dialog_controller', title='Rock creator')
-        cont_grain = dlg.view.AddCreateContainer('StaticBox', label='Grain Parts', orient=wx.VERTICAL, proportion=0, flag=wx.EXPAND|wx.TOP, border=5)
-        cont_matr = dlg.view.AddCreateContainer('StaticBox', label='Matrix Parts', orient=wx.VERTICAL, proportion=0, flag=wx.EXPAND|wx.TOP, border=5)
-        
+        cont_grain = dlg.view.AddCreateContainer('StaticBox', label='Grain Parts', orient=wx.VERTICAL, proportion=0,
+                                                 flag=wx.EXPAND | wx.TOP, border=5)
+        cont_matr = dlg.view.AddCreateContainer('StaticBox', label='Matrix Parts', orient=wx.VERTICAL, proportion=0,
+                                                flag=wx.EXPAND | wx.TOP, border=5)
+
         json_file = '\\Temp\\min.json'
-#        fullpath_json = 'C:\\Users\\rtabelini\\Documents\\Github\\GRIPy'+json_file
-        fullpath_json = cwd()+json_file
+        #        fullpath_json = 'C:\\Users\\rtabelini\\Documents\\Github\\GRIPy'+json_file
+        fullpath_json = cwd() + json_file
 
         dictmin = app.app_utils.read_json_file(fullpath_json)
-        
+
         def on_change_mineral(name, old_value, new_value, **kwargs):
-            print ('new\n', name, new_value, new_value['name'], dictmin.iterkeys())
+            print('new\n', name, new_value, new_value['name'], dictmin.iterkeys())
             if name == 'mineralgrain':
                 textctrl_k = dlg.view.get_object('kmod1')
                 textctrl_g = dlg.view.get_object('gmod1')
@@ -89,63 +93,80 @@ class RockTable(wx.grid.GridTableBase):
                 textctrl_k = dlg.view.get_object('kmod2')
                 textctrl_g = dlg.view.get_object('gmod2')
                 textctrl_rho = dlg.view.get_object('dens2')
-                
+
             if new_value['name'] in dictmin.iterkeys():
                 textctrl_k.set_value(new_value['K'])
                 textctrl_g.set_value(new_value['G'])
                 textctrl_rho.set_value(new_value['Dens'])
-                
+
         dlg.view.AddChoice(cont_grain, widget_name='mineralgrain', options=dictmin, flag=wx.EXPAND)
         choice_grain = dlg.view.get_object('mineralgrain')
         choice_grain.set_trigger(on_change_mineral)
-        
+
         dlg.view.AddChoice(cont_matr, widget_name='mineralmatrix', options=dictmin, flag=wx.EXPAND)
         choice_matrix = dlg.view.get_object('mineralmatrix')
         choice_matrix.set_trigger(on_change_mineral)
-        
-        gr_frac = dlg.view.AddCreateContainer('BoxSizer', cont_grain, orient=wx.HORIZONTAL, proportion=1, flag=wx.EXPAND|wx.ALL, border=5)
-        dlg.view.AddStaticText(gr_frac, proportion=1,initial='Fraction ',flag=wx.ALIGN_RIGHT)
-        dlg.view.AddTextCtrl(gr_frac, proportion=1, widget_name='frac1', initial='0.8',flag=wx.ALIGN_RIGHT)
-        
-        gr_poro = dlg.view.AddCreateContainer('BoxSizer', cont_grain, orient=wx.HORIZONTAL, proportion=1, flag=wx.EXPAND|wx.ALL, border=5)
-        dlg.view.AddStaticText(gr_poro, proportion=1,initial='Porosity ',flag=wx.ALIGN_RIGHT)
-        dlg.view.AddTextCtrl(gr_poro, proportion=1, widget_name='poro1', initial='0.20',flag=wx.ALIGN_RIGHT)
-        
-        gr_kmod = dlg.view.AddCreateContainer('BoxSizer', cont_grain, orient=wx.HORIZONTAL, proportion=1, flag=wx.EXPAND|wx.ALL, border=5)
-        dlg.view.AddStaticText(gr_kmod, proportion=1,widget_name='K_Modulus', initial='K Modulus (GPa) ',flag=wx.ALIGN_RIGHT)
+
+        gr_frac = dlg.view.AddCreateContainer('BoxSizer', cont_grain, orient=wx.HORIZONTAL, proportion=1,
+                                              flag=wx.EXPAND | wx.ALL, border=5)
+        dlg.view.AddStaticText(gr_frac, proportion=1, initial='Fraction ', flag=wx.ALIGN_RIGHT)
+        dlg.view.AddTextCtrl(gr_frac, proportion=1, widget_name='frac1', initial='0.8', flag=wx.ALIGN_RIGHT)
+
+        gr_poro = dlg.view.AddCreateContainer('BoxSizer', cont_grain, orient=wx.HORIZONTAL, proportion=1,
+                                              flag=wx.EXPAND | wx.ALL, border=5)
+        dlg.view.AddStaticText(gr_poro, proportion=1, initial='Porosity ', flag=wx.ALIGN_RIGHT)
+        dlg.view.AddTextCtrl(gr_poro, proportion=1, widget_name='poro1', initial='0.20', flag=wx.ALIGN_RIGHT)
+
+        gr_kmod = dlg.view.AddCreateContainer('BoxSizer', cont_grain, orient=wx.HORIZONTAL, proportion=1,
+                                              flag=wx.EXPAND | wx.ALL, border=5)
+        dlg.view.AddStaticText(gr_kmod, proportion=1, widget_name='K_Modulus', initial='K Modulus (GPa) ',
+                               flag=wx.ALIGN_RIGHT)
         dlg.view.AddTextCtrl(gr_kmod, proportion=1, widget_name='kmod1', initial='36.5', flag=wx.ALIGN_RIGHT)
-        
-        gr_gmod = dlg.view.AddCreateContainer('BoxSizer', cont_grain, orient=wx.HORIZONTAL, proportion=1, flag=wx.EXPAND|wx.ALL, border=5)
-        dlg.view.AddStaticText(gr_gmod, proportion=1,widget_name='G_Modulus', initial='G Modulus (GPa) ',flag=wx.ALIGN_RIGHT)
-        dlg.view.AddTextCtrl(gr_gmod, proportion=1,widget_name='gmod1', initial='78.6', flag=wx.ALIGN_RIGHT)
-        
-        gr_dens = dlg.view.AddCreateContainer('BoxSizer', cont_grain, orient=wx.HORIZONTAL, proportion=1, flag=wx.EXPAND|wx.ALL, border=5)
-        dlg.view.AddStaticText(gr_dens, proportion=1,widget_name='Density', initial='Density (g/cc) ',flag=wx.ALIGN_RIGHT)
-        dlg.view.AddTextCtrl(gr_dens, proportion=1,widget_name='dens1', initial='2.65', flag=wx.ALIGN_RIGHT)
-        
-        mtr_frac = dlg.view.AddCreateContainer('BoxSizer', cont_matr, orient=wx.HORIZONTAL, proportion=1, flag=wx.EXPAND|wx.ALL, border=5)
-        dlg.view.AddStaticText(mtr_frac, proportion=1,widget_name='fraction2', initial='Fraction ',flag=wx.ALIGN_RIGHT)
-        dlg.view.AddTextCtrl(mtr_frac, proportion=1,widget_name='frac2', initial='0.2', flag=wx.ALIGN_LEFT)
-        
-        mtr_poro = dlg.view.AddCreateContainer('BoxSizer', cont_matr, orient=wx.HORIZONTAL, proportion=1, flag=wx.EXPAND|wx.ALL, border=5)
-        dlg.view.AddStaticText(mtr_poro, proportion=1,initial='Porosity ',flag=wx.ALIGN_RIGHT)
-        dlg.view.AddTextCtrl(mtr_poro, proportion=1, widget_name='poro2', initial='0.10',flag=wx.ALIGN_RIGHT)
-        
-        mtr_kmod = dlg.view.AddCreateContainer('BoxSizer', cont_matr, orient=wx.HORIZONTAL, proportion=1, flag=wx.EXPAND|wx.ALL, border=5)
-        dlg.view.AddStaticText(mtr_kmod, proportion=1,widget_name='K_Modulus2', initial='K Modulus (GPa) ',flag=wx.ALIGN_RIGHT)
-        dlg.view.AddTextCtrl(mtr_kmod, proportion=1,widget_name='kmod2', initial='36.5', flag=wx.ALIGN_LEFT)
-        
-        mtr_gmod = dlg.view.AddCreateContainer('BoxSizer', cont_matr, orient=wx.HORIZONTAL, proportion=1, flag=wx.EXPAND|wx.ALL, border=5)
-        dlg.view.AddStaticText(mtr_gmod,proportion=1, widget_name='G_Modulus2', initial='G Modulus (GPa) ',flag=wx.ALIGN_RIGHT)
-        dlg.view.AddTextCtrl(mtr_gmod,proportion=1, widget_name='gmod2', initial='78.6', flag=wx.ALIGN_LEFT)
-        
-        mtr_dens = dlg.view.AddCreateContainer('BoxSizer', cont_matr, orient=wx.HORIZONTAL, proportion=1, flag=wx.EXPAND|wx.ALL, border=5)
-        dlg.view.AddStaticText(mtr_dens,proportion=1, widget_name='Density2', initial='Density (g/cc) ',flag=wx.ALIGN_RIGHT)
-        dlg.view.AddTextCtrl(mtr_dens, proportion=1,widget_name='dens2', initial='2.65', flag=wx.ALIGN_LEFT)
-    #        
+
+        gr_gmod = dlg.view.AddCreateContainer('BoxSizer', cont_grain, orient=wx.HORIZONTAL, proportion=1,
+                                              flag=wx.EXPAND | wx.ALL, border=5)
+        dlg.view.AddStaticText(gr_gmod, proportion=1, widget_name='G_Modulus', initial='G Modulus (GPa) ',
+                               flag=wx.ALIGN_RIGHT)
+        dlg.view.AddTextCtrl(gr_gmod, proportion=1, widget_name='gmod1', initial='78.6', flag=wx.ALIGN_RIGHT)
+
+        gr_dens = dlg.view.AddCreateContainer('BoxSizer', cont_grain, orient=wx.HORIZONTAL, proportion=1,
+                                              flag=wx.EXPAND | wx.ALL, border=5)
+        dlg.view.AddStaticText(gr_dens, proportion=1, widget_name='Density', initial='Density (g/cc) ',
+                               flag=wx.ALIGN_RIGHT)
+        dlg.view.AddTextCtrl(gr_dens, proportion=1, widget_name='dens1', initial='2.65', flag=wx.ALIGN_RIGHT)
+
+        mtr_frac = dlg.view.AddCreateContainer('BoxSizer', cont_matr, orient=wx.HORIZONTAL, proportion=1,
+                                               flag=wx.EXPAND | wx.ALL, border=5)
+        dlg.view.AddStaticText(mtr_frac, proportion=1, widget_name='fraction2', initial='Fraction ',
+                               flag=wx.ALIGN_RIGHT)
+        dlg.view.AddTextCtrl(mtr_frac, proportion=1, widget_name='frac2', initial='0.2', flag=wx.ALIGN_LEFT)
+
+        mtr_poro = dlg.view.AddCreateContainer('BoxSizer', cont_matr, orient=wx.HORIZONTAL, proportion=1,
+                                               flag=wx.EXPAND | wx.ALL, border=5)
+        dlg.view.AddStaticText(mtr_poro, proportion=1, initial='Porosity ', flag=wx.ALIGN_RIGHT)
+        dlg.view.AddTextCtrl(mtr_poro, proportion=1, widget_name='poro2', initial='0.10', flag=wx.ALIGN_RIGHT)
+
+        mtr_kmod = dlg.view.AddCreateContainer('BoxSizer', cont_matr, orient=wx.HORIZONTAL, proportion=1,
+                                               flag=wx.EXPAND | wx.ALL, border=5)
+        dlg.view.AddStaticText(mtr_kmod, proportion=1, widget_name='K_Modulus2', initial='K Modulus (GPa) ',
+                               flag=wx.ALIGN_RIGHT)
+        dlg.view.AddTextCtrl(mtr_kmod, proportion=1, widget_name='kmod2', initial='36.5', flag=wx.ALIGN_LEFT)
+
+        mtr_gmod = dlg.view.AddCreateContainer('BoxSizer', cont_matr, orient=wx.HORIZONTAL, proportion=1,
+                                               flag=wx.EXPAND | wx.ALL, border=5)
+        dlg.view.AddStaticText(mtr_gmod, proportion=1, widget_name='G_Modulus2', initial='G Modulus (GPa) ',
+                               flag=wx.ALIGN_RIGHT)
+        dlg.view.AddTextCtrl(mtr_gmod, proportion=1, widget_name='gmod2', initial='78.6', flag=wx.ALIGN_LEFT)
+
+        mtr_dens = dlg.view.AddCreateContainer('BoxSizer', cont_matr, orient=wx.HORIZONTAL, proportion=1,
+                                               flag=wx.EXPAND | wx.ALL, border=5)
+        dlg.view.AddStaticText(mtr_dens, proportion=1, widget_name='Density2', initial='Density (g/cc) ',
+                               flag=wx.ALIGN_RIGHT)
+        dlg.view.AddTextCtrl(mtr_dens, proportion=1, widget_name='dens2', initial='2.65', flag=wx.ALIGN_LEFT)
+        #
         try:
             if dlg.view.ShowModal() == wx.ID_OK:
-                results = dlg.get_results()     
+                results = dlg.get_results()
                 gr_f = results.get('frac1')
                 mtr_f = results.get('frac2')
                 ngrain = results.get('mineralgrain')['name']
@@ -158,17 +179,18 @@ class RockTable(wx.grid.GridTableBase):
                 mtr_k = results.get('kmod2')
                 mtr_mi = results.get('gmod2')
                 mtr_rho = results.get('dens2')
-#                kk = RP.VRHill (gr_k, gr_f, mtr_k)
-#                g = RP.VRHill (gr_mi, gr_f, mtr_mi)
-                print ('\ngrd', gr_k, gr_f, mtr_k, type(float(mtr_k)))
-                rocktype = self.OM.new('rocktype', fracgrain = gr_f, fracmatrix = mtr_f, grain = ngrain, matrix = nmatrix, k=10, mi=20)#vp=vp, vs=vs, rho = rho, k=k, mi=mi, poi=poi        
+                #                kk = RP.VRHill (gr_k, gr_f, mtr_k)
+                #                g = RP.VRHill (gr_mi, gr_f, mtr_mi)
+                print('\ngrd', gr_k, gr_f, mtr_k, type(float(mtr_k)))
+                rocktype = self.OM.new('rocktype', fracgrain=gr_f, fracmatrix=mtr_f, grain=ngrain, matrix=nmatrix, k=10,
+                                       mi=20)  # vp=vp, vs=vs, rho = rho, k=k, mi=mi, poi=poi
                 return rocktype
 
         except Exception as e:
-            print ('ERROR:', str(e))
+            print('ERROR:', str(e))
         finally:
             UIM.remove(dlg.uid)
-            
+
     @debugdecorator
     def DeleteRows(self, pos=0, numRows=1):
         if pos >= self.N_ROWS:
@@ -203,13 +225,14 @@ class RockTable(wx.grid.GridTableBase):
         return str(row + 1)
 
     @debugdecorator
-    def SetRowLabelValue(self, row, label):        
+    def SetRowLabelValue(self, row, label):
         return
 
     @debugdecorator
     def GetNumberCols(self):
         return self.N_COLS
-#        return len(self.propmap) + self.N_COLS
+
+    #        return len(self.propmap) + self.N_COLS
 
     @debugdecorator
     def GetNumberRows(self):
@@ -217,10 +240,10 @@ class RockTable(wx.grid.GridTableBase):
 
     @debugdecorator
     def GetAttr(self, row, col, kind):
-        
-        #if _iswxphoenix:
+
+        # if _iswxphoenix:
         attr = wx.grid.GridCellAttr().Clone()
-        
+
         if col >= self.N_COLS:
             attr.SetAlignment(wx.ALIGN_RIGHT, wx.ALIGN_CENTER)
         elif col == 0:
@@ -258,7 +281,7 @@ class RockTable(wx.grid.GridTableBase):
             return rocktype.fracmatrix + ' ' + rocktype.matrix
 
     @debugdecorator
-    def SetValue(self, row, col, value):        
+    def SetValue(self, row, col, value):
         if col >= self.N_COLS:
             i = col - self.N_COLS
             if value:
@@ -276,6 +299,7 @@ class RockTable(wx.grid.GridTableBase):
             return
         elif col == 3:
             return
+
     @debugdecorator
     def set_color(self, row, color):
         rocktype = self.OM.get(self.rocktypemap[row])
@@ -285,7 +309,7 @@ class RockTable(wx.grid.GridTableBase):
     def get_color(self, row):
         rocktype = self.OM.get(self.rocktypemap[row])
         return rocktype.color
-    
+
     @debugdecorator
     def get_nameunit(self, col):
         if col >= self.N_COLS:
@@ -318,7 +342,7 @@ class PropertyEntryDialog(wx.Dialog):
         sizer = wx.BoxSizer(wx.VERTICAL)
 
         button_sizer = self.CreateButtonSizer(wx.OK | wx.CANCEL)
-        
+
         sizer.Add(fgs, proportion=1, flag=wx.EXPAND)
         sizer.Add(button_sizer, proportion=0, flag=wx.EXPAND)
         self.SetSizer(sizer)
@@ -333,28 +357,27 @@ class PropertyEntryDialog(wx.Dialog):
         return name, unit
 
 
-
 class NewRockTableDialog(wx.Dialog):
     def __init__(self, *args, **kwargs):
         if 'size' not in kwargs:
             kwargs['size'] = (360, 240)
         super(NewRockTableDialog, self).__init__(*args, **kwargs)
-#        ico = wx.Icon(r'./icons/plus32x32.ico', wx.BITMAP_TYPE_ICO)
-#        self.SetIcon(ico)
+        #        ico = wx.Icon(r'./icons/plus32x32.ico', wx.BITMAP_TYPE_ICO)
+        #        self.SetIcon(ico)
         fgs = wx.BoxSizer(wx.HORIZONTAL)
         main_label = wx.StaticText(self, label="Fill up the cell below to create a new rock table.")
         name_label = wx.StaticText(self, label="Name Rock Table: ")
-#        unit_label = wx.StaticText(self, label="Unidade: ")
+        #        unit_label = wx.StaticText(self, label="Unidade: ")
         self.name_ctrl = wx.TextCtrl(self)
-#        self.unit_ctrl = wx.TextCtrl(self)
+        #        self.unit_ctrl = wx.TextCtrl(self)
         fgs.Add(name_label, 0, wx.EXPAND)
         fgs.Add(self.name_ctrl, 1, wx.EXPAND)
-#        fgs.AddGrowableRow(0)
-        
+        #        fgs.AddGrowableRow(0)
+
         sizer = wx.BoxSizer(wx.VERTICAL)
 
         button_sizer = self.CreateButtonSizer(wx.OK | wx.CANCEL)
-        
+
         sizer.Add(main_label, 1, wx.GROW | wx.EXPAND)
         sizer.Add(fgs, 0, wx.EXPAND)
         sizer.Add(button_sizer, 0, wx.EXPAND)
@@ -369,22 +392,21 @@ class NewRockTableDialog(wx.Dialog):
         return name
 
 
-
 class Dialog(wx.Dialog):
     @debugdecorator
     def __init__(self, *args, **kwargs):
         if 'size' not in kwargs:
             kwargs['size'] = (640, 480)
-        
+
         super(Dialog, self).__init__(*args, **kwargs)
-        
+
         self.OM = ObjectManager()
 
         self.currentwellindex = 0
         self.currentrocktableindex = 0
-        
+
         self.tables = []
-        
+
         self.rocktablemap = [rocktable.uid for rocktable in self.OM.list('rocktable')]
         work_table = []
         for rocktable in self.OM.list('rocktable'):
@@ -392,8 +414,8 @@ class Dialog(wx.Dialog):
         self.tables.append(work_table)
         self.grid = wx.grid.Grid(self)
         self.grid.SetDefaultColSize(100)
-        
-#        else:
+
+        #        else:
         self.grid.SetTable(self.tables[self.currentwellindex][self.currentrocktableindex])
         self.grid.Bind(wx.grid.EVT_GRID_CELL_LEFT_DCLICK, self.on_cell_dlclick)
         self.grid.Bind(wx.grid.EVT_GRID_LABEL_LEFT_DCLICK, self.on_label_dlclick)
@@ -407,10 +429,10 @@ class Dialog(wx.Dialog):
 
         add_rocktype_button = wx.Button(self, label='ADD ROCK TYPE')
         add_rocktype_button.Bind(wx.EVT_BUTTON, self.on_add_rocktype)
-        
+
         remove_rocktype_button = wx.Button(self, label='REM ROCK TYPE')
         remove_rocktype_button.Bind(wx.EVT_BUTTON, self.on_remove_rocktype)
-        
+
         toolbar_sizer.Add(self.rocktable_choice, 1, wx.ALIGN_LEFT)
         toolbar_sizer.Add(add_rocktype_button, 0, wx.ALIGN_LEFT)
         toolbar_sizer.Add(remove_rocktype_button, 0, wx.ALIGN_LEFT)
@@ -435,7 +457,6 @@ class Dialog(wx.Dialog):
         self.grid.AppendRows()
         self.grid.ForceRefresh()
 
-    
     def on_remove_rocktype(self, event):
         to_remove = self.grid.GetSelectedRows()
         self.grid.ClearSelection()
@@ -443,7 +464,6 @@ class Dialog(wx.Dialog):
             self.grid.DeleteRows(i)
         self.grid.ForceRefresh()
 
-        
     @debugdecorator
     def on_cell_dlclick(self, event):
         if event.GetCol() == 1:
