@@ -1,4 +1,13 @@
 ﻿Gripy Change log - (pt-br only)
+Atualizado em 20/12/2019 por Evandro (@evandroribeiroc) e Isac (@isacmendes)
+
+Versão 0.9.3.beta:
+================
+- Correção da sequencia de índices em objetos carregados de um projeto .pgg; 
+- Ajustes de referência de "index_set" para "data_index" na tranformada de wavelet;
+- Correção das dimensões do espectograma e plotagem.
+
+
 Atualizado em 29/11/2019 por Rafael (@rbscardini)
 
 Versão 0.9.2.beta:
