@@ -18,7 +18,7 @@ class DensityRepresentationController(RepresentationController):
 
     _ATTRIBUTES = OrderedDict()
     _ATTRIBUTES['type'] = {
-        'default_value': 'wiggle',  # 'density', 
+        'default_value': 'wiggle',  # 'density',
         'type': str
     }
     _ATTRIBUTES['colormap'] = {
@@ -351,7 +351,7 @@ class DensityRepresentationView(RepresentationView):
                     controller.set_value_from_event('max_density',
                                                     np.nanmax(data)
                                                     )
-                    #        
+                    #
                 image.set_clim(controller.min_density, controller.max_density)
                 image.set_alpha(controller.density_alpha)
                 self._mplot_objects['density'] = image
@@ -444,7 +444,7 @@ class DensityRepresentationView(RepresentationView):
                                  )
                 label.set_offset_title(xdata_index.name)
                 label.set_offset_subtitle(xdata_index.unit)
-                #    
+                #
 
         self.draw_canvas()
         if controller.type == 'wiggle' or controller.type == 'both':

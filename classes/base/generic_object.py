@@ -51,7 +51,7 @@ class GripyObject(pubsub.PublisherMixin, metaclass=GripyWxMeta):
             self.oid = kwargs.pop('oid')
             _manager_obj._test_new_object_id(self.tid, self.oid)
         else:
-            self.oid = _manager_obj._getnewobjectid(self.tid)
+            self.oid = _manager_obj._getnewobjectid(self.tid) + 1
             #
         # TODO: verificar isso...   
         self._processing_value_from_event = True

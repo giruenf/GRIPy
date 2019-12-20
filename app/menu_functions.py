@@ -1791,7 +1791,10 @@ def on_cwt(event):
 
             input_indexes = obj.get_data_indexes()
 
-            z_axis = input_indexes[0][0]
+            if obj.tid == 'log':
+                z_axis = OM.get(input_indexes[0][0])
+            else:
+                z_axis = OM.get(input_indexes[3][0])
 
             ###
             # TODO: rever TIME/DEPTH
@@ -1837,24 +1840,6 @@ def on_cwt(event):
 
                 name = results.get('cwt_name')
 
-                scalogram = OM.new('gather_scalogram', data_out, name=name)
-                parent_uid = OM._getparentuid(obj_uid)
-                if not OM.add(scalogram, parent_uid):
-                    raise Exception('Object was not added. tid={\'gather_scalogram\'}')
-
-                new_index_set = OM.new('index_set', vinculated=obj.index_set_uid)
-                OM.add(new_index_set, scalogram.uid)
-                #
-                index = OM.new('data_index', 1, 'Frequency', 'FREQUENCY', 'Hz',
-                               data=freqs
-                               )
-                OM.add(index, new_index_set.uid)
-                #
-                index = OM.new('data_index', 1, 'Scale', 'SCALE',
-                               data=scales
-                               )
-                OM.add(index, new_index_set.uid)
-
             else:
 
                 print('Input obj.data.shape:', obj.data.shape)
@@ -1886,13 +1871,17 @@ def on_cwt(event):
                                     scales = np.flip(wt.scales, 0)
                                 if mode == 0:
                                     data_out[i][j][k] = np.abs(np.flip(wt.wavelet_transform, 0))
+                                    data_type = 'MAGNITUDE'
                                 elif mode == 1:
                                     # np.abs(self.wavelet_transform) ** 2
                                     data_out[i][j][k] = np.flip(wt.wavelet_power, 0)
-                                elif mode == 2 or mode == 3:
+                                    data_type = 'PSD'
+                                elif mode == 2:
                                     data_out[i][j][k] = np.angle(np.flip(wt.wavelet_transform, 0))
-                                if mode == 3:
+                                    data_type = 'ANGLE'
+                                else:
                                     data_out[i][j][k] = np.unwrap(np.angle(np.flip(wt.wavelet_transform, 0)), axis=0)
+                                    data_type = 'PHASE'
 
                 elif len(obj.data.shape) == 3:
                     print('Input data shape lenght: 3')
@@ -1971,54 +1960,60 @@ def on_cwt(event):
                 #
                 name = results.get('cwt_name')
 
+                # app_utils.load_segy(event, filename,
+                #                     new_obj_name=wellgather_name,
+                #                     comparators_list=comparators,
+                #                     iline_byte=iline_byte, xline_byte=xline_byte,
+                #                     offset_byte=offset_byte, tid='gather',
+                #                     datatype='amplitude', parentuid=welluid
+                #                     )
+
                 if obj_uid[0] == 'gather' or obj_uid[0] == 'model1d':
-                    scalogram = OM.new('gather_scalogram', data_out, name=name)
+                    spectogram = OM.new('spectogram', data_out, name=name, datatype=data_type)
                     parent_uid = OM._getparentuid(obj_uid)
-                    if not OM.add(scalogram, parent_uid):
-                        raise Exception('Object was not added. tid={\'gather_scalogram\'}')
-                        #
-                    # obj_index_set = OM.list('index_set', obj.uid)[0]
-                    # scalogram_index_set = OM.new('index_set', vinculated=obj_index_set.uid)
-                    # OM.add(scalogram_index_set, scalogram.uid)
-                    #
+                    if not OM.add(spectogram, parent_uid):
+                        raise Exception('Object was not added. tid={\'gather_spectogram\'}')
+
                 elif obj_uid[0] == 'seismic':
-                    scalogram = OM.new('scalogram', data_out, name=name)
-                    result = OM.add(scalogram, obj_uid)
+                    spectogram = OM.new('spectogram', data_out, name=name)
+                    result = OM.add(spectogram, obj_uid)
                     print('result:', result)
-                    #
-                    # obj_index_set = OM.list('index_set', obj.uid)[0]
-                    # scalogram_index_set = OM.new('index_set', vinculated=obj_index_set.uid)
-                    # OM.add(scalogram_index_set, scalogram.uid)
-                    #
+
                 else:
                     raise Exception('Not a CWT valid class type.')
-                #
-                obj_index_set = OM.list('index_set', obj.uid)[0]
-                scalogram_index_set = OM.new('index_set', name=obj_index_set.name)
-                OM.add(scalogram_index_set, scalogram.uid)
-                #
-                state = z_axis.get_state()
-                index = OM.create_object_from_state('data_index', **state)
-                OM.add(index, scalogram_index_set.uid)
-                #
-                index = OM.new('data_index', 1, 'Frequency', 'FREQUENCY', 'Hz',
-                               data=freqs
-                               )
-                OM.add(index, scalogram_index_set.uid)
-                #
-                index = OM.new('data_index', 1, 'Scale', 'SCALE',
-                               data=scales
-                               )
-                OM.add(index, scalogram_index_set.uid)
 
-                # Inserindo as outras dimensões do dado
-                for idx in range(1, len(input_indexes)):
-                    print('idx:', idx)
-                    state = input_indexes[idx][0].get_state()
-                    state['dimension'] = idx + 1
-                    index = OM.index = OM.create_object_from_state('data_index', **state)
-                    OM.add(index, scalogram_index_set.uid)
-                #
+                # Two instances are required, cause of oid numbering, for loaded objects
+
+                freq_index = OM.new('data_index',
+                                    freqs,
+                                    name='Frequency',
+                                    unit='Hz',
+                                    datatype='FREQUENCY'
+                                    )
+
+                if not OM.add(freq_index, spectogram.uid):
+                    raise Exception('Frequency Index was not added.')
+
+                # Create new dimensions
+                list_index = []
+                for idx in range(0, len(input_indexes)):
+                    index_ref = OM.get(input_indexes[idx][0])
+                    # if index_ref.datatype.upper() is not 'FREQUENCY':
+                    if index_ref.datatype.upper() != 'FREQUENCY':
+                        state = index_ref.get_state()
+                        state['dimension'] = idx + 1
+                        new_index = OM.new('data_index', **state)
+                        list_index.append(new_index)
+                        OM.add(new_index, spectogram.uid)
+
+                i_line_idx = list_index[0]
+                x_line_idx = list_index[1]
+                off_set_idx = list_index[2]
+                time_idx = list_index[3]
+
+                spectogram._create_data_index_map([i_line_idx.uid], [x_line_idx.uid], [off_set_idx.uid],
+                                                      [freq_index.uid], [time_idx.uid])
+
     except Exception as e:
         print('ERROR [on_cwt]:', str(e))
         pass

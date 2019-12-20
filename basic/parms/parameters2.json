@@ -41,6 +41,7 @@
     "OrigResPress",
     "Partition",
     "PEF",
+    "P_RES",
     "Perforations",
     "Phi",
     "PhiT",
@@ -50,6 +51,7 @@
     "RB_Offset",
     "ROP",
     "RotarySpeed",
+    "Rs_RES",
     "SP",
     "ShalRes",
     "ShearSonic",
@@ -60,6 +62,9 @@
     "StickSlip",
     "StressAzimuth",
     "Sw",
+    "Sg_RES",
+    "So_RES",
+    "Sw_RES",
     "Temp",
     "Tension",
     "Time",
@@ -772,6 +777,9 @@
     },
     "pef": {
       "PEF": 46
+    },
+    "p_res": {
+      "P_RES": 5000
     },
     "pefz": {
       "PEF": 250
@@ -1564,6 +1572,9 @@
     },
     "pef": {
       "Log": 46
+    },
+    "p_res": {
+      "Log": 0
     },
     "pefz": {
       "Log": 250

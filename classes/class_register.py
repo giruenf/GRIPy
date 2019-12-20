@@ -86,12 +86,14 @@ def register_OM_classes():
     ObjectManager.register_class(DataIndex, Gather)
     ObjectManager.register_class(DataIndexMap, Gather)
     #
+    ObjectManager.register_class(Spectogram, Well)
+    ObjectManager.register_class(DataIndex, Spectogram)
+    ObjectManager.register_class(DataIndexMap, Spectogram)
     ObjectManager.register_class(Spectogram, Log)
     ObjectManager.register_class(Spectogram, Gather)
     ObjectManager.register_class(Spectogram, Seismic)
-    ObjectManager.register_class(DataIndexMap, Spectogram)
-    ObjectManager.register_class(DataIndex, Spectogram)
-    #    
+
+    #
 
     """
 #    ObjectManager.register_class(IndexSet, Well)

@@ -49,6 +49,7 @@
       "OnBottom",
       "OrigResPress",
       "PEF",
+      "P_RES",
       "Perforations",
       "Phi",
       "PhiT",
@@ -57,6 +58,7 @@
       "QFactor",
       "RB_Offset",
       "ROP",
+      "Rs_RES",
       "RotarySpeed",
       "SP",
       "ShalRes",
@@ -68,6 +70,9 @@
       "StickSlip",
       "StressAzimuth",
       "Sw",
+      "Sg_RES",
+      "So_RES",
+      "Sw_RES",
       "Temp",
       "Tension",
       "Tool_Azimuth",
@@ -271,6 +276,9 @@
     "den": {
       "Density": 0
     },
+    "density": {
+      "Density": 57
+    },
     "dept": {
       "MD": 16
     },
@@ -356,7 +364,10 @@
       "PEF": 0
     },
     "facies": {
-      "Lithology": 16
+      "Caliper": 2,
+      "Lithology": 480,
+      "Vcl": 1,
+      "Velocity": 1
     },
     "facies_teste": {
       "Lithology": 11
@@ -667,6 +678,9 @@
     "neu": {
       "Neutron": 0
     },
+    "neutron": {
+      "Neutron": 58
+    },
     "ngk": {
       "Neutron": 0
     },
@@ -744,6 +758,9 @@
     },
     "p3rt": {
       "Pump": 0
+    },
+    "p_res": {
+      "P_RES": 1
     },
     "pdpe": {
       "PEF": 0
@@ -850,6 +867,9 @@
     "rd": {
       "DeepRes": 0
     },
+    "resistivity": {
+      "DeepRes": 57
+    },
     "rfoc": {
       "ShalRes": 0
     },
@@ -860,7 +880,8 @@
       "Density": 21
     },
     "rhoc": {
-      "Density": 0
+      "": 1,
+      "Density": 154
     },
     "rhoma": {
       "Matrix": 0
@@ -1006,6 +1027,9 @@
     "sflu": {
       "ShalRes": 0
     },
+    "sg": {
+      "Sg_RES": 531
+    },
     "sga": {
       "Sigma": 0
     },
@@ -1054,6 +1078,12 @@
     "sn": {
       "ShalRes": 0
     },
+    "so": {
+      "So_RES": 531
+    },
+    "sonico": {
+      "Sonic": 58
+    },
     "sp": {
       "SP": 0
     },
@@ -1073,7 +1103,10 @@
       "VertStress": 0
     },
     "sw": {
-      "Sw": 27
+      "Sw": 536
+    },
+    "sw_res": {
+      "Sw_": 531
     },
     "swb": {
       "Sw": 0
@@ -1229,6 +1262,9 @@
     },
     "vsalt": {
       "Vsalt": 0
+    },
+    "vsh": {
+      "Vcl": 10
     },
     "vshale": {
       "Mineral": 0

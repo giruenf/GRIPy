@@ -36,8 +36,8 @@ class PluginManagerDecorator(object):
     Add several responsibilities to a plugin manager object in a
     more flexible way than by mere subclassing. This is indeed an
     implementation of the Decorator Design Patterns.
-        
-    
+
+
     There is also an additional mechanism that allows for the
     automatic creation of the object to be decorated when this object
     is an instance of PluginManager (and not an instance of its
@@ -45,12 +45,12 @@ class PluginManagerDecorator(object):
     simple when the user don't want to mix a lot of 'enhancements' on
     the base class.
 
-    
+
     About the __init__:
 
     Mimics the PluginManager's __init__ method and wraps an
     instance of this class into this decorator class.
-        
+
       - *If the decorated_object is not specified*, then we use the
         PluginManager class to create the 'base' manager, and to do
         so we will use the arguments: ``categories_filter``,

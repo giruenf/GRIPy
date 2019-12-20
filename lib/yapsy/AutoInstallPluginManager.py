@@ -28,13 +28,13 @@ class AutoInstallPluginManager(PluginManagerDecorator):
     files into the appropriate directory.
 
     Ctor Arguments:
-        
+
         ``plugin_install_dir``
           The directory where new plugins to be installed will be copied.
 
     .. warning:: If ``plugin_install_dir`` does not correspond to
                  an element of the ``directories_list``, it is
-                 appended to the later.			
+                 appended to the later.
     """
 
     def __init__(self,
@@ -76,7 +76,7 @@ class AutoInstallPluginManager(PluginManagerDecorator):
         Giving the plugin's info file (e.g. ``myplugin.yapsy-plugin``),
         and the directory where it is located, get all the files that
         define the plugin and copy them into the correct directory.
-        
+
         Return ``True`` if the installation is a success, ``False`` if
         it is a failure.
         """
@@ -118,9 +118,9 @@ class AutoInstallPluginManager(PluginManagerDecorator):
         Giving the plugin's zip file (e.g. ``myplugin.zip``), check
         that their is a valid info file in it and correct all the
         plugin files into the correct directory.
-        
+
         .. warning:: Only available for python 2.6 and later.
-        
+
         Return ``True`` if the installation is a success, ``False`` if
         it is a failure.
         """

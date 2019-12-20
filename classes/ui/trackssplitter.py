@@ -108,7 +108,7 @@ class MultiSplitterWindow(wx.Panel):
         self.ajustado = False
 
         # Tom de azul para sashTrcker
-        self.sashTrackerColor = 'blue'  # (4, 20, 164) 
+        self.sashTrackerColor = 'blue'  # (4, 20, 164)
 
     def GetOrientation(self):
         """
@@ -336,8 +336,8 @@ class MultiSplitterWindow(wx.Panel):
         # if parent.IsIconized():
         # evt.Skip()
         #    return
-        # self.Refresh()    
-        # self._checkRequestedSashPosition = False   
+        # self.Refresh()
+        # self._checkRequestedSashPosition = False
         self._SizeComponent()
 
     def _OnIdle(self, evt):
@@ -452,7 +452,7 @@ class MultiSplitterWindow(wx.Panel):
         else:
             # or it might have changed the value
             new_pos = evt.GetSashPosition()
-        # print '_OnSashPositionChanging({}): {}'.format(idx, new_pos)    
+        # print '_OnSashPositionChanging({}): {}'.format(idx, new_pos)
         return new_pos
 
     def _SetSashPositionAndNotify(self, idx, new_pos):
@@ -501,7 +501,7 @@ class MultiSplitterWindow(wx.Panel):
             min_width = self._minimumPaneSize
         if new_pos < min_width:
             new_pos = min_width
-        # print '_AdjustSashPosition({}, {}): {}'.format(idx, entrou, new_pos)    
+        # print '_AdjustSashPosition({}, {}): {}'.format(idx, entrou, new_pos)
         return new_pos
 
     def _get_sash_position_x(self, idx):
@@ -517,7 +517,7 @@ class MultiSplitterWindow(wx.Panel):
                 posx += self._sashes[win_idx]
                 i += 1
             if idx + 1 == i:
-                # print '_get_sash_position_x:', idx, posx  
+                # print '_get_sash_position_x:', idx, posx
                 return posx
         raise Exception('ERROR')
 
@@ -699,7 +699,7 @@ class MultiSplitterWindow(wx.Panel):
             soma += len(self.get_windows_shown()) * self._sash_size
             self.SetSize([soma, self.GetSize().GetHeight()])
 
-            #   #print '    self.SetSize([{}, {}])'.format(soma, self.GetSize().GetHeight()) 
+            #   #print '    self.SetSize([{}, {}])'.format(soma, self.GetSize().GetHeight())
         # self.Bind(wx.EVT_SIZE, self._OnSize)
 
         self._SizeWindows()

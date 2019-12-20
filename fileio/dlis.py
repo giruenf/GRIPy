@@ -1100,7 +1100,7 @@ class DLISFile(object):
                                                 elif code == 23:
                                                     value = get_objname_from_tuple(value)
                                                 values.append(value)
-                                            #                                            print('not code: V', values, role)
+                                            # print('not code: V', values, role)
                                             map_['V'] = values
                                         else:
                                             raise Exception()
